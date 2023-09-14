@@ -4,3 +4,6 @@
 *.iml
 **/bin/
 .java-version
+build
+generated
+
