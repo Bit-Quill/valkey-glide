@@ -1,9 +1,5 @@
 .gradle
-*.class
-.history
 *.iml
-**/bin/
 .java-version
 build
 generated
-
