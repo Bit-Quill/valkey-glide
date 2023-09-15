@@ -5,9 +5,13 @@ package javabushka.client.lettuce;
 
 import static org.junit.Assert.assertEquals;
 
+<<<<<<< Updated upstream
 import javabushka.client.Benchmarking;
 import javabushka.client.Benchmarking.Operation;
 import javabushka.client.ChosenAction;
+=======
+import javabushka.client.utils.Benchmarking;
+>>>>>>> Stashed changes
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

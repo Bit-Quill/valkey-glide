@@ -3,12 +3,15 @@
  */
 package javabushka.client.jedis;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+<<<<<<< Updated upstream
 import javabushka.client.Benchmarking;
 import javabushka.client.Benchmarking.Operation;
 import javabushka.client.ChosenAction;
+=======
+import javabushka.client.utils.Benchmarking;
+>>>>>>> Stashed changes
 import org.junit.Before;
 import org.junit.Test;
 import java.util.HashMap;
