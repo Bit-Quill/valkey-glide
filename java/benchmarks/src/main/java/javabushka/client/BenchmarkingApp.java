@@ -1,8 +1,11 @@
 package javabushka.client;
 
+import java.util.HashMap;
+import java.util.Map;
 import javabushka.client.jedis.JedisClient;
 import javabushka.client.lettuce.LettuceAsyncClient;
 import javabushka.client.utils.Benchmarking;
+import javabushka.client.utils.ChosenAction;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -113,31 +116,14 @@ public class BenchmarkingApp {
     int iterations = 100000;
     String value = "my-value";
 
+    Map<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
+    actions.put(ChosenAction.GET_EXISTING, () -> jedisClient.get(Benchmarking.generateKeySet()));
+    actions.put(ChosenAction.GET_NON_EXISTING, () -> jedisClient.get(Benchmarking.generateKeyGet()));
+    actions.put(ChosenAction.SET, () -> jedisClient.set(Benchmarking.generateKeySet(), value));
+
     Benchmarking.printResults(
-        "SET",
         Benchmarking.calculateResults(
-            Benchmarking.getLatencies(
-                iterations,
-                () -> jedisClient.set(Benchmarking.generateKeySet(), value)
-            )
-        )
-    );
-    Benchmarking.printResults(
-        "GET",
-        Benchmarking.calculateResults(
-            Benchmarking.getLatencies(
-                iterations,
-                () -> jedisClient.get(Benchmarking.generateKeySet())
-            )
-        )
-    );
-    Benchmarking.printResults(
-        "GET non-existing",
-        Benchmarking.calculateResults(
-            Benchmarking.getLatencies(
-                iterations,
-                () -> jedisClient.get(Benchmarking.generateKeyGet())
-            )
+            Benchmarking.getLatencies(iterations, actions)
         )
     );
   }
@@ -154,33 +140,10 @@ public class BenchmarkingApp {
     int iterations = 100000;
     String value = "my-value";
 
-    Benchmarking.printResults(
-        "SET",
-        Benchmarking.calculateResults(
-            Benchmarking.getLatencies(
-                iterations,
-                () -> lettuceClient.set(Benchmarking.generateKeySet(), value)
-            )
-        )
-    );
-    Benchmarking.printResults(
-        "GET",
-        Benchmarking.calculateResults(
-            Benchmarking.getLatencies(
-                iterations,
-                () -> lettuceClient.get(Benchmarking.generateKeySet())
-            )
-        )
-    );
-    Benchmarking.printResults(
-        "GET non-existing",
-        Benchmarking.calculateResults(
-            Benchmarking.getLatencies(
-                iterations,
-                () -> lettuceClient.get(Benchmarking.generateKeyGet())
-            )
-        )
-    );
+    HashMap<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
+    actions.put(ChosenAction.GET_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeySet()));
+    actions.put(ChosenAction.GET_NON_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeyGet()));
+    actions.put(ChosenAction.SET, () -> lettuceClient.set(Benchmarking.generateKeySet(), value));
   }
 
   public static class RunConfiguration {

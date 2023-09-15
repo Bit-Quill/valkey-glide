@@ -1,10 +1,5 @@
 package javabushka.client.utils;
 
-<<<<<<< Updated upstream:java/benchmarks/src/test/java/javabushka/client/Benchmarking.java
-import javabushka.client.LatencyResults;
-import javabushka.client.ChosenAction;
-=======
->>>>>>> Stashed changes:java/benchmarks/src/main/java/javabushka/client/utils/Benchmarking.java
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -113,8 +108,4 @@ public class Benchmarking {
             System.out.println(action + " std dev in ms: " + results.stdDeviation / 1000000.0);
         }
     }
-<<<<<<< Updated upstream:java/benchmarks/src/test/java/javabushka/client/Benchmarking.java
 }
-=======
-}
->>>>>>> Stashed changes:java/benchmarks/src/main/java/javabushka/client/utils/Benchmarking.java
