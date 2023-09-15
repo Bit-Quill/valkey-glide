@@ -1,11 +1,18 @@
 package javabushka.client;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import javabushka.client.jedis.JedisClient;
 import javabushka.client.lettuce.LettuceAsyncClient;
 import javabushka.client.utils.Benchmarking;
 import javabushka.client.utils.ChosenAction;
+import javabushka.client.utils.LatencyResults;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -23,23 +30,42 @@ public class BenchmarkingApp {
     // create the parser
     CommandLineParser parser = new DefaultParser();
     Options options = getOptions();
+    RunConfiguration runConfiguration = new RunConfiguration();
     try {
       // parse the command line arguments
       CommandLine line = parser.parse(options, args);
-      RunConfiguration runConfiguration = verifyOptions(line);
-
-      if (runConfiguration.clients.equalsIgnoreCase("jedis") || runConfiguration.clients.equalsIgnoreCase("all")) {
-        // run jedis test
-        testJedisClientResourceSetGet();
-      } else if (runConfiguration.clients.equalsIgnoreCase("lettuce") || runConfiguration.clients.equalsIgnoreCase("all")) {
-        // run lettuce async test
-        testLettuceClientResourceSetGet();
-      }
+      runConfiguration = verifyOptions(line);
     }
     catch (ParseException exp) {
       // oops, something went wrong
       System.err.println("Parsing failed.  Reason: " + exp.getMessage());
     }
+
+    switch (runConfiguration.clients) {
+      case ALL:
+        testJedisClientResourceSetGet(runConfiguration);
+        testLettuceClientResourceSetGet(runConfiguration);
+        System.out.println("Babushka not yet configured");
+        break;
+      case JEDIS:
+        testJedisClientResourceSetGet(runConfiguration);
+        break;
+      case LETTUCE:
+        testLettuceClientResourceSetGet(runConfiguration);
+        break;
+      case BABUSHKA:
+        System.out.println("Babushka not yet configured");
+        break;
+    }
+
+    if (runConfiguration.resultsFile.isPresent()) {
+      try {
+        runConfiguration.resultsFile.get().close();
+      } catch (IOException ioException) {
+        System.out.println("Error closing results file");
+      }
+    }
+
   }
 
   private static Options getOptions() {
@@ -49,8 +75,9 @@ public class BenchmarkingApp {
     options.addOption("c", "configuration", true, "Configuration flag [Release]");
     options.addOption("f", "resultsFile", true, "Result filepath []");
     options.addOption("C", "concurrentTasks", true, "Number of concurrent tasks [1 10 100]");
-    options.addOption("l", "clients", true, "one of: jedis|jedis_async|lettuce [jedis]");
+    options.addOption("l", "clients", true, "one of: all|jedis|lettuce|babushka [all]");
     options.addOption("h", "host", true, "host url [localhost]");
+    options.addOption("p", "port", true, "port number [port]");
     options.addOption("n", "clientCount", true, "Client count [1]");
     options.addOption("t", "tls", false, "TLS [true]");
 
@@ -69,23 +96,43 @@ public class BenchmarkingApp {
     }
 
     if (line.hasOption("resultsFile")) {
-      runConfiguration.resultsFile = line.getOptionValue("resultsFile");
+      try {
+        runConfiguration.resultsFile = Optional.of(new FileWriter(line.getOptionValue("resultsFile")));
+      } catch (IOException e) {
+        throw new ParseException("Unable to write to resultsFile.");
+      }
     }
 
     if (line.hasOption("concurrentTasks")) {
-      // TODO validate format
-      runConfiguration.concurrentTasks = line.getOptionValue("concurrentTasks");
+      String concurrentTasks = line.getOptionValue("concurrentTasks");
+
+      // remove optional square brackets
+      if (concurrentTasks.startsWith("[") && concurrentTasks.endsWith("]")) {
+        concurrentTasks = concurrentTasks.substring(1, concurrentTasks.length() - 1);
+      }
+      // check if it's the correct format
+      if (!concurrentTasks.matches("\\d+(\\s+\\d+)?")) {
+        throw new ParseException("Invalid concurrentTasks");
+      }
+      // split the string into a list of integers
+      runConfiguration.concurrentTasks =
+          Arrays.stream(concurrentTasks.split("\\s+"))
+              .map(Integer::parseInt)
+              .collect(Collectors.toList());
     }
 
     if (line.hasOption("clients")) {
       String clients = line.getOptionValue("clients");
-      if (clients.equalsIgnoreCase("all")
-          || clients.equalsIgnoreCase("jedis")
-          || clients.equalsIgnoreCase("jedis_async")
-          || clients.equalsIgnoreCase("lettuce")) {
-        runConfiguration.clients = clients;
+      if (ClientName.ALL.isEqual(clients)) {
+        runConfiguration.clients = ClientName.ALL;
+      } else if (ClientName.JEDIS.isEqual(clients)) {
+        runConfiguration.clients = ClientName.JEDIS;
+      } else if (ClientName.LETTUCE.isEqual(clients)) {
+        runConfiguration.clients = ClientName.LETTUCE;
+      } else if (ClientName.BABUSHKA.isEqual(clients)) {
+        runConfiguration.clients = ClientName.BABUSHKA;
       } else {
-        throw new ParseException("Invalid clients option: all|jedis|jedis_async|lettuce");
+        throw new ParseException("Invalid clients option: all|jedis|lettuce|babushka");
       }
     }
 
@@ -104,14 +151,9 @@ public class BenchmarkingApp {
     return runConfiguration;
   }
 
-  private static JedisClient initializeJedisClient() {
+  private static void testJedisClientResourceSetGet(RunConfiguration runConfiguration) {
     JedisClient jedisClient = new JedisClient();
-    jedisClient.connectToRedis();
-    return jedisClient;
-  }
-
-  private static void testJedisClientResourceSetGet() {
-    JedisClient jedisClient = initializeJedisClient();
+    jedisClient.connectToRedis(runConfiguration.host, runConfiguration.port);
 
     int iterations = 100000;
     String value = "my-value";
@@ -122,9 +164,8 @@ public class BenchmarkingApp {
     actions.put(ChosenAction.SET, () -> jedisClient.set(Benchmarking.generateKeySet(), value));
 
     Benchmarking.printResults(
-        Benchmarking.calculateResults(
-            Benchmarking.getLatencies(iterations, actions)
-        )
+        Benchmarking.calculateResults(Benchmarking.getLatencies(iterations, actions)),
+        runConfiguration.resultsFile
     );
   }
 
@@ -134,7 +175,7 @@ public class BenchmarkingApp {
     return lettuceClient;
   }
 
-  private static void testLettuceClientResourceSetGet() {
+  private static void testLettuceClientResourceSetGet(RunConfiguration runConfiguration) {
     LettuceAsyncClient lettuceClient = initializeLettuceClient();
 
     int iterations = 100000;
@@ -144,23 +185,49 @@ public class BenchmarkingApp {
     actions.put(ChosenAction.GET_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeySet()));
     actions.put(ChosenAction.GET_NON_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeyGet()));
     actions.put(ChosenAction.SET, () -> lettuceClient.set(Benchmarking.generateKeySet(), value));
+
+    Benchmarking.printResults(
+        Benchmarking.calculateResults(Benchmarking.getLatencies(iterations, actions)),
+        runConfiguration.resultsFile
+    );
+  }
+
+  public enum ClientName {
+    JEDIS("Jedis"),
+    LETTUCE("Lettuce"),
+    BABUSHKA("Babushka"),
+    ALL("All");
+
+    private String name;
+    private ClientName(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() { return this.name; }
+
+    public boolean isEqual(String other) {
+      return this.toString().equalsIgnoreCase(other);
+    }
   }
 
   public static class RunConfiguration {
     public String configuration;
-    public String resultsFile;
-    public String concurrentTasks;
-    public String clients;
+    public Optional<FileWriter> resultsFile;
+    public List<Integer> concurrentTasks;
+    public ClientName clients;
     public String host;
+    public int port;
     public int clientCount;
     public boolean tls;
 
     public RunConfiguration() {
       configuration = "Release";
-      resultsFile = "";
-      concurrentTasks = "1 10 100";
-      clients = "all";
+      resultsFile = Optional.empty();
+      concurrentTasks = List.of(1, 10, 100);
+      clients = ClientName.ALL;
       host = "localhost";
+      port = 6379;
       clientCount = 1;
       tls = true;
     }
