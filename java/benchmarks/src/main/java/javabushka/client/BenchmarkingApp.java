@@ -193,9 +193,9 @@ public class BenchmarkingApp {
     String value = "my-value";
 
     if (runConfiguration.resultsFile.isPresent()) {
-      runConfiguration.resultsFile.get().write("JEDIS client Benchmarking: ");
+      runConfiguration.resultsFile.get().write("LETTUCE client Benchmarking: ");
     } else {
-      System.out.println("JEDIS client Benchmarking: ");
+      System.out.println("LETTUCE client Benchmarking: ");
     }
 
     HashMap<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
