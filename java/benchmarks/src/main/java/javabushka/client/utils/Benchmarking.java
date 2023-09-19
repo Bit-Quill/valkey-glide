@@ -98,7 +98,7 @@ public class Benchmarking {
         return results;
     }
 
-    public static void printResults(Map<ChosenAction, LatencyResults> calculatedResults, Optional<FileWriter> resultsFile) {
+    public static void printResults(Map<ChosenAction, LatencyResults> calculatedResults, Optional<FileWriter> resultsFile) throws IOException {
         if (resultsFile.isPresent()) {
             printResults(calculatedResults, resultsFile.get());
         } else {
@@ -106,25 +106,20 @@ public class Benchmarking {
         }
     }
 
-    public static void printResults(Map<ChosenAction, LatencyResults> resultsMap, FileWriter resultsFile) {
-        try {
-            for (Map.Entry<ChosenAction, LatencyResults> entry : resultsMap.entrySet()) {
-                ChosenAction action = entry.getKey();
-                LatencyResults results = entry.getValue();
+    public static void printResults(Map<ChosenAction, LatencyResults> resultsMap, FileWriter resultsFile) throws IOException {
+        for (Map.Entry<ChosenAction, LatencyResults> entry : resultsMap.entrySet()) {
+            ChosenAction action = entry.getKey();
+            LatencyResults results = entry.getValue();
 
-                resultsFile.write(
-                    "Avg. time in ms per " + action + ": " + results.avgLatency / 1000000.0);
-                resultsFile.write(
-                    action + " p50 latency in ms: " + results.p50Latency / 1000000.0);
-                resultsFile.write(
-                    action + " p90 latency in ms: " + results.p90Latency / 1000000.0);
-                resultsFile.write(
-                    action + " p99 latency in ms: " + results.p99Latency / 1000000.0);
-                resultsFile.write(action + " std dev in ms: " + results.stdDeviation / 1000000.0);
-            }
-        } catch (IOException ioException) {
-            System.out.println("Error writing to results file");
-            ioException.printStackTrace();
+            resultsFile.write(
+                "Avg. time in ms per " + action + ": " + results.avgLatency / 1000000.0);
+            resultsFile.write(
+                action + " p50 latency in ms: " + results.p50Latency / 1000000.0);
+            resultsFile.write(
+                action + " p90 latency in ms: " + results.p90Latency / 1000000.0);
+            resultsFile.write(
+                action + " p99 latency in ms: " + results.p99Latency / 1000000.0);
+            resultsFile.write(action + " std dev in ms: " + results.stdDeviation / 1000000.0);
         }
     }
 

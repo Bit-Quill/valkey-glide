@@ -41,21 +41,26 @@ public class BenchmarkingApp {
       System.err.println("Parsing failed.  Reason: " + exp.getMessage());
     }
 
-    switch (runConfiguration.clients) {
-      case ALL:
-        testJedisClientResourceSetGet(runConfiguration);
-        testLettuceClientResourceSetGet(runConfiguration);
-        System.out.println("Babushka not yet configured");
-        break;
-      case JEDIS:
-        testJedisClientResourceSetGet(runConfiguration);
-        break;
-      case LETTUCE:
-        testLettuceClientResourceSetGet(runConfiguration);
-        break;
-      case BABUSHKA:
-        System.out.println("Babushka not yet configured");
-        break;
+    try {
+      switch (runConfiguration.clients) {
+        case ALL:
+          testJedisClientResourceSetGet(runConfiguration);
+          testLettuceClientResourceSetGet(runConfiguration);
+          System.out.println("Babushka not yet configured");
+          break;
+        case JEDIS:
+          testJedisClientResourceSetGet(runConfiguration);
+          break;
+        case LETTUCE:
+          testLettuceClientResourceSetGet(runConfiguration);
+          break;
+        case BABUSHKA:
+          System.out.println("Babushka not yet configured");
+          break;
+      }
+    } catch (IOException ioException) {
+      System.out.println("Error writing to results file");
+      ioException.printStackTrace();
     }
 
     if (runConfiguration.resultsFile.isPresent()) {
@@ -151,12 +156,18 @@ public class BenchmarkingApp {
     return runConfiguration;
   }
 
-  private static void testJedisClientResourceSetGet(RunConfiguration runConfiguration) {
+  private static void testJedisClientResourceSetGet(RunConfiguration runConfiguration) throws IOException {
     JedisClient jedisClient = new JedisClient();
     jedisClient.connectToRedis(runConfiguration.host, runConfiguration.port);
 
     int iterations = 100000;
     String value = "my-value";
+
+    if (runConfiguration.resultsFile.isPresent()) {
+      runConfiguration.resultsFile.get().write("JEDIS client Benchmarking: ");
+    } else {
+      System.out.println("JEDIS client Benchmarking: ");
+    }
 
     Map<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
     actions.put(ChosenAction.GET_EXISTING, () -> jedisClient.get(Benchmarking.generateKeySet()));
@@ -175,11 +186,17 @@ public class BenchmarkingApp {
     return lettuceClient;
   }
 
-  private static void testLettuceClientResourceSetGet(RunConfiguration runConfiguration) {
+  private static void testLettuceClientResourceSetGet(RunConfiguration runConfiguration) throws IOException {
     LettuceAsyncClient lettuceClient = initializeLettuceClient();
 
     int iterations = 100000;
     String value = "my-value";
+
+    if (runConfiguration.resultsFile.isPresent()) {
+      runConfiguration.resultsFile.get().write("JEDIS client Benchmarking: ");
+    } else {
+      System.out.println("JEDIS client Benchmarking: ");
+    }
 
     HashMap<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
     actions.put(ChosenAction.GET_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeySet()));
