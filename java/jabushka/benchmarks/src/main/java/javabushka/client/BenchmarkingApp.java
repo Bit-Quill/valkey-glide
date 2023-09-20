@@ -77,7 +77,7 @@ public class BenchmarkingApp {
     options.addOption("C", "concurrentTasks", true, "Number of concurrent tasks [1 10 100]");
     options.addOption("l", "clients", true, "one of: all|jedis|lettuce|babushka [all]");
     options.addOption("h", "host", true, "host url [localhost]");
-    options.addOption("p", "port", true, "port number [port]");
+    options.addOption("p", "port", true, "port number [6379]");
     options.addOption("n", "clientCount", true, "Client count [1]");
     options.addOption("t", "tls", false, "TLS [true]");
 
