@@ -13,40 +13,40 @@ import java.util.concurrent.TimeoutException;
 
 public class LettuceAsyncClient {
 
-    RedisClient client;
-    RedisAsyncCommands lettuceSync;
-    StatefulRedisConnection<String, String> connection;
+  RedisClient client;
+  RedisAsyncCommands lettuceSync;
+  StatefulRedisConnection<String, String> connection;
 
-    public final long MAX_TIMEOUT_MS = 1000;
+  public final long MAX_TIMEOUT_MS = 1000;
 
-    public void connectToRedis() {
-        client = RedisClient.create("redis://localhost:6379");
-        connection = client.connect();
-        lettuceSync = connection.async();
-    }
+  public void connectToRedis() {
+    client = RedisClient.create("redis://localhost:6379");
+    connection = client.connect();
+    lettuceSync = connection.async();
+  }
 
-    public RedisFuture set(String key, String value) {
-        RedisFuture<String> future = lettuceSync.set(key, value);
-        return future;
-    }
+  public RedisFuture set(String key, String value) {
+    RedisFuture<String> future = lettuceSync.set(key, value);
+    return future;
+  }
 
-    public RedisFuture get(String key) {
-        RedisFuture future = lettuceSync.get(key);
-        return future;
-    }
+  public RedisFuture get(String key) {
+    RedisFuture future = lettuceSync.get(key);
+    return future;
+  }
 
-    public Object waitForResult(RedisFuture future)
-        throws ExecutionException, InterruptedException, TimeoutException {
-        return this.waitForResult(future, MAX_TIMEOUT_MS);
-    }
+  public Object waitForResult(RedisFuture future)
+      throws ExecutionException, InterruptedException, TimeoutException {
+    return this.waitForResult(future, MAX_TIMEOUT_MS);
+  }
 
-    public Object waitForResult(RedisFuture future, long timeoutMS)
-        throws ExecutionException, InterruptedException, TimeoutException {
-        return future.get(timeoutMS, TimeUnit.MILLISECONDS);
-    }
+  public Object waitForResult(RedisFuture future, long timeoutMS)
+      throws ExecutionException, InterruptedException, TimeoutException {
+    return future.get(timeoutMS, TimeUnit.MILLISECONDS);
+  }
 
-    public void closeConnection() {
-        connection.close();
-        client.shutdown();
-    }
+  public void closeConnection() {
+    connection.close();
+    client.shutdown();
+  }
 }

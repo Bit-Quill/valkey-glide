@@ -3,61 +3,59 @@
  */
 package javabushka.client.jedis;
 
-
-import javabushka.client.utils.ChosenAction;
-import javabushka.client.utils.Benchmarking;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import javabushka.client.utils.Benchmarking;
+import javabushka.client.utils.ChosenAction;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class JedisClientIT {
 
-    private static JedisClient jedisClient;
+  private static JedisClient jedisClient;
 
-    @BeforeAll
-    static void initializeJedisClient() {
-        jedisClient = new JedisClient();
-        jedisClient.connectToRedis();
-    }
+  @BeforeAll
+  static void initializeJedisClient() {
+    jedisClient = new JedisClient();
+    jedisClient.connectToRedis();
+  }
 
-    @Test
-    public void someLibraryMethodReturnsTrue() {
-        JedisClient classUnderTest = new JedisClient();
-        assertTrue(classUnderTest.someLibraryMethod(), "someLibraryMethod should return 'true'");
-    }
+  @Test
+  public void someLibraryMethodReturnsTrue() {
+    JedisClient classUnderTest = new JedisClient();
+    assertTrue(classUnderTest.someLibraryMethod(), "someLibraryMethod should return 'true'");
+  }
 
-    @Test public void testResourceInfo() {
-        String result = jedisClient.info();
+  @Test
+  public void testResourceInfo() {
+    String result = jedisClient.info();
 
-        assertTrue(result.length() > 0);
-    }
+    assertTrue(result.length() > 0);
+  }
 
-    @Test public void testResourceInfoBySection() {
-        String section = "Server";
-        String result = jedisClient.info(section);
+  @Test
+  public void testResourceInfoBySection() {
+    String section = "Server";
+    String result = jedisClient.info(section);
 
-        assertTrue(result.length() > 0);
-        assertTrue(result.startsWith("# " + section));
-    }
+    assertTrue(result.length() > 0);
+    assertTrue(result.startsWith("# " + section));
+  }
 
-    @Test public void testResourceSetGet() {
-        int iterations = 100000;
-        String value = "my-value";
+  @Test
+  public void testResourceSetGet() {
+    int iterations = 100000;
+    String value = "my-value";
 
-        Map<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
-        actions.put(ChosenAction.GET_EXISTING, () -> jedisClient.get(Benchmarking.generateKeySet()));
-        actions.put(ChosenAction.GET_NON_EXISTING, () -> jedisClient.get(Benchmarking.generateKeyGet()));
-        actions.put(ChosenAction.SET, () -> jedisClient.set(Benchmarking.generateKeySet(), value));
+    Map<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
+    actions.put(ChosenAction.GET_EXISTING, () -> jedisClient.get(Benchmarking.generateKeySet()));
+    actions.put(
+        ChosenAction.GET_NON_EXISTING, () -> jedisClient.get(Benchmarking.generateKeyGet()));
+    actions.put(ChosenAction.SET, () -> jedisClient.set(Benchmarking.generateKeySet(), value));
 
-        Benchmarking.printResults(
-            Benchmarking.calculateResults(
-                Benchmarking.getLatencies(iterations, actions)
-            )
-        );
-    }
+    Benchmarking.printResults(
+        Benchmarking.calculateResults(Benchmarking.getLatencies(iterations, actions)));
+  }
 }
-

@@ -8,36 +8,37 @@ import redis.clients.jedis.JedisPool;
 
 public class JedisClient {
 
-    public final static String DEFAULT_HOST = "localhost";
-    public final static int DEFAULT_PORT = 6379;
+  public static final String DEFAULT_HOST = "localhost";
+  public static final int DEFAULT_PORT = 6379;
 
-    Jedis jedisResource;
-    public boolean someLibraryMethod() {
-        return true;
-    }
+  Jedis jedisResource;
 
-    public void connectToRedis(String host, int port) {
-        JedisPool pool = new JedisPool(host, port);
-        jedisResource = pool.getResource();
-    }
+  public boolean someLibraryMethod() {
+    return true;
+  }
 
-    public void connectToRedis() {
-        connectToRedis(DEFAULT_HOST, DEFAULT_PORT);
-    }
+  public void connectToRedis(String host, int port) {
+    JedisPool pool = new JedisPool(host, port);
+    jedisResource = pool.getResource();
+  }
 
-    public String info() {
-        return jedisResource.info();
-    }
+  public void connectToRedis() {
+    connectToRedis(DEFAULT_HOST, DEFAULT_PORT);
+  }
 
-    public String info(String section) {
-        return jedisResource.info(section);
-    }
+  public String info() {
+    return jedisResource.info();
+  }
 
-    public void set(String key, String value) {
-        jedisResource.set(key, value);
-    }
+  public String info(String section) {
+    return jedisResource.info(section);
+  }
 
-    public String get(String key) {
-        return jedisResource.get(key);
-    }
+  public void set(String key, String value) {
+    jedisResource.set(key, value);
+  }
+
+  public String get(String key) {
+    return jedisResource.get(key);
+  }
 }

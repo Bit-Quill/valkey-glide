@@ -9,26 +9,26 @@ import io.lettuce.core.api.sync.RedisStringCommands;
 
 public class LettuceClient {
 
-    RedisClient client;
-    RedisStringCommands lettuceSync;
-    StatefulRedisConnection<String, String> connection;
+  RedisClient client;
+  RedisStringCommands lettuceSync;
+  StatefulRedisConnection<String, String> connection;
 
-    public void connectToRedis() {
-        client = RedisClient.create("redis://localhost:6379");
-        connection = client.connect();
-        lettuceSync = connection.sync();
-    }
+  public void connectToRedis() {
+    client = RedisClient.create("redis://localhost:6379");
+    connection = client.connect();
+    lettuceSync = connection.sync();
+  }
 
-    public void set(String key, String value) {
-        lettuceSync.set(key, value);
-    }
+  public void set(String key, String value) {
+    lettuceSync.set(key, value);
+  }
 
-    public String get(String key) {
-        return (String) lettuceSync.get(key);
-    }
+  public String get(String key) {
+    return (String) lettuceSync.get(key);
+  }
 
-    public void closeConnection() {
-        connection.close();
-        client.shutdown();
-    }
+  public void closeConnection() {
+    connection.close();
+    client.shutdown();
+  }
 }

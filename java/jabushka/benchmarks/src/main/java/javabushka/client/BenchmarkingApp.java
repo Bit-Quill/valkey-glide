@@ -12,16 +12,13 @@ import javabushka.client.jedis.JedisClient;
 import javabushka.client.lettuce.LettuceAsyncClient;
 import javabushka.client.utils.Benchmarking;
 import javabushka.client.utils.ChosenAction;
-import javabushka.client.utils.LatencyResults;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-/**
- * Benchmarking app for reporting performance of various redis-rs Java-clients
- */
+/** Benchmarking app for reporting performance of various redis-rs Java-clients */
 public class BenchmarkingApp {
 
   // main application entrypoint
@@ -35,8 +32,7 @@ public class BenchmarkingApp {
       // parse the command line arguments
       CommandLine line = parser.parse(options, args);
       runConfiguration = verifyOptions(line);
-    }
-    catch (ParseException exp) {
+    } catch (ParseException exp) {
       // oops, something went wrong
       System.err.println("Parsing failed.  Reason: " + exp.getMessage());
     }
@@ -70,7 +66,6 @@ public class BenchmarkingApp {
         System.out.println("Error closing results file");
       }
     }
-
   }
 
   private static Options getOptions() {
@@ -102,7 +97,8 @@ public class BenchmarkingApp {
 
     if (line.hasOption("resultsFile")) {
       try {
-        runConfiguration.resultsFile = Optional.of(new FileWriter(line.getOptionValue("resultsFile")));
+        runConfiguration.resultsFile =
+            Optional.of(new FileWriter(line.getOptionValue("resultsFile")));
       } catch (IOException e) {
         throw new ParseException("Unable to write to resultsFile.");
       }
@@ -156,7 +152,8 @@ public class BenchmarkingApp {
     return runConfiguration;
   }
 
-  private static void testJedisClientResourceSetGet(RunConfiguration runConfiguration) throws IOException {
+  private static void testJedisClientResourceSetGet(RunConfiguration runConfiguration)
+      throws IOException {
     JedisClient jedisClient = new JedisClient();
     jedisClient.connectToRedis(runConfiguration.host, runConfiguration.port);
 
@@ -171,13 +168,13 @@ public class BenchmarkingApp {
 
     Map<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
     actions.put(ChosenAction.GET_EXISTING, () -> jedisClient.get(Benchmarking.generateKeySet()));
-    actions.put(ChosenAction.GET_NON_EXISTING, () -> jedisClient.get(Benchmarking.generateKeyGet()));
+    actions.put(
+        ChosenAction.GET_NON_EXISTING, () -> jedisClient.get(Benchmarking.generateKeyGet()));
     actions.put(ChosenAction.SET, () -> jedisClient.set(Benchmarking.generateKeySet(), value));
 
     Benchmarking.printResults(
         Benchmarking.calculateResults(Benchmarking.getLatencies(iterations, actions)),
-        runConfiguration.resultsFile
-    );
+        runConfiguration.resultsFile);
   }
 
   private static LettuceAsyncClient initializeLettuceClient() {
@@ -186,7 +183,8 @@ public class BenchmarkingApp {
     return lettuceClient;
   }
 
-  private static void testLettuceClientResourceSetGet(RunConfiguration runConfiguration) throws IOException {
+  private static void testLettuceClientResourceSetGet(RunConfiguration runConfiguration)
+      throws IOException {
     LettuceAsyncClient lettuceClient = initializeLettuceClient();
 
     int iterations = 100000;
@@ -200,13 +198,13 @@ public class BenchmarkingApp {
 
     HashMap<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
     actions.put(ChosenAction.GET_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeySet()));
-    actions.put(ChosenAction.GET_NON_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeyGet()));
+    actions.put(
+        ChosenAction.GET_NON_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeyGet()));
     actions.put(ChosenAction.SET, () -> lettuceClient.set(Benchmarking.generateKeySet(), value));
 
     Benchmarking.printResults(
         Benchmarking.calculateResults(Benchmarking.getLatencies(iterations, actions)),
-        runConfiguration.resultsFile
-    );
+        runConfiguration.resultsFile);
   }
 
   public enum ClientName {
@@ -216,12 +214,15 @@ public class BenchmarkingApp {
     ALL("All");
 
     private String name;
+
     private ClientName(String name) {
       this.name = name;
     }
 
     @Override
-    public String toString() { return this.name; }
+    public String toString() {
+      return this.name;
+    }
 
     public boolean isEqual(String other) {
       return this.toString().equalsIgnoreCase(other);

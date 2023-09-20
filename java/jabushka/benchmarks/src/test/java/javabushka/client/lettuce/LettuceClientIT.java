@@ -3,37 +3,37 @@
  */
 package javabushka.client.lettuce;
 
-import javabushka.client.utils.ChosenAction;
+import java.util.HashMap;
 import javabushka.client.utils.Benchmarking;
+import javabushka.client.utils.ChosenAction;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-
 public class LettuceClientIT {
 
-    private static LettuceClient lettuceClient;
+  private static LettuceClient lettuceClient;
 
-    @BeforeAll
-    static void initializeJedisClient() {
-        lettuceClient = new LettuceClient();
-        lettuceClient.connectToRedis();
-    }
+  @BeforeAll
+  static void initializeJedisClient() {
+    lettuceClient = new LettuceClient();
+    lettuceClient.connectToRedis();
+  }
 
-    @AfterAll
-    static void closeConnection() {
-        lettuceClient.closeConnection();
-    }
+  @AfterAll
+  static void closeConnection() {
+    lettuceClient.closeConnection();
+  }
 
-    @Test
-    public void testResourceSetGet() {
-        int iterations = 100000;
-        String value = "my-value";
+  @Test
+  public void testResourceSetGet() {
+    int iterations = 100000;
+    String value = "my-value";
 
-        HashMap<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
-        actions.put(ChosenAction.GET_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeySet()));
-        actions.put(ChosenAction.GET_NON_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeyGet()));
-        actions.put(ChosenAction.SET, () -> lettuceClient.set(Benchmarking.generateKeySet(), value));
-    }
+    HashMap<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
+    actions.put(ChosenAction.GET_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeySet()));
+    actions.put(
+        ChosenAction.GET_NON_EXISTING, () -> lettuceClient.get(Benchmarking.generateKeyGet()));
+    actions.put(ChosenAction.SET, () -> lettuceClient.set(Benchmarking.generateKeySet(), value));
+  }
 }
