@@ -3,22 +3,23 @@
  */
 package javabushka.client.lettuce;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import io.lettuce.core.RedisFuture;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class LettuceAsyncClientIT {
 
-    LettuceAsyncClient lettuceClient;
+    private static LettuceAsyncClient lettuceClient;
 
-    LettuceAsyncClient otherLettuceClient;
+    private static LettuceAsyncClient otherLettuceClient;
 
-    @Before
-    public void initializeJedisClient() {
+    @BeforeAll
+    static void initializeJedisClient() {
         lettuceClient = new LettuceAsyncClient();
         lettuceClient.connectToRedis();
 
@@ -26,13 +27,14 @@ public class LettuceAsyncClientIT {
         otherLettuceClient.connectToRedis();
     }
 
-    @After
-    public void closeConnection() {
+    @AfterAll
+    static void closeConnection() {
         lettuceClient.closeConnection();
         otherLettuceClient.closeConnection();
     }
 
-    @Test public void testResourceSetGet() {
+    @Test
+    public void testResourceSetGet() {
         String key = "key1";
         String value = "my-value-1";
 
@@ -46,12 +48,12 @@ public class LettuceAsyncClientIT {
         try {
             lettuceClient.waitForResult(setResult);
         } catch (Exception e) {
-            assertTrue("Can SET redis result without Exception", false);
+            fail("Can SET redis result without Exception");
         }
         try {
             otherLettuceClient.waitForResult(otherSetResult);
         } catch (Exception e) {
-            assertTrue("Can SET other redis result without Exception", false);
+            fail("Can SET other redis result without Exception");
         }
 
         RedisFuture getResult = lettuceClient.get(key);
@@ -61,13 +63,13 @@ public class LettuceAsyncClientIT {
         try {
             result = (String) lettuceClient.waitForResult(getResult);
         } catch (Exception e) {
-            assertTrue("Can GET redis result without Exception", false);
+            fail("Can GET redis result without Exception");
         }
 
         try {
             otherResult = (String) otherLettuceClient.waitForResult(otherGetResult);
         } catch (Exception e) {
-            assertTrue("Can GET other redis result without Exception", false);
+            fail("Can GET other redis result without Exception");
         }
 
         assertEquals(value, result);

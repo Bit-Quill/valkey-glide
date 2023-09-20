@@ -5,27 +5,29 @@ package javabushka.client.lettuce;
 
 import javabushka.client.utils.ChosenAction;
 import javabushka.client.utils.Benchmarking;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import java.util.HashMap;
 
 public class LettuceClientIT {
 
-    LettuceClient lettuceClient;
+    private static LettuceClient lettuceClient;
 
-    @Before
-    public void initializeJedisClient() {
+    @BeforeAll
+    static void initializeJedisClient() {
         lettuceClient = new LettuceClient();
         lettuceClient.connectToRedis();
     }
 
-    @After
-    public void closeConnection() {
+    @AfterAll
+    static void closeConnection() {
         lettuceClient.closeConnection();
     }
 
-    @Test public void testResourceSetGet() {
+    @Test
+    public void testResourceSetGet() {
         int iterations = 100000;
         String value = "my-value";
 

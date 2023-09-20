@@ -3,29 +3,31 @@
  */
 package javabushka.client.jedis;
 
-import static org.junit.Assert.assertTrue;
 
 import javabushka.client.utils.ChosenAction;
 import javabushka.client.utils.Benchmarking;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Before;
-import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class JedisClientIT {
 
-    JedisClient jedisClient;
+    private static JedisClient jedisClient;
 
-    @Before
-    public void initializeJedisClient() {
+    @BeforeAll
+    static void initializeJedisClient() {
         jedisClient = new JedisClient();
         jedisClient.connectToRedis();
     }
 
-    @Test public void someLibraryMethodReturnsTrue() {
+    @Test
+    public void someLibraryMethodReturnsTrue() {
         JedisClient classUnderTest = new JedisClient();
-        assertTrue("someLibraryMethod should return 'true'", classUnderTest.someLibraryMethod());
+        assertTrue(classUnderTest.someLibraryMethod(), "someLibraryMethod should return 'true'");
     }
 
     @Test public void testResourceInfo() {
