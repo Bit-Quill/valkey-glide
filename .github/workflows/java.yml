@@ -38,6 +38,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y protobuf-compiler
+          mkdir -p java/jabushka/jabushka/src/main/java/org/babushka/jabushka/generated
           protoc -Iprotobuf=babushka-core/src/protobuf/ --java_out=java/jabushka/jabushka/src/main/java/org/babushka/jabushka/generated babushka-core/src/protobuf/*.proto
 
       - name: Build rust part
