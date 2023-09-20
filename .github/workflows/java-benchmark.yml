@@ -10,7 +10,7 @@ on:
 run-name: ${{ inputs.name == '' && format('{0} @ {1}', github.ref_name, github.sha) || inputs.name }}
 
 jobs:
-  build:
+  java-benchmark:
     strategy:
       matrix:
         java:

@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-test-java-client:
     strategy:
       # Run all jobs
       fail-fast: false
