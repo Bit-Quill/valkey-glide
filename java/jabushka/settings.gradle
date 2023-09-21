@@ -2,8 +2,4 @@ rootProject.name = 'babushka'
 
 include 'jabushka'
 include 'integTest'
-
-// Run benchmarking by adding `-Pbenchmark` switch to gradlew command line
-if (hasProperty('benchmark')) {
-    include 'benchmarks'
-}
+include 'benchmarks'

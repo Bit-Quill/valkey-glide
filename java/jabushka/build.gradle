@@ -8,13 +8,11 @@ plugins {
 
 repositories {
     mavenCentral()
-    mavenLocal()
 }
 
 subprojects {
     repositories {
         mavenCentral()
-        mavenLocal()
     }
     // minimal java compatibility level
     plugins.withId('java') {
@@ -28,7 +26,7 @@ subprojects {
             events "started", "skipped", "passed", "failed"
             showStandardStreams true
         }
-        // Temporary suspend jacoco
+        // TODO: add jacoco with code coverage
         // finalizedBy jacocoTestReport, jacocoTestCoverageVerification
     }
 }
@@ -81,7 +79,7 @@ jacocoTestCoverageVerification {
         }))
     }
 }
-// Temporary suspend jacoco
+// TODO: add jacoco with code coverage
 // check.dependsOn jacocoTestCoverageVerification
 // End of JaCoCo section
 
