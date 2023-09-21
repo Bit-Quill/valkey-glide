@@ -83,7 +83,7 @@ public class BenchmarkingApp {
     options.addOption("h", "host", true, "host url [localhost]");
     options.addOption("p", "port", true, "port number [6379]");
     options.addOption("n", "clientCount", true, "Client count [1]");
-    options.addOption("t", "tls", false, "TLS [true]");
+    options.addOption("t", "tls", false, "with TLS [false]");
 
     return options;
   }
@@ -148,16 +148,14 @@ public class BenchmarkingApp {
       runConfiguration.clientCount = Integer.parseInt(line.getOptionValue("clientCount"));
     }
 
-    if (line.hasOption("tls")) {
-      runConfiguration.tls = Boolean.parseBoolean(line.getOptionValue("tls"));
-    }
+    runConfiguration.tls = line.hasOption("tls");
 
     return runConfiguration;
   }
 
   private static void testJedisClientResourceSetGet(RunConfiguration runConfiguration) throws IOException {
     JedisClient jedisClient = new JedisClient();
-    jedisClient.connectToRedis(runConfiguration.host, runConfiguration.port);
+    jedisClient.connectToRedis(runConfiguration.host, runConfiguration.port, runConfiguration.tls);
 
     int iterations = 100000;
     String value = "my-value";
@@ -186,7 +184,9 @@ public class BenchmarkingApp {
   }
 
   private static void testLettuceClientResourceSetGet(RunConfiguration runConfiguration) throws IOException {
-    LettuceAsyncClient lettuceClient = initializeLettuceClient();
+
+    LettuceAsyncClient lettuceClient = new LettuceAsyncClient();
+    lettuceClient.connectToRedis(runConfiguration.host, runConfiguration.port, runConfiguration.tls);
 
     int iterations = 100000;
     String value = "my-value";
@@ -245,7 +245,7 @@ public class BenchmarkingApp {
       host = "localhost";
       port = 6379;
       clientCount = 1;
-      tls = true;
+      tls = false;
     }
   }
 }

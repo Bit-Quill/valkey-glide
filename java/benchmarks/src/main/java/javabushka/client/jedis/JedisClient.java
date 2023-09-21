@@ -10,19 +10,20 @@ public class JedisClient {
 
     public final static String DEFAULT_HOST = "localhost";
     public final static int DEFAULT_PORT = 6379;
+    public final static boolean DEFAULT_TLS = false;
 
     Jedis jedisResource;
     public boolean someLibraryMethod() {
         return true;
     }
 
-    public void connectToRedis(String host, int port) {
-        JedisPool pool = new JedisPool(host, port);
+    public void connectToRedis(String host, int port, boolean tls) {
+        JedisPool pool = new JedisPool(host, port, tls);
         jedisResource = pool.getResource();
     }
 
     public void connectToRedis() {
-        connectToRedis(DEFAULT_HOST, DEFAULT_PORT);
+        connectToRedis(DEFAULT_HOST, DEFAULT_PORT, DEFAULT_TLS);
     }
 
     public String info() {
