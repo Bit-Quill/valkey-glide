@@ -31,7 +31,7 @@ jobs:
 
       - name: Run benchmarks
         working-directory: java/jabushka
-        run: ./gradlew -Pbenchmark :benchmark:run
+        run: ./gradlew :benchmark:run
 
       - name: Upload test reports
         if: always()
