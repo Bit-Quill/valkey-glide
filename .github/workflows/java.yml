@@ -45,7 +45,10 @@ jobs:
         working-directory: java
         run: cargo build
 
-      - name: Build with Gradle
+      - name: Start Redis
+        run: docker run -p 6379:6379 -p 8001:8001 -d redis/redis
+
+      - name: Build java part
         working-directory: java/jabushka
         run: ./gradlew --continue build
 
