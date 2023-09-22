@@ -3,13 +3,14 @@ use super::reconnecting_connection::ReconnectingConnection;
 use crate::connection_request::{AddressInfo, ConnectionRequest, TlsMode};
 use crate::retry_strategies::RetryStrategy;
 use futures::{stream, StreamExt};
-#[cfg(cmd_heartbeat)]
+#[cfg(standalone_heartbeat)]
 use logger_core::log_debug;
 use logger_core::{log_trace, log_warn};
 use protobuf::EnumOrUnknown;
+use redis::cluster_routing::is_readonly;
 use redis::{RedisError, RedisResult, Value};
 use std::sync::Arc;
-#[cfg(cmd_heartbeat)]
+#[cfg(standalone_heartbeat)]
 use tokio::task;
 
 enum ReadFromReplicaStrategy {
@@ -35,22 +36,22 @@ impl Drop for DropWrapper {
 }
 
 #[derive(Clone)]
-pub struct ClientCMD {
+pub struct StandaloneClient {
     inner: Arc<DropWrapper>,
 }
 
-pub enum ClientCMDConnectionError {
+pub enum StandaloneClientConnectionError {
     NoAddressesProvided,
     FailedConnection(Vec<(String, RedisError)>),
 }
 
-impl std::fmt::Debug for ClientCMDConnectionError {
+impl std::fmt::Debug for StandaloneClientConnectionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ClientCMDConnectionError::NoAddressesProvided => {
+            StandaloneClientConnectionError::NoAddressesProvided => {
                 write!(f, "No addresses provided")
             }
-            ClientCMDConnectionError::FailedConnection(errs) => {
+            StandaloneClientConnectionError::FailedConnection(errs) => {
                 writeln!(f, "Received errors:")?;
                 for (address, error) in errs {
                     writeln!(f, "{address}: {error}")?;
@@ -61,12 +62,12 @@ impl std::fmt::Debug for ClientCMDConnectionError {
     }
 }
 
-impl ClientCMD {
+impl StandaloneClient {
     pub async fn create_client(
         connection_request: ConnectionRequest,
-    ) -> Result<Self, ClientCMDConnectionError> {
+    ) -> Result<Self, StandaloneClientConnectionError> {
         if connection_request.addresses.is_empty() {
-            return Err(ClientCMDConnectionError::NoAddressesProvided);
+            return Err(StandaloneClientConnectionError::NoAddressesProvided);
         }
         let retry_strategy = RetryStrategy::new(&connection_request.connection_retry_strategy.0);
         let redis_connection_info =
@@ -109,7 +110,7 @@ impl ClientCMD {
         }
 
         let Some(primary_index) = primary_index else {
-            return Err(ClientCMDConnectionError::FailedConnection(
+            return Err(StandaloneClientConnectionError::FailedConnection(
                 addresses_and_errors,
             ));
         };
@@ -124,7 +125,7 @@ impl ClientCMD {
         let read_from_replica_strategy =
             get_read_from_replica_strategy(&connection_request.read_from_replica_strategy);
 
-        #[cfg(cmd_heartbeat)]
+        #[cfg(standalone_heartbeat)]
         for node in nodes.iter() {
             Self::start_heartbeat(node.clone());
         }
@@ -143,7 +144,7 @@ impl ClientCMD {
     }
 
     fn get_connection(&self, cmd: &redis::Cmd) -> &ReconnectingConnection {
-        if !is_readonly_cmd(cmd) || self.inner.nodes.len() == 1 {
+        if !is_readonly(cmd) || self.inner.nodes.len() == 1 {
             return self.get_primary_connection();
         }
         match &self.inner.read_from_replica_strategy {
@@ -151,19 +152,17 @@ impl ClientCMD {
             ReadFromReplicaStrategy::RoundRobin {
                 latest_read_replica_index,
             } => {
-                let initial_index = latest_read_replica_index
-                    .load(std::sync::atomic::Ordering::Relaxed)
-                    % self.inner.nodes.len();
+                let initial_index =
+                    latest_read_replica_index.load(std::sync::atomic::Ordering::Relaxed);
+                let mut check_count = 0;
                 loop {
-                    let index = (latest_read_replica_index
-                        .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
-                        + 1)
-                        % self.inner.nodes.len();
+                    check_count += 1;
 
                     // Looped through all replicas, no connected replica was found.
-                    if index == initial_index {
+                    if check_count > self.inner.nodes.len() {
                         return self.get_primary_connection();
                     }
+                    let index = (initial_index + check_count) % self.inner.nodes.len();
                     if index == self.inner.primary_index {
                         continue;
                     }
@@ -171,6 +170,12 @@ impl ClientCMD {
                         continue;
                     };
                     if connection.is_connected() {
+                        let _ = latest_read_replica_index.compare_exchange_weak(
+                            initial_index,
+                            index,
+                            std::sync::atomic::Ordering::Relaxed,
+                            std::sync::atomic::Ordering::Relaxed,
+                        );
                         return connection;
                     }
                 }
@@ -179,7 +184,7 @@ impl ClientCMD {
     }
 
     pub async fn send_packed_command(&mut self, cmd: &redis::Cmd) -> RedisResult<Value> {
-        log_trace("ClientCMD", "sending command");
+        log_trace("StandaloneClient", "sending command");
         let reconnecting_connection = self.get_connection(cmd);
         let mut connection = reconnecting_connection.get_connection().await?;
         let result = connection.send_packed_command(cmd).await;
@@ -210,14 +215,14 @@ impl ClientCMD {
         }
     }
 
-    #[cfg(cmd_heartbeat)]
+    #[cfg(standalone_heartbeat)]
     fn start_heartbeat(reconnecting_connection: ReconnectingConnection) {
         task::spawn(async move {
             loop {
                 tokio::time::sleep(super::HEARTBEAT_SLEEP_DURATION).await;
                 if reconnecting_connection.is_dropped() {
                     log_debug(
-                        "ClientCMD",
+                        "StandaloneClient",
                         "heartbeat stopped after connection was dropped",
                     );
                     // Client was dropped, heartbeat can stop.
@@ -227,19 +232,19 @@ impl ClientCMD {
                 let Some(mut connection) = reconnecting_connection.try_get_connection().await
                 else {
                     log_debug(
-                        "ClientCMD",
+                        "StandaloneClient",
                         "heartbeat stopped while connection is reconnecting",
                     );
                     // Client is reconnecting..
                     continue;
                 };
-                log_debug("ClientCMD", "performing heartbeat");
+                log_debug("StandaloneClient", "performing heartbeat");
                 if connection
                     .send_packed_command(&redis::cmd("PING"))
                     .await
                     .is_err_and(|err| err.is_connection_dropped() || err.is_connection_refusal())
                 {
-                    log_debug("ClientCMD", "heartbeat triggered reconnect");
+                    log_debug("StandaloneClient", "heartbeat triggered reconnect");
                     reconnecting_connection.reconnect();
                 }
             }
@@ -280,39 +285,6 @@ async fn get_connection_and_replication_info(
         Ok(replication_status) => Ok((reconnecting_connection, replication_status)),
         Err(err) => Err((reconnecting_connection, err)),
     }
-}
-
-// Copied and djusted from redis-rs
-fn is_readonly_cmd(cmd: &redis::Cmd) -> bool {
-    matches!(
-        cmd.args_iter().next(),
-        // @admin
-        Some(redis::Arg::Simple(b"LASTSAVE")) |
-        // @bitmap
-        Some(redis::Arg::Simple(b"BITCOUNT")) | Some(redis::Arg::Simple(b"BITFIELD_RO")) | Some(redis::Arg::Simple(b"BITPOS")) | Some(redis::Arg::Simple(b"GETBIT")) |
-        // @connection
-        Some(redis::Arg::Simple(b"CLIENT")) | Some(redis::Arg::Simple(b"ECHO")) |
-        // @geo
-        Some(redis::Arg::Simple(b"GEODIST")) | Some(redis::Arg::Simple(b"GEOHASH")) | Some(redis::Arg::Simple(b"GEOPOS")) | Some(redis::Arg::Simple(b"GEORADIUSBYMEMBER_RO")) | Some(redis::Arg::Simple(b"GEORADIUS_RO")) | Some(redis::Arg::Simple(b"GEOSEARCH")) |
-        // @hash
-        Some(redis::Arg::Simple(b"HEXISTS")) | Some(redis::Arg::Simple(b"HGET")) | Some(redis::Arg::Simple(b"HGETALL")) | Some(redis::Arg::Simple(b"HKEYS")) | Some(redis::Arg::Simple(b"HLEN")) | Some(redis::Arg::Simple(b"HMGET")) | Some(redis::Arg::Simple(b"HRANDFIELD")) | Some(redis::Arg::Simple(b"HSCAN")) | Some(redis::Arg::Simple(b"HSTRLEN")) | Some(redis::Arg::Simple(b"HVALS")) |
-        // @hyperloglog
-        Some(redis::Arg::Simple(b"PFCOUNT")) |
-        // @keyspace
-        Some(redis::Arg::Simple(b"DBSIZE")) | Some(redis::Arg::Simple(b"DUMP")) | Some(redis::Arg::Simple(b"EXISTS")) | Some(redis::Arg::Simple(b"EXPIRETIME")) | Some(redis::Arg::Simple(b"KEYS")) | Some(redis::Arg::Simple(b"OBJECT")) | Some(redis::Arg::Simple(b"PEXPIRETIME")) | Some(redis::Arg::Simple(b"PTTL")) | Some(redis::Arg::Simple(b"RANDOMKEY")) | Some(redis::Arg::Simple(b"SCAN")) | Some(redis::Arg::Simple(b"TOUCH")) | Some(redis::Arg::Simple(b"TTL")) | Some(redis::Arg::Simple(b"TYPE")) |
-        // @list
-        Some(redis::Arg::Simple(b"LINDEX")) | Some(redis::Arg::Simple(b"LLEN")) | Some(redis::Arg::Simple(b"LPOS")) | Some(redis::Arg::Simple(b"LRANGE")) | Some(redis::Arg::Simple(b"SORT_RO")) |
-        // @scripting
-        Some(redis::Arg::Simple(b"EVALSHA_RO")) | Some(redis::Arg::Simple(b"EVAL_RO")) | Some(redis::Arg::Simple(b"FCALL_RO")) |
-        // @set
-        Some(redis::Arg::Simple(b"SCARD")) | Some(redis::Arg::Simple(b"SDIFF")) | Some(redis::Arg::Simple(b"SINTER")) | Some(redis::Arg::Simple(b"SINTERCARD")) | Some(redis::Arg::Simple(b"SISMEMBER")) | Some(redis::Arg::Simple(b"SMEMBERS")) | Some(redis::Arg::Simple(b"SMISMEMBER")) | Some(redis::Arg::Simple(b"SRANDMEMBER")) | Some(redis::Arg::Simple(b"SSCAN")) | Some(redis::Arg::Simple(b"SUNION")) |
-        // @sortedset
-        Some(redis::Arg::Simple(b"ZCARD")) | Some(redis::Arg::Simple(b"ZCOUNT")) | Some(redis::Arg::Simple(b"ZDIFF")) | Some(redis::Arg::Simple(b"ZINTER")) | Some(redis::Arg::Simple(b"ZINTERCARD")) | Some(redis::Arg::Simple(b"ZLEXCOUNT")) | Some(redis::Arg::Simple(b"ZMSCORE")) | Some(redis::Arg::Simple(b"ZRANDMEMBER")) | Some(redis::Arg::Simple(b"ZRANGE")) | Some(redis::Arg::Simple(b"ZRANGEBYLEX")) | Some(redis::Arg::Simple(b"ZRANGEBYSCORE")) | Some(redis::Arg::Simple(b"ZRANK")) | Some(redis::Arg::Simple(b"ZREVRANGE")) | Some(redis::Arg::Simple(b"ZREVRANGEBYLEX")) | Some(redis::Arg::Simple(b"ZREVRANGEBYSCORE")) | Some(redis::Arg::Simple(b"ZREVRANK")) | Some(redis::Arg::Simple(b"ZSCAN")) | Some(redis::Arg::Simple(b"ZSCORE")) | Some(redis::Arg::Simple(b"ZUNION")) |
-        // @stream
-        Some(redis::Arg::Simple(b"XINFO")) | Some(redis::Arg::Simple(b"XLEN")) | Some(redis::Arg::Simple(b"XPENDING")) | Some(redis::Arg::Simple(b"XRANGE")) | Some(redis::Arg::Simple(b"XREAD")) | Some(redis::Arg::Simple(b"XREVRANGE")) |
-        // @string
-        Some(redis::Arg::Simple(b"GET")) | Some(redis::Arg::Simple(b"GETRANGE")) | Some(redis::Arg::Simple(b"LCS")) | Some(redis::Arg::Simple(b"MGET")) | Some(redis::Arg::Simple(b"STRALGO")) | Some(redis::Arg::Simple(b"STRLEN")) | Some(redis::Arg::Simple(b"SUBSTR"))
-    )
 }
 
 fn get_read_from_replica_strategy(

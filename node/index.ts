@@ -1,3 +1,4 @@
+export { ConnectionOptions, ReturnType } from "./src/BaseClient";
 export { InfoOptions, SetOptions, parseInfoResponse } from "./src/Commands";
 export {
     ClosingError,
@@ -6,7 +7,7 @@ export {
     RedisError as RequestError,
     TimeoutError,
 } from "./src/Errors";
-export { setLoggerConfig } from "./src/Logger";
-export { ConnectionOptions, RedisClient, ReturnType } from "./src/RedisClient";
+export { Logger } from "./src/Logger";
+export { RedisClient } from "./src/RedisClient";
 export { RedisClusterClient } from "./src/RedisClusterClient";
 export { ClusterTransaction, Transaction } from "./src/Transaction";

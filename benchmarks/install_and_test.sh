@@ -73,7 +73,6 @@ function runCSharpBenchmark(){
 function runJavaBenchmark(){
   cd ${BENCH_FOLDER}/../java
   echo "./gradlew run --args=\"--resultsFile=${BENCH_FOLDER}/$1 --clients $chosenClients --host $host --port $port\""
-#  ./gradlew run --args="--resultsFile=../$1 --dataSize $2 --concurrentTasks $concurrentTasks --clients $chosenClients --host $host --port $port --clientCount $clientCount $tlsFlag"
   ./gradlew run --args="--resultsFile=${BENCH_FOLDER}/$1 --clients $chosenClients --host $host --port $port"
   cd ${BENCH_FOLDER}/java
 }

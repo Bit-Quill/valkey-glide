@@ -1,7 +1,19 @@
 import * as net from "net";
-import { InfoOptions, createConfigResetStat, createConfigRewrite, createCustomCommand, createInfo } from "./Commands";
+import { BaseClient, ConnectionOptions, ReturnType } from "./BaseClient";
+import {
+    InfoOptions,
+    createConfigResetStat,
+    createConfigRewrite,
+    createCustomCommand,
+    createInfo,
+    createPing,
+} from "./Commands";
 import { connection_request, redis_request } from "./ProtobufMessage";
-import { ConnectionOptions, RedisClient, ReturnType } from "./RedisClient";
+import { ClusterTransaction } from "./Transaction";
+
+/// If the command's routing is to one node we will get T as a response type,
+/// otherwise, we will get the following response: [[Address, nodeResponse], ...] and the type will be [string, T][]
+type ClusterResponse<T> = T | [string, T][];
 
 export type SlotIdTypes = {
     type: "primarySlotId" | "replicaSlotId";
@@ -74,7 +86,7 @@ function toProtobufRoute(
     }
 }
 
-export class RedisClusterClient extends RedisClient {
+export class RedisClusterClient extends BaseClient {
     protected createClientRequest(
         options: ConnectionOptions
     ): connection_request.IConnectionRequest {
@@ -124,41 +136,76 @@ export class RedisClusterClient extends RedisClient {
         return super.createWritePromise(command, toProtobufRoute(route));
     }
 
-    
+    /** Execute a transaction by processing the queued commands.
+     *   See https://redis.io/topics/Transactions/ for details on Redis Transactions.
+     *
+     * @param transaction - A ClusterTransaction object containing a list of commands to be executed.
+     * @returns A list of results corresponding to the execution of each command in the transaction.
+     *      If a command returns a value, it will be included in the list. If a command doesn't return a value,
+     *      the list entry will be null.
+     */
+    public exec(transaction: ClusterTransaction): Promise<ReturnType[]> {
+        return this.createWritePromise(transaction.commands);
+    }
+
+    /** Ping the Redis server.
+     * See https://redis.io/commands/ping/ for details.
+     *
+     * @param str - the ping argument that will be returned.
+     * @param route - The command will be routed automatically, unless `route` is provided, in which
+     *   case the client will initially try to route the command to the nodes defined by `route`.
+     * @returns PONG if no argument is provided, otherwise return a copy of the argument.
+     */
+    public ping(str?: string, route?: Routes): Promise<string> {
+        return this.createWritePromise(createPing(str), toProtobufRoute(route));
+    }
+
     /** Get information and statistics about the Redis server.
      *  See https://redis.io/commands/info/ for details.
-     * 
+     *
      * @param options - A list of InfoSection values specifying which sections of information to retrieve.
      *  When no parameter is provided, the default option is assumed.
      * @param route - The command will be routed automatically, unless `route` is provided, in which
      *   case the client will initially try to route the command to the nodes defined by `route`.
      * @returns a string containing the information for the sections requested.
      */
-    public info(options?: InfoOptions[], route?: Routes): Promise<string> {
-        return this.createWritePromise(createInfo(options), toProtobufRoute(route));
+    public info(
+        options?: InfoOptions[],
+        route?: Routes
+    ): Promise<ClusterResponse<string>> {
+        return this.createWritePromise(
+            createInfo(options),
+            toProtobufRoute(route)
+        );
     }
 
     /** Rewrite the configuration file with the current configuration.
-     * See https://redis.io/commands/select/ for details.
-     * 
+     * See https://redis.io/commands/config-rewrite/ for details.
+     *
      * @param route - The command will be routed automatically, unless `route` is provided, in which
      *   case the client will initially try to route the command to the nodes defined by `route`.
-     * 
+     *
      * @returns "OK" when the configuration was rewritten properly, Otherwise an error is raised.
      */
     public configRewrite(route?: Routes): Promise<"OK"> {
-        return this.createWritePromise(createConfigRewrite(), toProtobufRoute(route));
+        return this.createWritePromise(
+            createConfigRewrite(),
+            toProtobufRoute(route)
+        );
     }
 
     /** Resets the statistics reported by Redis using the INFO and LATENCY HISTOGRAM commands.
      * See https://redis.io/commands/config-resetstat/ for details.
-     * 
+     *
      * @param route - The command will be routed automatically, unless `route` is provided, in which
      *   case the client will initially try to route the command to the nodes defined by `route`.
-     * 
+     *
      * @returns always "OK"
-    */
-    public configResetStat(route?: Routes): Promise<"OK">  {
-        return this.createWritePromise(createConfigResetStat(), toProtobufRoute(route));
+     */
+    public configResetStat(route?: Routes): Promise<"OK"> {
+        return this.createWritePromise(
+            createConfigResetStat(),
+            toProtobufRoute(route)
+        );
     }
 }

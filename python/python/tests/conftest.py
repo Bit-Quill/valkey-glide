@@ -1,16 +1,17 @@
 import random
+from typing import AsyncGenerator, Optional, Union
 
 import pytest
-from pybushka.config import AddressInfo, ClientConfiguration
-from pybushka.Logger import Level as logLevel
-from pybushka.Logger import Logger
-from pybushka.redis_client import BaseRedisClient, RedisClient, RedisClusterClient
+from pybushka.config import AddressInfo, AuthenticationOptions, ClientConfiguration
+from pybushka.logger import Level as logLevel
+from pybushka.logger import Logger
+from pybushka.redis_client import RedisClient, RedisClusterClient, TRedisClient
 from tests.utils.cluster import RedisCluster
 
 default_host = "localhost"
 default_port = 6379
 
-Logger.set_logger_config(logLevel.INFO)
+Logger.set_logger_config(logLevel.WARN)
 
 
 def pytest_addoption(parser):
@@ -66,19 +67,32 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 @pytest.fixture()
-async def redis_client(request, cluster_mode) -> BaseRedisClient:
+async def redis_client(request, cluster_mode) -> AsyncGenerator[TRedisClient, None]:
     "Get async socket client for tests"
+    client = await create_client(request, cluster_mode)
+    yield client
+    client.close()
+
+
+async def create_client(
+    request, cluster_mode: bool, credentials: Optional[AuthenticationOptions] = None
+) -> Union[RedisClient, RedisClusterClient]:
+    # Create async socket client
     host = request.config.getoption("--host")
     port = request.config.getoption("--port")
     use_tls = request.config.getoption("--tls")
+    client: TRedisClient
     if cluster_mode:
+        assert type(pytest.redis_cluster) is RedisCluster
         seed_nodes = random.sample(pytest.redis_cluster.nodes_addr, k=3)
-        config = ClientConfiguration(seed_nodes, use_tls=use_tls)
-        client = await RedisClusterClient.create(config)
+        config = ClientConfiguration(
+            addresses=seed_nodes, use_tls=use_tls, credentials=credentials
+        )
+        return await RedisClusterClient.create(config)
     else:
         config = ClientConfiguration(
-            [AddressInfo(host=host, port=port)], use_tls=use_tls
+            [AddressInfo(host=host, port=port)],
+            use_tls=use_tls,
+            credentials=credentials,
         )
-        client = await RedisClient.create(config)
-    yield client
-    client.close()
+        return await RedisClient.create(config)

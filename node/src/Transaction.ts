@@ -8,9 +8,13 @@ import {
     createGet,
     createIncr,
     createIncrBy,
+    createIncrByFloat,
     createInfo,
+    createMGet,
+    createMSet,
+    createPing,
     createSelect,
-    createSet
+    createSet,
 } from "./Commands";
 import { redis_request } from "./ProtobufMessage";
 
@@ -20,7 +24,7 @@ export class BaseTransaction {
 
     /** Get the value associated with the given key, or null if no such value exists.
      *  See https://redis.io/commands/get/ for details.
-     * 
+     *
      * @param key - The key to retrieve from the database.
      * @returns If the key exists, returns the value of the key as a string. Otherwise, return null.
      */
@@ -30,7 +34,7 @@ export class BaseTransaction {
 
     /** Set the given key with the given value. Return value is dependent on the passed options.
      *  See https://redis.io/commands/set/ for details.
-     * 
+     *
      * @param key - The key to store.
      * @param value - The value to store with the given key.
      * @param options - The set options.
@@ -42,9 +46,19 @@ export class BaseTransaction {
         this.commands.push(createSet(key, value, options));
     }
 
+    /** Ping the Redis server.
+     * See https://redis.io/commands/ping/ for details.
+     *
+     * @param str - the ping argument that will be returned.
+     * Returns PONG if no argument is provided, otherwise return a copy of the argument.
+     */
+    public ping(str?: string) {
+        this.commands.push(createPing(str));
+    }
+
     /** Get information and statistics about the Redis server.
      *  See https://redis.io/commands/info/ for details.
-     * 
+     *
      * @param options - A list of InfoSection values specifying which sections of information to retrieve.
      *  When no parameter is provided, the default option is assumed.
      * @returns a string containing the information for the sections requested.
@@ -55,8 +69,8 @@ export class BaseTransaction {
 
     /** Remove the specified keys. A key is ignored if it does not exist.
      *  See https://redis.io/commands/del/ for details.
-     * 
-     * @param keys - A list of keys to be deleted from the database. 
+     *
+     * @param keys - A list of keys to be deleted from the database.
      * @returns the number of keys that were removed.
      */
     public del(keys: string[]) {
@@ -65,7 +79,7 @@ export class BaseTransaction {
 
     /** Rewrite the configuration file with the current configuration.
      * See https://redis.io/commands/select/ for details.
-     * 
+     *
      * Returns "OK" when the configuration was rewritten properly, Otherwise an error is raised.
      */
     public configRewrite() {
@@ -74,11 +88,32 @@ export class BaseTransaction {
 
     /** Resets the statistics reported by Redis using the INFO and LATENCY HISTOGRAM commands.
      * See https://redis.io/commands/config-resetstat/ for details.
-     * 
+     *
      * Returns always "OK"
-    */
+     */
     public ConfigResetStat() {
         this.commands.push(createConfigResetStat());
+    }
+
+    /** Retrieve the values of multiple keys.
+     * See https://redis.io/commands/mget/ for details.
+     *
+     * @param keys - A list of keys to retrieve values for.
+     * Returns A list of values corresponding to the provided keys. If a key is not found,
+     *  its corresponding value in the list will be null.
+     */
+    public mget(keys: string[]) {
+        this.commands.push(createMGet(keys));
+    }
+
+    /** Set multiple keys to multiple values in a single atomic operation.
+     * See https://redis.io/commands/mset/ for details.
+     *
+     * @param keyValueMap - A key-value map consisting of keys and their respective values to set.
+     * Returns always "OK".
+     */
+    public mset(keyValueMap: Record<string, string>) {
+        this.commands.push(createMSet(keyValueMap));
     }
 
     /** Increments the number stored at key by one. If the key does not exist, it is set to 0 before performing the operation.
@@ -88,7 +123,7 @@ export class BaseTransaction {
      * Returns the value of key after the increment, An error is returned if the key contains a value
      *  of the wrong type or contains a string that can not be represented as integer.
      */
-    public incr(key: string){
+    public incr(key: string) {
         this.commands.push(createIncr(key));
     }
 
@@ -96,12 +131,26 @@ export class BaseTransaction {
      * See https://redis.io/commands/incrby/ for details.
      *
      * @param key - The key to increment it's value.
-     * @param increment - The increment to the key's value.
+     * @param amount - The amount to increment.
      * Returns the value of key after the increment, An error is returned if the key contains a value
      *  of the wrong type or contains a string that can not be represented as integer.
      */
-    public incrBy(key: string, increment: number){
-        this.commands.push(createIncrBy(key,increment));
+    public incrBy(key: string, amount: number) {
+        this.commands.push(createIncrBy(key, amount));
+    }
+
+    /** Increment the string representing a floating point number stored at key by the specified increment.
+     * By using a negative increment value, the result is that the value stored at the key is decremented.
+     * If the key does not exist, it is set to 0 before performing the operation.
+     * See https://redis.io/commands/incrbyfloat/ for details.
+     *
+     * @param key - The key to increment it's value.
+     * @param amount - The amount to increment.
+     * Returns the value of key after the increment as string, An error is returned if the key contains a value of the wrong type.
+     *
+     */
+    public incrByFloat(key: string, amount: number) {
+        this.commands.push(createIncrByFloat(key, amount));
     }
 
     /** Executes a single command, without checking inputs. Every part of the command, including subcommands,
@@ -119,12 +168,12 @@ export class BaseTransaction {
 }
 
 /// Extends BaseTransaction class for Redis standalone commands.
-export class Transaction extends BaseTransaction{
+export class Transaction extends BaseTransaction {
     /// TODO: add MOVE, SLAVEOF and all SENTINEL commands
 
     /** Change the currently selected Redis database.
      * See https://redis.io/commands/select/ for details.
-     * 
+     *
      * @param index - The index of the database to select.
      * Returns A simple OK response.
      */
@@ -134,6 +183,6 @@ export class Transaction extends BaseTransaction{
 }
 
 /// Extends BaseTransaction class for cluster mode commands.
-export class ClusterTransaction extends BaseTransaction{
+export class ClusterTransaction extends BaseTransaction {
     /// TODO: add all CLUSTER commands
 }

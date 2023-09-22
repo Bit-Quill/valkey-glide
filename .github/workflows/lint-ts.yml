@@ -5,10 +5,12 @@ on:
         paths:
             - benchmarks/node/**
             - node/**
+            - benchmarks/utilities/*
     pull_request:
         paths:
             - benchmarks/node/**
             - node/**
+            - benchmarks/utilities/*
 
 env:
     CARGO_TERM_COLOR: always
@@ -17,7 +19,7 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
             - name: lint ts
               run: |
                   npm install @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-tsdoc eslint typescript

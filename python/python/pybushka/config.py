@@ -1,7 +1,6 @@
 from enum import Enum
-from typing import Callable, List, Optional, Tuple
+from typing import List, Optional
 
-from pybushka.constants import TConnectionRequest
 from pybushka.protobuf.connection_request_pb2 import (
     ConnectionRequest,
     ReadFromReplicaStrategy,
@@ -32,11 +31,11 @@ class BackoffStrategy:
 class AuthenticationOptions:
     def __init__(
         self,
+        password: str,
         username: Optional[str] = None,
-        password: Optional[str] = None,
     ):
-        self.username = username
         self.password = password
+        self.username = username
 
 
 class ClientConfiguration:
@@ -62,7 +61,7 @@ class ClientConfiguration:
             default value will be used.
         response_timeout (Optional[int]): Number of milliseconds that the client should wait for response before
             determining that the connection has been severed. If not set, a default value will be used.
-        connection_backoff (Optional[int]): Strategy used to determine how and when to retry connecting, in case of
+        connection_backoff (Optional[BackoffStrategy]): Strategy used to determine how and when to retry connecting, in case of
             connection failures. The time between attempts grows exponentially, to the formula:
             rand(0 .. factor * (exponentBase ^ N)), where N is the number of failed attempts. If not set, a default
             backoff strategy will be used.
@@ -89,7 +88,7 @@ class ClientConfiguration:
 
     def convert_to_protobuf_request(
         self, cluster_mode: bool = False
-    ) -> TConnectionRequest:
+    ) -> ConnectionRequest:
         request = ConnectionRequest()
         for address in self.addresses:
             address_info = request.addresses.add()
@@ -110,4 +109,9 @@ class ClientConfiguration:
                 self.connection_backoff.exponent_base
             )
         request.cluster_mode_enabled = True if cluster_mode else False
+        if self.credentials:
+            if self.credentials.username:
+                request.authentication_info.username = self.credentials.username
+            request.authentication_info.password = self.credentials.password
+
         return request
