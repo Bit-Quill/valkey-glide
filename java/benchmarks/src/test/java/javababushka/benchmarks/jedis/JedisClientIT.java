@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
-import javababushka.benchmarks.utils.ChosenAction;
 import javababushka.benchmarks.utils.Benchmarking;
+import javababushka.benchmarks.utils.ChosenAction;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
