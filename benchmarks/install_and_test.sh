@@ -44,7 +44,7 @@ function runPythonBenchmark(){
   $pythonCommand -m pip install --quiet -r requirements.txt
   maturin develop --release
   echo "Starting Python benchmarks"
-  cd ${BENCH_FOLDER}/python 
+  cd ${BENCH_FOLDER}/python
   $pythonCommand -m pip install --quiet -r requirements.txt
   $pythonCommand python_benchmark.py --resultsFile=../$1 --dataSize $2 --concurrentTasks $concurrentTasks --clients $chosenClients --host $host --clientCount $clientCount $tlsFlag $clusterFlag $portFlag
   # exit python virtualenv
@@ -108,7 +108,7 @@ export PYTHON_FOLDER="${BENCH_FOLDER}/../python"
 export BABUSHKA_HOME_FOLDER="${BENCH_FOLDER}/.."
 export BENCH_RESULTS_FOLDER="${BENCH_FOLDER}/results"
 identifier=$(date +"%F")-$(date +"%H")-$(date +"%M")-$(date +"%S")
-# Create results folder 
+# Create results folder
 mkdir -p $BENCH_RESULTS_FOLDER
 
 function resultFileName() {
@@ -125,7 +125,7 @@ function Help() {
     echo Pass -tasks and then a space-delimited list of number of concurrent operations.
     echo pass -clients and then a space-delimited list of number of the number of clients to be used concurrently.
     echo Pass -prefix with a requested prefix, and the resulting CSV file will have that prefix.
-    echo 
+    echo
     echo Example: passing as options \"-node -tasks 10 100 -data 500 20 -clients 1 2 -python -prefix foo \" will cause the node and python benchmarks to run, with the following configurations:
     echo "         1 client, 10 concurrent tasks and 500 bytes of data per value,"
     echo "         1 client, 10 concurrent tasks and 20 bytes of data per value, "
@@ -134,7 +134,7 @@ function Help() {
     echo "         2 clients, 10 concurrent tasks and 500 bytes of data per value,"
     echo "         2 clients, 10 concurrent tasks and 20 bytes of data per value, "
     echo "         2 clients, 100 concurrent tasks and 500 bytes of data per value, "
-    echo "         2 clients, 100 concurrent tasks and 20 bytes of data per value, "    
+    echo "         2 clients, 100 concurrent tasks and 20 bytes of data per value, "
     echo and the outputs will be saved to a file prefixed with \"foo\".
     echo
     echo Pass -only-ffi to only run Babushka FFI based clients.
@@ -184,14 +184,14 @@ do
                 clientCount+=$2"  "
                 shift
             done
-            ;;            
-        -python)  
-            runAllBenchmarks=0
-            runPython=1 
             ;;
-        -node) 
+        -python)
             runAllBenchmarks=0
-            runNode=1 
+            runPython=1
+            ;;
+        -node)
+            runAllBenchmarks=0
+            runNode=1
             ;;
         -java)
             runAllBenchmarks=0
@@ -215,7 +215,7 @@ do
         -rust)
             runAllBenchmarks=0
             runRust=1
-            ;;            
+            ;;
         -only-socket)
             chosenClients="socket"
             ;;
@@ -224,18 +224,18 @@ do
             ;;
         -only-babushka)
             chosenClients="babushka"
-            ;;                  
+            ;;
         -no-csv) writeResultsCSV=0 ;;
-        -no-tls) 
+        -no-tls)
             tlsFlag=
             ;;
-        -is-cluster) 
+        -is-cluster)
             clusterFlag="--clusterModeEnabled"
             ;;
         -port)
             portFlag="--port "$2
             shift
-            ;;                    
+            ;;
     esac
     shift
 done
@@ -244,21 +244,21 @@ for currentDataSize in $dataSize
 do
     fillDB $currentDataSize
 
-    if [ $runAllBenchmarks == 1 ] || [ $runPython == 1 ]; 
+    if [ $runAllBenchmarks == 1 ] || [ $runPython == 1 ];
     then
         pythonResults=$(resultFileName python $currentDataSize)
         resultFiles+=$pythonResults" "
         runPythonBenchmark $pythonResults $currentDataSize
     fi
 
-    if [ $runAllBenchmarks == 1 ] || [ $runNode == 1 ]; 
+    if [ $runAllBenchmarks == 1 ] || [ $runNode == 1 ];
     then
         nodeResults=$(resultFileName node $currentDataSize)
         resultFiles+=$nodeResults" "
         runNodeBenchmark $nodeResults $currentDataSize
     fi
 
-    if [ $runAllBenchmarks == 1 ] || [ $runCsharp == 1 ]; 
+    if [ $runAllBenchmarks == 1 ] || [ $runCsharp == 1 ];
     then
         csharpResults=$(resultFileName csharp $currentDataSize)
         resultFiles+=$csharpResults" "
@@ -277,12 +277,14 @@ do
         rustResults=$(resultFileName rust $currentDataSize)
         resultFiles+=$rustResults" "
         runRustBenchmark $rustResults $currentDataSize
-    fi    
+    fi
 done
+
+
 
 flushDB
 
-if [ $writeResultsCSV == 1 ]; 
+if [ $writeResultsCSV == 1 ];
 then
     cd ${BENCH_FOLDER}
     finalCSV=results/$namePrefix""final-$identifier.csv
