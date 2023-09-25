@@ -280,6 +280,8 @@ do
     fi
 done
 
+
+
 flushDB
 
 if [ $writeResultsCSV == 1 ];
