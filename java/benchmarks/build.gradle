@@ -28,7 +28,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'javabushka.client.BenchmarkingApp'
+    mainClass = 'javababushka.benchmarks.BenchmarkingApp'
 }
 
 tasks.withType(Test) { 

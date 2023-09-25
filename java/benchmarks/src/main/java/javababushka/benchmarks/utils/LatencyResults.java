@@ -1,4 +1,4 @@
-package javabushka.client.utils;
+package javababushka.benchmarks.utils;
 
 // Raw timing results in nanoseconds
 public class LatencyResults {

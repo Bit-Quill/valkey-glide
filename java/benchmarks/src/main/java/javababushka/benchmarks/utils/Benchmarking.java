@@ -1,4 +1,4 @@
-package javabushka.client.utils;
+package javababushka.benchmarks.utils;
 
 import java.io.FileWriter;
 import java.io.IOException;

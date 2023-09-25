@@ -1,4 +1,4 @@
-package javabushka.client.utils;
+package javababushka.benchmarks.utils;
 
 public enum ChosenAction {
   GET_NON_EXISTING,

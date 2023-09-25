@@ -1,4 +1,4 @@
-package javabushka.client;
+package javababushka.benchmarks;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javabushka.client.jedis.JedisClient;
-import javabushka.client.lettuce.LettuceAsyncClient;
-import javabushka.client.utils.Benchmarking;
-import javabushka.client.utils.ChosenAction;
+import javababushka.benchmarks.jedis.JedisClient;
+import javababushka.benchmarks.lettuce.LettuceAsyncClient;
+import javababushka.benchmarks.utils.Benchmarking;
+import javababushka.benchmarks.utils.ChosenAction;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;

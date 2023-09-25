@@ -1,3 +1,0 @@
-[env]
-BABUSHKA_NAME = { value = "BabushkaPy", force = true }
-BABUSHKA_VERSION = "0.1.0"
