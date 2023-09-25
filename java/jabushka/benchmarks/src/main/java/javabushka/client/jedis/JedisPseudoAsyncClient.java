@@ -20,7 +20,7 @@ public class JedisPseudoAsyncClient extends JedisClient implements AsyncClient {
 
   @Override
   public <T> T waitForResult(Future<T> future) {
-    return waitForResult(future, 1000);
+    return waitForResult(future, DEFAULT_TIMEOUT);
   }
 
   @Override

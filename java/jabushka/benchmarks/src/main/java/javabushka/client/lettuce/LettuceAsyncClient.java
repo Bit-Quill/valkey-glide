@@ -18,8 +18,6 @@ public class LettuceAsyncClient implements AsyncClient {
   RedisAsyncCommands asyncCommands;
   StatefulRedisConnection<String, String> connection;
 
-  public final long MAX_TIMEOUT_MS = 1000;
-
   @Override
   public void connectToRedis() {
     connectToRedis(new ConnectionSettings("localhost", 6379, false));
@@ -50,7 +48,7 @@ public class LettuceAsyncClient implements AsyncClient {
 
   @Override
   public Object waitForResult(Future future) {
-    return waitForResult(future, MAX_TIMEOUT_MS);
+    return waitForResult(future, DEFAULT_TIMEOUT);
   }
 
   @Override
