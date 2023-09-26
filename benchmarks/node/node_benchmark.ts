@@ -1,9 +1,18 @@
-import { RedisClient, RedisClusterClient, setLoggerConfig } from "babushka-rs";
-import commandLineArgs from "command-line-args";
+import { Logger, RedisClient, RedisClusterClient } from "babushka-rs";
 import { writeFileSync } from "fs";
 import percentile from "percentile";
 import { RedisClientType, createClient, createCluster } from "redis";
 import { stdev } from "stats-lite";
+import {
+    receivedOptions,
+    generate_value,
+    generate_key_get,
+    generate_key_set,
+    getAddress,
+} from "../utilities/utils";
+
+export const PROB_GET = 0.8;
+export const PROB_GET_EXISTING_KEY = 0.8;
 
 enum ChosenAction {
     GET_NON_EXISTING,
@@ -11,26 +20,7 @@ enum ChosenAction {
     SET,
 }
 // Demo - Setting the internal logger to log every log that has a level of info and above, and save the logs to the first.log file.
-setLoggerConfig("info", "first.log");
-
-const PORT = 6379;
-function getAddress(host: string, port?: number): string {
-    return `${host}:${port === undefined ? PORT : port}`;
-}
-
-function getAddressWithProtocol(
-    host: string,
-    useTLS: boolean,
-    port?: number
-): string {
-    const protocol = useTLS ? "rediss" : "redis";
-    return `${protocol}://${getAddress(host, port ?? PORT)}`;
-}
-
-const PROB_GET = 0.8;
-const PROB_GET_EXISTING_KEY = 0.8;
-const SIZE_GET_KEYSPACE = 3750000; // 3.75 million
-const SIZE_SET_KEYSPACE = 3000000; // 3 million
+Logger.setLoggerConfig("info", "first.log");
 
 let started_tasks_counter = 0;
 const running_tasks: Promise<void>[] = [];
@@ -39,18 +29,6 @@ const bench_json_results: object[] = [];
 interface IAsyncClient {
     set: (key: string, value: string) => Promise<string | "OK" | null>;
     get: (key: string) => Promise<string | null>;
-}
-
-function generate_value(size: number): string {
-    return "0".repeat(size);
-}
-
-function generate_key_set(): string {
-    return (Math.floor(Math.random() * SIZE_SET_KEYSPACE) + 1).toString();
-}
-function generate_key_get(): string {
-    const range = SIZE_GET_KEYSPACE - SIZE_SET_KEYSPACE;
-    return Math.floor(Math.random() * range + SIZE_SET_KEYSPACE + 1).toString();
 }
 
 function choose_action(): ChosenAction {
@@ -218,7 +196,8 @@ async function main(
     host: string,
     clientCount: number,
     useTLS: boolean,
-    clusterModeEnabled: boolean
+    clusterModeEnabled: boolean,
+    port: number
 ) {
     const data = generate_value(data_size);
     if (
@@ -231,7 +210,7 @@ async function main(
             : RedisClient;
         const clients = await createClients(clientCount, () =>
             clientClass.createClient({
-                addresses: [{ host }],
+                addresses: [{ host, port }],
                 useTLS,
             })
         );
@@ -253,13 +232,11 @@ async function main(
     if (clients_to_run == "all") {
         const clients = await createClients(clientCount, async () => {
             const node = {
-                url: getAddressWithProtocol(host, useTLS),
+                url: getAddress(host, useTLS, port),
             };
             const node_redis_client = clusterModeEnabled
                 ? createCluster({
-                      rootNodes: [
-                          { socket: { host, port: PORT, tls: useTLS } },
-                      ],
+                      rootNodes: [{ socket: { host, port, tls: useTLS } }],
                       defaults: {
                           socket: {
                               tls: useTLS,
@@ -286,18 +263,6 @@ async function main(
         await new Promise((resolve) => setTimeout(resolve, 100));
     }
 }
-
-const optionDefinitions = [
-    { name: "resultsFile", type: String },
-    { name: "dataSize", type: String },
-    { name: "concurrentTasks", type: String, multiple: true },
-    { name: "clients", type: String },
-    { name: "host", type: String },
-    { name: "clientCount", type: String, multiple: true },
-    { name: "tls", type: Boolean, defaultValue: false },
-    { name: "clusterModeEnabled", type: Boolean, defaultValue: false },
-];
-const receivedOptions = commandLineArgs(optionDefinitions);
 
 const number_of_iterations = (num_of_concurrent_tasks: number) =>
     Math.min(Math.max(100000, num_of_concurrent_tasks * 10000), 10000000);
@@ -335,7 +300,8 @@ Promise.resolve() // just added to clean the indentation of the rest of the call
                 receivedOptions.host,
                 clientCount,
                 receivedOptions.tls,
-                receivedOptions.clusterModeEnabled
+                receivedOptions.clusterModeEnabled,
+                receivedOptions.port
             );
         }
 

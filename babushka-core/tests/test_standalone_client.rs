@@ -1,18 +1,18 @@
 mod utilities;
 
 #[cfg(test)]
-mod client_cmd_tests {
+mod standalone_client_tests {
     use crate::utilities::mocks::{Mock, ServerMock};
 
     use super::*;
-    use babushka::{client::ClientCMD, connection_request::ReadFromReplicaStrategy};
+    use babushka::{client::StandaloneClient, connection_request::ReadFromReplicaStrategy};
     use redis::Value;
     use rstest::rstest;
     use std::time::Duration;
     use utilities::*;
 
     #[rstest]
-    #[timeout(LONG_CMD_TEST_TIMEOUT)]
+    #[timeout(LONG_STANDALONE_TEST_TIMEOUT)]
     fn test_report_disconnect_and_reconnect_after_temporary_disconnect(
         #[values(false, true)] use_tls: bool,
     ) {
@@ -59,8 +59,8 @@ mod client_cmd_tests {
     }
 
     #[rstest]
-    #[timeout(LONG_CMD_TEST_TIMEOUT)]
-    #[cfg(cmd_heartbeat)]
+    #[timeout(LONG_STANDALONE_TEST_TIMEOUT)]
+    #[cfg(standalone_heartbeat)]
     fn test_detect_disconnect_and_reconnect_using_heartbeat(#[values(false, true)] use_tls: bool) {
         let (sender, receiver) = tokio::sync::oneshot::channel();
         block_on_all(async move {
@@ -131,6 +131,7 @@ mod client_cmd_tests {
         read_from_replica_strategy: ReadFromReplicaStrategy,
         expected_primary_reads: u16,
         expected_replica_reads: Vec<u16>,
+        number_of_initial_replicas: usize,
         number_of_missing_replicas: usize,
         number_of_replicas_dropped_after_connection: usize,
         number_of_requests_sent: usize,
@@ -142,6 +143,7 @@ mod client_cmd_tests {
                 read_from_replica_strategy: ReadFromReplicaStrategy::AlwaysFromPrimary,
                 expected_primary_reads: 3,
                 expected_replica_reads: vec![0, 0, 0],
+                number_of_initial_replicas: 3,
                 number_of_missing_replicas: 0,
                 number_of_replicas_dropped_after_connection: 0,
                 number_of_requests_sent: 3,
@@ -150,7 +152,9 @@ mod client_cmd_tests {
     }
 
     fn test_read_from_replica(config: ReadFromReplicaTestConfig) {
-        let mut mocks = create_primary_mock_with_replicas(3 - config.number_of_missing_replicas);
+        let mut mocks = create_primary_mock_with_replicas(
+            config.number_of_initial_replicas - config.number_of_missing_replicas,
+        );
         let mut cmd = redis::cmd("GET");
         cmd.arg("foo");
 
@@ -174,7 +178,9 @@ mod client_cmd_tests {
         connection_request.read_from_replica_strategy = config.read_from_replica_strategy.into();
 
         block_on_all(async {
-            let mut client = ClientCMD::create_client(connection_request).await.unwrap();
+            let mut client = StandaloneClient::create_client(connection_request)
+                .await
+                .unwrap();
             for mock in mocks.drain(1..config.number_of_replicas_dropped_after_connection + 1) {
                 mock.close().await;
             }
@@ -197,13 +203,13 @@ mod client_cmd_tests {
     }
 
     #[rstest]
-    #[timeout(SHORT_CMD_TEST_TIMEOUT)]
+    #[timeout(SHORT_STANDALONE_TEST_TIMEOUT)]
     fn test_read_from_replica_always_read_from_primary() {
         test_read_from_replica(ReadFromReplicaTestConfig::default());
     }
 
     #[rstest]
-    #[timeout(SHORT_CMD_TEST_TIMEOUT)]
+    #[timeout(SHORT_STANDALONE_TEST_TIMEOUT)]
     fn test_read_from_replica_round_robin() {
         test_read_from_replica(ReadFromReplicaTestConfig {
             read_from_replica_strategy: ReadFromReplicaStrategy::RoundRobin,
@@ -214,7 +220,7 @@ mod client_cmd_tests {
     }
 
     #[rstest]
-    #[timeout(SHORT_CMD_TEST_TIMEOUT)]
+    #[timeout(SHORT_STANDALONE_TEST_TIMEOUT)]
     fn test_read_from_replica_round_robin_skip_disconnected_replicas() {
         test_read_from_replica(ReadFromReplicaTestConfig {
             read_from_replica_strategy: ReadFromReplicaStrategy::RoundRobin,
@@ -226,7 +232,7 @@ mod client_cmd_tests {
     }
 
     #[rstest]
-    #[timeout(SHORT_CMD_TEST_TIMEOUT)]
+    #[timeout(SHORT_STANDALONE_TEST_TIMEOUT)]
     fn test_read_from_replica_round_robin_read_from_primary_if_no_replica_is_connected() {
         test_read_from_replica(ReadFromReplicaTestConfig {
             read_from_replica_strategy: ReadFromReplicaStrategy::RoundRobin,
@@ -238,7 +244,7 @@ mod client_cmd_tests {
     }
 
     #[rstest]
-    #[timeout(SHORT_CMD_TEST_TIMEOUT)]
+    #[timeout(SHORT_STANDALONE_TEST_TIMEOUT)]
     fn test_read_from_replica_round_robin_do_not_read_from_disconnected_replica() {
         test_read_from_replica(ReadFromReplicaTestConfig {
             read_from_replica_strategy: ReadFromReplicaStrategy::RoundRobin,
@@ -246,6 +252,19 @@ mod client_cmd_tests {
             expected_replica_reads: vec![2, 3],
             number_of_replicas_dropped_after_connection: 1,
             number_of_requests_sent: 6,
+            ..Default::default()
+        });
+    }
+
+    #[rstest]
+    #[timeout(SHORT_STANDALONE_TEST_TIMEOUT)]
+    fn test_read_from_replica_round_robin_with_single_replica() {
+        test_read_from_replica(ReadFromReplicaTestConfig {
+            read_from_replica_strategy: ReadFromReplicaStrategy::RoundRobin,
+            expected_primary_reads: 0,
+            expected_replica_reads: vec![3],
+            number_of_initial_replicas: 1,
+            number_of_requests_sent: 3,
             ..Default::default()
         });
     }

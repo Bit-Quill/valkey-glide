@@ -8,11 +8,11 @@ import { Reader } from "protobufjs";
 import {
     ClosingError,
     ConnectionOptions,
+    Logger,
     RedisClient,
     RedisClusterClient,
     RequestError,
     TimeoutError,
-    setLoggerConfig,
 } from "../build-ts";
 import {
     connection_request,
@@ -23,7 +23,7 @@ import {
 const { RequestType, RedisRequest } = redis_request;
 
 beforeAll(() => {
-    setLoggerConfig("info");
+    Logger.init("info");
 });
 
 enum ResponseType {
@@ -129,7 +129,7 @@ function getConnectionAndSocket(
 }
 
 function closeTestResources(
-    connection: RedisClient,
+    connection: RedisClient | RedisClusterClient,
     server: net.Server,
     socket: net.Socket
 ) {
@@ -140,7 +140,7 @@ function closeTestResources(
 
 async function testWithResources(
     testFunction: (
-        connection: RedisClient,
+        connection: RedisClient | RedisClusterClient,
         socket: net.Socket
     ) => Promise<void>,
     connectionOptions?: ConnectionOptions

@@ -1,10 +1,12 @@
 import threading
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import List, Optional, Type, Union, get_args
+from typing import List, Mapping, Optional, Protocol, Tuple, Type, Union, cast, get_args
 
-from pybushka.constants import TResult
+from pybushka.constants import TOK, TResult
 from pybushka.protobuf.redis_request_pb2 import RequestType
+from pybushka.routes import Route
+from pyparsing import Any
 
 
 class ConditionalSet(Enum):
@@ -136,13 +138,13 @@ class BaseTransaction:
     """
 
     def __init__(self) -> None:
-        self.commands = []
+        self.commands: List[Tuple[RequestType.ValueType, List[str]]] = []
         self.lock = threading.Lock()
 
-    def append_command(self, request_type: RequestType, args: List[str]):
+    def append_command(self, request_type: RequestType.ValueType, args: List[str]):
         self.lock.acquire()
         try:
-            self.commands.append([request_type, args])
+            self.commands.append((request_type, args))
         finally:
             self.lock.release()
 
@@ -175,9 +177,9 @@ class BaseTransaction:
 
     def custom_command(self, command_args: List[str]):
         """Executes a single command, without checking inputs.
-            @example - Return a list of all pub/sub clients:
+            @example - Append a command to list of all pub/sub clients:
 
-                connection.customCommand(["CLIENT", "LIST","TYPE", "PUBSUB"])
+                transaction.customCommand(["CLIENT", "LIST","TYPE", "PUBSUB"])
         Args:
             command_args (List[str]): List of strings of the command's arguments.
             Every part of the command, including the command name and subcommands, should be added as a separate value in args.
@@ -214,6 +216,33 @@ class BaseTransaction:
         """
         self.append_command(RequestType.Del, keys)
 
+    def config_get(self, parameters: List[str]):
+        """Get the values of configuration parameters.
+        See https://redis.io/commands/config-get/ for details.
+
+        Args:
+            parameters (List[str]): A list of configuration parameter names to retrieve values for.
+
+        Command response:
+            List[str]: A list of values corresponding to the configuration parameters.
+        """
+        self.append_command(RequestType.ConfigGet, parameters)
+
+    def config_set(self, parameters_map: Mapping[str, str]):
+        """Set configuration parameters to the specified values.
+        See https://redis.io/commands/config-set/ for details.
+
+        Args:
+            parameters_map (Mapping[str, str]): A map consisting of configuration
+            parameters and their respective values to set.
+        Command response:
+            OK: Returns OK if all configurations have been successfully set. Otherwise, raises an error.
+        """
+        parameters: List[str] = []
+        for pair in parameters_map.items():
+            parameters.extend(pair)
+        self.append_command(RequestType.ConfigSet, parameters)
+
     def config_resetstat(self):
         """Reset the statistics reported by Redis.
         See https://redis.io/commands/config-resetstat/ for details.
@@ -221,6 +250,34 @@ class BaseTransaction:
             OK: Returns "OK" to confirm that the statistics were successfully reset.
         """
         self.append_command(RequestType.ConfigResetStat, [])
+
+    def mset(self, key_value_map: Mapping[str, str]):
+        """Set multiple keys to multiple values in a single operation.
+        See https://redis.io/commands/mset/ for more details.
+
+        Args:
+            parameters (Mapping[str, str]): A map of key value pairs.
+
+        Command response:
+            OK: a simple OK response.
+        """
+        parameters: List[str] = []
+        for pair in key_value_map.items():
+            parameters.extend(pair)
+        self.append_command(RequestType.MSet, parameters)
+
+    def mget(self, keys: List[str]):
+        """Retrieve the values of multiple keys.
+        See https://redis.io/commands/mget/ for more details.
+
+        Args:
+            keys (List[str]): A list of keys to retrieve values for.
+
+        Command response:
+            List[str]: A list of values corresponding to the provided keys. If a key is not found,
+            its corresponding value in the list will be None.
+        """
+        self.append_command(RequestType.MGet, keys)
 
     def config_rewrite(self):
         """Rewrite the configuration file with the current configuration.
@@ -231,8 +288,117 @@ class BaseTransaction:
         """
         self.append_command(RequestType.ConfigRewrite, [])
 
+    def client_id(self):
+        """Returns the current connection id.
+        See https://redis.io/commands/client-id/ for more information.
 
-class CoreCommands:
+
+        Command response:
+            int: the id of the client.
+        """
+        self.append_command(RequestType.ClientId, [])
+
+    def incr(self, key: str):
+        """Increments the number stored at `key` by one. If the key does not exist, it is set to 0 before performing the
+        operation.
+        See https://redis.io/commands/incr/ for more details.
+
+        Args:
+          key (str): The key to increment it's value.
+
+        Command response:
+              int: the value of `key` after the increment. An error is returned if the key contains a value
+              of the wrong type or contains a string that can not be represented as integer.
+        """
+        self.append_command(RequestType.Incr, [key])
+
+    def incrby(self, key: str, amount: int):
+        """Increments the number stored at `key` by `amount`. If the key does not exist, it is set to 0 before performing
+        the operation.
+        See https://redis.io/commands/incrby/ for more details.
+
+        Args:
+          key (str): The key to increment it's value.
+          amount (int) : The amount to increment.
+
+        Command response:
+              int: The value of `key` after the increment. An error is returned if the key contains a value
+              of the wrong type or contains a string that can not be represented as integer.
+        """
+        self.append_command(RequestType.IncrBy, [key, str(amount)])
+
+    def incrbyfloat(self, key: str, amount: float):
+        """Increment the string representing a floating point number stored at `key` by `amount`.
+           By using a negative increment value, the value stored at the `key` is decremented.
+           If the key does not exist, it is set to 0 before performing the operation.
+           See https://redis.io/commands/incrbyfloat/ for more details.
+
+        Args:
+          key (str): The key to increment it's value.
+          amount (float) : The amount to increment.
+
+        Command response:
+              str: The value of key after the increment. An error is returned if the key contains a value
+              of the wrong type.
+        """
+        self.append_command(RequestType.IncrByFloat, [key, str(amount)])
+
+    def ping(self, message: Optional[str] = None):
+        """Ping the Redis server.
+        See https://redis.io/commands/ping/ for more details.
+        Args:
+           message (Optional[str]): An optional message to include in the PING command. If not provided,
+            the server will respond with "PONG". If provided, the server will respond with a copy of the message.
+
+        Command response:
+           str: "PONG" if 'message' is not provided, otherwise return a copy of 'message'.
+        """
+        argument = [] if message is None else [message]
+        self.append_command(RequestType.Ping, argument)
+
+    def decr(self, key: str):
+        """Decrements the number stored at `key` by one. If the key does not exist, it is set to 0 before performing the
+        operation.
+        See https://redis.io/commands/decr/ for more details.
+
+        Args:
+          key (str): The key to decrement it's value.
+
+        Command response:
+              int: the value of `key` after the decrement. An error is returned if the key contains a value
+              of the wrong type or contains a string that can not be represented as integer.
+        """
+        self.append_command(RequestType.Decr, [key])
+
+    def decrby(self, key: str, amount: int):
+        """Decrements the number stored at `key` by `amount`. If the key does not exist, it is set to 0 before performing
+        the operation.
+        See https://redis.io/commands/decrby/ for more details.
+
+        Args:
+          key (str): The key to decrement it's value.
+         amount (int) : The amount to decrement.
+
+        Command response:
+              int: The value of `key` after the decrement. An error is returned if the key contains a value
+              of the wrong type or contains a string that can not be represented as integer.
+        """
+        self.append_command(RequestType.DecrBy, [key, str(amount)])
+
+
+class CoreCommands(Protocol):
+    async def _execute_command(
+        self, request_type: Any, args: List[str], route: Optional[Route] = ...
+    ) -> TResult:
+        ...
+
+    async def execute_transaction(
+        self,
+        commands: List[Tuple[RequestType.ValueType, List[str]]],
+        route: Optional[Route] = None,
+    ) -> List[TResult]:
+        ...
+
     async def set(
         self,
         key: str,
@@ -275,7 +441,7 @@ class CoreCommands:
             args.extend(expiry.get_cmd_args())
         return await self._execute_command(RequestType.SetString, args)
 
-    async def get(self, key: str) -> Union[str, None]:
+    async def get(self, key: str) -> Optional[str]:
         """Get the value associated with the given key, or null if no such value exists.
          See https://redis.io/commands/get/ for details.
 
@@ -285,7 +451,9 @@ class CoreCommands:
         Returns:
             Union[str, None]: If the key exists, returns the value of the key as a string. Otherwise, return None.
         """
-        return await self._execute_command(RequestType.GetString, [key])
+        return cast(
+            Optional[str], await self._execute_command(RequestType.GetString, [key])
+        )
 
     async def delete(self, keys: List[str]) -> int:
         """Delete one or more keys from the database. A key is ignored if it does not exist.
@@ -297,4 +465,112 @@ class CoreCommands:
         Returns:
             int: The number of keys that were deleted.
         """
-        return await self._execute_command(RequestType.Del, keys)
+        return cast(int, await self._execute_command(RequestType.Del, keys))
+
+    async def incr(self, key: str) -> int:
+        """Increments the number stored at `key` by one. If the key does not exist, it is set to 0 before performing the
+        operation.
+        See https://redis.io/commands/incr/ for more details.
+
+        Args:
+          key (str): The key to increment it's value.
+
+          Returns:
+              int: The value of `key` after the increment. An error is returned if the key contains a value
+              of the wrong type or contains a string that can not be represented as integer.
+        """
+        return cast(int, await self._execute_command(RequestType.Incr, [key]))
+
+    async def incrby(self, key: str, amount: int) -> int:
+        """Increments the number stored at `key` by `amount`. If the key does not exist, it is set to 0 before performing
+        the operation. See https://redis.io/commands/incrby/ for more details.
+
+        Args:
+          key (str): The key to increment it's value.
+          amount (int) : The amount to increment.
+
+          Returns:
+              int: The value of key after the increment. An error is returned if the key contains a value
+              of the wrong type or contains a string that can not be represented as integer.
+        """
+        return cast(
+            int, await self._execute_command(RequestType.IncrBy, [key, str(amount)])
+        )
+
+    async def incrbyfloat(self, key: str, amount: float) -> str:
+        """Increment the string representing a floating point number stored at `key` by `amount`.
+           By using a negative increment value, the value stored at the `key` is decremented.
+           If the key does not exist, it is set to 0 before performing the operation.
+           See https://redis.io/commands/incrbyfloat/ for more details.
+
+        Args:
+          key (str): The key to increment it's value.
+          amount (float) : The amount to increment.
+
+          Returns:
+              str: The value of key after the increment. An error is returned if the key contains a value
+              of the wrong type.
+        """
+        return cast(
+            str,
+            await self._execute_command(RequestType.IncrByFloat, [key, str(amount)]),
+        )
+
+    async def mset(self, key_value_map: Mapping[str, str]) -> TOK:
+        """Set multiple keys to multiple values in a single operation.
+        See https://redis.io/commands/mset/ for more details.
+
+        Args:
+            parameters (Mapping[str, str]): A map of key value pairs.
+
+        Returns:
+            OK: a simple OK response.
+        """
+        parameters: List[str] = []
+        for pair in key_value_map.items():
+            parameters.extend(pair)
+        return cast(TOK, await self._execute_command(RequestType.MSet, parameters))
+
+    async def mget(self, keys: List[str]) -> List[str]:
+        """Retrieve the values of multiple keys.
+        See https://redis.io/commands/mget/ for more details.
+
+        Args:
+            keys (List[str]): A list of keys to retrieve values for.
+
+        Returns:
+            List[str]: A list of values corresponding to the provided keys. If a key is not found,
+            its corresponding value in the list will be None.
+        """
+        return cast(List[str], await self._execute_command(RequestType.MGet, keys))
+
+    async def decr(self, key: str) -> int:
+        """Decrement the number stored at `key` by one. If the key does not exist, it is set to 0 before performing the
+        operation.
+        See https://redis.io/commands/decr/ for more details.
+
+        Args:
+          key (str): The key to increment it's value.
+
+          Returns:
+              int: The value of key after the decrement. An error is returned if the key contains a value
+              of the wrong type or contains a string that can not be represented as integer.
+        """
+        return cast(int, await self._execute_command(RequestType.Decr, [key]))
+
+    async def decrby(self, key: str, amount: int) -> int:
+        """Decrements the number stored at `key` by `amount`. If the key does not exist, it is set to 0 before performing
+        the operation.
+        See https://redis.io/commands/decrby/ for more details.
+
+        Args:
+          key (str): The key to decrement it's value.
+          amount (int) : The amount to decrement.
+
+          Returns:
+              int: The value of key after the decrement. An error is returned if the key contains a value
+              of the wrong type or contains a string that can not be represented as integer.
+        """
+        return cast(
+            int, await self._execute_command(RequestType.DecrBy, [key, str(amount)])
+        )

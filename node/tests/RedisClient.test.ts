@@ -12,7 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ConnectionOptions, RedisClient, Transaction } from "../build-ts";
 import { redis_request } from "../src/ProtobufMessage";
 import { runBaseTests } from "./SharedTests";
-import { flushallOnPort } from "./TestUtilities";
+import { flushallOnPort, transactionTest } from "./TestUtilities";
 /* eslint-disable @typescript-eslint/no-var-requires */
 const FreePort = require("find-free-port");
 
@@ -103,60 +103,46 @@ describe("RedisClient", () => {
             "bar4",
         ]);
     });
-    
+
     it("info without parameters", async () => {
         const client = await RedisClient.createClient(getOptions(port));
         const result = await client.info();
-        expect(result).toEqual(expect.stringContaining('# Server'));
-        expect(result).toEqual(expect.stringContaining('# Replication'));
-        expect(result).toEqual(expect.not.stringContaining('# Latencystats'));
+        expect(result).toEqual(expect.stringContaining("# Server"));
+        expect(result).toEqual(expect.stringContaining("# Replication"));
+        expect(result).toEqual(expect.not.stringContaining("# Latencystats"));
         client.dispose();
-    }
-    );
+    });
 
-    it(
-        "simple select test",
-        async () => {
-            const client = await RedisClient.createClient(getOptions(port));
-            let selectResult = await client.select(0);
-            expect(selectResult).toEqual("OK");
+    it("simple select test", async () => {
+        const client = await RedisClient.createClient(getOptions(port));
+        let selectResult = await client.select(0);
+        expect(selectResult).toEqual("OK");
 
-            const key = uuidv4();
-            const value = uuidv4();
-            const result = await client.set(key, value);
-            expect(result).toEqual("OK");
+        const key = uuidv4();
+        const value = uuidv4();
+        const result = await client.set(key, value);
+        expect(result).toEqual("OK");
 
-            selectResult = await client.select(1);
-            expect(selectResult).toEqual("OK");
-            expect(await client.get(key)).toEqual(null);
+        selectResult = await client.select(1);
+        expect(selectResult).toEqual("OK");
+        expect(await client.get(key)).toEqual(null);
 
-            selectResult = await client.select(0);
-            expect(selectResult).toEqual("OK");
-            expect(await client.get(key)).toEqual(value);
-            client.dispose();
-        },
-    );
+        selectResult = await client.select(0);
+        expect(selectResult).toEqual("OK");
+        expect(await client.get(key)).toEqual(value);
+        client.dispose();
+    });
 
-    it(
-        "can send transactions",
-        async () => {
-            const client = await RedisClient.createClient(getOptions(port));
-            const key1 = "{key}" + uuidv4();
-            const key2 = "{key}" + uuidv4();
-            const transaction = new Transaction();
-            transaction.set(key1, "bar");
-            transaction.set(key2, "baz", {
-                conditionalSet: "onlyIfDoesNotExist",
-                returnOldValue: true,
-            });
-            transaction.customCommand("MGET", [key1, key2]);
-            transaction.select(0);
-
-            const result = await client.exec(transaction);
-            expect(result).toEqual(["OK", null, ["bar", "baz"], "OK"]);
-            client.dispose();
-        },
-    );
+    it("can send transactions", async () => {
+        const client = await RedisClient.createClient(getOptions(port));
+        const transaction = new Transaction();
+        const expectedRes = transactionTest(transaction);
+        transaction.select(0);
+        const result = await client.exec(transaction);
+        expectedRes.push("OK");
+        expect(result).toEqual(expectedRes);
+        client.dispose();
+    });
 
     runBaseTests<Context>({
         init: async () => {

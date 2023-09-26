@@ -1,8 +1,20 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "@jest/globals";
+import {
+    afterAll,
+    afterEach,
+    beforeAll,
+    describe,
+    expect,
+    it,
+} from "@jest/globals";
 import { exec } from "child_process";
-import { ConnectionOptions, InfoOptions, RedisClusterClient } from "../build-ts";
+import { ClusterTransaction } from "../";
+import {
+    ConnectionOptions,
+    InfoOptions,
+    RedisClusterClient,
+} from "../build-ts";
 import { runBaseTests } from "./SharedTests";
-import { flushallOnPort } from "./TestUtilities";
+import { flushallOnPort, transactionTest } from "./TestUtilities";
 
 type Context = {
     client: RedisClusterClient;
@@ -133,29 +145,68 @@ describe("RedisClusterClient", () => {
         timeout: TIMEOUT,
     });
 
-    it("info with server and replication", async () => {
-        const client = await RedisClusterClient.createClient(getOptions(cluster.ports()));
-        const result = await client.info([InfoOptions.Server, InfoOptions.Replication]);
-        const clusterNodes = await client.customCommand("CLUSTER", ["NODES"]);
-        expect((clusterNodes as string)?.split("master").length - 1).toEqual(result.length);
-        for (let i = 0; i < result.length; i++) {
-            expect(result?.[i][1]).toEqual(expect.stringContaining('# Server'));
-            expect(result?.[i][1]).toEqual(expect.stringContaining('# Replication'));
-            expect(result?.[i][1]).toEqual(expect.not.stringContaining('# Errorstats'));
-        }
-        client.dispose();
-    },
-        TIMEOUT,
+    it(
+        "info with server and replication",
+        async () => {
+            const client = await RedisClusterClient.createClient(
+                getOptions(cluster.ports())
+            );
+            const result = await client.info([
+                InfoOptions.Server,
+                InfoOptions.Replication,
+            ]);
+            const clusterNodes = await client.customCommand("CLUSTER", [
+                "NODES",
+            ]);
+            expect(
+                (clusterNodes as string)?.split("master").length - 1
+            ).toEqual(result.length);
+            for (let i = 0; i < result.length; i++) {
+                expect(result?.[i][1]).toEqual(
+                    expect.stringContaining("# Server")
+                );
+                expect(result?.[i][1]).toEqual(
+                    expect.stringContaining("# Replication")
+                );
+                expect(result?.[i][1]).toEqual(
+                    expect.not.stringContaining("# Errorstats")
+                );
+            }
+            client.dispose();
+        },
+        TIMEOUT
     );
 
-    it("info with server and randomNode route", async () => {
-        const client = await RedisClusterClient.createClient(getOptions(cluster.ports()));
-        const result = await client.info([InfoOptions.Server], "randomNode");
-        expect(typeof result).toEqual("string");
-        expect(result).toEqual(expect.stringContaining('# Server'));
-        expect(result).toEqual(expect.not.stringContaining('# Errorstats'));
-        client.dispose();
-    },
-        TIMEOUT,
+    it(
+        "info with server and randomNode route",
+        async () => {
+            const client = await RedisClusterClient.createClient(
+                getOptions(cluster.ports())
+            );
+            const result = await client.info(
+                [InfoOptions.Server],
+                "randomNode"
+            );
+            expect(typeof result).toEqual("string");
+            expect(result).toEqual(expect.stringContaining("# Server"));
+            expect(result).toEqual(expect.not.stringContaining("# Errorstats"));
+            client.dispose();
+        },
+        TIMEOUT
+    );
+
+    it(
+        "can send transactions",
+        async () => {
+            const client = await RedisClusterClient.createClient(
+                getOptions(cluster.ports())
+            );
+            const transaction = new ClusterTransaction();
+            const expectedRes = transactionTest(transaction);
+            const result = await client.exec(transaction);
+            expect(result).toEqual(expectedRes);
+            client.dispose();
+        },
+        TIMEOUT
     );
 });
