@@ -36,7 +36,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("GET FOO : ", val)
+	fmt.Println("GET FOO :", val)
 
 	err = client.Close()
 	if err != nil {
