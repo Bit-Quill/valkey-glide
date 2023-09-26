@@ -271,15 +271,13 @@ do
         runJavaBenchmark $javaResults $currentDataSize
     fi
 
-    if [ $runAllBenchmarks == 1 ] || [ $runRust == 1 ]; 
+    if [ $runAllBenchmarks == 1 ] || [ $runRust == 1 ];
     then
         rustResults=$(resultFileName rust $currentDataSize)
         resultFiles+=$rustResults" "
         runRustBenchmark $rustResults $currentDataSize
     fi
 done
-
-
 
 flushDB
 
