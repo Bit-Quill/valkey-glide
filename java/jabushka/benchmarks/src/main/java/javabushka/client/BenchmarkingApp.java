@@ -77,7 +77,7 @@ public class BenchmarkingApp {
     options.addOption("f", "resultsFile", true, "Result filepath []");
     options.addOption("d", "dataSize", true, "Data block size [20]");
     options.addOption("C", "concurrentTasks", true, "Number of concurrent tasks [1 10 100]");
-    options.addOption("l", "clients", true, "one of: all|jedis|lettuce|babushka [all]");
+    options.addOption("l", "clients", true, "one of: all|jedis|jedis_async|lettuce|lettuce_async|babushka [all]");
     options.addOption("h", "host", true, "host url [localhost]");
     options.addOption("p", "port", true, "port number [6379]");
     options.addOption("n", "clientCount", true, "Client count [1]");
@@ -145,11 +145,14 @@ public class BenchmarkingApp {
                             ClientName.LETTUCE_ASYNC);
                       case ALL_ASYNC:
                         return Stream.of(
-                            ClientName.JEDIS_ASYNC, /* ClientName.BABUSHKA, */
+                            ClientName.JEDIS_ASYNC,
+                            // ClientName.BABUSHKA,
                             ClientName.LETTUCE_ASYNC);
                       case ALL_SYNC:
                         return Stream.of(
-                            ClientName.JEDIS, /* ClientName.BABUSHKA, */ ClientName.LETTUCE);
+                            ClientName.JEDIS,
+                            // ClientName.BABUSHKA,
+                            ClientName.LETTUCE);
                       default:
                         return Stream.of(e);
                     }
@@ -265,7 +268,13 @@ public class BenchmarkingApp {
       resultsFile = Optional.empty();
       dataSize = 20;
       concurrentTasks = List.of(1, 10, 100);
-      clients = new ClientName[] {ClientName.ALL};
+      clients = new ClientName[] {
+          // ClientName.BABUSHKA,
+          ClientName.JEDIS,
+          ClientName.JEDIS_ASYNC,
+          ClientName.LETTUCE,
+          ClientName.LETTUCE_ASYNC
+      };
       host = "localhost";
       port = 6379;
       clientCount = new int[] {1};
