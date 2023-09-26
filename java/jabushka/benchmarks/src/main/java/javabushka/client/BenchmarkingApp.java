@@ -2,10 +2,14 @@ package javabushka.client;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javabushka.client.jedis.JedisClient;
 import javabushka.client.jedis.JedisPseudoAsyncClient;
 import javabushka.client.lettuce.LettuceAsyncClient;
@@ -38,34 +42,17 @@ public class BenchmarkingApp {
 
     for (ClientName client : runConfiguration.clients) {
       switch (client) {
-        case ALL:
-          testClientSetGet(new JedisClient(), runConfiguration);
-          testClientSetGet(new LettuceClient(), runConfiguration);
-          testAsyncClientSetGet(new JedisPseudoAsyncClient(), runConfiguration);
-          testAsyncClientSetGet(new LettuceAsyncClient(), runConfiguration);
-          System.out.println("Babushka not yet configured");
-          break;
-        case ALL_ASYNC:
-          testAsyncClientSetGet(new JedisPseudoAsyncClient(), runConfiguration);
-          testAsyncClientSetGet(new LettuceAsyncClient(), runConfiguration);
-          System.out.println("Babushka not yet configured");
-          break;
-        case ALL_SYNC:
-          testClientSetGet(new JedisClient(), runConfiguration);
-          testClientSetGet(new LettuceClient(), runConfiguration);
-          System.out.println("Babushka not yet configured");
-          break;
         case JEDIS:
-          testClientSetGet(new JedisClient(), runConfiguration);
+          testClientSetGet(JedisClient::new, runConfiguration, false);
           break;
         case JEDIS_ASYNC:
-          testAsyncClientSetGet(new JedisPseudoAsyncClient(), runConfiguration);
+          testClientSetGet(JedisPseudoAsyncClient::new, runConfiguration, true);
           break;
         case LETTUCE:
-          testClientSetGet(new LettuceClient(), runConfiguration);
+          testClientSetGet(LettuceClient::new, runConfiguration, false);
           break;
         case LETTUCE_ASYNC:
-          testAsyncClientSetGet(new LettuceAsyncClient(), runConfiguration);
+          testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
           break;
         case BABUSHKA:
           System.out.println("Babushka not yet configured");
@@ -146,6 +133,27 @@ public class BenchmarkingApp {
       runConfiguration.clients =
           Arrays.stream(clients)
               .map(c -> Enum.valueOf(ClientName.class, c.toUpperCase()))
+              .flatMap(
+                  e -> {
+                    switch (e) {
+                      case ALL:
+                        return Stream.of(
+                            ClientName.JEDIS,
+                            ClientName.JEDIS_ASYNC,
+                            ClientName.BABUSHKA,
+                            ClientName.LETTUCE,
+                            ClientName.LETTUCE_ASYNC);
+                      case ALL_ASYNC:
+                        return Stream.of(
+                            ClientName.JEDIS_ASYNC, /* ClientName.BABUSHKA, */
+                            ClientName.LETTUCE_ASYNC);
+                      case ALL_SYNC:
+                        return Stream.of(
+                            ClientName.JEDIS, /* ClientName.BABUSHKA, */ ClientName.LETTUCE);
+                      default:
+                        return Stream.of(e);
+                    }
+                  })
               .toArray(ClientName[]::new);
     }
 
@@ -154,7 +162,15 @@ public class BenchmarkingApp {
     }
 
     if (line.hasOption("clientCount")) {
-      runConfiguration.clientCount = Integer.parseInt(line.getOptionValue("clientCount"));
+      String clientCount = line.getOptionValue("clientCount");
+
+      // check if it's the correct format
+      if (!clientCount.matches("\\d+(\\s+\\d+)?")) {
+        throw new ParseException("Invalid concurrentTasks");
+      }
+      // split the string into a list of integers
+      runConfiguration.clientCount =
+          Arrays.stream(clientCount.split("\\s+")).mapToInt(Integer::parseInt).toArray();
     }
 
     if (line.hasOption("tls")) {
@@ -164,15 +180,46 @@ public class BenchmarkingApp {
     return runConfiguration;
   }
 
-  private static void testClientSetGet(Client client, RunConfiguration runConfiguration) {
-    System.out.printf("%n =====> %s <===== %n%n", client.getName());
-    Benchmarking.printResults(Benchmarking.measurePerformance(client, runConfiguration, false));
-    System.out.println();
-  }
+  private static void testClientSetGet(
+      Supplier<Client> clientCreator, RunConfiguration runConfiguration, boolean async) {
+    System.out.printf("%n =====> %s <===== %n%n", clientCreator.get().getName());
+    for (int concurrentNum : runConfiguration.concurrentTasks) {
+      for (int clientNum : runConfiguration.clientCount) {
 
-  private static void testAsyncClientSetGet(AsyncClient client, RunConfiguration runConfiguration) {
-    System.out.printf("%n =====> %s <===== %n%n", client.getName());
-    Benchmarking.printResults(Benchmarking.measurePerformance(client, runConfiguration, true));
+        List<Runnable> tasks = new ArrayList<>();
+
+        for (int i = 0; i < concurrentNum; ) {
+          for (int j = 0; j < clientNum; j++) {
+            i++;
+            int finalI = i;
+            int finalJ = j;
+            tasks.add(
+                () -> {
+                  System.out.printf(
+                      "%n concurrent = %d/%d, client# = %d/%d%n",
+                      finalI, concurrentNum, finalJ + 1, clientNum);
+                  Benchmarking.printResults(
+                      Benchmarking.measurePerformance(
+                          clientCreator.get(), runConfiguration, async));
+                });
+          }
+        }
+        System.out.printf(
+            "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
+            concurrentNum, clientNum, tasks.size());
+        tasks.stream()
+            .map(CompletableFuture::runAsync)
+            .forEach(
+                f -> {
+                  try {
+                    f.get();
+                  } catch (Exception e) {
+                    e.printStackTrace();
+                  }
+                });
+      }
+    }
+
     System.out.println();
   }
 
@@ -210,7 +257,7 @@ public class BenchmarkingApp {
     public ClientName[] clients;
     public String host;
     public int port;
-    public int clientCount;
+    public int[] clientCount;
     public boolean tls;
 
     public RunConfiguration() {
@@ -221,7 +268,7 @@ public class BenchmarkingApp {
       clients = new ClientName[] {ClientName.ALL};
       host = "localhost";
       port = 6379;
-      clientCount = 1;
+      clientCount = new int[] {1};
       tls = false;
     }
   }

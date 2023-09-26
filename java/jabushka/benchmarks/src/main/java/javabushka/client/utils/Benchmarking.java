@@ -154,7 +154,7 @@ public class Benchmarking {
       Client client, BenchmarkingApp.RunConfiguration config, boolean async) {
     client.connectToRedis(new ConnectionSettings(config.host, config.port, config.tls));
 
-    int iterations = 10000;
+    int iterations = 100;
     String value = RandomStringUtils.randomAlphanumeric(config.dataSize);
 
     if (config.resultsFile.isPresent()) {
