@@ -37,4 +37,12 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("GET FOO : ", val)
+
+	err = client.Close()
+	if err != nil {
+		fmt.Println("Error closing the client:", err)
+		return
+	}
+
+	fmt.Println("Disconnected from Redis")
 }
