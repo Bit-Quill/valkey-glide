@@ -1,4 +1,4 @@
-module github.com/improving/babushka/go
+module github.com/aws/babushka/go
 
 go 1.21.1
 

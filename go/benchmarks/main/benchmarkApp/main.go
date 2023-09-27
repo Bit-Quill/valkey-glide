@@ -10,6 +10,12 @@ import (
 )
 
 // Types
+
+/*
+Options represents the set of arguments passed into the program.
+It's responsible for parsing and holding the raw values provided by the user.
+If some arguments are not passed, Options will set default values for them.
+*/
 type Options struct {
 	TLS             bool
 	Host            string
@@ -21,6 +27,11 @@ type Options struct {
 	ConcurrentTasks string
 }
 
+/*
+RunConfiguration takes the parsed Options and matches them,
+ensuring their validity and converting them to the appropriate types
+for the program's execution requirements.
+*/
 type RunConfiguration struct {
 	TLS             bool
 	Host            string
@@ -46,22 +57,14 @@ var ClientName = ClientNames{
 }
 
 func main() {
-	var options Options
-	var runConfiguration *RunConfiguration
-	var err error
 
-	err = parseOptions(&options)
-	if err != nil {
-		fmt.Println("Error parsing options: ", err)
-		return
-	}
+	options := parseArguments()
 
-	runConfiguration, err = verifyOptions(options)
+	runConfiguration, err := verifyOptions(options)
 	if err != nil {
 		fmt.Println("Error verifying options: ", err)
 		return
 	}
-	fmt.Println(runConfiguration)
 
 	switch runConfiguration.Clients {
 	case ClientName.GoRedis:
@@ -84,10 +87,8 @@ func main() {
 	}(runConfiguration.ResultsFile)
 }
 
-func parseOptions(options *Options) error {
-	if options == nil {
-		return fmt.Errorf("provided options pointer is nil")
-	}
+func parseArguments() *Options {
+	var options Options
 
 	tls := flag.Bool("tls", false, "Use TLS (default: false)")
 	host := flag.String("host", "localhost", "Host address")
@@ -109,10 +110,10 @@ func parseOptions(options *Options) error {
 	options.Configuration = *configuration
 	options.ConcurrentTasks = *concurrentTasks
 
-	return nil
+	return &options
 }
 
-func verifyOptions(options Options) (*RunConfiguration, error) {
+func verifyOptions(options *Options) (*RunConfiguration, error) {
 	var runConfiguration RunConfiguration
 	var err error
 
