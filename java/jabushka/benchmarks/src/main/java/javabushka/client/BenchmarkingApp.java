@@ -4,9 +4,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,11 +19,15 @@ import javabushka.client.jedis.JedisPseudoAsyncClient;
 import javabushka.client.lettuce.LettuceAsyncClient;
 import javabushka.client.lettuce.LettuceClient;
 import javabushka.client.utils.Benchmarking;
+import javabushka.client.utils.ChosenAction;
+import javabushka.client.utils.ConnectionSettings;
+import javabushka.client.utils.LatencyResults;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.tuple.Pair;
 
 /** Benchmarking app for reporting performance of various redis-rs Java-clients */
 public class BenchmarkingApp {
@@ -40,24 +48,28 @@ public class BenchmarkingApp {
       System.err.println("Parsing failed.  Reason: " + exp.getMessage());
     }
 
-    for (ClientName client : runConfiguration.clients) {
-      switch (client) {
-        case JEDIS:
-          testClientSetGet(JedisClient::new, runConfiguration, false);
-          break;
-        case JEDIS_ASYNC:
-          testClientSetGet(JedisPseudoAsyncClient::new, runConfiguration, true);
-          break;
-        case LETTUCE:
-          testClientSetGet(LettuceClient::new, runConfiguration, false);
-          break;
-        case LETTUCE_ASYNC:
-          testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
-          break;
-        case BABUSHKA:
-          System.out.println("Babushka not yet configured");
-          break;
+    try {
+      for (ClientName client : runConfiguration.clients) {
+        switch (client) {
+          case JEDIS:
+            testIterateTasksAndClientSetGet(JedisClient::new, runConfiguration, false);
+            break;
+          case JEDIS_ASYNC:
+            testIterateTasksAndClientSetGet(JedisPseudoAsyncClient::new, runConfiguration, true);
+            break;
+          case LETTUCE:
+            testIterateTasksAndClientSetGet(LettuceClient::new, runConfiguration, false);
+            break;
+          case LETTUCE_ASYNC:
+            testIterateTasksAndClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
+            break;
+          case BABUSHKA:
+            System.out.println("Babushka not yet configured");
+            break;
+        }
       }
+    } catch (IOException ioException) {
+      System.out.println("Error writing results to file");
     }
 
     if (runConfiguration.resultsFile.isPresent()) {
@@ -169,7 +181,7 @@ public class BenchmarkingApp {
 
       // check if it's the correct format
       if (!clientCount.matches("\\d+(\\s+\\d+)?")) {
-        throw new ParseException("Invalid concurrentTasks");
+        throw new ParseException("Invalid clientCount");
       }
       // split the string into a list of integers
       runConfiguration.clientCount =
@@ -183,47 +195,101 @@ public class BenchmarkingApp {
     return runConfiguration;
   }
 
-  private static void testClientSetGet(
-      Supplier<Client> clientCreator, RunConfiguration runConfiguration, boolean async) {
-    System.out.printf("%n =====> %s <===== %n%n", clientCreator.get().getName());
-    for (int concurrentNum : runConfiguration.concurrentTasks) {
-      for (int clientNum : runConfiguration.clientCount) {
-
-        List<Runnable> tasks = new ArrayList<>();
-
-        for (int i = 0; i < concurrentNum; ) {
-          for (int j = 0; j < clientNum; j++) {
-            i++;
-            int finalI = i;
-            int finalJ = j;
-            tasks.add(
-                () -> {
-                  System.out.printf(
-                      "%n concurrent = %d/%d, client# = %d/%d%n",
-                      finalI, concurrentNum, finalJ + 1, clientNum);
-                  Benchmarking.printResults(
-                      Benchmarking.measurePerformance(
-                          clientCreator.get(), runConfiguration, async));
-                });
-          }
-        }
-        System.out.printf(
-            "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
-            concurrentNum, clientNum, tasks.size());
-        tasks.stream()
-            .map(CompletableFuture::runAsync)
-            .forEach(
-                f -> {
-                  try {
-                    f.get();
-                  } catch (Exception e) {
-                    e.printStackTrace();
-                  }
-                });
+  // call testConcurrentClientSetGet for each concurrentTask/clientCount pairing
+  private static void testIterateTasksAndClientSetGet(Supplier<Client> clientSupplier,
+                                    RunConfiguration runConfiguration,
+                                    boolean async) throws IOException {
+    System.out.printf("%n =====> %s <===== %n%n", clientSupplier.get().getName());
+    for (int clientCount : runConfiguration.clientCount) {
+      for (int concurrentTasks : runConfiguration.concurrentTasks) {
+        Client client = clientSupplier.get();
+        testConcurrentClientSetGet(
+            clientSupplier,
+            runConfiguration,
+            concurrentTasks,
+            clientCount,
+            async);
       }
     }
-
     System.out.println();
+  }
+
+  // call one test scenario: with a number of concurrent threads against clientCount number
+  // of clients
+  private static void testConcurrentClientSetGet(Supplier<Client> clientSupplier,
+                                                 RunConfiguration runConfiguration,
+                                                 int concurrentTasks,
+                                                 int clientCount,
+                                                 boolean async) throws IOException {
+    // fetch a reasonable number of iterations based on the number of concurrent tasks
+    int iterations = Math.min(Math.max(100000, concurrentTasks * 10000), 10000000);
+    AtomicInteger iterationCounter = new AtomicInteger(0);
+
+    // create clients
+    List<Client> clients = new LinkedList<>();
+    for(int i = 0; i < clientCount; i++) {
+      Client newClient = clientSupplier.get();
+      newClient.connectToRedis(new ConnectionSettings(
+          runConfiguration.host,
+          runConfiguration.port,
+          runConfiguration.tls));
+      clients.add(newClient);
+    }
+
+    // create runnable tasks
+    List<Runnable> tasks = new ArrayList<>();
+    Map<ChosenAction, ArrayList<Long>> actionResults = new HashMap<>();
+    actionResults.put(ChosenAction.GET_EXISTING, new ArrayList<>());
+    actionResults.put(ChosenAction.GET_NON_EXISTING, new ArrayList<>());
+    actionResults.put(ChosenAction.SET, new ArrayList<>());
+
+    // add one runnable task for each concurrentTask
+    // task will run a random action against a client, uniformly distributed amongst all clients
+    for(int concurrentTaskIndex = 0; concurrentTaskIndex < concurrentTasks; concurrentTaskIndex++) {
+      System.out.printf("concurrent task: %d/%d%n", concurrentTaskIndex+1, concurrentTasks);
+      tasks.add(
+          () -> {
+            int iterationIncrement = iterationCounter.incrementAndGet();
+            while (iterationIncrement < iterations) {
+              int clientIndex = iterationIncrement % clients.size();
+              System.out.printf(
+                  "> iteration = %d/%d, client# = %d/%d%n",
+                  iterationIncrement+1,
+                  iterations,
+                  clientIndex+1,
+                  clientCount);
+
+              // operate and calculate tik-tok
+              Pair<ChosenAction, Long> result = Benchmarking.measurePerformance(
+                  clients.get(clientIndex),
+                  runConfiguration.dataSize,
+                  async
+              );
+
+              // save tik-tok to actionResults
+              actionResults.get(result.getLeft()).add(result.getRight());
+              iterationIncrement = iterationCounter.incrementAndGet();
+            }
+          });
+    }
+
+    // run all tasks asynchronously
+    tasks.stream()
+        .map(CompletableFuture::runAsync)
+        .forEach(
+            f -> {
+              try {
+                f.get();
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            });
+
+    // use results file to stdout/print
+    Benchmarking.printResults(Benchmarking.calculateResults(actionResults), runConfiguration.resultsFile);
+
+    // close connections
+    clients.forEach(c -> c.closeConnection());
   }
 
   public enum ClientName {
@@ -277,7 +343,7 @@ public class BenchmarkingApp {
       };
       host = "localhost";
       port = 6379;
-      clientCount = new int[] {1};
+      clientCount = new int[] {1, 2};
       tls = false;
     }
   }

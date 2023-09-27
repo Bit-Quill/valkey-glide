@@ -13,6 +13,7 @@ import javabushka.client.BenchmarkingApp;
 import javabushka.client.Client;
 import javabushka.client.SyncClient;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class Benchmarking {
   static final double PROB_GET = 0.8;
@@ -58,6 +59,20 @@ public class Benchmarking {
     }
 
     return latencies;
+  }
+
+  public static Pair<ChosenAction, Long> getLatency(
+      Map<ChosenAction, Operation> actions) {
+
+    ChosenAction action = randomAction();
+    Operation op = actions.get(action);
+
+    long before = System.nanoTime();
+    op.go();
+    long after = System.nanoTime();
+
+    return Pair.of(action, after - before);
+
   }
 
   private static void addLatency(Operation op, ArrayList<Long> latencies) {
@@ -150,21 +165,21 @@ public class Benchmarking {
     }
   }
 
-  public static Map<ChosenAction, LatencyResults> measurePerformance(
-      Client client, BenchmarkingApp.RunConfiguration config, boolean async) {
-    client.connectToRedis(new ConnectionSettings(config.host, config.port, config.tls));
+  public static Pair<ChosenAction, Long> measurePerformance(
+      Client client, int setDataSize, boolean async) {
+    Map<ChosenAction, ArrayList<Long>> results = new HashMap<>();
 
-    int iterations = 100;
-    String value = RandomStringUtils.randomAlphanumeric(config.dataSize);
 
-    if (config.resultsFile.isPresent()) {
-      try {
-        config.resultsFile.get().write(client.getName() + " client Benchmarking: ");
-      } catch (Exception ignored) {
-      }
-    } else {
-      System.out.printf("%s client Benchmarking: %n", client.getName());
-    }
+    String setValue = RandomStringUtils.randomAlphanumeric(setDataSize);
+
+//    if (config.resultsFile.isPresent()) {
+//      try {
+//        config.resultsFile.get().write(client.getName() + " client Benchmarking: ");
+//      } catch (Exception ignored) {
+//      }
+//    } else {
+//      System.out.printf("%s client Benchmarking: %n", client.getName());
+//    }
 
     Map<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
     actions.put(
@@ -180,11 +195,11 @@ public class Benchmarking {
     actions.put(
         ChosenAction.SET,
         async
-            ? () -> ((AsyncClient) client).asyncSet(Benchmarking.generateKeySet(), value)
-            : () -> ((SyncClient) client).set(Benchmarking.generateKeySet(), value));
+            ? () -> ((AsyncClient) client).asyncSet(Benchmarking.generateKeySet(), setValue)
+            : () -> ((SyncClient) client).set(Benchmarking.generateKeySet(), setValue));
 
-    var results = Benchmarking.calculateResults(Benchmarking.getLatencies(iterations, actions));
-    client.closeConnection();
-    return results;
+    return Benchmarking.getLatency(actions);
+
+//    return Benchmarking.calculateResults(results);
   }
 }
