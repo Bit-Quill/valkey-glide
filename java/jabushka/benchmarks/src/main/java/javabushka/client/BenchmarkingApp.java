@@ -21,7 +21,6 @@ import javabushka.client.lettuce.LettuceClient;
 import javabushka.client.utils.Benchmarking;
 import javabushka.client.utils.ChosenAction;
 import javabushka.client.utils.ConnectionSettings;
-import javabushka.client.utils.LatencyResults;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -89,7 +88,8 @@ public class BenchmarkingApp {
     options.addOption("f", "resultsFile", true, "Result filepath []");
     options.addOption("d", "dataSize", true, "Data block size [20]");
     options.addOption("C", "concurrentTasks", true, "Number of concurrent tasks [1 10 100]");
-    options.addOption("l", "clients", true, "one of: all|jedis|jedis_async|lettuce|lettuce_async|babushka [all]");
+    options.addOption(
+        "l", "clients", true, "one of: all|jedis|jedis_async|lettuce|lettuce_async|babushka [all]");
     options.addOption("h", "host", true, "host url [localhost]");
     options.addOption("p", "port", true, "port number [6379]");
     options.addOption("n", "clientCount", true, "Client count [1]");
@@ -196,19 +196,15 @@ public class BenchmarkingApp {
   }
 
   // call testConcurrentClientSetGet for each concurrentTask/clientCount pairing
-  private static void testIterateTasksAndClientSetGet(Supplier<Client> clientSupplier,
-                                    RunConfiguration runConfiguration,
-                                    boolean async) throws IOException {
+  private static void testIterateTasksAndClientSetGet(
+      Supplier<Client> clientSupplier, RunConfiguration runConfiguration, boolean async)
+      throws IOException {
     System.out.printf("%n =====> %s <===== %n%n", clientSupplier.get().getName());
     for (int clientCount : runConfiguration.clientCount) {
       for (int concurrentTasks : runConfiguration.concurrentTasks) {
         Client client = clientSupplier.get();
         testConcurrentClientSetGet(
-            clientSupplier,
-            runConfiguration,
-            concurrentTasks,
-            clientCount,
-            async);
+            clientSupplier, runConfiguration, concurrentTasks, clientCount, async);
       }
     }
     System.out.println();
@@ -216,23 +212,24 @@ public class BenchmarkingApp {
 
   // call one test scenario: with a number of concurrent threads against clientCount number
   // of clients
-  private static void testConcurrentClientSetGet(Supplier<Client> clientSupplier,
-                                                 RunConfiguration runConfiguration,
-                                                 int concurrentTasks,
-                                                 int clientCount,
-                                                 boolean async) throws IOException {
+  private static void testConcurrentClientSetGet(
+      Supplier<Client> clientSupplier,
+      RunConfiguration runConfiguration,
+      int concurrentTasks,
+      int clientCount,
+      boolean async)
+      throws IOException {
     // fetch a reasonable number of iterations based on the number of concurrent tasks
     int iterations = Math.min(Math.max(100000, concurrentTasks * 10000), 10000000);
     AtomicInteger iterationCounter = new AtomicInteger(0);
 
     // create clients
     List<Client> clients = new LinkedList<>();
-    for(int i = 0; i < clientCount; i++) {
+    for (int i = 0; i < clientCount; i++) {
       Client newClient = clientSupplier.get();
-      newClient.connectToRedis(new ConnectionSettings(
-          runConfiguration.host,
-          runConfiguration.port,
-          runConfiguration.tls));
+      newClient.connectToRedis(
+          new ConnectionSettings(
+              runConfiguration.host, runConfiguration.port, runConfiguration.tls));
       clients.add(newClient);
     }
 
@@ -245,8 +242,10 @@ public class BenchmarkingApp {
 
     // add one runnable task for each concurrentTask
     // task will run a random action against a client, uniformly distributed amongst all clients
-    for(int concurrentTaskIndex = 0; concurrentTaskIndex < concurrentTasks; concurrentTaskIndex++) {
-      System.out.printf("concurrent task: %d/%d%n", concurrentTaskIndex+1, concurrentTasks);
+    for (int concurrentTaskIndex = 0;
+        concurrentTaskIndex < concurrentTasks;
+        concurrentTaskIndex++) {
+      System.out.printf("concurrent task: %d/%d%n", concurrentTaskIndex + 1, concurrentTasks);
       tasks.add(
           () -> {
             int iterationIncrement = iterationCounter.incrementAndGet();
@@ -254,17 +253,12 @@ public class BenchmarkingApp {
               int clientIndex = iterationIncrement % clients.size();
               System.out.printf(
                   "> iteration = %d/%d, client# = %d/%d%n",
-                  iterationIncrement+1,
-                  iterations,
-                  clientIndex+1,
-                  clientCount);
+                  iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
 
               // operate and calculate tik-tok
-              Pair<ChosenAction, Long> result = Benchmarking.measurePerformance(
-                  clients.get(clientIndex),
-                  runConfiguration.dataSize,
-                  async
-              );
+              Pair<ChosenAction, Long> result =
+                  Benchmarking.measurePerformance(
+                      clients.get(clientIndex), runConfiguration.dataSize, async);
 
               // save tik-tok to actionResults
               actionResults.get(result.getLeft()).add(result.getRight());
@@ -286,7 +280,8 @@ public class BenchmarkingApp {
             });
 
     // use results file to stdout/print
-    Benchmarking.printResults(Benchmarking.calculateResults(actionResults), runConfiguration.resultsFile);
+    Benchmarking.printResults(
+        Benchmarking.calculateResults(actionResults), runConfiguration.resultsFile);
 
     // close connections
     clients.forEach(c -> c.closeConnection());
@@ -334,13 +329,11 @@ public class BenchmarkingApp {
       resultsFile = Optional.empty();
       dataSize = 20;
       concurrentTasks = List.of(1, 10, 100);
-      clients = new ClientName[] {
-          // ClientName.BABUSHKA,
-          ClientName.JEDIS,
-          ClientName.JEDIS_ASYNC,
-          ClientName.LETTUCE,
-          ClientName.LETTUCE_ASYNC
-      };
+      clients =
+          new ClientName[] {
+            // ClientName.BABUSHKA,
+            ClientName.JEDIS, ClientName.JEDIS_ASYNC, ClientName.LETTUCE, ClientName.LETTUCE_ASYNC
+          };
       host = "localhost";
       port = 6379;
       clientCount = new int[] {1, 2};
