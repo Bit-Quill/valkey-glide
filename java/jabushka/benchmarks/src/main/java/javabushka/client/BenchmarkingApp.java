@@ -92,8 +92,8 @@ public class BenchmarkingApp {
         "l", "clients", true, "one of: all|jedis|jedis_async|lettuce|lettuce_async|babushka [all]");
     options.addOption("h", "host", true, "host url [localhost]");
     options.addOption("p", "port", true, "port number [6379]");
-    options.addOption("n", "clientCount", true, "Client count [1]");
-    options.addOption("t", "tls", false, "TLS [true]");
+    options.addOption("n", "clientCount", true, "Client count [1 2]");
+    options.addOption("t", "tls", false, "TLS [false]");
 
     return options;
   }
@@ -188,9 +188,7 @@ public class BenchmarkingApp {
           Arrays.stream(clientCount.split("\\s+")).mapToInt(Integer::parseInt).toArray();
     }
 
-    if (line.hasOption("tls")) {
-      runConfiguration.tls = Boolean.parseBoolean(line.getOptionValue("tls"));
-    }
+    runConfiguration.tls = line.hasOption("tls");
 
     return runConfiguration;
   }
