@@ -1,12 +1,15 @@
 package javabushka.client.utils;
 
+import io.lettuce.core.RedisFuture;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import javabushka.client.AsyncClient;
 import javabushka.client.Client;
@@ -30,12 +33,12 @@ public class Benchmarking {
     return ChosenAction.GET_EXISTING;
   }
 
-  public static String generateKeyGet() {
+  public static String generateKeyNew() {
     int range = SIZE_GET_KEYSPACE - SIZE_SET_KEYSPACE;
     return Math.floor(Math.random() * range + SIZE_SET_KEYSPACE + 1) + "";
   }
 
-  public static String generateKeySet() {
+  public static String generateKeyExisting() {
     return (Math.floor(Math.random() * SIZE_SET_KEYSPACE) + 1) + "";
   }
 
@@ -60,16 +63,12 @@ public class Benchmarking {
     return latencies;
   }
 
-  public static Pair<ChosenAction, Long> getLatency(Map<ChosenAction, Operation> actions) {
-
-    ChosenAction action = randomAction();
-    Operation op = actions.get(action);
-
+  public static Long getLatency(Operation op) {
     long before = System.nanoTime();
     op.go();
     long after = System.nanoTime();
 
-    return Pair.of(action, after - before);
+    return after - before;
   }
 
   private static void addLatency(Operation op, ArrayList<Long> latencies) {
@@ -162,40 +161,87 @@ public class Benchmarking {
     }
   }
 
-  public static Pair<ChosenAction, Long> measurePerformance(
-      Client client, int setDataSize, boolean async) {
-    Map<ChosenAction, ArrayList<Long>> results = new HashMap<>();
+  public static Pair<ChosenAction, Long> measureSyncPerformance(
+      Client client, int setDataSize) {
 
-    String setValue = RandomStringUtils.randomAlphanumeric(setDataSize);
+    ChosenAction action = randomAction();
+    switch (action) {
+      case GET_EXISTING:
+        return Pair.of(action,
+            Benchmarking.getLatency(
+                () -> ((SyncClient) client).get(Benchmarking.generateKeyExisting())
+            )
+        );
+      case GET_NON_EXISTING:
+        return Pair.of(action,
+            Benchmarking.getLatency(
+                () -> ((SyncClient) client).get(Benchmarking.generateKeyNew())
+            )
+        );
+      case SET:
+        return Pair.of(action,
+            Benchmarking.getLatency(
+                () -> ((SyncClient) client).set(Benchmarking.generateKeyExisting(),
+                    RandomStringUtils.randomAlphanumeric(setDataSize))
+            )
+        );
+      default:
+        throw new RuntimeException("Unexpected operation");
+    }
+  }
 
-    //    if (config.resultsFile.isPresent()) {
-    //      try {
-    //        config.resultsFile.get().write(client.getName() + " client Benchmarking: ");
-    //      } catch (Exception ignored) {
-    //      }
-    //    } else {
-    //      System.out.printf("%s client Benchmarking: %n", client.getName());
-    //    }
+  /**
+   * Setup action/tasks to measure and track performance
+   * @param client      - async client to perform action
+   * @param setDataSize - request SET actions of data size
+   * @param futures     - record async futures for gathering response
+   * @return a pair of latency actions
+   */
+  public static Pair<ChosenAction, Long> measureAsyncPerformance(
+      Client client,
+      int setDataSize,
+      int index,
+      List<Pair<ChosenAction, Future<?>>> futures) {
 
-    Map<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
-    actions.put(
-        ChosenAction.GET_EXISTING,
-        async
-            ? () -> ((AsyncClient) client).asyncGet(Benchmarking.generateKeySet())
-            : () -> ((SyncClient) client).get(Benchmarking.generateKeySet()));
-    actions.put(
-        ChosenAction.GET_NON_EXISTING,
-        async
-            ? () -> ((AsyncClient) client).asyncGet(Benchmarking.generateKeyGet())
-            : () -> ((SyncClient) client).get(Benchmarking.generateKeyGet()));
-    actions.put(
-        ChosenAction.SET,
-        async
-            ? () -> ((AsyncClient) client).asyncSet(Benchmarking.generateKeySet(), setValue)
-            : () -> ((SyncClient) client).set(Benchmarking.generateKeySet(), setValue));
+    ChosenAction action = randomAction();
+    switch (action) {
+      case GET_EXISTING:
+        return Pair.of(action,
+            Benchmarking.getLatency(
+              () -> futures.add(index, Pair.of(
+                  ChosenAction.GET_EXISTING,
+                  ((AsyncClient) client).asyncGet(Benchmarking.generateKeyExisting()))
+              )
+            )
+        );
+      case GET_NON_EXISTING:
+        return Pair.of(action,
+            Benchmarking.getLatency(
+                () -> futures.add(index, Pair.of(
+                    ChosenAction.GET_NON_EXISTING,
+                    ((AsyncClient) client).asyncGet(Benchmarking.generateKeyNew()))
+                )
+            )
+        );
+      case SET:
+        return Pair.of(action,
+            Benchmarking.getLatency(
+                () -> futures.add(index, Pair.of(
+                    ChosenAction.SET,
+                    ((AsyncClient) client).asyncSet(Benchmarking.generateKeyExisting(),
+                        RandomStringUtils.randomAlphanumeric(setDataSize)))
+                )
+            )
+        );
+      default:
+        throw new RuntimeException("Unexpected operation");
+    }
+  }
 
-    return Benchmarking.getLatency(actions);
+  public static Pair<ChosenAction, Long> measureAsyncFetchPerformance(
+      Client client, Future<?> future) {
 
-    //    return Benchmarking.calculateResults(results);
+    Long latency = Benchmarking.getLatency(() -> ((AsyncClient) client).waitForResult(future));
+    return Pair.of(ChosenAction.FETCH, latency);
   }
 }

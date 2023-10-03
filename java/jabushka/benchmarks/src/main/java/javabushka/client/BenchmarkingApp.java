@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -30,6 +31,10 @@ import org.apache.commons.lang3.tuple.Pair;
 
 /** Benchmarking app for reporting performance of various redis-rs Java-clients */
 public class BenchmarkingApp {
+
+  private static int ITERATIONS_MULTIPLIER = 100000;
+  private static int ITERATIONS_MIN = 100000;
+  private static int ITERATIONS_MAX = 100; // TODO max 1000000
 
   // main application entrypoint
   public static void main(String[] args) {
@@ -198,6 +203,9 @@ public class BenchmarkingApp {
       Supplier<Client> clientSupplier, RunConfiguration runConfiguration, boolean async)
       throws IOException {
     System.out.printf("%n =====> %s <===== %n%n", clientSupplier.get().getName());
+    for (int concurrentTasks : runConfiguration.concurrentTasks) {
+
+    }
     for (int clientCount : runConfiguration.clientCount) {
       for (int concurrentTasks : runConfiguration.concurrentTasks) {
         Client client = clientSupplier.get();
@@ -217,8 +225,9 @@ public class BenchmarkingApp {
       int clientCount,
       boolean async)
       throws IOException {
+
     // fetch a reasonable number of iterations based on the number of concurrent tasks
-    int iterations = Math.min(Math.max(100000, concurrentTasks * 10000), 10000000);
+    int iterations = Math.min(Math.max(ITERATIONS_MIN, concurrentTasks * ITERATIONS_MULTIPLIER), ITERATIONS_MAX);
     AtomicInteger iterationCounter = new AtomicInteger(0);
 
     // create clients
@@ -231,38 +240,96 @@ public class BenchmarkingApp {
       clients.add(newClient);
     }
 
-    // create runnable tasks
+    // create runnable tasks list and results map
     List<Runnable> tasks = new ArrayList<>();
+    List<Pair<ChosenAction, Future<?>>> futures = new ArrayList<>(iterations);
+    List<Pair<ChosenAction, Long>> intermediateActionResults = new ArrayList<>(iterations);
     Map<ChosenAction, ArrayList<Long>> actionResults = new HashMap<>();
     actionResults.put(ChosenAction.GET_EXISTING, new ArrayList<>());
     actionResults.put(ChosenAction.GET_NON_EXISTING, new ArrayList<>());
     actionResults.put(ChosenAction.SET, new ArrayList<>());
+//    actionResults.put(ChosenAction.FETCH, new ArrayList<>());
 
     // add one runnable task for each concurrentTask
     // task will run a random action against a client, uniformly distributed amongst all clients
     for (int concurrentTaskIndex = 0;
         concurrentTaskIndex < concurrentTasks;
         concurrentTaskIndex++) {
-      System.out.printf("concurrent task: %d/%d%n", concurrentTaskIndex + 1, concurrentTasks);
       tasks.add(
           () -> {
-            int iterationIncrement = iterationCounter.incrementAndGet();
+            int iterationIncrement = iterationCounter.get();
             while (iterationIncrement < iterations) {
               int clientIndex = iterationIncrement % clients.size();
-              System.out.printf(
-                  "> iteration = %d/%d, client# = %d/%d%n",
-                  iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
+//              System.out.printf(
+//                  "> iteration = %d/%d, client# = %d/%d%n",
+//                  iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
 
-              // operate and calculate tik-tok
               Pair<ChosenAction, Long> result =
-                  Benchmarking.measurePerformance(
-                      clients.get(clientIndex), runConfiguration.dataSize, async);
+                  async ?
+                      Benchmarking.measureAsyncPerformance(
+                        clients.get(clientIndex),
+                        runConfiguration.dataSize,
+                        iterationIncrement,
+                        futures)
+                  :
+                    Benchmarking.measureSyncPerformance(
+                        clients.get(clientIndex),
+                        runConfiguration.dataSize);
 
-              // save tik-tok to actionResults
-              actionResults.get(result.getLeft()).add(result.getRight());
+              // save tik-tok to intermediate actionResults
+              intermediateActionResults.add(iterationIncrement, result);
               iterationIncrement = iterationCounter.incrementAndGet();
             }
           });
+    }
+
+    // run all tasks asynchronously
+    tasks.stream()
+        .map(CompletableFuture::runAsync)
+        .forEach(
+            f -> {
+              try {
+                f.get();
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            });
+
+    System.out.println("WAIT 10 SECONDS");
+    try {
+      Thread.sleep(1000L); // TODO update to 10 seconds
+    } catch (InterruptedException interruptedException) {
+      throw new RuntimeException("INTERRUPTED");
+    }
+
+    // now fetch results from futures
+    AtomicInteger fetchAsyncFuturesCounter = new AtomicInteger(0);
+    for (int concurrentTaskIndex = 0;
+         concurrentTaskIndex < concurrentTasks;
+         concurrentTaskIndex++) {
+      tasks.add(
+          () -> {
+            int iterationIncrement = fetchAsyncFuturesCounter.get();
+            while (iterationIncrement < iterations) {
+              Pair<ChosenAction, Future<?>> futurePair = futures.get(iterationIncrement);
+              int clientIndex = iterationIncrement % clients.size();
+//              System.out.printf(
+//                  "> fetch = %d/%d, client# = %d/%d%n",
+//                  iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
+
+              Pair<ChosenAction, Long> result =
+                  Benchmarking.measureAsyncFetchPerformance(
+                      clients.get(clientIndex),
+                      futurePair.getRight());
+
+              // save tik-tok to actionResults, make sure to add the intermediate result
+              Long intermediateResult = intermediateActionResults.get(iterationIncrement).getRight();
+              actionResults.get(futurePair.getLeft()).add(
+                  result.getRight() + intermediateResult);
+              iterationIncrement = fetchAsyncFuturesCounter.incrementAndGet();
+            }
+          }
+      );
     }
 
     // run all tasks asynchronously
