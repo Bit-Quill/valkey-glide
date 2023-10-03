@@ -257,12 +257,12 @@ public class BenchmarkingApp {
         concurrentTaskIndex++) {
       tasks.add(
           () -> {
-            int iterationIncrement = iterationCounter.get();
+            int iterationIncrement = iterationCounter.getAndIncrement();
             while (iterationIncrement < iterations) {
               int clientIndex = iterationIncrement % clients.size();
-//              System.out.printf(
-//                  "> iteration = %d/%d, client# = %d/%d%n",
-//                  iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
+              System.out.printf(
+                  "> iteration = %d/%d, client# = %d/%d%n",
+                  iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
 
               Pair<ChosenAction, Long> result =
                   async ?
@@ -278,7 +278,7 @@ public class BenchmarkingApp {
 
               // save tik-tok to intermediate actionResults
               intermediateActionResults.add(iterationIncrement, result);
-              iterationIncrement = iterationCounter.incrementAndGet();
+              iterationIncrement = iterationCounter.getAndIncrement();
             }
           });
     }
@@ -297,7 +297,7 @@ public class BenchmarkingApp {
 
     System.out.println("WAIT 10 SECONDS");
     try {
-      Thread.sleep(1000L); // TODO update to 10 seconds
+      Thread.sleep(10000L); // TODO update to 10 seconds
     } catch (InterruptedException interruptedException) {
       throw new RuntimeException("INTERRUPTED");
     }
@@ -309,7 +309,7 @@ public class BenchmarkingApp {
          concurrentTaskIndex++) {
       tasks.add(
           () -> {
-            int iterationIncrement = fetchAsyncFuturesCounter.get();
+            int iterationIncrement = fetchAsyncFuturesCounter.getAndIncrement();
             while (iterationIncrement < iterations) {
               Pair<ChosenAction, Future<?>> futurePair = futures.get(iterationIncrement);
               int clientIndex = iterationIncrement % clients.size();
@@ -326,7 +326,7 @@ public class BenchmarkingApp {
               Long intermediateResult = intermediateActionResults.get(iterationIncrement).getRight();
               actionResults.get(futurePair.getLeft()).add(
                   result.getRight() + intermediateResult);
-              iterationIncrement = fetchAsyncFuturesCounter.incrementAndGet();
+              iterationIncrement = fetchAsyncFuturesCounter.getAndIncrement();
             }
           }
       );
