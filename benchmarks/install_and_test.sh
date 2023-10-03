@@ -25,6 +25,7 @@ runPython=0
 runNode=0
 runCsharp=0
 runRust=0
+runGo=0
 concurrentTasks="1 10 100 1000"
 dataSize="100 4000"
 clientCount="1"
@@ -77,6 +78,14 @@ function runRustBenchmark(){
   cd ${BENCH_FOLDER}/rust
   cargo run --release -- --resultsFile=../$1 --dataSize $2 $rustConcurrentTasks --host $host --clientCount $clientCount $tlsFlag $clusterFlag
 }
+
+function runGoBenchmark() {
+    cd ${BENCH_FOLDER}/../go/benchmarks/main/benchmarkApp
+    echo "go run main.go --resultsFile=${BENCH_FOLDER}/$1 --concurrentTasks $concurrentTasks --clients $chosenClients --host $host --clientCount $clientCount $tlsFlag $clusterFlag"
+    go run main.go --resultsFile=${BENCH_FOLDER}/$1 --concurrentTasks "$concurrentTasks" --clients $chosenClients --host $host --clientCount $clientCount $tlsFlag $clusterFlag $portFlag
+}
+
+
 
 function flushDB() {
   cd $utilitiesDir
@@ -162,7 +171,7 @@ do
             concurrentTasks=$2" "
             shift
             until [[ $2 =~ ^- ]] || [ -z $2 ]; do
-                concurrentTasks+=$2"  "
+                concurrentTasks+=$2" "
                 shift
             done
             ;;
@@ -189,7 +198,17 @@ do
         -rust)
             runAllBenchmarks=0
             runRust=1
-            ;;            
+            ;;
+        -go)
+            runAllBenchmarks=0
+            runGo=1
+            chosenClients="Babushka"
+            ;;
+        -go-redis)
+            runAllBenchmarks=0
+            runGo=1
+            chosenClients="GoRedis"
+            ;;
         -only-socket)
             chosenClients="socket"
             ;;
@@ -205,7 +224,11 @@ do
             ;;
         -is-cluster) 
             clusterFlag="--clusterModeEnabled"
-            ;;            
+            ;;
+        -port)
+            portFlag="--port "$2
+            shift
+            ;;
     esac
     shift
 done
@@ -240,7 +263,14 @@ do
         rustResults=$(resultFileName rust $currentDataSize)
         resultFiles+=$rustResults" "
         runRustBenchmark $rustResults $currentDataSize
-    fi    
+    fi
+
+    if [ $runAllBenchmarks == 1 ] || [ $runGo == 1 ];
+    then
+        goResults=$(resultFileName go $currentDataSize)
+        resultFiles+=$goResults" "
+        runGoBenchmark $goResults $currentDataSize
+    fi
 done
 
 
