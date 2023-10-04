@@ -177,7 +177,7 @@ public class Benchmarking {
                         finalI, concurrentNum, finalJ + 1, clientNum);
                   }
                   while (true) {
-                    int iterationIncrement = iterationCounter.incrementAndGet();
+                    int iterationIncrement = iterationCounter.getAndIncrement();
                     if (iterationIncrement >= iterations) {
                       break;
                     }
