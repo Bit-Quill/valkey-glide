@@ -176,11 +176,8 @@ public class Benchmarking {
                         "%n concurrent = %d/%d, client# = %d/%d%n",
                         finalI, concurrentNum, finalJ + 1, clientNum);
                   }
-                  while (true) {
-                    int iterationIncrement = iterationCounter.getAndIncrement();
-                    if (iterationIncrement >= iterations) {
-                      break;
-                    }
+                  int iterationIncrement = iterationCounter.getAndIncrement();
+                  while (iterationIncrement < iterations) {
                     if (config.debugLogging) {
                       System.out.printf(
                           "> iteration = %d/%d, client# = %d/%d%n",
@@ -190,6 +187,8 @@ public class Benchmarking {
                     Pair<ChosenAction, Long> result =
                         measurePerformance(client, config.dataSize, async);
                     actionResults.get(result.getLeft()).add(result.getRight());
+
+                    iterationIncrement = iterationCounter.getAndIncrement();
                   }
                 });
           }
@@ -226,17 +225,26 @@ public class Benchmarking {
     actions.put(
         ChosenAction.GET_EXISTING,
         async
-            ? () -> ((AsyncClient) client).asyncGet(generateKeySet()).get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
+            ? () ->
+                ((AsyncClient) client)
+                    .asyncGet(generateKeySet())
+                    .get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
             : () -> ((SyncClient) client).get(generateKeySet()));
     actions.put(
         ChosenAction.GET_NON_EXISTING,
         async
-            ? () -> ((AsyncClient) client).asyncGet(generateKeyGet()).get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
+            ? () ->
+                ((AsyncClient) client)
+                    .asyncGet(generateKeyGet())
+                    .get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
             : () -> ((SyncClient) client).get(generateKeyGet()));
     actions.put(
         ChosenAction.SET,
         async
-            ? () -> ((AsyncClient) client).asyncSet(generateKeySet(), value).get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
+            ? () ->
+                ((AsyncClient) client)
+                    .asyncSet(generateKeySet(), value)
+                    .get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
             : () -> ((SyncClient) client).set(generateKeySet(), value));
 
     return getLatency(actions);
