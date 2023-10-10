@@ -2,9 +2,7 @@ package javababushka.benchmarks.clients;
 
 import javababushka.benchmarks.utils.ConnectionSettings;
 
-/**
- * A Redis client interface
- */
+/** A Redis client interface */
 public interface Client {
   void connectToRedis();
 

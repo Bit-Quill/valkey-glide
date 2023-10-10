@@ -1,8 +1,6 @@
 package javababushka.benchmarks.utils;
 
-/**
- * Raw timing results in nanoseconds
- */
+/** Raw timing results in nanoseconds */
 public class LatencyResults {
   public final double avgLatency;
   public final long p50Latency;

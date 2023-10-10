@@ -5,10 +5,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisStringCommands;
 import javababushka.benchmarks.utils.ConnectionSettings;
 
-/**
- * A Lettuce client with sync capabilities
- * see: https://lettuce.io/
- */
+/** A Lettuce client with sync capabilities see: https://lettuce.io/ */
 public class LettuceClient implements SyncClient {
 
   RedisClient client;

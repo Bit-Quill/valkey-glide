@@ -13,16 +13,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javababushka.benchmarks.clients.AsyncClient;
 import javababushka.benchmarks.BenchmarkingApp;
+import javababushka.benchmarks.clients.AsyncClient;
 import javababushka.benchmarks.clients.Client;
 import javababushka.benchmarks.clients.SyncClient;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-/**
- * Class to calculate latency on client-actions
- */
+/** Class to calculate latency on client-actions */
 public class Benchmarking {
   static final double PROB_GET = 0.8;
   static final double PROB_GET_EXISTING_KEY = 0.8;
@@ -234,25 +232,25 @@ public class Benchmarking {
         ChosenAction.GET_EXISTING,
         async
             ? () ->
-            ((AsyncClient) client)
-                .asyncGet(generateKeySet())
-                .get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
+                ((AsyncClient) client)
+                    .asyncGet(generateKeySet())
+                    .get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
             : () -> ((SyncClient) client).get(generateKeySet()));
     actions.put(
         ChosenAction.GET_NON_EXISTING,
         async
             ? () ->
-            ((AsyncClient) client)
-                .asyncGet(generateKeyGet())
-                .get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
+                ((AsyncClient) client)
+                    .asyncGet(generateKeyGet())
+                    .get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
             : () -> ((SyncClient) client).get(generateKeyGet()));
     actions.put(
         ChosenAction.SET,
         async
             ? () ->
-            ((AsyncClient) client)
-                .asyncSet(generateKeySet(), value)
-                .get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
+                ((AsyncClient) client)
+                    .asyncSet(generateKeySet(), value)
+                    .get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
             : () -> ((SyncClient) client).set(generateKeySet(), value));
 
     return getLatency(actions);

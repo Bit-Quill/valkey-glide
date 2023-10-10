@@ -1,8 +1,6 @@
 package javababushka.benchmarks.utils;
 
-/**
- * Redis-client settings
- */
+/** Redis-client settings */
 public class ConnectionSettings {
   public String host;
   public int port;

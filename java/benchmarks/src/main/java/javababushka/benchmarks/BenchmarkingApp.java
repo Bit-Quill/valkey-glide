@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
-import javababushka.benchmarks.clients.LettuceClient;
 import javababushka.benchmarks.clients.LettuceAsyncClient;
 import javababushka.benchmarks.clients.LettuceClient;
 import org.apache.commons.cli.CommandLine;

@@ -8,10 +8,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javababushka.benchmarks.utils.ConnectionSettings;
 
-/**
- * A Lettuce client with async capabilities
- * see: https://lettuce.io/
- */
+/** A Lettuce client with async capabilities see: https://lettuce.io/ */
 public class LettuceAsyncClient implements AsyncClient {
 
   RedisClient client;

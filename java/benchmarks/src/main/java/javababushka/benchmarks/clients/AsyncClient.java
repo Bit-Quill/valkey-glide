@@ -2,9 +2,7 @@ package javababushka.benchmarks.clients;
 
 import java.util.concurrent.Future;
 
-/**
- * A Redis client with async capabilities
- */
+/** A Redis client with async capabilities */
 public interface AsyncClient extends Client {
 
   long DEFAULT_TIMEOUT = 1000;
