@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/aws/babushka/go/benchmarks/goredis"
+	"github.com/aws/babushka/go/benchmarks/utils"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 )
-
-// Types
 
 /*
 Options represents the set of arguments passed into the program.
@@ -25,35 +25,21 @@ type Options struct {
 	Clients         string
 	Configuration   string
 	ConcurrentTasks string
-}
-
-/*
-RunConfiguration takes the parsed Options and matches them,
-ensuring their validity and converting them to the appropriate types
-for the program's execution requirements.
-*/
-type RunConfiguration struct {
-	TLS             bool
-	Host            string
-	Port            int
-	ResultsFile     *os.File
-	ClientCount     int
-	Clients         string
-	Configuration   string
-	ConcurrentTasks []int
+	DataSize        int
 }
 
 type ClientNames struct {
-	GoRedis  string
-	Babushka string
-	All      string
+	GoRedis      string
+	GoRedisAsync string
+	Babushka     string
+	All          string
 }
 
-// Constants
 var ClientName = ClientNames{
-	GoRedis:  "go-redis",
-	Babushka: "babushka",
-	All:      "all",
+	GoRedis:      "go-redis",
+	GoRedisAsync: "go-redis-async",
+	Babushka:     "babushka",
+	All:          "all",
 }
 
 func main() {
@@ -66,25 +52,29 @@ func main() {
 		return
 	}
 
+	defer closeFileIfNotStdout(runConfiguration.ResultsFile)
+
 	switch runConfiguration.Clients {
 	case ClientName.GoRedis:
 		fmt.Println("Not yet configured for go-redis benchmarking.")
+		err = testClientSetGet(&goredisclient.GoRedisClient{}, runConfiguration, false)
+
+	case ClientName.GoRedisAsync:
+		fmt.Println("Not yet configured for go-redis_async benchmarking.")
+		err = testClientSetGet(&goredisclient.GoRedisClient{}, runConfiguration, true)
 
 	case ClientName.Babushka:
 		fmt.Println("Not yet configured for babushka benchmarking.")
 
 	case ClientName.All:
-		fmt.Println("Not yet configured for babushka and go-redis benchmarking.")
+		fmt.Println("Not yet configured for babushka benchmarking.")
 	}
 
-	//TODO logic should be changed if we also decide to use std.Out as an option
-	defer func(ResultsFile *os.File) {
-		err := ResultsFile.Close()
-		if err != nil {
-			fmt.Println("Error closing the file: ", err)
-			return
-		}
-	}(runConfiguration.ResultsFile)
+	if err != nil {
+		fmt.Println("Error running benchmarking: ", err)
+		return
+	}
+
 }
 
 func parseArguments() *Options {
@@ -95,9 +85,10 @@ func parseArguments() *Options {
 	port := flag.Int("port", 6379, "Port number")
 	resultsFile := flag.String("resultsFile", "", "Path to results file")
 	clientCount := flag.Int("clientCount", 1, "Client Count")
-	clients := flag.String("clients", "all", "One of: all|go-redis|babushka")
+	clients := flag.String("clients", "all", "One of: all|go-redis|go-redis-async|babushka")
 	configuration := flag.String("configuration", "Release", "Configuration flag")
 	concurrentTasks := flag.String("concurrentTasks", "[1 10 100]", "Number of concurrent tasks")
+	dataSize := flag.Int("dataSize", 20, "Data block size")
 
 	flag.Parse()
 
@@ -109,12 +100,13 @@ func parseArguments() *Options {
 	options.Clients = *clients
 	options.Configuration = *configuration
 	options.ConcurrentTasks = *concurrentTasks
+	options.DataSize = *dataSize
 
 	return &options
 }
 
-func verifyOptions(options *Options) (*RunConfiguration, error) {
-	var runConfiguration RunConfiguration
+func verifyOptions(options *Options) (*utils.RunConfiguration, error) {
+	var runConfiguration utils.RunConfiguration
 	var err error
 
 	if options.Configuration == "Release" || options.Configuration == "Debug" {
@@ -123,9 +115,13 @@ func verifyOptions(options *Options) (*RunConfiguration, error) {
 		return nil, fmt.Errorf("invalid run configuration (Release|Debug)")
 	}
 
-	runConfiguration.ResultsFile, err = os.Create(options.ResultsFile)
-	if err != nil {
-		return nil, err
+	if options.ResultsFile == "" {
+		runConfiguration.ResultsFile = os.Stdout
+	} else {
+		runConfiguration.ResultsFile, err = os.Create(options.ResultsFile)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	runConfiguration.ConcurrentTasks, err = validateConcurrentTasks(options.ConcurrentTasks)
@@ -136,6 +132,9 @@ func verifyOptions(options *Options) (*RunConfiguration, error) {
 	switch {
 	case strings.EqualFold(options.Clients, ClientName.GoRedis):
 		runConfiguration.Clients = ClientName.GoRedis
+
+	case strings.EqualFold(options.Clients, ClientName.GoRedisAsync):
+		runConfiguration.Clients = ClientName.GoRedisAsync
 
 	case strings.EqualFold(options.Clients, ClientName.Babushka):
 		runConfiguration.Clients = ClientName.Babushka
@@ -150,8 +149,18 @@ func verifyOptions(options *Options) (*RunConfiguration, error) {
 	runConfiguration.Port = options.Port
 	runConfiguration.ClientCount = options.ClientCount
 	runConfiguration.TLS = options.TLS
+	runConfiguration.DataSize = options.DataSize
 
 	return &runConfiguration, nil
+}
+
+func testClientSetGet(client utils.Client, runConfiguration *utils.RunConfiguration, async bool) error {
+	fmt.Printf("\n =====> %s <===== \n\n", runConfiguration.Clients)
+	err := utils.MeasurePerformance(client, runConfiguration, async)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Makes sure that concurrentTasks is in the format of 1 2 3 or [1 2 3]
@@ -180,4 +189,13 @@ func validateConcurrentTasks(concurrentTasks string) ([]int, error) {
 		concurrentTasksNumbersList = append(concurrentTasksNumbersList, num)
 	}
 	return concurrentTasksNumbersList, nil
+}
+
+func closeFileIfNotStdout(file *os.File) {
+	if file != os.Stdout {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Error closing the file:", err)
+		}
+	}
 }

@@ -202,12 +202,17 @@ do
         -go)
             runAllBenchmarks=0
             runGo=1
-            chosenClients="Babushka"
+            chosenClients="babushka"
             ;;
         -go-redis)
             runAllBenchmarks=0
             runGo=1
-            chosenClients="GoRedis"
+            chosenClients="go-redis"
+            ;;
+        -go-redis-async)
+            runAllBenchmarks=0
+            runGo=1
+            chosenClients="go-redis-async"
             ;;
         -only-socket)
             chosenClients="socket"
