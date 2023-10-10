@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
+import javababushka.benchmarks.clients.JedisClient;
+import javababushka.benchmarks.clients.JedisPseudoAsyncClient;
 import javababushka.benchmarks.clients.LettuceAsyncClient;
 import javababushka.benchmarks.clients.LettuceClient;
 import org.apache.commons.cli.CommandLine;
@@ -48,11 +50,11 @@ public class BenchmarkingApp {
       switch (client) {
         case JEDIS:
           // run testClientSetGet on JEDIS sync client
-          System.out.println("Run JEDIS sync client");
+          testClientSetGet(JedisClient::new, runConfiguration, false);
           break;
         case JEDIS_ASYNC:
           // run testClientSetGet on JEDIS pseudo-async client
-          System.out.println("Run JEDIS pseudo-async client");
+          testClientSetGet(JedisPseudoAsyncClient::new, runConfiguration, true);
           break;
         case LETTUCE:
           testClientSetGet(LettuceClient::new, runConfiguration, false);
