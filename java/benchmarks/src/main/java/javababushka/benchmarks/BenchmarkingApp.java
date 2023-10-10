@@ -1,10 +1,15 @@
 package javababushka.benchmarks;
 
+import static javababushka.benchmarks.utils.Benchmarking.testClientSetGet;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
+import javababushka.benchmarks.clients.LettuceClient;
+import javababushka.benchmarks.clients.LettuceAsyncClient;
+import javababushka.benchmarks.clients.LettuceClient;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -51,12 +56,10 @@ public class BenchmarkingApp {
           System.out.println("Run JEDIS pseudo-async client");
           break;
         case LETTUCE:
-          // run testClientSetGet on LETTUCE sync client
-          System.out.println("Run LETTUCE sync client");
+          testClientSetGet(LettuceClient::new, runConfiguration, false);
           break;
         case LETTUCE_ASYNC:
-          // run testClientSetGet on LETTUCE async client
-          System.out.println("Run LETTUCE async client");
+          testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
           break;
         case BABUSHKA_ASYNC:
           System.out.println("Babushka async not yet configured");
