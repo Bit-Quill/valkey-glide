@@ -27,6 +27,10 @@ public class Benchmarking {
   static final int SIZE_GET_KEYSPACE = 3750000;
   static final int SIZE_SET_KEYSPACE = 3000000;
   static final int ASYNC_OPERATION_TIMEOUT_SEC = 1;
+  static final double LATENCY_NORMALIZATION = 1000000.0;
+  static final int LATENCY_MIN = 100000;
+  static final int LATENCY_MAX = 10000000;
+  static final int LATENCY_MULTIPLIER = 10000;
 
   private static ChosenAction randomAction() {
     if (Math.random() > PROB_GET) {
@@ -125,11 +129,16 @@ public class Benchmarking {
       LatencyResults results = entry.getValue();
 
       try {
-        resultsFile.write("Avg. time in ms per " + action + ": " + results.avgLatency / 1000000.0);
-        resultsFile.write(action + " p50 latency in ms: " + results.p50Latency / 1000000.0);
-        resultsFile.write(action + " p90 latency in ms: " + results.p90Latency / 1000000.0);
-        resultsFile.write(action + " p99 latency in ms: " + results.p99Latency / 1000000.0);
-        resultsFile.write(action + " std dev in ms: " + results.stdDeviation / 1000000.0);
+        resultsFile.write(
+            "Avg. time in ms per " + action + ": " + results.avgLatency / LATENCY_NORMALIZATION);
+        resultsFile.write(
+            action + " p50 latency in ms: " + results.p50Latency / LATENCY_NORMALIZATION);
+        resultsFile.write(
+            action + " p90 latency in ms: " + results.p90Latency / LATENCY_NORMALIZATION);
+        resultsFile.write(
+            action + " p99 latency in ms: " + results.p99Latency / LATENCY_NORMALIZATION);
+        resultsFile.write(
+            action + " std dev in ms: " + results.stdDeviation / LATENCY_NORMALIZATION);
       } catch (Exception ignored) {
       }
     }
@@ -140,83 +149,91 @@ public class Benchmarking {
       ChosenAction action = entry.getKey();
       LatencyResults results = entry.getValue();
 
-      System.out.println("Avg. time in ms per " + action + ": " + results.avgLatency / 1000000.0);
-      System.out.println(action + " p50 latency in ms: " + results.p50Latency / 1000000.0);
-      System.out.println(action + " p90 latency in ms: " + results.p90Latency / 1000000.0);
-      System.out.println(action + " p99 latency in ms: " + results.p99Latency / 1000000.0);
-      System.out.println(action + " std dev in ms: " + results.stdDeviation / 1000000.0);
+      System.out.println(
+          "Avg. time in ms per " + action + ": " + results.avgLatency / LATENCY_NORMALIZATION);
+      System.out.println(
+          action + " p50 latency in ms: " + results.p50Latency / LATENCY_NORMALIZATION);
+      System.out.println(
+          action + " p90 latency in ms: " + results.p90Latency / LATENCY_NORMALIZATION);
+      System.out.println(
+          action + " p99 latency in ms: " + results.p99Latency / LATENCY_NORMALIZATION);
+      System.out.println(
+          action + " std dev in ms: " + results.stdDeviation / LATENCY_NORMALIZATION);
     }
   }
 
   public static void testClientSetGet(
       Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
     for (int concurrentNum : config.concurrentTasks) {
-      int iterations = Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
+      int iterations =
+          Math.min(Math.max(LATENCY_MIN, concurrentNum * LATENCY_MULTIPLIER), LATENCY_MAX);
       for (int clientCount : config.clientCount) {
-        System.out.printf(
-            "%n =====> %s <===== %d clients %d concurrent %n%n",
-            clientCreator.get().getName(), clientCount, concurrentNum);
-        AtomicInteger iterationCounter = new AtomicInteger(0);
-        Map<ChosenAction, ArrayList<Long>> actionResults =
-            Map.of(
-                ChosenAction.GET_EXISTING, new ArrayList<>(),
-                ChosenAction.GET_NON_EXISTING, new ArrayList<>(),
-                ChosenAction.SET, new ArrayList<>());
-        List<Runnable> tasks = new ArrayList<>();
+        for (int dataSize : config.dataSize) {
+          System.out.printf(
+              "%n =====> %s <===== %d clients %d concurrent %d data %n%n",
+              clientCreator.get().getName(), clientCount, concurrentNum, dataSize);
+          AtomicInteger iterationCounter = new AtomicInteger(0);
+          Map<ChosenAction, ArrayList<Long>> actionResults =
+              Map.of(
+                  ChosenAction.GET_EXISTING, new ArrayList<>(),
+                  ChosenAction.GET_NON_EXISTING, new ArrayList<>(),
+                  ChosenAction.SET, new ArrayList<>());
+          List<Runnable> tasks = new ArrayList<>();
 
-        // create clients
-        List<Client> clients = new LinkedList<>();
-        for (int cc = 0; cc < clientCount; cc++) {
-          Client newClient = clientCreator.get();
-          newClient.connectToRedis(new ConnectionSettings(config.host, config.port, config.tls));
-          clients.add(newClient);
-        }
+          // create clients
+          List<Client> clients = new LinkedList<>();
+          for (int cc = 0; cc < clientCount; cc++) {
+            Client newClient = clientCreator.get();
+            newClient.connectToRedis(new ConnectionSettings(config.host, config.port, config.tls));
+            clients.add(newClient);
+          }
 
-        for (int taskNum = 0; taskNum < concurrentNum; taskNum++) {
-          final int taskNumDebugging = taskNum;
-          tasks.add(
-              () -> {
-                int iterationIncrement = iterationCounter.getAndIncrement();
-                int clientIndex = iterationIncrement % clients.size();
+          for (int taskNum = 0; taskNum < concurrentNum; taskNum++) {
+            final int taskNumDebugging = taskNum;
+            tasks.add(
+                () -> {
+                  int iterationIncrement = iterationCounter.getAndIncrement();
+                  int clientIndex = iterationIncrement % clients.size();
 
-                if (config.debugLogging) {
-                  System.out.printf(
-                      "%n concurrent = %d/%d, client# = %d/%d%n",
-                      taskNumDebugging, concurrentNum, clientIndex + 1, clientCount);
-                }
-                while (iterationIncrement < iterations) {
                   if (config.debugLogging) {
                     System.out.printf(
-                        "> iteration = %d/%d, client# = %d/%d%n",
-                        iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
+                        "%n concurrent = %d/%d, client# = %d/%d%n",
+                        taskNumDebugging, concurrentNum, clientIndex + 1, clientCount);
                   }
-                  // operate and calculate tik-tok
-                  Pair<ChosenAction, Long> result =
-                      measurePerformance(clients.get(clientIndex), config.dataSize, async);
-                  actionResults.get(result.getLeft()).add(result.getRight());
+                  while (iterationIncrement < iterations) {
+                    if (config.debugLogging) {
+                      System.out.printf(
+                          "> iteration = %d/%d, client# = %d/%d%n",
+                          iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
+                    }
+                    // operate and calculate tik-tok
+                    Pair<ChosenAction, Long> result =
+                        measurePerformance(clients.get(clientIndex), dataSize, async);
+                    actionResults.get(result.getLeft()).add(result.getRight());
 
-                  iterationIncrement = iterationCounter.getAndIncrement();
-                }
-              });
-        }
-        if (config.debugLogging) {
-          System.out.printf("%s client Benchmarking: %n", clientCreator.get().getName());
-          System.out.printf(
-              "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
-              concurrentNum, clientCount, tasks.size());
-        }
-        tasks.stream()
-            .map(CompletableFuture::runAsync)
-            .forEach(
-                f -> {
-                  try {
-                    f.get();
-                  } catch (Exception e) {
-                    e.printStackTrace();
+                    iterationIncrement = iterationCounter.getAndIncrement();
                   }
                 });
+          }
+          if (config.debugLogging) {
+            System.out.printf("%s client Benchmarking: %n", clientCreator.get().getName());
+            System.out.printf(
+                "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
+                concurrentNum, clientCount, tasks.size());
+          }
+          tasks.stream()
+              .map(CompletableFuture::runAsync)
+              .forEach(
+                  f -> {
+                    try {
+                      f.get();
+                    } catch (Exception e) {
+                      e.printStackTrace();
+                    }
+                  });
 
-        printResults(calculateResults(actionResults), config.resultsFile);
+          printResults(calculateResults(actionResults), config.resultsFile);
+        }
       }
     }
 
