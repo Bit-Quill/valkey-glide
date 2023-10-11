@@ -1,6 +1,7 @@
 package javababushka.benchmarks.utils;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -221,6 +222,7 @@ public class Benchmarking {
                 "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
                 concurrentNum, clientCount, tasks.size());
           }
+          long before = System.nanoTime();
           tasks.stream()
               .map(CompletableFuture::runAsync)
               .forEach(
@@ -231,8 +233,22 @@ public class Benchmarking {
                       e.printStackTrace();
                     }
                   });
+          long after = System.nanoTime();
 
+          // print results per action
           printResults(calculateResults(actionResults), config.resultsFile);
+
+          // print TPS
+          if (config.resultsFile.isPresent()) {
+            try {
+              config.resultsFile.get().append(
+                  "Avg. time in ms: " + (after - before) / iterations / LATENCY_NORMALIZATION);
+            } catch (IOException ignored) {
+            }
+          } else {
+            System.out.println(
+                "Avg. time in ms: " + (after - before) / iterations / LATENCY_NORMALIZATION);
+          }
         }
       }
     }
