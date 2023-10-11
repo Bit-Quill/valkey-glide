@@ -241,8 +241,11 @@ public class Benchmarking {
           // print TPS
           if (config.resultsFile.isPresent()) {
             try {
-              config.resultsFile.get().append(
-                  "Avg. time in ms: " + (after - before) / iterations / LATENCY_NORMALIZATION);
+              config
+                  .resultsFile
+                  .get()
+                  .append(
+                      "Avg. time in ms: " + (after - before) / iterations / LATENCY_NORMALIZATION);
             } catch (IOException ignored) {
             }
           } else {
