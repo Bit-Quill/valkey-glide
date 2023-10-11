@@ -32,6 +32,7 @@ public class Benchmarking {
   static final int LATENCY_MIN = 100000;
   static final int LATENCY_MAX = 10000000;
   static final int LATENCY_MULTIPLIER = 10000;
+  static final double TPS_NORMALIZATION = 1000000000.0; // nano to seconds
 
   private static ChosenAction randomAction() {
     if (Math.random() > PROB_GET) {
@@ -130,15 +131,15 @@ public class Benchmarking {
       LatencyResults results = entry.getValue();
 
       try {
-        resultsFile.write(
+        resultsFile.append(
             "Avg. time in ms per " + action + ": " + results.avgLatency / LATENCY_NORMALIZATION);
-        resultsFile.write(
+        resultsFile.append(
             action + " p50 latency in ms: " + results.p50Latency / LATENCY_NORMALIZATION);
-        resultsFile.write(
+        resultsFile.append(
             action + " p90 latency in ms: " + results.p90Latency / LATENCY_NORMALIZATION);
-        resultsFile.write(
+        resultsFile.append(
             action + " p99 latency in ms: " + results.p99Latency / LATENCY_NORMALIZATION);
-        resultsFile.write(
+        resultsFile.append(
             action + " std dev in ms: " + results.stdDeviation / LATENCY_NORMALIZATION);
       } catch (Exception ignored) {
       }
@@ -244,13 +245,13 @@ public class Benchmarking {
               config
                   .resultsFile
                   .get()
-                  .append(
-                      "Avg. time in ms: " + (after - before) / iterations / LATENCY_NORMALIZATION);
+                  .append("TPS: %s%n" + (iterations / ((after - before) / TPS_NORMALIZATION)));
             } catch (IOException ignored) {
             }
           } else {
-            System.out.println(
-                "Avg. time in ms: " + (after - before) / iterations / LATENCY_NORMALIZATION);
+            System.out.println("Runtime: " + ((after - before) / TPS_NORMALIZATION));
+            System.out.println("Iterations: " + iterations);
+            System.out.printf("TPS: %s%n", (iterations / ((after - before) / TPS_NORMALIZATION)));
           }
         }
       }
