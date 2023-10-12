@@ -1,4 +1,4 @@
-package utils
+package benchmarks
 
 type ConnectionSettings struct {
 	Host   string

@@ -1,4 +1,4 @@
-package utils
+package benchmarks
 
 type BenchmarkConfig struct {
 	ClientName  string

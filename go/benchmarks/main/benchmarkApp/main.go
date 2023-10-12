@@ -3,8 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/aws/babushka/go/benchmarks/goredis"
-	"github.com/aws/babushka/go/benchmarks/utils"
+	"github.com/aws/babushka/go/benchmarks"
 	"os"
 	"regexp"
 	"strconv"
@@ -12,61 +11,72 @@ import (
 )
 
 /*
-Options represents the set of arguments passed into the program.
+options represents the set of arguments passed into the program.
 It's responsible for parsing and holding the raw values provided by the user.
-If some arguments are not passed, Options will set default values for them.
+If some arguments are not passed, options will set default values for them.
 */
-type Options struct {
-	TLS             bool
-	Host            string
-	Port            int
-	ResultsFile     string
-	ClientCount     int
-	Clients         string
-	Configuration   string
-	ConcurrentTasks string
-	DataSize        int
+type options struct {
+	tls             bool
+	host            string
+	port            int
+	resultsFile     string
+	clientCount     string
+	clientName      string
+	configuration   string
+	concurrentTasks string
+	dataSize        string
 }
 
-type ClientNames struct {
-	GoRedis      string
-	GoRedisAsync string
-	Babushka     string
-	All          string
+/*
+runConfiguration takes the parsed options and matches them,
+ensuring their validity and converting them to the appropriate types
+for the program's execution requirements.
+*/
+type runConfiguration struct {
+	tls             bool
+	host            string
+	port            int
+	resultsFile     *os.File
+	clientCount     []int
+	clientName      string
+	configuration   string
+	concurrentTasks []int
+	dataSize        []int
 }
 
-var ClientName = ClientNames{
-	GoRedis:      "go-redis",
-	GoRedisAsync: "go-redis-async",
-	Babushka:     "babushka",
-	All:          "all",
+type clientNames struct {
+	goRedis  string
+	babushka string
+	all      string
+}
+
+var clientNameOptions = clientNames{
+	goRedis:  "go-redis",
+	babushka: "babushka",
+	all:      "all",
 }
 
 func main() {
 
-	options := parseArguments()
+	opts := parseArguments()
 
-	runConfiguration, err := verifyOptions(options)
+	runConfig, err := verifyOptions(opts)
 	if err != nil {
 		fmt.Println("Error verifying options: ", err)
 		return
 	}
 
-	defer closeFileIfNotStdout(runConfiguration.ResultsFile)
+	defer closeFileIfNotStdout(runConfig.resultsFile)
 
-	switch runConfiguration.Clients {
-	case ClientName.GoRedis:
-		fmt.Println("Not yet configured for go-redis benchmarking.")
-		err = testClientSetGet(&goredisclient.GoRedisClient{}, runConfiguration, false)
+	switch runConfig.clientName {
+	case clientNameOptions.goRedis:
+		err = testClientSetGet(runConfig)
 
-	case ClientName.GoRedisAsync:
-		fmt.Println("Not yet configured for go-redis_async benchmarking.")
-		err = testClientSetGet(&goredisclient.GoRedisClient{}, runConfiguration, true)
-
-	case ClientName.Babushka:
+	case clientNameOptions.babushka:
 		fmt.Println("Not yet configured for babushka benchmarking.")
 
-	case ClientName.All:
+	case clientNameOptions.all:
+		err = testClientSetGet(runConfig)
 		fmt.Println("Not yet configured for babushka benchmarking.")
 	}
 
@@ -77,118 +87,175 @@ func main() {
 
 }
 
-func parseArguments() *Options {
-	var options Options
+func parseArguments() *options {
+	var opts options
 
 	tls := flag.Bool("tls", false, "Use TLS (default: false)")
 	host := flag.String("host", "localhost", "Host address")
 	port := flag.Int("port", 6379, "Port number")
 	resultsFile := flag.String("resultsFile", "", "Path to results file")
-	clientCount := flag.Int("clientCount", 1, "Client Count")
-	clients := flag.String("clients", "all", "One of: all|go-redis|go-redis-async|babushka")
+	clientCount := flag.String("clientCount", "[1]", "Client Count")
+	clientName := flag.String("clients", "all", "One of: all|go-redis|babushka")
 	configuration := flag.String("configuration", "Release", "Configuration flag")
 	concurrentTasks := flag.String("concurrentTasks", "[1 10 100]", "Number of concurrent tasks")
-	dataSize := flag.Int("dataSize", 20, "Data block size")
+	dataSize := flag.String("dataSize", "[20]", "Data block size")
 
 	flag.Parse()
 
-	options.TLS = *tls
-	options.Host = *host
-	options.Port = *port
-	options.ResultsFile = *resultsFile
-	options.ClientCount = *clientCount
-	options.Clients = *clients
-	options.Configuration = *configuration
-	options.ConcurrentTasks = *concurrentTasks
-	options.DataSize = *dataSize
+	opts.tls = *tls
+	opts.host = *host
+	opts.port = *port
+	opts.resultsFile = *resultsFile
+	opts.clientCount = *clientCount
+	opts.clientName = *clientName
+	opts.configuration = *configuration
+	opts.concurrentTasks = *concurrentTasks
+	opts.dataSize = *dataSize
 
-	return &options
+	return &opts
 }
 
-func verifyOptions(options *Options) (*utils.RunConfiguration, error) {
-	var runConfiguration utils.RunConfiguration
+func verifyOptions(opts *options) (*runConfiguration, error) {
+	var runConfig runConfiguration
 	var err error
 
-	if options.Configuration == "Release" || options.Configuration == "Debug" {
-		runConfiguration.Configuration = options.Configuration
+	if opts.configuration == "Release" || opts.configuration == "Debug" {
+		runConfig.configuration = opts.configuration
 	} else {
 		return nil, fmt.Errorf("invalid run configuration (Release|Debug)")
 	}
 
-	if options.ResultsFile == "" {
-		runConfiguration.ResultsFile = os.Stdout
+	if opts.resultsFile == "" {
+		runConfig.resultsFile = os.Stdout
 	} else {
-		runConfiguration.ResultsFile, err = os.Create(options.ResultsFile)
+		runConfig.resultsFile, err = os.Create(opts.resultsFile)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	runConfiguration.ConcurrentTasks, err = validateConcurrentTasks(options.ConcurrentTasks)
+	runConfig.concurrentTasks, err = validateArgumentListFormat(opts.concurrentTasks)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid concurrent tasks: %v", err)
+	}
+
+	runConfig.dataSize, err = validateArgumentListFormat(opts.dataSize)
+	if err != nil {
+		return nil, fmt.Errorf("invalid data size: %v", err)
+	}
+
+	runConfig.clientCount, err = validateArgumentListFormat(opts.clientCount)
+	if err != nil {
+		return nil, fmt.Errorf("invalid client count: %v", err)
 	}
 
 	switch {
-	case strings.EqualFold(options.Clients, ClientName.GoRedis):
-		runConfiguration.Clients = ClientName.GoRedis
+	case strings.EqualFold(opts.clientName, clientNameOptions.goRedis):
+		runConfig.clientName = clientNameOptions.goRedis
 
-	case strings.EqualFold(options.Clients, ClientName.GoRedisAsync):
-		runConfiguration.Clients = ClientName.GoRedisAsync
+	case strings.EqualFold(opts.clientName, clientNameOptions.babushka):
+		runConfig.clientName = clientNameOptions.babushka
 
-	case strings.EqualFold(options.Clients, ClientName.Babushka):
-		runConfiguration.Clients = ClientName.Babushka
-
-	case strings.EqualFold(options.Clients, ClientName.All):
-		runConfiguration.Clients = ClientName.All
+	case strings.EqualFold(opts.clientName, clientNameOptions.all):
+		runConfig.clientName = clientNameOptions.all
 	default:
 		return nil, fmt.Errorf("invalid clients option: all|go-redis|babushka")
 	}
 
-	runConfiguration.Host = options.Host
-	runConfiguration.Port = options.Port
-	runConfiguration.ClientCount = options.ClientCount
-	runConfiguration.TLS = options.TLS
-	runConfiguration.DataSize = options.DataSize
+	runConfig.host = opts.host
+	runConfig.port = opts.port
+	runConfig.tls = opts.tls
 
-	return &runConfiguration, nil
+	return &runConfig, nil
 }
 
-func testClientSetGet(client utils.Client, runConfiguration *utils.RunConfiguration, async bool) error {
-	fmt.Printf("\n =====> %s <===== \n\n", runConfiguration.Clients)
-	err := utils.MeasurePerformance(client, runConfiguration, async)
-	if err != nil {
-		return err
+func testClientSetGet(runConfig *runConfiguration) error {
+	fmt.Printf("\n =====> %s <===== \n\n", runConfig.clientName)
+	connectionSettings := benchmarks.NewConnectionSettings(
+		runConfig.host,
+		runConfig.port,
+		runConfig.tls)
+
+	for _, dataSize := range runConfig.dataSize {
+		for _, concurrentTasks := range runConfig.concurrentTasks {
+			for _, clientCount := range runConfig.clientCount {
+				clients, err := createClients(clientCount, runConfig.clientName, connectionSettings)
+				if err != nil {
+					return err
+				}
+				tps, latencyResults := benchmarks.MeasurePerformance(clients, concurrentTasks, dataSize)
+				benchmarkConfig := benchmarks.NewBenchmarkConfig(
+					runConfig.clientName,
+					concurrentTasks,
+					dataSize,
+					clientCount)
+				benchmarks.PrintResults(tps, latencyResults, benchmarkConfig, runConfig.resultsFile)
+				err = closeClients(clients)
+				if err != nil {
+					return err
+				}
+			}
+		}
 	}
 	return nil
 }
 
-// Makes sure that concurrentTasks is in the format of 1 2 3 or [1 2 3]
-func validateConcurrentTasks(concurrentTasks string) ([]int, error) {
-	concurrentTasks = strings.Trim(strings.TrimSpace(concurrentTasks), "[]")
+func createClients(clientCount int, clientType string, connectionSettings *benchmarks.ConnectionSettings) ([]benchmarks.Client, error) {
+	var clients []benchmarks.Client
 
-	if len(concurrentTasks) == 0 {
-		return nil, fmt.Errorf("concurrent string is empty or contains only brackets")
+	for i := 0; i < clientCount; i++ {
+		var client benchmarks.Client
+		//TODO add "babushka"
+		switch clientType {
+		case clientNameOptions.goRedis:
+			client = &benchmarks.GoRedisClient{}
+		}
+		err := client.ConnectToRedis(connectionSettings)
+		if err != nil {
+			return nil, err
+		}
+		clients = append(clients, client)
+	}
+	return clients, nil
+}
+
+func closeClients(clients []benchmarks.Client) error {
+	for _, client := range clients {
+		err := client.CloseConnection()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Makes sure that arguments are in the format of 1 2 3 or [1 2 3]
+func validateArgumentListFormat(arg string) ([]int, error) {
+	arg = strings.Trim(strings.TrimSpace(arg), "[]")
+
+	if len(arg) == 0 {
+		return nil, fmt.Errorf("argument is empty or contains only brackets")
 	}
 
-	matched, err := regexp.MatchString("^\\d+(\\s+\\d+)*$", concurrentTasks)
+	matched, err := regexp.MatchString("^\\d+(\\s+\\d+)*$", arg)
 	if err != nil {
 		return nil, err
 	}
 	if !matched {
-		return nil, fmt.Errorf("invalid Concurrent Tasks")
+		return nil, fmt.Errorf("wrong patern")
 	}
 
-	splitTasks := strings.Split(concurrentTasks, " ")
-	var concurrentTasksNumbersList []int
-	for _, part := range splitTasks {
-		num, err := strconv.Atoi(strings.TrimSpace(part))
+	splitArgs := strings.Split(arg, " ")
+	var argNumbersList []int
+	for _, part := range splitArgs {
+		var num int
+		num, err = strconv.Atoi(strings.TrimSpace(part))
 		if err != nil {
-			return nil, fmt.Errorf("invalid number format for concurrent tasks: %s", part)
+			return nil, fmt.Errorf("wrong number format for argument: %s", part)
 		}
-		concurrentTasksNumbersList = append(concurrentTasksNumbersList, num)
+		argNumbersList = append(argNumbersList, num)
 	}
-	return concurrentTasksNumbersList, nil
+	return argNumbersList, nil
 }
 
 func closeFileIfNotStdout(file *os.File) {
