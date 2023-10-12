@@ -224,16 +224,26 @@ public class Benchmarking {
                 concurrentNum, clientCount, tasks.size());
           }
           long before = System.nanoTime();
-          tasks.stream()
-              .map(CompletableFuture::runAsync)
-              .forEach(
-                  f -> {
-                    try {
-                      f.get();
-                    } catch (Exception e) {
-                      e.printStackTrace();
-                    }
-                  });
+
+          // create threads and add them to the asyncpool.
+          // This will start execution of all the concurrent tasks.
+          List<CompletableFuture> asyncTasks =
+              tasks.stream().map(CompletableFuture::runAsync).collect(Collectors.toList());
+          try {
+            // wait 1 second before waiting for threads to complete
+            Thread.sleep(1000);
+          } catch (InterruptedException interruptedException) {
+            interruptedException.printStackTrace();
+          }
+          // wait for all futures to complete
+          asyncTasks.forEach(
+              future -> {
+                try {
+                  future.get();
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+              });
           long after = System.nanoTime();
 
           // print results per action
