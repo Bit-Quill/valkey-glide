@@ -98,7 +98,7 @@ func parseArguments() *options {
 	clientName := flag.String("clients", "all", "One of: all|go-redis|babushka")
 	configuration := flag.String("configuration", "Release", "Configuration flag")
 	concurrentTasks := flag.String("concurrentTasks", "[1 10 100]", "Number of concurrent tasks")
-	dataSize := flag.String("dataSize", "[20]", "Data block size")
+	dataSize := flag.String("dataSize", "[100 4000]", "Data block size")
 
 	flag.Parse()
 
@@ -203,9 +203,8 @@ func testClientSetGet(runConfig *runConfiguration) error {
 func createClients(clientCount int, clientType string, connectionSettings *benchmarks.ConnectionSettings) ([]benchmarks.Client, error) {
 	var clients []benchmarks.Client
 
-	for i := 0; i < clientCount; i++ {
+	for clientNum := 0; clientNum < clientCount; clientNum++ {
 		var client benchmarks.Client
-		//TODO add "babushka"
 		switch clientType {
 		case clientNameOptions.goRedis:
 			client = &benchmarks.GoRedisClient{}
@@ -242,7 +241,7 @@ func validateArgumentListFormat(arg string) ([]int, error) {
 		return nil, err
 	}
 	if !matched {
-		return nil, fmt.Errorf("wrong patern")
+		return nil, fmt.Errorf("wrong format for argument")
 	}
 
 	splitArgs := strings.Split(arg, " ")

@@ -30,22 +30,22 @@ var chosenActionOptions = chosenActions{
 
 const probGet = 0.8
 const probGetExistingKey = 0.8
-const sizeGetKeyspace = 3750000
-const sizeSetKeyspace = 3000000
+const sizeNewKeyspace = 3750000
+const sizeExistingKeyspace = 3000000
 
 var numberOfIterations = func(numOfConcurrentTasks int) int {
-	return int(math.Min(math.Max(100000, float64(numOfConcurrentTasks*10000)), 10000000))
+	return int(math.Min(math.Max(1e5, float64(numOfConcurrentTasks*1e4)), 1e7))
 }
 
 func generateKeyExisting() string {
 	localRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return fmt.Sprint(int(math.Floor(localRand.Float64()*float64(sizeSetKeyspace))+1), "")
+	return fmt.Sprint(int(math.Floor(localRand.Float64()*float64(sizeExistingKeyspace))+1), "")
 }
 
 func generateKeyNew() string {
 	localRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	totalRange := sizeGetKeyspace - sizeSetKeyspace
-	return fmt.Sprint(int(math.Floor(localRand.Float64()*float64(totalRange)+sizeSetKeyspace+1)), "")
+	totalRange := sizeNewKeyspace - sizeExistingKeyspace
+	return fmt.Sprint(int(math.Floor(localRand.Float64()*float64(totalRange)+sizeExistingKeyspace+1)), "")
 }
 
 func randomAlphanumeric(length int) string {
@@ -167,7 +167,6 @@ func getLatencies(iterations int, concurrentTasks int, actions map[string]operat
 		chosenActionOptions.set:            {},
 	}
 
-	//TODO do we want to limit the buffer size as it will take up a chunk in memory
 	jobs := make(chan int, iterations)
 	results := make(chan actionLatency, iterations)
 

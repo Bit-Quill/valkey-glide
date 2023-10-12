@@ -81,7 +81,7 @@ function runRustBenchmark(){
 
 function runGoBenchmark() {
     cd ${BENCH_FOLDER}/../go/benchmarks/main/benchmarkApp
-    echo "go run main.go --resultsFile=${BENCH_FOLDER}/$1 --concurrentTasks $concurrentTasks --clients $chosenClients --host $host --clientCount $clientCount $tlsFlag $clusterFlag"
+    echo "go run main.go --resultsFile=${BENCH_FOLDER}/$1 --concurrentTasks "$concurrentTasks" --dataSize "$2" --clients $chosenClients --host $host --clientCount "$clientCount" $tlsFlag $clusterFlag $portFlag"
     go run main.go --resultsFile=${BENCH_FOLDER}/$1 --concurrentTasks "$concurrentTasks" --dataSize "$2" --clients $chosenClients --host $host --clientCount "$clientCount" $tlsFlag $clusterFlag $portFlag
 }
 
