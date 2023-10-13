@@ -37,11 +37,13 @@ export function flushallOnPort(port: number): Promise<void> {
 }
 
 /// This function takes the first result of the response if it got more than one response (like cluster responses).
-export function getFirstResult(res: string | Record<string, string>): string {
-    if (typeof res == "string") {
+export function getFirstResult(
+    res: string | number | Record<string, string> | Record<string, number>
+): string | number {
+    if (typeof res == "string" || typeof res == "number") {
         return res;
     }
-    return Object.values(res).at(0) as string;
+    return Object.values(res).at(0);
 }
 
 export function transactionTest(
@@ -50,6 +52,8 @@ export function transactionTest(
     const key1 = "{key}" + uuidv4();
     const key2 = "{key}" + uuidv4();
     const key3 = "{key}" + uuidv4();
+    const key4 = "{key}" + uuidv4();
+    const field = uuidv4();
     const value = uuidv4();
     baseTransaction.set(key1, "bar");
     baseTransaction.set(key2, "baz", {
@@ -60,5 +64,20 @@ export function transactionTest(
     baseTransaction.mset({ [key3]: value });
     baseTransaction.mget([key1, key2]);
     baseTransaction.del([key1]);
-    return ["OK", null, ["bar", "baz"], "OK", ["bar", "baz"], 1];
+    baseTransaction.hset(key4, { [field]: value });
+    baseTransaction.hget(key4, field);
+    baseTransaction.hdel(key4, [field]);
+    baseTransaction.hmget(key4, [field]);
+    return [
+        "OK",
+        null,
+        ["bar", "baz"],
+        "OK",
+        ["bar", "baz"],
+        1,
+        1,
+        value,
+        1,
+        [null],
+    ];
 }

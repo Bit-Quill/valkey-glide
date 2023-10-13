@@ -8,18 +8,8 @@ from pybushka.async_commands.transaction import (
     Transaction,
 )
 from pybushka.constants import OK, TResult
-from pybushka.protobuf.redis_request_pb2 import RequestType
 from pybushka.redis_client import RedisClient, RedisClusterClient, TRedisClient
 from tests.test_async_client import get_random_string
-
-
-def transaction_test_helper(
-    transaction: BaseTransaction,
-    expected_request_type: RequestType,
-    expected_args: List[str],
-):
-    assert transaction.commands[-1][0] == expected_request_type
-    assert transaction.commands[-1][1] == expected_args
 
 
 def transaction_test(
@@ -28,6 +18,7 @@ def transaction_test(
     key = "{{{}}}:{}".format(keyslot, get_random_string(3))  # to get the same slot
     key2 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # to get the same slot
     key3 = "{{{}}}:{}".format(keyslot, get_random_string(3))
+    key4 = "{{{}}}:{}".format(keyslot, get_random_string(3))
     value = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     value2 = get_random_string(5)
 
@@ -53,6 +44,9 @@ def transaction_test(
     transaction.config_set({"timeout": "1000"})
     transaction.config_get(["timeout"])
 
+    transaction.hset(key4, {key: value, key2: value2})
+    transaction.hget(key4, key2)
+
     return [
         OK,
         value,
@@ -68,6 +62,8 @@ def transaction_test(
         "PONG",
         OK,
         ["timeout", "1000"],
+        2,
+        value2,
     ]
 
 
@@ -166,3 +162,10 @@ class TestTransaction:
         assert "# Memory" in result[0]
         assert result[1:6] == [OK, OK, value, OK, None]
         assert result[6:] == expected
+
+    def test_transaction_clear(self):
+        transaction = Transaction()
+        transaction.info()
+        transaction.select(1)
+        transaction.clear()
+        assert len(transaction.commands) == 0

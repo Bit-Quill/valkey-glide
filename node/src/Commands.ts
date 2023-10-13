@@ -230,6 +230,10 @@ export function createSelect(index: number): redis_request.Command {
     return createCommand(RequestType.Select, [index.toString()]);
 }
 
+export function createClientGetName(): redis_request.Command {
+    return createCommand(RequestType.ClientGetName, []);
+}
+
 export function createConfigRewrite(): redis_request.Command {
     return createCommand(RequestType.ConfigRewrite, []);
 }
@@ -266,6 +270,10 @@ export function createIncrByFloat(
     return createCommand(RequestType.IncrByFloat, [key, amount.toString()]);
 }
 
+export function createClientId(): redis_request.Command {
+    return createCommand(RequestType.ClientId, []);
+}
+
 export function createConfigGet(parameters: string[]): redis_request.Command {
     return createCommand(RequestType.ConfigGet, parameters);
 }
@@ -277,6 +285,45 @@ export function createConfigSet(
         RequestType.ConfigSet,
         Object.entries(parameters).flat()
     );
+}
+
+export function createHGet(key: string, field: string): redis_request.Command {
+    return createCommand(RequestType.HashGet, [key, field]);
+}
+
+export function createHSet(
+    key: string,
+    fieldValueMap: Record<string, string>
+): redis_request.Command {
+    return createCommand(
+        RequestType.HashSet,
+        [key].concat(Object.entries(fieldValueMap).flat())
+    );
+}
+
+export function createDecr(key: string): redis_request.Command {
+    return createCommand(RequestType.Decr, [key]);
+}
+
+export function createDecrBy(
+    key: string,
+    amount: number
+): redis_request.Command {
+    return createCommand(RequestType.DecrBy, [key, amount.toString()]);
+}
+
+export function createHDel(
+    key: string,
+    fields: string[]
+): redis_request.Command {
+    return createCommand(RequestType.HashDel, [key].concat(fields));
+}
+
+export function createHMGet(
+    key: string,
+    fields: string[]
+): redis_request.Command {
+    return createCommand(RequestType.HashMGet, [key].concat(fields));
 }
 
 export function createCustomCommand(commandName: string, args: string[]) {

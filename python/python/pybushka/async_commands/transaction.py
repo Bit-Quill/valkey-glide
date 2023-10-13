@@ -32,7 +32,7 @@ class BaseTransaction:
         finally:
             self.lock.release()
 
-    def dispose(self):
+    def clear(self):
         with self.lock:
             self.commands.clear()
 
@@ -268,6 +268,37 @@ class BaseTransaction:
               of the wrong type or contains a string that can not be represented as integer.
         """
         self.append_command(RequestType.DecrBy, [key, str(amount)])
+
+    def hset(self, key: str, field_value_map: Mapping[str, str]):
+        """Sets the specified fields to their respective values in the hash stored at `key`.
+        See https://redis.io/commands/hset/ for more details.
+
+        Args:
+            key (str): The key of the hash.
+            field_value_map (Mapping[str, str]): A field-value map consisting of fields and their corresponding values
+            to be set in the hash stored at the specified key.
+
+        Command response:
+            int: The number of fields that were added or modified in the hash.
+        """
+        field_value_list: List[str] = [key]
+        for pair in field_value_map.items():
+            field_value_list.extend(pair)
+        self.append_command(RequestType.HashSet, field_value_list)
+
+    def hget(self, key: str, field: str):
+        """Retrieves the value associated with field in the hash stored at `key`.
+        See https://redis.io/commands/hget/ for more details.
+
+        Args:
+            key (str): The key of the hash.
+            field (str): The field whose value should be retrieved.
+
+        Command response:
+            Optional[str]: The value associated with the specified field in the hash.
+            Returns None if the field or key does not exist.
+        """
+        self.append_command(RequestType.HashGet, [key, field])
 
 
 class Transaction(BaseTransaction):

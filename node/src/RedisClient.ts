@@ -2,6 +2,8 @@ import * as net from "net";
 import { BaseClient, ConnectionOptions, ReturnType } from "./BaseClient";
 import {
     InfoOptions,
+    createClientGetName,
+    createClientId,
     createConfigGet,
     createConfigResetStat,
     createConfigRewrite,
@@ -127,6 +129,16 @@ export class RedisClient extends BaseClient {
         return this.createWritePromise(createSelect(index));
     }
 
+    /** Get the name of the current connection.
+     *  See https://redis.io/commands/client-getname/ for more details.
+     *
+     * @returns the name of the client connection as a string if a name is set,
+     *       or null if no name is assigned.
+     */
+    public clientGetName(): Promise<string | null> {
+        return this.createWritePromise(createClientGetName());
+    }
+
     /** Rewrite the configuration file with the current configuration.
      * See https://redis.io/commands/config-rewrite/ for details.
      *
@@ -143,6 +155,15 @@ export class RedisClient extends BaseClient {
      */
     public configResetStat(): Promise<"OK"> {
         return this.createWritePromise(createConfigResetStat());
+    }
+
+    /** Returns the current connection id.
+     * See https://redis.io/commands/client-id/ for details.
+     *
+     * @returns the id of the client.
+     */
+    public clientId(): Promise<number> {
+        return this.createWritePromise(createClientId());
     }
 
     /** Reads the configuration parameters of a running Redis server.

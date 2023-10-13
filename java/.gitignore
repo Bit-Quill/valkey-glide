@@ -11,3 +11,6 @@ build
 
 # IDE files
 .idea
+
+# Ignore generated files (e.g. protobuf)
+generated

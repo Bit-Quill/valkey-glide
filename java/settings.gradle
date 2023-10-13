@@ -1,1 +1,6 @@
-rootProject.name = 'java'
+rootProject.name = 'javababushka'
+
+include 'client'
+include 'integTest'
+include 'benchmarks'
+include 'kotlin-sample'

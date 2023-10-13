@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+dependencies {
+    // Required for interop
+    implementation "net.java.dev.jna:jna:5.8.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20"
+
+    implementation files("../../kotlin/client/build/libs/kotlinbabushka-0.0.1.jar")
+}
+
+application {
+    mainClass = 'babushka.javababushka'
+}

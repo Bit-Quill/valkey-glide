@@ -7,8 +7,14 @@ import * as net from "net";
 import { Buffer, BufferWriter, Reader, Writer } from "protobufjs";
 import {
     SetOptions,
+    createDecr,
+    createDecrBy,
     createDel,
     createGet,
+    createHDel,
+    createHGet,
+    createHMGet,
+    createHSet,
     createIncr,
     createIncrBy,
     createIncrByFloat,
@@ -366,6 +372,79 @@ export class BaseClient {
      */
     public incrByFloat(key: string, amount: number): Promise<string> {
         return this.createWritePromise(createIncrByFloat(key, amount));
+    }
+
+    /** Retrieve the value associated with field in the hash stored at key.
+     * See https://redis.io/commands/hget/ for details.
+     *
+     * @param key - The key of the hash.
+     * @param field - The field in the hash stored at key to retrieve from the database.
+     * @returns the value associated with field, or null when field is not present in the hash or key does not exist.
+     */
+    public hget(key: string, field: string): Promise<string | null> {
+        return this.createWritePromise(createHGet(key, field));
+    }
+
+    /** Sets the specified fields to their respective values in the hash stored at key.
+     * See https://redis.io/commands/hset/ for details.
+     *
+     * @param key - The key of the hash.
+     * @param fieldValueMap - A field-value map consisting of fields and their corresponding values
+     *  to be set in the hash stored at the specified key.
+     * @returns The number of fields that were added.
+     */
+    public hset(
+        key: string,
+        fieldValueMap: Record<string, string>
+    ): Promise<number> {
+        return this.createWritePromise(createHSet(key, fieldValueMap));
+    }
+
+    /** Decrements the number stored at key by one. If the key does not exist, it is set to 0 before performing the operation.
+     * See https://redis.io/commands/decr/ for details.
+     *
+     * @param key - The key to decrement it's value.
+     * @returns the value of key after the decrement. An error is returned if the key contains a value
+     *  of the wrong type or contains a string that can not be represented as integer.
+     */
+    public decr(key: string): Promise<number> {
+        return this.createWritePromise(createDecr(key));
+    }
+
+    /** Decrements the number stored at key by decrement. If the key does not exist, it is set to 0 before performing the operation.
+     * See https://redis.io/commands/decrby/ for details.
+     *
+     * @param key - The key to decrement it's value.
+     * @param amount - The amount to decrement.
+     * @returns the value of key after the decrement. An error is returned if the key contains a value
+     *   of the wrong type or contains a string that can not be represented as integer.
+     */
+    public decrBy(key: string, amount: number): Promise<number> {
+        return this.createWritePromise(createDecrBy(key, amount));
+    }
+
+    /** Removes the specified fields from the hash stored at key.
+     * Specified fields that do not exist within this hash are ignored.
+     *
+     * @param key - The key of the hash.
+     * @param fields - The fields to remove from the hash stored at key.
+     * @returns the number of fields that were removed from the hash, not including specified but non existing fields.
+     * If key does not exist, it is treated as an empty hash and it returns 0.
+     */
+    public hdel(key: string, fields: string[]): Promise<number> {
+        return this.createWritePromise(createHDel(key, fields));
+    }
+
+    /** Returns the values associated with the specified fields in the hash stored at key.
+     *
+     * @param key - The key of the hash.
+     * @param fields - The fields in the hash stored at key to retrieve from the database.
+     * @returns a list of values associated with the given fields, in the same order as they are requested.
+     * For every field that does not exist in the hash, a null value is returned.
+     * If key does not exist, it is treated as an empty hash and it returns a list of null values.
+     */
+    public hmget(key: string, fields: string[]): Promise<(string | null)[]> {
+        return this.createWritePromise(createHMGet(key, fields));
     }
 
     private readonly MAP_READ_FROM_REPLICA_STRATEGY: Record<
