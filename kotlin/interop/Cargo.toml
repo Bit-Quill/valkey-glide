@@ -1,0 +1,45 @@
+[package]
+name = "kotlinbabushka"
+version = "0.1.0"
+edition = "2021"
+license = "BSD-3-Clause"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "kotlinbabushka"
+crate-type = ["lib", "staticlib", "cdylib"]
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
+
+[features]
+default = ["uniffi/cli"]
+
+
+[dependencies]
+# redis = { path = "../../submodules/redis-rs/redis", features = ["aio", "tokio-comp", "connection-manager", "tls", "tokio-rustls-comp"] }
+# tokio = { version = "^1", features = ["rt", "macros", "rt-multi-thread", "time"] }
+# logger_core = {path = "../../logger_core"}
+tracing-subscriber = "0.3.16"
+uniffi = "0.23.0"
+thiserror = "1.0.49"
+
+[build-dependencies]
+uniffi = { version = "0.23.0", features = ["build"] }
+
+[dev-dependencies]
+uniffi = { version = "0.23.0", features = ["bindgen-tests"] }
+assert_matches = "1.5.0"
+
+[profile.release]
+lto = true
+debug = true
+
+[profile.release-smaller]
+inherits = "release"
+opt-level = 'z'     # Optimize for size.
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Reduce number of codegen units to increase optimizations.
+panic = 'abort'     # Abort on panic
+strip = true        # Strip symbols from binary

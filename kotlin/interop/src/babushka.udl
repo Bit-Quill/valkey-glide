@@ -1,0 +1,18 @@
+
+[Error]
+enum BabushkaError {
+    "Oops",
+};
+
+namespace kotlibbabushka {
+
+    [Throws=BabushkaError]
+    string static_function_which_throws();
+
+    string static_function();
+};
+
+interface BabushkaClient {
+    constructor();
+    string class_function();
+};

@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Required for interop
+    implementation("net.java.dev.jna:jna:5.8.0")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20"
+    //implementation files('../kotlin/build/libs')
+    //implementation files("C:\\GitHub\\bdk-ffi\\bdk-jvm\\lib\\build\\libs\\lib.jar")
+    //implementation files("C:\\GitHub\\babushka\\kotlin\\client\\build\\libs\\kotlinbabushka-0.0.1.jar")
+    implementation files("../kotlin/client/build/libs/kotlinbabushka-0.0.1.jar")
+}
