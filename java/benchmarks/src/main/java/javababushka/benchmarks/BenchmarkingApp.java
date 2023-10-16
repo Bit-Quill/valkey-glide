@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javababushka.benchmarks.jedis.JedisClient;
 import javababushka.benchmarks.jedis.JedisPseudoAsyncClient;
+import javababushka.benchmarks.kotlin.KotlinClient;
 import javababushka.benchmarks.lettuce.LettuceAsyncClient;
 import javababushka.benchmarks.lettuce.LettuceClient;
 import org.apache.commons.cli.CommandLine;
@@ -52,6 +53,8 @@ public class BenchmarkingApp {
         case LETTUCE_ASYNC:
           testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
           break;
+        case KOTLIN:
+          testClientSetGet(KotlinClient::new, runConfiguration, false);
         case BABUSHKA:
           System.out.println("Babushka not yet configured");
           break;
@@ -188,6 +191,7 @@ public class BenchmarkingApp {
     LETTUCE("Lettuce"),
     LETTUCE_ASYNC("Lettuce async"),
     BABUSHKA("Babushka"),
+    KOTLIN("Kotlin"),
     ALL("All"),
     ALL_SYNC("All sync"),
     ALL_ASYNC("All async");

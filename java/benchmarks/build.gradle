@@ -18,6 +18,11 @@ dependencies {
     implementation 'io.lettuce:lettuce-core:6.2.6.RELEASE'
     implementation 'commons-cli:commons-cli:1.5.0'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+
+    // Required for interop
+    implementation "net.java.dev.jna:jna:5.8.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20"
+    implementation files("../../kotlin/client/build/libs/kotlinbabushka-0.0.1.jar")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
