@@ -4,6 +4,31 @@ enum BabushkaError {
     "Oops",
 };
 
+[Error]
+enum BabushkaRedisError {
+    "ResponseError",
+    "AuthenticationFailed",
+    "TypeError",
+    "ExecAbortError",
+    "BusyLoadingError",
+    "NoScriptError",
+    "InvalidClientConfig",
+    "Moved",
+    "Ask",
+    "TryAgain",
+    "ClusterDown",
+    "CrossSlot",
+    "MasterDown",
+    "IoError",
+    "ClientError",
+    "ExtensionError",
+    "ReadOnly",
+    "MasterNameNotFoundBySentinel",
+    "NoValidReplicasFoundBySentinel",
+    "EmptySentinelList",
+    "NotBusy",
+};
+
 namespace kotlibbabushka {
 
     [Throws=BabushkaError]
@@ -12,7 +37,30 @@ namespace kotlibbabushka {
     string static_function();
 };
 
+interface BabushkaClientData {
+
+};
+
 interface BabushkaClient {
     constructor();
     string class_function();
+
+
+    [Throws=BabushkaRedisError]
+    BabushkaClientData connect(string address);
+
+    [Throws=BabushkaRedisError]
+    void set(BabushkaClientData data, string key, string value);
+
+    [Throws=BabushkaRedisError]
+    void set2(BabushkaClientData data, string key, string? value);
+
+    [Throws=BabushkaRedisError]
+    string get(BabushkaClientData data, string key);
+
+    [Throws=BabushkaRedisError]
+    string get2(BabushkaClientData data, string key);
+
+    [Throws=BabushkaRedisError]
+    string? get3(BabushkaClientData data, string key);
 };

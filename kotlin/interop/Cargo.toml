@@ -18,9 +18,9 @@ default = ["uniffi/cli"]
 
 
 [dependencies]
-# redis = { path = "../../submodules/redis-rs/redis", features = ["aio", "tokio-comp", "connection-manager", "tls", "tokio-rustls-comp"] }
-# tokio = { version = "^1", features = ["rt", "macros", "rt-multi-thread", "time"] }
-# logger_core = {path = "../../logger_core"}
+redis = { path = "../../submodules/redis-rs/redis", features = ["aio", "tokio-comp", "connection-manager", "tls", "tokio-rustls-comp"] }
+tokio = { version = "^1", features = ["rt", "macros", "rt-multi-thread", "time"] }
+logger_core = {path = "../../logger_core"}
 tracing-subscriber = "0.3.16"
 uniffi = "0.23.0"
 thiserror = "1.0.49"
