@@ -44,4 +44,3 @@ tasks.register('buildAll') {
     dependsOn 'protobuf', 'buildRust'
     finalizedBy 'build'
 }
-
