@@ -232,7 +232,7 @@ public class BenchmarkingApp {
       clients =
           new ClientName[] {
             // ClientName.BABUSHKA,
-            ClientName.JEDIS, ClientName.JEDIS_ASYNC, ClientName.LETTUCE, ClientName.LETTUCE_ASYNC
+            ClientName.JEDIS, ClientName.KOTLIN, ClientName.LETTUCE
           };
       host = "localhost";
       port = 6379;
