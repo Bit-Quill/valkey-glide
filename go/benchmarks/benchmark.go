@@ -240,7 +240,7 @@ func AddResultsJsonFormat(benchmarkConfig *BenchmarkConfig, results map[string]l
 	jsonResult["is_cluster"] = benchmarkConfig.IsCluster
 	jsonResult["num_of_tasks"] = benchmarkConfig.TasksCount
 	jsonResult["data_size"] = benchmarkConfig.DataSize
-	jsonResult["clientCount"] = benchmarkConfig.ClientCount
+	jsonResult["client_count"] = benchmarkConfig.ClientCount
 	jsonResult["tps"] = tps
 
 	for key, value := range results {
