@@ -35,7 +35,7 @@ public class JsonWriter {
       var data = new Measurements();
       data.data_size = dataSize;
       data.client = client;
-      data.clientCount = clientCount;
+      data.client_count = clientCount;
       data.num_of_tasks = numOfTasks;
       data.tps = tps;
       // TODO:  is_cluster
@@ -78,7 +78,7 @@ public class JsonWriter {
   @Getter
   public static class Measurements {
     private String client;
-    private int clientCount;
+    private int client_count;
     private int data_size;
     private double get_existing_average_latency;
     private double get_existing_p50_latency;
