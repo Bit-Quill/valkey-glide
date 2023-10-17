@@ -23,7 +23,7 @@ public class Benchmarking {
   static final int SIZE_GET_KEYSPACE = 3750000;
   static final int SIZE_SET_KEYSPACE = 3000000;
   static final int ASYNC_OPERATION_TIMEOUT_SEC = 1;
-  // measurements are done in nanosec, but it should be converted to seconts later
+  // measurements are done in nano-seconds, but it should be converted to seconds later
   static final double SECONDS_IN_NANO = 1e-9;
 
   private static ChosenAction randomAction() {
