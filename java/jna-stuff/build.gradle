@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'org.example'
+version = '1.13.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Required for interop
+    implementation "net.java.dev.jna:jna:5.8.0"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+application {
+    mainClass = 'Loader'
+}
