@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javababushka.benchmarks.clients.JedisClient;
 import javababushka.benchmarks.clients.JedisPseudoAsyncClient;
+import javababushka.benchmarks.clients.JniSyncClient;
 import javababushka.benchmarks.clients.LettuceAsyncClient;
 import javababushka.benchmarks.clients.LettuceClient;
 import org.apache.commons.cli.CommandLine;
@@ -61,6 +62,9 @@ public class BenchmarkingApp {
           break;
         case LETTUCE_ASYNC:
           testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
+          break;
+        case BABUSHKA_JNI:
+          testClientSetGet(JniSyncClient::new, runConfiguration, true);
           break;
         case BABUSHKA_ASYNC:
           System.out.println("Babushka async not yet configured");
@@ -212,6 +216,7 @@ public class BenchmarkingApp {
     JEDIS_ASYNC("Jedis async"),
     LETTUCE("Lettuce"),
     LETTUCE_ASYNC("Lettuce async"),
+    BABUSHKA_JNI("JNI sync"),
     BABUSHKA_ASYNC("Babushka async"),
     ALL("All"),
     ALL_SYNC("All sync"),

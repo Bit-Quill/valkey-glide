@@ -18,6 +18,9 @@ dependencies {
     implementation 'io.lettuce:lettuce-core:6.2.6.RELEASE'
     implementation 'commons-cli:commons-cli:1.5.0'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+
+    // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
+    implementation group: 'com.google.protobuf', name: 'protobuf-java', version: '3.24.3'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -30,6 +33,7 @@ java {
 application {
     // Define the main class for the application.
     mainClass = 'javababushka.benchmarks.BenchmarkingApp'
+    applicationDefaultJvmArgs += "-Djava.library.path=${projectDir}/../target/debug"
 }
 
 tasks.withType(Test) { 

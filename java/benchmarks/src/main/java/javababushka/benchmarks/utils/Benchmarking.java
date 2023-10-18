@@ -109,7 +109,9 @@ public class Benchmarking {
               percentile(latencies, 50),
               percentile(latencies, 90),
               percentile(latencies, 99),
-              stdDeviation(latencies, avgLatency)));
+              stdDeviation(latencies, avgLatency),
+              latencies.size()
+          ));
     }
 
     return results;
@@ -161,6 +163,8 @@ public class Benchmarking {
           action + " p99 latency in ms: " + results.p99Latency / LATENCY_NORMALIZATION);
       System.out.println(
           action + " std dev in ms: " + results.stdDeviation / LATENCY_NORMALIZATION);
+      System.out.println(
+          action + " total hits: " + results.totalHits);
     }
   }
 
