@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -46,15 +48,15 @@ public class Benchmarking {
 
   public static String generateKeyGet() {
     int range = SIZE_GET_KEYSPACE - SIZE_SET_KEYSPACE;
-    return Math.floor(Math.random() * range + SIZE_SET_KEYSPACE + 1) + "";
+    return Integer.toString((int) Math.floor(Math.random() * range + SIZE_SET_KEYSPACE + 1));
   }
 
   public static String generateKeySet() {
-    return (Math.floor(Math.random() * SIZE_SET_KEYSPACE) + 1) + "";
+    return Integer.toString((int) (Math.floor(Math.random() * SIZE_SET_KEYSPACE) + 1));
   }
 
   public interface Operation {
-    void go() throws Exception;
+    void go() throws InterruptedException, ExecutionException, TimeoutException;
   }
 
   private static Pair<ChosenAction, Long> getLatency(Map<ChosenAction, Operation> actions) {
@@ -62,8 +64,9 @@ public class Benchmarking {
     long before = System.nanoTime();
     try {
       actions.get(action).go();
-    } catch (Exception e) {
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
       // timed out - exception from Future::get
+      return null;
     }
     long after = System.nanoTime();
     return Pair.of(action, after - before);
@@ -88,7 +91,7 @@ public class Benchmarking {
     return Math.sqrt(stdDeviation / latencies.size());
   }
 
-  // This has the side-effect of sorting each latencies ArrayList
+  // This has the side effect of sorting each latency ArrayList
   public static Map<ChosenAction, LatencyResults> calculateResults(
       Map<ChosenAction, ArrayList<Long>> actionLatencies) {
     Map<ChosenAction, LatencyResults> results = new HashMap<ChosenAction, LatencyResults>();
@@ -97,21 +100,34 @@ public class Benchmarking {
       ChosenAction action = entry.getKey();
       ArrayList<Long> latencies = entry.getValue();
 
-      Double avgLatency =
-          latencies.stream().collect(Collectors.summingLong(Long::longValue))
-              / Double.valueOf(latencies.size());
+      if (latencies.size() == 0) {
+        results.put(
+            action,
+            new LatencyResults(
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ));
+      } else {
+        Double avgLatency = latencies.size() <= 0 ? 0 :
+            latencies.stream().collect(Collectors.summingLong(Long::longValue))
+                / Double.valueOf(latencies.size());
 
-      Collections.sort(latencies);
-      results.put(
-          action,
-          new LatencyResults(
-              avgLatency,
-              percentile(latencies, 50),
-              percentile(latencies, 90),
-              percentile(latencies, 99),
-              stdDeviation(latencies, avgLatency),
-              latencies.size()
-          ));
+        Collections.sort(latencies);
+        results.put(
+            action,
+            new LatencyResults(
+                avgLatency,
+                percentile(latencies, 50),
+                percentile(latencies, 90),
+                percentile(latencies, 99),
+                stdDeviation(latencies, avgLatency),
+                latencies.size()
+            ));
+      }
     }
 
     return results;
@@ -215,7 +231,9 @@ public class Benchmarking {
                     // operate and calculate tik-tok
                     Pair<ChosenAction, Long> result =
                         measurePerformance(clients.get(clientIndex), dataSize, async);
-                    actionResults.get(result.getLeft()).add(result.getRight());
+                    if (result != null) {
+                      actionResults.get(result.getLeft()).add(result.getRight());
+                    }
 
                     iterationIncrement = iterationCounter.getAndIncrement();
                   }

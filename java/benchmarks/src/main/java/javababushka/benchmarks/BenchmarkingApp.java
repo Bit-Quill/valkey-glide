@@ -64,7 +64,7 @@ public class BenchmarkingApp {
           testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
           break;
         case BABUSHKA_JNI:
-          testClientSetGet(JniSyncClient::new, runConfiguration, true);
+          testClientSetGet(JniSyncClient::new, runConfiguration, false);
           break;
         case BABUSHKA_ASYNC:
           System.out.println("Babushka async not yet configured");

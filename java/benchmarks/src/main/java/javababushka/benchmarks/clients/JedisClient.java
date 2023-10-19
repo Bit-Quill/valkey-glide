@@ -36,6 +36,10 @@ public class JedisClient implements SyncClient {
     jedisResource =
         new Jedis(connectionSettings.host, connectionSettings.port, connectionSettings.useSsl);
     jedisResource.connect();
+    if (!jedisResource.isConnected()) {
+      throw new RuntimeException("failed to connect to jedis");
+    }
+    String info_result = info();
   }
 
   public String info() {

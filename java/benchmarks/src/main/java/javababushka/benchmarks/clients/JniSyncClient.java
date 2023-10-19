@@ -220,22 +220,15 @@ public class JniSyncClient implements SyncClient {
     }
     buffer.put(request.toByteArray());
     buffer.flip();
-    while (isChannelWriting) {
-      try {
-        Thread.sleep(250);
-      } catch (InterruptedException interruptedException) {
-        // ignore...
+    try {
+      synchronized (buffer) {
+        while (buffer.hasRemaining()) {
+          channel.write(buffer);
+        }
       }
+    } catch (IOException ioException) {
+      // ignore...
     }
-    isChannelWriting = true;
-    while (buffer.hasRemaining()) {
-      try {
-        channel.write(buffer);
-      } catch (IOException ioException) {
-        // ignore...
-      }
-    }
-    isChannelWriting = false;
 
     ResponseOuterClass.Response response = null;
     int timeout = 0;
@@ -266,22 +259,16 @@ public class JniSyncClient implements SyncClient {
     }
     buffer.put(request.toByteArray());
     buffer.flip();
-    while (isChannelWriting) {
-      try {
-        Thread.sleep(250);
-      } catch (InterruptedException interruptedException) {
-        // ignore...
+    try {
+      // TODO: check that this is the most performant mutex solution
+      synchronized (buffer) {
+        while (buffer.hasRemaining()) {
+          channel.write(buffer);
+        }
       }
+    } catch (IOException ioException) {
+      // ignore...
     }
-    isChannelWriting = true;
-    while (buffer.hasRemaining()) {
-      try {
-        channel.write(buffer);
-      } catch (IOException ioException) {
-        // ignore...
-      }
-    }
-    isChannelWriting = false;
 
     int timeout = 0;
     byte[] responseBuffer = null;
