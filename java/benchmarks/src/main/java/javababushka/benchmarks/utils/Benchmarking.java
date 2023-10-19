@@ -190,13 +190,13 @@ public class Benchmarking {
                 });
 
         var calculatedResults = calculateResults(actionResults);
-        if (config.resultsFile != null) {
+        if (config.resultsFile.isPresent()) {
           JsonWriter.WriteJson(
               calculatedResults,
-              config.resultsFile,
+              config.resultsFile.get(),
               config.dataSize,
               clientCreator.get().getName(),
-              clientNum,
+              clientCount,
               concurrentNum,
               iterationCounter.get() * 1e9 / (System.nanoTime() - started));
         }

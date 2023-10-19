@@ -4,6 +4,7 @@ import static javababushka.benchmarks.utils.Benchmarking.testClientSetGet;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javababushka.benchmarks.jedis.JedisClient;
@@ -86,7 +87,7 @@ public class BenchmarkingApp {
     }
 
     if (line.hasOption("resultsFile")) {
-      runConfiguration.resultsFile = line.getOptionValue("resultsFile");
+      runConfiguration.resultsFile = Optional.ofNullable(line.getOptionValue("resultsFile"));
     }
 
     if (line.hasOption("dataSize")) {
@@ -195,7 +196,7 @@ public class BenchmarkingApp {
   public static class RunConfiguration {
     public String configuration;
     public int dataSize;
-    public String resultsFile;
+    public Optional<String> resultsFile;
     public List<Integer> concurrentTasks;
     public ClientName[] clients;
     public String host;
@@ -206,7 +207,7 @@ public class BenchmarkingApp {
 
     public RunConfiguration() {
       configuration = "Release";
-      resultsFile = null;
+      resultsFile = Optional.empty();
       dataSize = 20;
       concurrentTasks = List.of(10, 100);
       clients =
