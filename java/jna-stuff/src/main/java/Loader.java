@@ -10,15 +10,33 @@ import java.util.List;
 
 public class Loader {
   // = enum
-  public static class ResultType {
-    public static final int Str = 0;
-    public static final int Int = 1;
-    public static final int Nil = 2;
-    public static final int Data = 3;
-    public static final int Bulk = 4;
-    public static final int Ok = 5;
-    public static final int Err = 6;
-    public static final int Undef = -1;
+  public static enum ResultType {
+    Str(0),
+    Int(1),
+    Nil(2),
+    Data(3),
+    Bulk(4),
+    Ok(5),
+    Err(6),
+    Undef(-1);
+
+    private int id;
+    ResultType(int id) {
+      this.id = id;
+    }
+
+    public static ResultType of(int val) {
+      switch (val) {
+        case 0: return ResultType.Str;
+        case 1: return ResultType.Int;
+        case 2: return ResultType.Nil;
+        case 3: return ResultType.Data;
+        case 4: return ResultType.Bulk;
+        case 5: return ResultType.Ok;
+        case 6: return ResultType.Err;
+        default: return ResultType.Undef;
+      }
+    }
   };
 
   public interface RustLib extends Library {
@@ -41,51 +59,59 @@ public class Loader {
       public String result;
     }
 
-    @Structure.FieldOrder({"str", "num"/*, "data", "bulk"*/})
-    public static class BabushkaValue extends Structure {
-      public BabushkaValue() {
-        str = null;
-        num = 0;
-      }
-      //public static class ByReference extends BabushkaValue implements Structure.ByReference {
-        //public ByReference() { }
-      //}
-      public static class ByValue extends BabushkaValue implements Structure.ByValue {
-        //public ByValue() { }
-      }
-      public String str;
-      public long num;
-//      List<Byte> data;
-//      List<BabushkaValue> bulk;
-    };
-
-    @Structure.FieldOrder({"error", "value_type", "value"})
+    @Structure.FieldOrder({"error", "value_type", "string", "num"})
     public static class BabushkaResult extends Structure {
       public BabushkaResult() {
         error = null;
         value_type = 0;
-        value = null;
+        string = null;
+        num = 0;
       }
       public static class ByValue extends BabushkaResult implements Structure.ByValue { }
       public String error = null;
-      public byte value_type = 0;
+      public int value_type = 0;
       //public BabushkaValue.ByReference value;
-      public BabushkaValue.ByValue value = null;
+      public String string = null;
+      public long num = 0;
     };
+
+    public static class BabushkaClient extends Structure {
+      public static class ByValue extends BabushkaClient implements Structure.ByValue { }
+      public static class ByReference extends BabushkaClient implements Structure.ByReference { }
+    }
+
+    public long init_client0(int data);
+    public BabushkaResult.ByValue connect0(long client, String address);
+    public BabushkaResult.ByValue test0(long client, String address);
+
+
+    public BabushkaResult.ByValue set0(long client, String key, String value);
+
+    public BabushkaResult.ByValue get0(long client, String key);
+
+
   }
 
   public static void main(String [] args) {
-    var targetDir = Paths.get("jna-stuff", "build", "resources", "main", "win32-x86-64").toAbsolutePath();
+    var is_win = System.getProperty("os.name").contains("Windows");
+    var targetDir = Paths.get("jna-stuff", "build", "resources", "main", is_win ? "win32-x86-64" : "linux-x86-64").toAbsolutePath();
 
     //System.setProperty("jna.debug_load", "true");
     System.setProperty("jna.library.path", targetDir.toString());
 
     var created = targetDir.toFile().mkdirs();
     try {
-      Files.copy(
-          Paths.get(System.getProperty("user.dir"), "target", "debug", "javababushka.dll"),
-          Paths.get(targetDir.toString(), "javababushka.dll"),
-          StandardCopyOption.REPLACE_EXISTING);
+      if (is_win) {
+        Files.copy(
+            Paths.get(System.getProperty("user.dir"), "target", "debug", "javababushka.dll"),
+            Paths.get(targetDir.toString(), "javababushka.dll"),
+            StandardCopyOption.REPLACE_EXISTING);
+      } else {
+        Files.copy(
+            Paths.get(System.getProperty("user.dir"), "..", "target", "debug", "libjavababushka.so"),
+            Paths.get(targetDir.toString(), "libjavababushka.so"),
+            StandardCopyOption.REPLACE_EXISTING);
+      }
     } catch (IOException e) {
       System.out.printf("Failed to copy lib: %s%n", e.getMessage());
       e.printStackTrace();
@@ -107,5 +133,48 @@ public class Loader {
     var res2_3 = lib.static_function2_3();
     var res2_4 = lib.static_function2_4();
     int a = 5;
+
+    var bab = lib.init_client0(42);
+    var t1 = lib.test0(bab, "pewpew");
+    var t2 = lib.test0(bab, "ololo");
+    var t3 = lib.test0(bab, "ikiki");
+
+
+
+
+
+
+
+
+
+
+    System.out.println("Before connect");
+    var con = lib.connect0(bab, "redis://127.0.0.1:6379");
+    System.out.println("After connect");
+    if (con.value_type == ResultType.Ok.id) {
+      System.out.println("Connected");
+    } else {
+      System.out.printf("Conn failed: Res = %s, str = %s, err = %s%n", ResultType.of(con.value_type), con.string, con.error);
+    }
+
+    System.out.println("=======\nBefore set");
+    var set = lib.set0(bab, "kkkey", "ololo");
+    System.out.println("After set");
+    if (set.value_type == ResultType.Ok.id) {
+      System.out.println("Set ok");
+    } else {
+      System.out.printf("Set failed: Res = %s, str = %s, err = %s%n", ResultType.of(set.value_type), set.string, set.error);
+    }
+
+    System.out.println("=======\nBefore get");
+    var get = lib.get0(bab, "key");
+    System.out.println("After get");
+    if (get.value_type == ResultType.Str.id) {
+      System.out.printf("Get ok: %s%n", get.string);
+    } else {
+      System.out.printf("Set failed: Res = %s, str = %s, err = %s%n", ResultType.of(get.value_type), get.string, get.error);
+    }
+
+    int b = 5;
   }
 }

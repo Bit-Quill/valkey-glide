@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javababushka.benchmarks.jedis.JedisClient;
 import javababushka.benchmarks.jedis.JedisPseudoAsyncClient;
+import javababushka.benchmarks.jna.Babushka;
 import javababushka.benchmarks.lettuce.LettuceAsyncClient;
 import javababushka.benchmarks.lettuce.LettuceClient;
 import org.apache.commons.cli.CommandLine;
@@ -53,7 +54,7 @@ public class BenchmarkingApp {
           testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
           break;
         case BABUSHKA:
-          System.out.println("Babushka not yet configured");
+          testClientSetGet(Babushka::new, runConfiguration, false);
           break;
       }
     }
@@ -150,7 +151,7 @@ public class BenchmarkingApp {
                       case ALL_SYNC:
                         return Stream.of(
                             ClientName.JEDIS,
-                            // ClientName.BABUSHKA,
+                            ClientName.BABUSHKA,
                             ClientName.LETTUCE);
                       default:
                         return Stream.of(e);
@@ -227,8 +228,8 @@ public class BenchmarkingApp {
       concurrentTasks = List.of(10, 100);
       clients =
           new ClientName[] {
-            // ClientName.BABUSHKA,
-            ClientName.JEDIS, ClientName.JEDIS_ASYNC, ClientName.LETTUCE, ClientName.LETTUCE_ASYNC
+            ClientName.BABUSHKA,
+            ClientName.JEDIS, ClientName.LETTUCE,
           };
       host = "localhost";
       port = 6379;
