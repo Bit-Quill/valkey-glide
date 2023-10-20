@@ -1,5 +1,7 @@
 package javababushka.benchmarks.utils;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -101,20 +105,13 @@ public class Benchmarking {
       ArrayList<Long> latencies = entry.getValue();
 
       if (latencies.size() == 0) {
-        results.put(
-            action,
-            new LatencyResults(
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-            ));
+        results.put(action, new LatencyResults(0, 0, 0, 0, 0, 0));
       } else {
-        Double avgLatency = latencies.size() <= 0 ? 0 :
-            latencies.stream().collect(Collectors.summingLong(Long::longValue))
-                / Double.valueOf(latencies.size());
+        Double avgLatency =
+            latencies.size() <= 0
+                ? 0
+                : latencies.stream().collect(Collectors.summingLong(Long::longValue))
+                    / Double.valueOf(latencies.size());
 
         Collections.sort(latencies);
         results.put(
@@ -125,8 +122,7 @@ public class Benchmarking {
                 percentile(latencies, 90),
                 percentile(latencies, 99),
                 stdDeviation(latencies, avgLatency),
-                latencies.size()
-            ));
+                latencies.size()));
       }
     }
 
@@ -179,8 +175,7 @@ public class Benchmarking {
           action + " p99 latency in ms: " + results.p99Latency / LATENCY_NORMALIZATION);
       System.out.println(
           action + " std dev in ms: " + results.stdDeviation / LATENCY_NORMALIZATION);
-      System.out.println(
-          action + " total hits: " + results.totalHits);
+      System.out.println(action + " total hits: " + results.totalHits);
     }
   }
 
@@ -225,16 +220,28 @@ public class Benchmarking {
                   while (iterationIncrement < iterations) {
                     if (config.debugLogging) {
                       System.out.printf(
-                          "> iteration = %d/%d, client# = %d/%d%n",
-                          iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
+                          "> task = %d, iteration = %d/%d, client# = %d/%d%n",
+                          taskNumDebugging,
+                          iterationIncrement + 1,
+                          iterations,
+                          clientIndex + 1,
+                          clientCount);
                     }
                     // operate and calculate tik-tok
                     Pair<ChosenAction, Long> result =
                         measurePerformance(clients.get(clientIndex), dataSize, async);
+                    if (config.debugLogging) {
+                      System.out.printf(
+                          "> task = %d, iteration = %d/%d, client# = %d/%d - DONE%n",
+                          taskNumDebugging,
+                          iterationIncrement + 1,
+                          iterations,
+                          clientIndex + 1,
+                          clientCount);
+                    }
                     if (result != null) {
                       actionResults.get(result.getLeft()).add(result.getRight());
                     }
-
                     iterationIncrement = iterationCounter.getAndIncrement();
                   }
                 });
@@ -246,16 +253,21 @@ public class Benchmarking {
                 concurrentNum, clientCount, tasks.size());
           }
           long before = System.nanoTime();
+          ExecutorService threadPool = Executors.newFixedThreadPool(concurrentNum);
 
-          // create threads and add them to the asyncpool.
+          // create threads and add them to the async pool.
           // This will start execution of all the concurrent tasks.
           List<CompletableFuture> asyncTasks =
-              tasks.stream().map(CompletableFuture::runAsync).collect(Collectors.toList());
-          try {
-            // wait 1 second before waiting for threads to complete
-            Thread.sleep(1000);
-          } catch (InterruptedException interruptedException) {
-            interruptedException.printStackTrace();
+              tasks.stream().map((runnable) -> runAsync(runnable, threadPool)).collect(Collectors.toList());
+          // close pool and await for tasks to complete
+          threadPool.shutdown();
+          while (!threadPool.isTerminated()) {
+            try {
+              // wait 1 second before waiting for threads to complete
+              Thread.sleep(100);
+            } catch (InterruptedException interruptedException) {
+              interruptedException.printStackTrace();
+            }
           }
           // wait for all futures to complete
           asyncTasks.forEach(

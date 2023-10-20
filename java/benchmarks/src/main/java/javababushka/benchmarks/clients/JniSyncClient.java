@@ -18,12 +18,11 @@ import response.ResponseOuterClass;
 public class JniSyncClient implements SyncClient {
 
   private static int MAX_TIMEOUT = 1000;
+  private static int TIMEOUT_INTERVAL = 100;
 
   private RedisClient client;
 
   private SocketChannel channel;
-
-  private boolean isChannelWriting = false;
 
   @Override
   public void connectToRedis() {
@@ -40,11 +39,11 @@ public class JniSyncClient implements SyncClient {
     RedisClient.startSocketListenerExternal(client);
 
     int timeout = 0;
-    int maxTimeout = 1000;
+    int maxTimeout = MAX_TIMEOUT;
     while (client.socketPath == null && timeout < maxTimeout) {
-      timeout++;
+      timeout += TIMEOUT_INTERVAL;
       try {
-        Thread.sleep(250);
+        Thread.sleep(TIMEOUT_INTERVAL);
       } catch (InterruptedException exception) {
         // ignored
       }
@@ -98,7 +97,8 @@ public class JniSyncClient implements SyncClient {
             .setDatabaseId(0)
             .build();
 
-    makeConnection(request);
+    makeRedisRequest(request.toByteArray());
+    receiveRedisResponse();
   }
 
   @Override
@@ -119,8 +119,8 @@ public class JniSyncClient implements SyncClient {
                     .setSimpleRoutes(RedisRequestOuterClass.SimpleRoutes.AllNodes))
             .build();
 
-    ResponseOuterClass.Response response = makeRedisRequest(request);
-    // nothing to do with the response
+    makeRedisRequest(request.toByteArray());
+    receiveRedisResponse();
   }
 
   @Override
@@ -139,7 +139,8 @@ public class JniSyncClient implements SyncClient {
                     .setSimpleRoutes(RedisRequestOuterClass.SimpleRoutes.AllNodes))
             .build();
 
-    ResponseOuterClass.Response response = makeRedisRequest(getStringRequest);
+    makeRedisRequest(getStringRequest.toByteArray());
+    ResponseOuterClass.Response response = receiveRedisResponse();
     return response.toString();
   }
 
@@ -195,6 +196,63 @@ public class JniSyncClient implements SyncClient {
     return output.toArray(arr);
   }
 
+  private void makeRedisRequest(
+      byte[] request) {
+    Byte[] varint = varintBytes(request.length);
+
+    //    System.out.println("Request: \n" + request.toString());
+    ByteBuffer buffer = ByteBuffer.allocate(1024);
+    buffer.clear();
+    for (Byte b : varint) {
+      buffer.put(b);
+    }
+    buffer.put(request);
+    buffer.flip();
+    try {
+      // TODO: check that this is the most performant mutex solution
+      synchronized (channel) {
+        while (buffer.hasRemaining()) {
+          channel.write(buffer);
+        }
+      }
+    } catch (IOException ioException) {
+      // ignore...
+    }
+  }
+
+  private ResponseOuterClass.Response receiveRedisResponse() {
+    ByteBuffer readBuffer = ByteBuffer.allocate(1024);
+
+    int timeout = 0;
+    int bytesRead = 0;
+    try {
+      synchronized (channel) {
+        bytesRead = channel.read(readBuffer);
+        while (bytesRead <= 0) {
+          timeout += TIMEOUT_INTERVAL;
+          if (timeout > MAX_TIMEOUT) {
+            throw new RuntimeException("Max timeout reached");
+          }
+
+          bytesRead = channel.read(readBuffer);
+          Thread.sleep(TIMEOUT_INTERVAL);
+        }
+      }
+    } catch (IOException | InterruptedException exception) {
+      // ignore...
+    }
+    byte[] bytes = new byte[bytesRead];
+    readBuffer.flip();
+    readBuffer.get(bytes);
+    ResponseOuterClass.Response response = null;
+    try {
+      response = decodeMessage(bytes);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return response;
+  }
+
   private static byte[] readSocketMessage(SocketChannel channel) throws IOException {
     ByteBuffer buffer = ByteBuffer.allocate(1024);
     int bytesRead = channel.read(buffer);
@@ -206,45 +264,6 @@ public class JniSyncClient implements SyncClient {
     buffer.flip();
     buffer.get(bytes);
     return bytes;
-  }
-
-  private ResponseOuterClass.Response makeConnection(
-      connection_request.ConnectionRequestOuterClass.ConnectionRequest request) {
-    Byte[] varint = varintBytes(request.toByteArray().length);
-
-    //    System.out.println("Request: \n" + request.toString());
-    ByteBuffer buffer = ByteBuffer.allocate(1024);
-    buffer.clear();
-    for (Byte b : varint) {
-      buffer.put(b);
-    }
-    buffer.put(request.toByteArray());
-    buffer.flip();
-    try {
-      synchronized (buffer) {
-        while (buffer.hasRemaining()) {
-          channel.write(buffer);
-        }
-      }
-    } catch (IOException ioException) {
-      // ignore...
-    }
-
-    ResponseOuterClass.Response response = null;
-    int timeout = 0;
-    try {
-      byte[] responseBuffer = readSocketMessage(channel);
-      while (responseBuffer == null && timeout < MAX_TIMEOUT) {
-        Thread.sleep(250);
-        timeout++;
-        responseBuffer = readSocketMessage(channel);
-      }
-
-      response = decodeMessage(responseBuffer);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return response;
   }
 
   private ResponseOuterClass.Response makeRedisRequest(

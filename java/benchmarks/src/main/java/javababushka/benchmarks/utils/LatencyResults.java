@@ -11,7 +11,12 @@ public class LatencyResults {
   public final int totalHits;
 
   public LatencyResults(
-      double avgLatency, long p50Latency, long p90Latency, long p99Latency, double stdDeviation, int totalHits) {
+      double avgLatency,
+      long p50Latency,
+      long p90Latency,
+      long p99Latency,
+      double stdDeviation,
+      int totalHits) {
     this.avgLatency = avgLatency;
     this.p50Latency = p50Latency;
     this.p90Latency = p90Latency;
