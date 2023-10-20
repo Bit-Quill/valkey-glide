@@ -9,11 +9,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import lombok.Builder;
 import lombok.Getter;
 
 public class JsonWriter {
 
-  public static void WriteJson(
+  public static void Write(
       Map<ChosenAction, LatencyResults> calculatedResults,
       String resultsFile,
       int dataSize,
@@ -32,37 +33,36 @@ public class JsonWriter {
         var json = new String(Files.readAllBytes(path));
         recordings = gson.fromJson(json, collectionType);
       }
-      var data = new Measurements();
-      data.data_size = dataSize;
-      data.client = client;
-      data.client_count = clientCount;
-      data.num_of_tasks = numOfTasks;
-      data.tps = tps;
-      // TODO:  is_cluster
-
-      data.get_existing_average_latency =
-          calculatedResults.get(ChosenAction.GET_EXISTING).avgLatency;
-      data.get_existing_p50_latency = calculatedResults.get(ChosenAction.GET_EXISTING).p50Latency;
-      data.get_existing_p90_latency = calculatedResults.get(ChosenAction.GET_EXISTING).p90Latency;
-      data.get_existing_p99_latency = calculatedResults.get(ChosenAction.GET_EXISTING).p99Latency;
-      data.get_existing_std_dev = calculatedResults.get(ChosenAction.GET_EXISTING).stdDeviation;
-
-      data.get_non_existing_average_latency =
-          calculatedResults.get(ChosenAction.GET_NON_EXISTING).avgLatency;
-      data.get_non_existing_p50_latency =
-          calculatedResults.get(ChosenAction.GET_NON_EXISTING).p50Latency;
-      data.get_non_existing_p90_latency =
-          calculatedResults.get(ChosenAction.GET_NON_EXISTING).p90Latency;
-      data.get_non_existing_p99_latency =
-          calculatedResults.get(ChosenAction.GET_NON_EXISTING).p99Latency;
-      data.get_non_existing_std_dev =
-          calculatedResults.get(ChosenAction.GET_NON_EXISTING).stdDeviation;
-
-      data.set_average_latency = calculatedResults.get(ChosenAction.SET).avgLatency;
-      data.set_p50_latency = calculatedResults.get(ChosenAction.SET).p50Latency;
-      data.set_p90_latency = calculatedResults.get(ChosenAction.SET).p90Latency;
-      data.set_p99_latency = calculatedResults.get(ChosenAction.SET).p99Latency;
-      data.set_std_dev = calculatedResults.get(ChosenAction.SET).stdDeviation;
+      var data =
+          new Measurements.MeasurementsBuilder()
+              // TODO:  is_cluster
+              .data_size(dataSize)
+              .client(client)
+              .client_count(clientCount)
+              .num_of_tasks(numOfTasks)
+              .tps(tps)
+              .get_existing_average_latency(
+                  calculatedResults.get(ChosenAction.GET_EXISTING).avgLatency)
+              .get_existing_p50_latency(calculatedResults.get(ChosenAction.GET_EXISTING).p50Latency)
+              .get_existing_p90_latency(calculatedResults.get(ChosenAction.GET_EXISTING).p90Latency)
+              .get_existing_p99_latency(calculatedResults.get(ChosenAction.GET_EXISTING).p99Latency)
+              .get_existing_std_dev(calculatedResults.get(ChosenAction.GET_EXISTING).stdDeviation)
+              .get_non_existing_average_latency(
+                  calculatedResults.get(ChosenAction.GET_NON_EXISTING).avgLatency)
+              .get_non_existing_p50_latency(
+                  calculatedResults.get(ChosenAction.GET_NON_EXISTING).p50Latency)
+              .get_non_existing_p90_latency(
+                  calculatedResults.get(ChosenAction.GET_NON_EXISTING).p90Latency)
+              .get_non_existing_p99_latency(
+                  calculatedResults.get(ChosenAction.GET_NON_EXISTING).p99Latency)
+              .get_non_existing_std_dev(
+                  calculatedResults.get(ChosenAction.GET_NON_EXISTING).stdDeviation)
+              .set_average_latency(calculatedResults.get(ChosenAction.SET).avgLatency)
+              .set_p50_latency(calculatedResults.get(ChosenAction.SET).p50Latency)
+              .set_p90_latency(calculatedResults.get(ChosenAction.SET).p90Latency)
+              .set_p99_latency(calculatedResults.get(ChosenAction.SET).p99Latency)
+              .set_std_dev(calculatedResults.get(ChosenAction.SET).stdDeviation)
+              .build();
 
       recordings.add(data);
 
@@ -76,6 +76,7 @@ public class JsonWriter {
   }
 
   @Getter
+  @Builder
   public static class Measurements {
     private String client;
     private int client_count;

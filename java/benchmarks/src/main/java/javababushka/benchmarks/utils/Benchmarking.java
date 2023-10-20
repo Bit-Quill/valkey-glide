@@ -191,7 +191,7 @@ public class Benchmarking {
 
         var calculatedResults = calculateResults(actionResults);
         if (config.resultsFile.isPresent()) {
-          JsonWriter.WriteJson(
+          JsonWriter.Write(
               calculatedResults,
               config.resultsFile.get(),
               config.dataSize,
