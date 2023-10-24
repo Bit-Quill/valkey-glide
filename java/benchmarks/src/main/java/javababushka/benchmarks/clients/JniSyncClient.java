@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javababushka.benchmarks.utils.ConnectionSettings;
 import javababushka.client.RedisClient;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -141,7 +142,7 @@ public class JniSyncClient implements SyncClient {
 
     makeRedisRequest(getStringRequest.toByteArray());
     ResponseOuterClass.Response response = receiveRedisResponse();
-    return response.toString();
+    return response == null ? null : response.toString();
   }
 
   @Override
@@ -159,7 +160,7 @@ public class JniSyncClient implements SyncClient {
     long result = 0;
     while (true) {
       byte b = buffer[pos];
-      result |= (b & 0x7F) << shift;
+      result |= (long) (b & 0x7F) << shift;
       pos += 1;
       if ((b & 0x80) == 0) {
         result &= mask;
@@ -175,23 +176,22 @@ public class JniSyncClient implements SyncClient {
 
   private static ResponseOuterClass.Response decodeMessage(byte[] buffer) throws Exception {
     Pair<Long, Integer> pair = decodeVarint(buffer, 0);
-    int startIdx = (int) pair.getRight();
+    int startIdx = pair.getRight();
     byte[] responseBytes =
         Arrays.copyOfRange(buffer, startIdx, startIdx + (int) (long) pair.getLeft());
-    ResponseOuterClass.Response response = ResponseOuterClass.Response.parseFrom(responseBytes);
-    return response;
+    return ResponseOuterClass.Response.parseFrom(responseBytes);
   }
 
   private static Byte[] varintBytes(int value) {
-    ArrayList<Byte> output = new ArrayList();
+    List<Byte> output = new ArrayList<>();
     int bits = value & 0x7F;
     value >>= 7;
     while (value > 0) {
-      output.add(new Byte((byte) (0x80 | bits)));
+      output.add((byte) (0x80 | bits));
       bits = value & 0x7F;
       value >>= 7;
     }
-    output.add(new Byte((byte) bits));
+    output.add((byte) bits);
     Byte[] arr = new Byte[] {};
     return output.toArray(arr);
   }
@@ -200,7 +200,9 @@ public class JniSyncClient implements SyncClient {
     Byte[] varint = varintBytes(request.length);
 
     //    System.out.println("Request: \n" + request.toString());
-    ByteBuffer buffer = ByteBuffer.allocate(1024);
+    // javadocs: https://docs.oracle.com/javase/7/docs/api/java/nio/ByteBuffer.html#putInt%28int%29
+    // BufferOverflowException - If there are fewer than four bytes remaining in this buffer
+    ByteBuffer buffer = ByteBuffer.allocate(request.length + 4);
     buffer.clear();
     for (Byte b : varint) {
       buffer.put(b);
@@ -220,6 +222,7 @@ public class JniSyncClient implements SyncClient {
   }
 
   private ResponseOuterClass.Response receiveRedisResponse() {
+    // TODO what if buffer is too small? re-allocate?
     ByteBuffer readBuffer = ByteBuffer.allocate(1024);
 
     int timeout = 0;
@@ -233,7 +236,7 @@ public class JniSyncClient implements SyncClient {
             throw new RuntimeException("Max timeout reached");
           }
 
-          bytesRead = channel.read(readBuffer);
+          bytesRead += channel.read(readBuffer);
           Thread.sleep(TIMEOUT_INTERVAL);
         }
       }
@@ -247,7 +250,7 @@ public class JniSyncClient implements SyncClient {
     try {
       response = decodeMessage(bytes);
     } catch (Exception e) {
-      e.printStackTrace();
+      // e.printStackTrace();
     }
     return response;
   }
@@ -305,7 +308,7 @@ public class JniSyncClient implements SyncClient {
     try {
       response = decodeMessage(responseBuffer);
     } catch (Exception e) {
-      e.printStackTrace();
+      // e.printStackTrace();
     }
     return response;
   }
