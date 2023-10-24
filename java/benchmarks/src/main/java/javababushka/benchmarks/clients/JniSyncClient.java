@@ -196,8 +196,7 @@ public class JniSyncClient implements SyncClient {
     return output.toArray(arr);
   }
 
-  private void makeRedisRequest(
-      byte[] request) {
+  private void makeRedisRequest(byte[] request) {
     Byte[] varint = varintBytes(request.length);
 
     //    System.out.println("Request: \n" + request.toString());

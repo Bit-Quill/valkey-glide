@@ -2,8 +2,6 @@ package javababushka.benchmarks;
 
 import static javababushka.benchmarks.utils.Benchmarking.testClientSetGet;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -20,7 +18,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-/** Benchmarking app for reporting performance of various Redis Java-clients */
+/** Benchmarking app for reporting performance of various redis-rs Java-clients */
 public class BenchmarkingApp {
 
   // main application entrypoint
@@ -71,14 +69,6 @@ public class BenchmarkingApp {
           break;
       }
     }
-
-    if (runConfiguration.resultsFile.isPresent()) {
-      try {
-        runConfiguration.resultsFile.get().close();
-      } catch (IOException ioException) {
-        System.out.println("Error closing results file: " + ioException.getLocalizedMessage());
-      }
-    }
   }
 
   private static Options getOptions() {
@@ -104,9 +94,8 @@ public class BenchmarkingApp {
         Option.builder("clients")
             .hasArg(true)
             .desc(
-                "one of:"
-                    + " all|jedis|jedis_async|lettuce|lettuce_async|babushka_async|all_async|all_sync"
-                    + " [all]")
+                "one of: all|jedis|jedis_async|lettuce|lettuce_async|"
+                    + "babushka|babushka_async|babushka_jni|all_async|all_sync")
             .build());
     options.addOption(Option.builder("host").hasArg(true).desc("Hostname [localhost]").build());
     options.addOption(Option.builder("port").hasArg(true).desc("Port number [6379]").build());
@@ -131,16 +120,7 @@ public class BenchmarkingApp {
     }
 
     if (line.hasOption("resultsFile")) {
-      String resultsFileName = line.getOptionValue("resultsFile");
-      try {
-        runConfiguration.resultsFile = Optional.of(new FileWriter(resultsFileName));
-      } catch (IOException ioException) {
-        throw new ParseException(
-            "Unable to write to resultsFile ("
-                + resultsFileName
-                + "): "
-                + ioException.getMessage());
-      }
+      runConfiguration.resultsFile = Optional.ofNullable(line.getOptionValue("resultsFile"));
     }
 
     if (line.hasOption("concurrentTasks")) {
@@ -159,7 +139,9 @@ public class BenchmarkingApp {
                         return Stream.of(
                             ClientName.JEDIS,
                             ClientName.JEDIS_ASYNC,
-                            //                            ClientName.BABUSHKA_ASYNC,
+                            // ClientName.BABUSHKA_ASYNC,
+                            ClientName.BABUSHKA,
+                            ClientName.BABUSHKA_JNI,
                             ClientName.LETTUCE,
                             ClientName.LETTUCE_ASYNC);
                       case ALL_ASYNC:
@@ -170,7 +152,8 @@ public class BenchmarkingApp {
                       case ALL_SYNC:
                         return Stream.of(
                             ClientName.JEDIS,
-                            // ClientName.BABUSHKA_ASYNC,
+                            // ClientName.BABUSHKA,
+                            ClientName.BABUSHKA_JNI,
                             ClientName.LETTUCE);
                       default:
                         return Stream.of(e);
@@ -218,6 +201,7 @@ public class BenchmarkingApp {
     LETTUCE_ASYNC("Lettuce async"),
     BABUSHKA_JNI("JNI sync"),
     BABUSHKA_ASYNC("Babushka async"),
+    BABUSHKA("Babushka"),
     ALL("All"),
     ALL_SYNC("All sync"),
     ALL_ASYNC("All async");
@@ -240,9 +224,9 @@ public class BenchmarkingApp {
 
   public static class RunConfiguration {
     public String configuration;
-    public Optional<FileWriter> resultsFile;
     public int[] dataSize;
     public int[] concurrentTasks;
+    public Optional<String> resultsFile;
     public ClientName[] clients;
     public String host;
     public int port;
@@ -262,7 +246,7 @@ public class BenchmarkingApp {
           };
       host = "localhost";
       port = 6379;
-      clientCount = new int[] {1};
+      clientCount = new int[] {1, 2};
       tls = false;
     }
   }

@@ -2,21 +2,16 @@ package javababushka.benchmarks.utils;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -39,6 +34,8 @@ public class Benchmarking {
   static final int LATENCY_MAX = 10000000;
   static final int LATENCY_MULTIPLIER = 10000;
   static final double TPS_NORMALIZATION = 1000000000.0; // nano to seconds
+  // measurements are done in nano-seconds, but it should be converted to seconds later
+  static final double SECONDS_IN_NANO = 1e-9;
 
   private static ChosenAction randomAction() {
     if (Math.random() > PROB_GET) {
@@ -52,23 +49,24 @@ public class Benchmarking {
 
   public static String generateKeyGet() {
     int range = SIZE_GET_KEYSPACE - SIZE_SET_KEYSPACE;
-    return Integer.toString((int) Math.floor(Math.random() * range + SIZE_SET_KEYSPACE + 1));
+    return Math.floor(Math.random() * range + SIZE_SET_KEYSPACE + 1) + "";
   }
 
   public static String generateKeySet() {
-    return Integer.toString((int) (Math.floor(Math.random() * SIZE_SET_KEYSPACE) + 1));
+    return (Math.floor(Math.random() * SIZE_SET_KEYSPACE) + 1) + "";
   }
 
   public interface Operation {
-    void go() throws InterruptedException, ExecutionException, TimeoutException;
+    void go() throws Exception;
   }
 
-  private static Pair<ChosenAction, Long> getLatency(Map<ChosenAction, Operation> actions) {
+  // private static Pair<ChosenAction, Long> getLatency(Map<ChosenAction, Operation> actions) {
+  public static Pair<ChosenAction, Long> measurePerformance(Map<ChosenAction, Operation> actions) {
     var action = randomAction();
     long before = System.nanoTime();
     try {
       actions.get(action).go();
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+    } catch (Exception e) {
       // timed out - exception from Future::get
       return null;
     }
@@ -77,7 +75,7 @@ public class Benchmarking {
   }
 
   // Assumption: latencies is sorted in ascending order
-  private static Long percentile(ArrayList<Long> latencies, int percentile) {
+  private static Long percentile(List<Long> latencies, int percentile) {
     int N = latencies.size();
     double n = (N - 1) * percentile / 100. + 1;
     if (n == 1d) return latencies.get(0);
@@ -87,7 +85,7 @@ public class Benchmarking {
     return Math.round(latencies.get(k - 1) + d * (latencies.get(k) - latencies.get(k - 1)));
   }
 
-  private static double stdDeviation(ArrayList<Long> latencies, Double avgLatency) {
+  private static double stdDeviation(List<Long> latencies, Double avgLatency) {
     double stdDeviation =
         latencies.stream()
             .mapToDouble(Long::doubleValue)
@@ -95,33 +93,32 @@ public class Benchmarking {
     return Math.sqrt(stdDeviation / latencies.size());
   }
 
-  // This has the side effect of sorting each latency ArrayList
+  // This has the side-effect of sorting each latencies ArrayList
   public static Map<ChosenAction, LatencyResults> calculateResults(
-      Map<ChosenAction, ArrayList<Long>> actionLatencies) {
-    Map<ChosenAction, LatencyResults> results = new HashMap<ChosenAction, LatencyResults>();
+      Map<ChosenAction, List<Long>> actionLatencies) {
+    Map<ChosenAction, LatencyResults> results = new HashMap<>();
 
-    for (Map.Entry<ChosenAction, ArrayList<Long>> entry : actionLatencies.entrySet()) {
+    for (Map.Entry<ChosenAction, List<Long>> entry : actionLatencies.entrySet()) {
       ChosenAction action = entry.getKey();
-      ArrayList<Long> latencies = entry.getValue();
+      List<Long> latencies = entry.getValue();
 
       if (latencies.size() == 0) {
         results.put(action, new LatencyResults(0, 0, 0, 0, 0, 0));
       } else {
-        Double avgLatency =
-            latencies.size() <= 0
-                ? 0
-                : latencies.stream().collect(Collectors.summingLong(Long::longValue))
-                    / Double.valueOf(latencies.size());
+        double avgLatency =
+            SECONDS_IN_NANO
+                * latencies.stream().mapToLong(Long::longValue).sum()
+                / latencies.size();
 
         Collections.sort(latencies);
         results.put(
             action,
             new LatencyResults(
                 avgLatency,
-                percentile(latencies, 50),
-                percentile(latencies, 90),
-                percentile(latencies, 99),
-                stdDeviation(latencies, avgLatency),
+                SECONDS_IN_NANO * percentile(latencies, 50),
+                SECONDS_IN_NANO * percentile(latencies, 90),
+                SECONDS_IN_NANO * percentile(latencies, 99),
+                SECONDS_IN_NANO * stdDeviation(latencies, avgLatency),
                 latencies.size()));
       }
     }
@@ -130,52 +127,20 @@ public class Benchmarking {
   }
 
   public static void printResults(
-      Map<ChosenAction, LatencyResults> calculatedResults, Optional<FileWriter> resultsFile) {
-    if (resultsFile.isPresent()) {
-      printResults(calculatedResults, resultsFile.get());
-    } else {
-      printResults(calculatedResults);
-    }
-  }
-
-  public static void printResults(
-      Map<ChosenAction, LatencyResults> resultsMap, FileWriter resultsFile) {
+      Map<ChosenAction, LatencyResults> resultsMap, double duration, int iterations) {
     for (Map.Entry<ChosenAction, LatencyResults> entry : resultsMap.entrySet()) {
       ChosenAction action = entry.getKey();
       LatencyResults results = entry.getValue();
 
-      try {
-        resultsFile.append(
-            "Avg. time in ms per " + action + ": " + results.avgLatency / LATENCY_NORMALIZATION);
-        resultsFile.append(
-            action + " p50 latency in ms: " + results.p50Latency / LATENCY_NORMALIZATION);
-        resultsFile.append(
-            action + " p90 latency in ms: " + results.p90Latency / LATENCY_NORMALIZATION);
-        resultsFile.append(
-            action + " p99 latency in ms: " + results.p99Latency / LATENCY_NORMALIZATION);
-        resultsFile.append(
-            action + " std dev in ms: " + results.stdDeviation / LATENCY_NORMALIZATION);
-      } catch (Exception ignored) {
-      }
-    }
-  }
-
-  public static void printResults(Map<ChosenAction, LatencyResults> resultsMap) {
-    for (Map.Entry<ChosenAction, LatencyResults> entry : resultsMap.entrySet()) {
-      ChosenAction action = entry.getKey();
-      LatencyResults results = entry.getValue();
-
-      System.out.println(
-          "Avg. time in ms per " + action + ": " + results.avgLatency / LATENCY_NORMALIZATION);
-      System.out.println(
-          action + " p50 latency in ms: " + results.p50Latency / LATENCY_NORMALIZATION);
-      System.out.println(
-          action + " p90 latency in ms: " + results.p90Latency / LATENCY_NORMALIZATION);
-      System.out.println(
-          action + " p99 latency in ms: " + results.p99Latency / LATENCY_NORMALIZATION);
-      System.out.println(
-          action + " std dev in ms: " + results.stdDeviation / LATENCY_NORMALIZATION);
-      System.out.println(action + " total hits: " + results.totalHits);
+      System.out.printf("===> %s <===%n", action);
+      System.out.printf("avg. time: %f%n", results.avgLatency / LATENCY_NORMALIZATION);
+      System.out.printf("p50 latency: %f%n", results.p50Latency / LATENCY_NORMALIZATION);
+      System.out.printf("p90 latency: %f%n", results.p90Latency / LATENCY_NORMALIZATION);
+      System.out.printf("p99 latency: %f%n", results.p99Latency / LATENCY_NORMALIZATION);
+      System.out.printf("std dev: %f%n", results.stdDeviation / LATENCY_NORMALIZATION);
+      System.out.printf("Total hits: %d", results.totalHits);
+      System.out.printf("Runtime: %f%n", duration);
+      System.out.printf("Iterations: %d%n", iterations);
     }
   }
 
@@ -190,7 +155,7 @@ public class Benchmarking {
               "%n =====> %s <===== %d clients %d concurrent %d data %n%n",
               clientCreator.get().getName(), clientCount, concurrentNum, dataSize);
           AtomicInteger iterationCounter = new AtomicInteger(0);
-          Map<ChosenAction, ArrayList<Long>> actionResults =
+          Map<ChosenAction, List<Long>> actionResults =
               Map.of(
                   ChosenAction.GET_EXISTING, new ArrayList<>(),
                   ChosenAction.GET_NON_EXISTING, new ArrayList<>(),
@@ -227,9 +192,9 @@ public class Benchmarking {
                           clientIndex + 1,
                           clientCount);
                     }
+                    var actions = getActionMap(clients.get(clientIndex), dataSize, async);
                     // operate and calculate tik-tok
-                    Pair<ChosenAction, Long> result =
-                        measurePerformance(clients.get(clientIndex), dataSize, async);
+                    Pair<ChosenAction, Long> result = measurePerformance(actions);
                     if (config.debugLogging) {
                       System.out.printf(
                           "> task = %d, iteration = %d/%d, client# = %d/%d - DONE%n",
@@ -258,7 +223,9 @@ public class Benchmarking {
           // create threads and add them to the async pool.
           // This will start execution of all the concurrent tasks.
           List<CompletableFuture> asyncTasks =
-              tasks.stream().map((runnable) -> runAsync(runnable, threadPool)).collect(Collectors.toList());
+              tasks.stream()
+                  .map((runnable) -> runAsync(runnable, threadPool))
+                  .collect(Collectors.toList());
           // close pool and await for tasks to complete
           threadPool.shutdown();
           while (!threadPool.isTerminated()) {
@@ -280,23 +247,18 @@ public class Benchmarking {
               });
           long after = System.nanoTime();
 
-          // print results per action
-          printResults(calculateResults(actionResults), config.resultsFile);
-
-          // print TPS
+          var calculatedResults = calculateResults(actionResults);
           if (config.resultsFile.isPresent()) {
-            try {
-              config
-                  .resultsFile
-                  .get()
-                  .append("TPS: %s%n" + (iterations / ((after - before) / TPS_NORMALIZATION)));
-            } catch (IOException ignored) {
-            }
-          } else {
-            System.out.println("Runtime: " + ((after - before) / TPS_NORMALIZATION));
-            System.out.println("Iterations: " + iterations);
-            System.out.printf("TPS: %s%n", (iterations / ((after - before) / TPS_NORMALIZATION)));
+            JsonWriter.Write(
+                calculatedResults,
+                config.resultsFile.get(),
+                dataSize,
+                clientCreator.get().getName(),
+                clientCount,
+                concurrentNum,
+                iterations / ((after - before) / TPS_NORMALIZATION));
           }
+          printResults(calculatedResults, (after - before) / TPS_NORMALIZATION, iterations);
         }
       }
     }
@@ -304,7 +266,7 @@ public class Benchmarking {
     System.out.println();
   }
 
-  public static Pair<ChosenAction, Long> measurePerformance(
+  public static Map<ChosenAction, Operation> getActionMap(
       Client client, int dataSize, boolean async) {
 
     String value = RandomStringUtils.randomAlphanumeric(dataSize);
@@ -333,7 +295,6 @@ public class Benchmarking {
                     .asyncSet(generateKeySet(), value)
                     .get(ASYNC_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS)
             : () -> ((SyncClient) client).set(generateKeySet(), value));
-
-    return getLatency(actions);
+    return actions;
   }
 }
