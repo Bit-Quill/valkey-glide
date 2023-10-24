@@ -1,6 +1,7 @@
 package benchmarks
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -23,10 +24,12 @@ type actionLatency struct {
 type operations func(client Client) (string, error)
 
 var chosenActionOptions = chosenActions{
-	getExisting:    "Get_Existing",
-	getNonExisting: "Get_Non_Existing",
-	set:            "Set",
+	getExisting:    "get_existing",
+	getNonExisting: "get_non_existing",
+	set:            "set",
 }
+
+var jsonResults = make([]map[string]interface{}, 0)
 
 const probGet = 0.8
 const probGetExistingKey = 0.8
@@ -215,7 +218,7 @@ func getKeysInSortedOrderForPrint(m map[string]latencyResults) []string {
 	return keys
 }
 
-func PrintResults(tps float64, resultMap map[string]latencyResults, benchmarkConfig *BenchmarkConfig, resultsFile *os.File) {
+func PrintResultsStdOut(benchmarkConfig *BenchmarkConfig, resultMap map[string]latencyResults, tps float64, resultsFile *os.File) {
 	writeFileOrPanic(resultsFile, fmt.Sprintf("Client Name: %s, Tasks Count: %d, Data Size: %d, Client Count: %d, TPS: %f\n",
 		benchmarkConfig.ClientName, benchmarkConfig.TasksCount, benchmarkConfig.DataSize, benchmarkConfig.ClientCount, tps))
 	keys := getKeysInSortedOrderForPrint(resultMap)
@@ -228,6 +231,36 @@ func PrintResults(tps float64, resultMap map[string]latencyResults, benchmarkCon
 		writeFileOrPanic(resultsFile, fmt.Sprintf("%s p99 latency in ms: %f\n", action, float64(latencyResult.p99Latency)/1e6))
 		writeFileOrPanic(resultsFile, fmt.Sprintf("%s std dev in ms: %f\n", action, latencyResult.stdDeviation/1e6))
 	}
+}
+
+func AddResultsJsonFormat(benchmarkConfig *BenchmarkConfig, results map[string]latencyResults, tps float64) {
+	jsonResult := make(map[string]interface{})
+
+	jsonResult["client"] = benchmarkConfig.ClientName
+	jsonResult["is_cluster"] = benchmarkConfig.IsCluster
+	jsonResult["num_of_tasks"] = benchmarkConfig.TasksCount
+	jsonResult["data_size"] = benchmarkConfig.DataSize
+	jsonResult["client_count"] = benchmarkConfig.ClientCount
+	jsonResult["tps"] = tps
+
+	for key, value := range results {
+		jsonResult[key+"_p50_latency"] = float64(value.p50Latency) / 1e6
+		jsonResult[key+"_p90_latency"] = float64(value.p90Latency) / 1e6
+		jsonResult[key+"_p99_latency"] = float64(value.p99Latency) / 1e6
+		jsonResult[key+"_average_latency"] = float64(value.avgLatency) / 1e6
+		jsonResult[key+"_std_dev"] = float64(value.stdDeviation) / 1e6
+	}
+
+	jsonResults = append(jsonResults, jsonResult)
+}
+
+func ProcessResults(file *os.File) error {
+	encoder := json.NewEncoder(file)
+	err := encoder.Encode(jsonResults)
+	if err != nil {
+		return fmt.Errorf("error encoding JSON: %v", err)
+	}
+	return nil
 }
 
 func MeasurePerformance(clients []Client, concurrentTasks int, dataSize int) (float64, map[string]latencyResults) {

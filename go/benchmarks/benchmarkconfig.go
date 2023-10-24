@@ -5,8 +5,14 @@ type BenchmarkConfig struct {
 	TasksCount  int
 	DataSize    int
 	ClientCount int
+	IsCluster   bool
 }
 
-func NewBenchmarkConfig(clientName string, tasksCount int, dataSize int, clientCount int) *BenchmarkConfig {
-	return &BenchmarkConfig{ClientName: clientName, TasksCount: tasksCount, DataSize: dataSize, ClientCount: clientCount}
+func NewBenchmarkConfig(clientName string, tasksCount int, dataSize int, clientCount int, isCluster bool) *BenchmarkConfig {
+	return &BenchmarkConfig{
+		ClientName:  clientName,
+		TasksCount:  tasksCount,
+		DataSize:    dataSize,
+		ClientCount: clientCount,
+		IsCluster:   isCluster}
 }

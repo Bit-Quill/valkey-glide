@@ -171,26 +171,30 @@ func verifyOptions(opts *options) (*runConfiguration, error) {
 
 func testClientSetGet(runConfig *runConfiguration) error {
 	fmt.Printf("\n =====> %s <===== \n\n", runConfig.clientName)
+
 	connectionSettings := benchmarks.NewConnectionSettings(
 		runConfig.host,
 		runConfig.port,
-		runConfig.tls)
+		runConfig.tls,
+	)
 
+	err := executeBenchmarks(runConfig, connectionSettings)
+	if err != nil {
+		return err
+	}
+
+	if runConfig.resultsFile != os.Stdout {
+		return benchmarks.ProcessResults(runConfig.resultsFile)
+	}
+
+	return nil
+}
+
+func executeBenchmarks(runConfig *runConfiguration, connectionSettings *benchmarks.ConnectionSettings) error {
 	for _, dataSize := range runConfig.dataSize {
 		for _, concurrentTasks := range runConfig.concurrentTasks {
 			for _, clientCount := range runConfig.clientCount {
-				clients, err := createClients(clientCount, runConfig.clientName, connectionSettings)
-				if err != nil {
-					return err
-				}
-				tps, latencyResults := benchmarks.MeasurePerformance(clients, concurrentTasks, dataSize)
-				benchmarkConfig := benchmarks.NewBenchmarkConfig(
-					runConfig.clientName,
-					concurrentTasks,
-					dataSize,
-					clientCount)
-				benchmarks.PrintResults(tps, latencyResults, benchmarkConfig, runConfig.resultsFile)
-				err = closeClients(clients)
+				err := runSingleBenchmark(runConfig, connectionSettings, dataSize, concurrentTasks, clientCount)
 				if err != nil {
 					return err
 				}
@@ -198,6 +202,32 @@ func testClientSetGet(runConfig *runConfiguration) error {
 		}
 	}
 	return nil
+}
+
+func runSingleBenchmark(runConfig *runConfiguration, connectionSettings *benchmarks.ConnectionSettings, dataSize, concurrentTasks, clientCount int) error {
+	fmt.Printf("Starting %s data size: %d concurrency: %d client count: %d\n", runConfig.clientName, dataSize, concurrentTasks, clientCount)
+
+	clients, err := createClients(clientCount, runConfig.clientName, connectionSettings)
+	if err != nil {
+		return err
+	}
+
+	tps, latencyResults := benchmarks.MeasurePerformance(clients, concurrentTasks, dataSize)
+	benchmarkConfig := benchmarks.NewBenchmarkConfig(
+		runConfig.clientName,
+		concurrentTasks,
+		dataSize,
+		clientCount,
+		false,
+	)
+
+	if runConfig.resultsFile == os.Stdout {
+		benchmarks.PrintResultsStdOut(benchmarkConfig, latencyResults, tps, runConfig.resultsFile)
+	} else {
+		benchmarks.AddResultsJsonFormat(benchmarkConfig, latencyResults, tps)
+	}
+
+	return closeClients(clients)
 }
 
 func createClients(clientCount int, clientType string, connectionSettings *benchmarks.ConnectionSettings) ([]benchmarks.Client, error) {
