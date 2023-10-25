@@ -1,8 +1,9 @@
-package javababushka.benchmarks.clients;
+package javababushka.benchmarks.clients.lettuce;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisStringCommands;
+import javababushka.benchmarks.clients.SyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 
 /** A Lettuce client with sync capabilities see: https://lettuce.io/ */

@@ -1,4 +1,4 @@
-package javababushka.benchmarks.clients;
+package javababushka.benchmarks.clients.babushka;
 
 import java.io.IOException;
 import java.net.StandardProtocolFamily;
@@ -8,6 +8,7 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javababushka.benchmarks.clients.SyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 import javababushka.client.RedisClient;
 import org.apache.commons.lang3.tuple.MutablePair;

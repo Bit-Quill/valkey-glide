@@ -1,8 +1,9 @@
-package javababushka.benchmarks.clients;
+package javababushka.benchmarks.clients.jedis;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import javababushka.benchmarks.clients.AsyncClient;
 
 /**
  * A jedis client with pseudo-sync capabilities. Jedis doesn't provide async API
