@@ -130,6 +130,7 @@ public class Benchmarking {
       Map<ChosenAction, LatencyResults> resultsMap, double duration, int iterations) {
     System.out.printf("Runtime s: %f%n", duration);
     System.out.printf("Iterations: %d%n", iterations);
+    System.out.printf("TPS: %f%n", iterations / duration);
     for (Map.Entry<ChosenAction, LatencyResults> entry : resultsMap.entrySet()) {
       ChosenAction action = entry.getKey();
       LatencyResults results = entry.getValue();
