@@ -12,7 +12,7 @@ fn redis_value_to_java<'local>(mut env: JNIEnv<'local>, val: Value) -> JObject<'
         Value::Nil => JObject::null(),
         Value::Status(str) => JObject::from(env.new_string(str).unwrap()),
         Value::Okay => JObject::from(env.new_string("OK").unwrap()),
-        Value::Int(num) => env.new_object("java/lang/Integer", "(I)Ljava/lang/Integer;", &[num.into()]).unwrap(),
+        Value::Int(num) => env.new_object("java/lang/Integer", "(I)V", &[num.into()]).unwrap(),
         Value::Data(data) => match std::str::from_utf8(data.as_ref()) {
             Ok(val) => JObject::from(env.new_string(val).unwrap()),
             Err(_err) => {
