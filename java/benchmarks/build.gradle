@@ -34,6 +34,8 @@ java {
 application {
     // Define the main class for the application.
     mainClass = 'javababushka.benchmarks.BenchmarkingApp'
+    // mainClass = 'javababushka.benchmarks.babushka.Jni'
+    applicationDefaultJvmArgs += "-Djava.library.path=${projectDir}/../target/debug"
 }
 
 tasks.withType(Test) { 

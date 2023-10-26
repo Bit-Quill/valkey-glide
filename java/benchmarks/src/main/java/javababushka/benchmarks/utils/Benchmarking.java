@@ -89,18 +89,17 @@ public class Benchmarking {
       ChosenAction action = entry.getKey();
       ArrayList<Long> latencies = entry.getValue();
 
-      double avgLatency =
-          SECONDS_IN_NANO * latencies.stream().mapToLong(Long::longValue).sum() / latencies.size();
+      double avgLatency = latencies.stream().mapToLong(Long::longValue).sum() / latencies.size();
 
       Collections.sort(latencies);
       results.put(
           action,
           new LatencyResults(
               avgLatency,
-              SECONDS_IN_NANO * percentile(latencies, 50),
-              SECONDS_IN_NANO * percentile(latencies, 90),
-              SECONDS_IN_NANO * percentile(latencies, 99),
-              SECONDS_IN_NANO * stdDeviation(latencies, avgLatency)));
+              percentile(latencies, 50),
+              percentile(latencies, 90),
+              percentile(latencies, 99),
+              stdDeviation(latencies, avgLatency)));
     }
 
     return results;
@@ -111,18 +110,18 @@ public class Benchmarking {
       ChosenAction action = entry.getKey();
       LatencyResults results = entry.getValue();
 
-      System.out.println("Avg. time in ms per " + action + ": " + results.avgLatency / 1000000.0);
-      System.out.println(action + " p50 latency in ms: " + results.p50Latency / 1000000.0);
-      System.out.println(action + " p90 latency in ms: " + results.p90Latency / 1000000.0);
-      System.out.println(action + " p99 latency in ms: " + results.p99Latency / 1000000.0);
-      System.out.println(action + " std dev in ms: " + results.stdDeviation / 1000000.0);
+      System.out.println("Avg. time in ms per " + action + ": " + results.avgLatency / 1000000);
+      System.out.println(action + " p50 latency in ms: " + results.p50Latency / 1000000);
+      System.out.println(action + " p90 latency in ms: " + results.p90Latency / 1000000);
+      System.out.println(action + " p99 latency in ms: " + results.p99Latency / 1000000);
+      System.out.println(action + " std dev in ms: " + results.stdDeviation / 1000000);
     }
   }
 
   public static void testClientSetGet(
       Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
     for (int concurrentNum : config.concurrentTasks) {
-      int iterations = Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
+      int iterations = 1000; // Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
       for (int clientCount : config.clientCount) {
         for (int dataSize : config.dataSize) {
           System.out.printf(
