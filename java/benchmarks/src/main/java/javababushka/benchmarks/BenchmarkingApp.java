@@ -5,6 +5,7 @@ import static javababushka.benchmarks.utils.Benchmarking.testClientSetGet;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
+import javababushka.benchmarks.babushka.JnaFfi;
 import javababushka.benchmarks.babushka.JniFfi;
 import javababushka.benchmarks.jedis.JedisClient;
 import javababushka.benchmarks.jedis.JedisPseudoAsyncClient;
@@ -62,8 +63,8 @@ public class BenchmarkingApp {
         case LETTUCE_ASYNC:
           testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
           break;
-        case BABUSHKA:
-          System.out.println("Babushka not yet configured");
+        case JNA_FFI:
+          testClientSetGet(JnaFfi::new, runConfiguration, false);
           break;
       }
     }
@@ -141,7 +142,8 @@ public class BenchmarkingApp {
                         return Stream.of(
                             ClientName.JEDIS,
                             ClientName.JEDIS_ASYNC,
-                            ClientName.BABUSHKA,
+                            ClientName.JNA_FFI,
+                            ClientName.JNI_FFI,
                             // ClientName.BABUSHKA_ASYNC,
                             ClientName.LETTUCE,
                             ClientName.LETTUCE_ASYNC);
@@ -153,8 +155,9 @@ public class BenchmarkingApp {
                       case ALL_SYNC:
                         return Stream.of(
                             ClientName.JEDIS,
-                            // ClientName.BABUSHKA,
-                            ClientName.LETTUCE);
+                            ClientName.JNA_FFI,
+                            ClientName.LETTUCE,
+                            ClientName.JNI_FFI);
                       default:
                         return Stream.of(e);
                     }
@@ -199,7 +202,7 @@ public class BenchmarkingApp {
     JEDIS_ASYNC("Jedis async"),
     LETTUCE("Lettuce"),
     LETTUCE_ASYNC("Lettuce async"),
-    BABUSHKA("Babushka"),
+    JNA_FFI("JNA FFI"),
     BABUSHKA_ASYNC("Babushka async"),
     JNI_FFI("JNI FFI"),
     ALL("All"),
@@ -241,8 +244,7 @@ public class BenchmarkingApp {
       concurrentTasks = new int[] {10, 100};
       clients =
           new ClientName[] {
-            // ClientName.BABUSHKA_ASYNC,
-            ClientName.JEDIS, ClientName.LETTUCE, ClientName.JNI_FFI
+            ClientName.LETTUCE, ClientName.JNI_FFI, ClientName.JNA_FFI,
           };
       host = "localhost";
       port = 6379;
