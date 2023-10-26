@@ -1,0 +1,12 @@
+[bindings.kotlin]
+package_name = "babushka"
+cdylib_name = "kotlinbabushka"
+
+[bindings.python]
+cdylib_name = "kotlinbabushka"
+
+[bindings.ruby]
+cdylib_name = "kotlinbabushka"
+
+[bindings.swift]
+cdylib_name = "kotlinbabushka"

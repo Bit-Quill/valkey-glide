@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javababushka.benchmarks.babushka.JnaFfi;
 import javababushka.benchmarks.babushka.JniFfi;
+import javababushka.benchmarks.babushka.KotlinClient;
 import javababushka.benchmarks.jedis.JedisClient;
 import javababushka.benchmarks.jedis.JedisPseudoAsyncClient;
 import javababushka.benchmarks.lettuce.LettuceAsyncClient;
@@ -65,6 +66,12 @@ public class BenchmarkingApp {
           break;
         case JNA_FFI:
           testClientSetGet(JnaFfi::new, runConfiguration, false);
+          break;
+        case KOTLIN:
+          testClientSetGet(KotlinClient::new, runConfiguration, false);
+          break;
+        case BABUSHKA:
+          System.out.println("Babushka not yet configured");
           break;
       }
     }
@@ -205,6 +212,8 @@ public class BenchmarkingApp {
     JNA_FFI("JNA FFI"),
     BABUSHKA_ASYNC("Babushka async"),
     JNI_FFI("JNI FFI"),
+    BABUSHKA("Babushka"),
+    KOTLIN("Kotlin"),
     ALL("All"),
     ALL_SYNC("All sync"),
     ALL_ASYNC("All async");
@@ -244,7 +253,7 @@ public class BenchmarkingApp {
       concurrentTasks = new int[] {10, 100};
       clients =
           new ClientName[] {
-            ClientName.LETTUCE, ClientName.JNI_FFI, ClientName.JNA_FFI,
+            ClientName.LETTUCE, ClientName.JNI_FFI, ClientName.JNA_FFI, ClientName.KOTLIN
           };
       host = "localhost";
       port = 6379;
