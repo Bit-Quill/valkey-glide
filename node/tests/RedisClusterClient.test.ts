@@ -8,12 +8,14 @@ import {
 } from "@jest/globals";
 import { exec } from "child_process";
 import {
+    ClusterTransaction,
     ConnectionOptions,
     InfoOptions,
     RedisClusterClient,
-} from "../build-ts";
+} from "../";
+import { convertMultiNodeResponseToDict } from "../src/RedisClusterClient";
 import { runBaseTests } from "./SharedTests";
-import { flushallOnPort } from "./TestUtilities";
+import { flushallOnPort, transactionTest } from "./TestUtilities";
 
 type Context = {
     client: RedisClusterClient;
@@ -150,27 +152,23 @@ describe("RedisClusterClient", () => {
             const client = await RedisClusterClient.createClient(
                 getOptions(cluster.ports())
             );
-            const result = await client.info([
+            const result = (await client.info([
                 InfoOptions.Server,
                 InfoOptions.Replication,
-            ]);
+            ])) as Record<string, string>;
             const clusterNodes = await client.customCommand("CLUSTER", [
                 "NODES",
             ]);
             expect(
                 (clusterNodes as string)?.split("master").length - 1
-            ).toEqual(result.length);
-            for (let i = 0; i < result.length; i++) {
-                expect(result?.[i][1]).toEqual(
-                    expect.stringContaining("# Server")
-                );
-                expect(result?.[i][1]).toEqual(
-                    expect.stringContaining("# Replication")
-                );
-                expect(result?.[i][1]).toEqual(
+            ).toEqual(Object.keys(result).length);
+            Object.values(result).every((item) => {
+                expect(item).toEqual(expect.stringContaining("# Server"));
+                expect(item).toEqual(expect.stringContaining("# Replication"));
+                expect(item).toEqual(
                     expect.not.stringContaining("# Errorstats")
                 );
-            }
+            });
             client.dispose();
         },
         TIMEOUT
@@ -190,6 +188,82 @@ describe("RedisClusterClient", () => {
             expect(result).toEqual(expect.stringContaining("# Server"));
             expect(result).toEqual(expect.not.stringContaining("# Errorstats"));
             client.dispose();
+        },
+        TIMEOUT
+    );
+
+    it(
+        "config get and config set transactions test",
+        async () => {
+            const client = await RedisClusterClient.createClient(
+                getOptions(cluster.ports())
+            );
+            const transaction = new ClusterTransaction();
+            transaction.configSet({ timeout: "1000" });
+            transaction.configGet(["timeout"]);
+            const result = await client.exec(transaction);
+            expect(result).toEqual(["OK", ["timeout", "1000"]]);
+            client.dispose();
+        },
+        TIMEOUT
+    );
+
+    it(
+        "can send transactions",
+        async () => {
+            const client = await RedisClusterClient.createClient(
+                getOptions(cluster.ports())
+            );
+            const transaction = new ClusterTransaction();
+            const expectedRes = transactionTest(transaction);
+            const result = await client.exec(transaction);
+            expect(result).toEqual(expectedRes);
+            client.dispose();
+        },
+        TIMEOUT
+    );
+
+    it(
+        "convertMultiNodeResponseToDict function test",
+        async () => {
+            const param1 = "This is a string value";
+            const param2 = ["value", "value"];
+            const param3 = [
+                ["value1", ["value"]],
+                ["value2", ["value"]],
+            ] as [string, string[]][];
+            const result = { value1: ["value"], value2: ["value"] };
+
+            const isString = (response: string | [string, string][]) =>
+                typeof response == "string";
+
+            const isNull = (response: null | [string, null][]) =>
+                response == null;
+
+            const isStringArray = (
+                response: (string | [string, string[]])[]
+            ): boolean => {
+                return (
+                    Array.isArray(response) &&
+                    response.every((item) => typeof item === "string")
+                );
+            };
+
+            expect(
+                convertMultiNodeResponseToDict<string>(param1, isString)
+            ).toEqual(param1);
+
+            expect(
+                convertMultiNodeResponseToDict<string[]>(param2, isStringArray)
+            ).toEqual(param2);
+
+            expect(
+                convertMultiNodeResponseToDict<string[]>(param3, isStringArray)
+            ).toEqual(result);
+
+            expect(
+                convertMultiNodeResponseToDict<null>(null, isNull)
+            ).toBeNull();
         },
         TIMEOUT
     );

@@ -2,6 +2,7 @@ import { expect, it } from "@jest/globals";
 import { exec } from "child_process";
 import { v4 as uuidv4 } from "uuid";
 import { InfoOptions, ReturnType, SetOptions, parseInfoResponse } from "../";
+import { ClusterResponse } from "../src/RedisClusterClient";
 import { Client, GetAndSetRandomValue, getFirstResult } from "./TestUtilities";
 
 type BaseClient = {
@@ -13,12 +14,29 @@ type BaseClient = {
     ping: (str?: string) => Promise<string>;
     get: (key: string) => Promise<string | null>;
     del: (keys: string[]) => Promise<number>;
+    clientGetName: () => Promise<ClusterResponse<string | null>>;
     configRewrite: () => Promise<"OK">;
-    info(options?: InfoOptions[]): Promise<string | string[][]>;
+    info(options?: InfoOptions[]): Promise<ClusterResponse<string>>;
     configResetStat: () => Promise<"OK">;
+    mset: (keyValueMap: Record<string, string>) => Promise<"OK">;
+    mget: (keys: string[]) => Promise<(string | null)[]>;
     incr: (key: string) => Promise<number>;
     incrBy: (key: string, amount: number) => Promise<number>;
+    clientId: () => Promise<ClusterResponse<number>>;
+    decr: (key: string) => Promise<number>;
+    decrBy: (key: string, amount: number) => Promise<number>;
     incrByFloat: (key: string, amount: number) => Promise<string>;
+    configGet: (parameters: string[]) => Promise<ClusterResponse<string[]>>;
+    configSet: (parameters: Record<string, string>) => Promise<"OK">;
+    hset: (
+        key: string,
+        fieldValueMap: Record<string, string>
+    ) => Promise<number>;
+    hget: (key: string, field: string) => Promise<string | null>;
+    hdel: (key: string, fields: string[]) => Promise<number>;
+    hmget: (key: string, fields: string[]) => Promise<(string | null)[]>;
+    hexists: (key: string, field: string) => Promise<number>;
+    hgetall: (key: string) => Promise<string[]>;
     customCommand: (commandName: string, args: string[]) => Promise<ReturnType>;
 };
 
@@ -207,13 +225,23 @@ export function runBaseTests<Context>(config: {
     );
 
     it(
+        "testing clientGetName",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                expect(await client.clientGetName()).toBeNull();
+            });
+        },
+        config.timeout
+    );
+
+    it(
         "test config rewrite",
         async () => {
             await runTest(async (client: BaseClient) => {
                 const serverInfo = await client.info([InfoOptions.Server]);
-                const conf_file = parseInfoResponse(getFirstResult(serverInfo))[
-                    "config_file"
-                ];
+                const conf_file = parseInfoResponse(
+                    getFirstResult(serverInfo).toString()
+                )["config_file"];
                 if (conf_file.length > 0) {
                     expect(await client.configRewrite()).toEqual("OK");
                 } else {
@@ -241,7 +269,7 @@ export function runBaseTests<Context>(config: {
                 const OldResult = await client.info([InfoOptions.Stats]);
                 expect(
                     Number(
-                        parseInfoResponse(getFirstResult(OldResult))[
+                        parseInfoResponse(getFirstResult(OldResult).toString())[
                             "total_commands_processed"
                         ]
                     )
@@ -249,10 +277,32 @@ export function runBaseTests<Context>(config: {
                 expect(await client.configResetStat()).toEqual("OK");
                 const result = await client.info([InfoOptions.Stats]);
                 expect(
-                    parseInfoResponse(getFirstResult(result))[
+                    parseInfoResponse(getFirstResult(result).toString())[
                         "total_commands_processed"
                     ]
                 ).toEqual("1");
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "testing mset and mget with multiple existing keys and one non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key1 = uuidv4();
+                const key2 = uuidv4();
+                const key3 = uuidv4();
+                const value = uuidv4();
+                const keyValueList = {
+                    [key1]: value,
+                    [key2]: value,
+                    [key3]: value,
+                };
+                expect(await client.mset(keyValueList)).toEqual("OK");
+                expect(
+                    await client.mget([key1, key2, "nonExistingKey", key3])
+                ).toEqual([value, value, null, value]);
             });
         },
         config.timeout
@@ -334,6 +384,226 @@ export function runBaseTests<Context>(config: {
             await runTest(async (client: BaseClient) => {
                 expect(await client.ping()).toEqual("PONG");
                 expect(await client.ping("Hello")).toEqual("Hello");
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "clientId test",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                expect(getFirstResult(await client.clientId())).toBeGreaterThan(
+                    0
+                );
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "decr and decrBy existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                expect(await client.set(key, "10")).toEqual("OK");
+                expect(await client.decr(key)).toEqual(9);
+                expect(await client.get(key)).toEqual("9");
+                expect(await client.decrBy(key, 4)).toEqual(5);
+                expect(await client.get(key)).toEqual("5");
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "decr and decrBy with non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key1 = uuidv4();
+                const key2 = uuidv4();
+                /// key1 and key2 does not exist, so it set to 0 before performing the operation.
+                expect(await client.get(key1)).toBeNull();
+                expect(await client.decr(key1)).toEqual(-1);
+                expect(await client.get(key1)).toEqual("-1");
+                expect(await client.get(key2)).toBeNull();
+                expect(await client.decrBy(key2, 3)).toEqual(-3);
+                expect(await client.get(key2)).toEqual("-3");
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "decr and decrBy with a key that contains a value of string that can not be represented as integer",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                expect(await client.set(key, "foo")).toEqual("OK");
+                try {
+                    expect(await client.decr(key)).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "value is not an integer"
+                    );
+                }
+
+                try {
+                    expect(await client.decrBy(key, 3)).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "value is not an integer"
+                    );
+                }
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "config get and config set with timeout parameter",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const prevTimeout = (await client.configGet([
+                    "timeout",
+                ])) as string[];
+                expect(await client.configSet({ timeout: "1000" })).toEqual(
+                    "OK"
+                );
+                const currTimeout = (await client.configGet([
+                    "timeout",
+                ])) as string[];
+                expect(currTimeout).toEqual(["timeout", "1000"]);
+                /// Revert to the pervious configuration
+                expect(
+                    await client.configSet({ [prevTimeout[0]]: prevTimeout[1] })
+                ).toEqual("OK");
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "testing hset and hget with multiple existing fields and one non existing field",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const field1 = uuidv4();
+                const field2 = uuidv4();
+                const value = uuidv4();
+                const fieldValueMap = {
+                    [field1]: value,
+                    [field2]: value,
+                };
+                expect(await client.hset(key, fieldValueMap)).toEqual(2);
+                expect(await client.hget(key, field1)).toEqual(value);
+                expect(await client.hget(key, field2)).toEqual(value);
+                expect(await client.hget(key, "nonExistingField")).toEqual(
+                    null
+                );
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "hdel multiple existing fields, an non existing field and an non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const field1 = uuidv4();
+                const field2 = uuidv4();
+                const field3 = uuidv4();
+                const value = uuidv4();
+                const fieldValueMap = {
+                    [field1]: value,
+                    [field2]: value,
+                    [field3]: value,
+                };
+
+                expect(await client.hset(key, fieldValueMap)).toEqual(3);
+                expect(await client.hdel(key, [field1, field2])).toEqual(2);
+                expect(await client.hdel(key, ["nonExistingField"])).toEqual(0);
+                expect(await client.hdel("nonExistingKey", [field3])).toEqual(
+                    0
+                );
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "testing hmget with multiple existing fields, an non existing field and an non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const field1 = uuidv4();
+                const field2 = uuidv4();
+                const value = uuidv4();
+                const fieldValueMap = {
+                    [field1]: value,
+                    [field2]: value,
+                };
+                expect(await client.hset(key, fieldValueMap)).toEqual(2);
+                expect(
+                    await client.hmget(key, [
+                        field1,
+                        "nonExistingField",
+                        field2,
+                    ])
+                ).toEqual([value, null, value]);
+                expect(
+                    await client.hmget("nonExistingKey", [field1, field2])
+                ).toEqual([null, null]);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "hexists existing field, an non existing field and an non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const field1 = uuidv4();
+                const field2 = uuidv4();
+                const fieldValueMap = {
+                    [field1]: "value1",
+                    [field2]: "value2",
+                };
+                expect(await client.hset(key, fieldValueMap)).toEqual(2);
+                expect(await client.hexists(key, field1)).toEqual(1);
+                expect(await client.hexists(key, "nonExistingField")).toEqual(
+                    0
+                );
+                expect(await client.hexists("nonExistingKey", field2)).toEqual(
+                    0
+                );
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "hgetall with multiple fields in an existing key and one non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const field1 = uuidv4();
+                const field2 = uuidv4();
+                const value = uuidv4();
+                const fieldValueMap = {
+                    [field1]: value,
+                    [field2]: value,
+                };
+                expect(await client.hset(key, fieldValueMap)).toEqual(2);
+                expect(await client.hgetall(key)).toEqual([
+                    field1,
+                    value,
+                    field2,
+                    value,
+                ]);
+                expect(await client.hgetall("nonExistingKey")).toEqual([]);
             });
         },
         config.timeout

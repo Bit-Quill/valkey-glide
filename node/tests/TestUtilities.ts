@@ -1,7 +1,8 @@
 import { beforeAll, expect } from "@jest/globals";
 import { exec } from "child_process";
 import { v4 as uuidv4 } from "uuid";
-import { Logger } from "..";
+import { Logger, ReturnType } from "..";
+import { BaseTransaction } from "../build-ts/src/Transaction";
 
 beforeAll(() => {
     Logger.init("info");
@@ -35,10 +36,52 @@ export function flushallOnPort(port: number): Promise<void> {
     );
 }
 
-/// This function takes the first result of the response if it got more than one response (like CME responses).
-export function getFirstResult(res: string | string[][]): string {
-    if (typeof res == "string") {
+/// This function takes the first result of the response if it got more than one response (like cluster responses).
+export function getFirstResult(
+    res: string | number | Record<string, string> | Record<string, number>
+): string | number {
+    if (typeof res == "string" || typeof res == "number") {
         return res;
     }
-    return res[0][1];
+    return Object.values(res).at(0);
+}
+
+export function transactionTest(
+    baseTransaction: BaseTransaction
+): ReturnType[] {
+    const key1 = "{key}" + uuidv4();
+    const key2 = "{key}" + uuidv4();
+    const key3 = "{key}" + uuidv4();
+    const key4 = "{key}" + uuidv4();
+    const field = uuidv4();
+    const value = uuidv4();
+    baseTransaction.set(key1, "bar");
+    baseTransaction.set(key2, "baz", {
+        conditionalSet: "onlyIfDoesNotExist",
+        returnOldValue: true,
+    });
+    baseTransaction.customCommand("MGET", [key1, key2]);
+    baseTransaction.mset({ [key3]: value });
+    baseTransaction.mget([key1, key2]);
+    baseTransaction.del([key1]);
+    baseTransaction.hset(key4, { [field]: value });
+    baseTransaction.hget(key4, field);
+    baseTransaction.hgetall(key4);
+    baseTransaction.hdel(key4, [field]);
+    baseTransaction.hmget(key4, [field]);
+    baseTransaction.hexists(key4, field);
+    return [
+        "OK",
+        null,
+        ["bar", "baz"],
+        "OK",
+        ["bar", "baz"],
+        1,
+        1,
+        value,
+        [field, value],
+        1,
+        [null],
+        0,
+    ];
 }

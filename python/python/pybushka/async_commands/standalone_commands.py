@@ -1,30 +1,12 @@
-from typing import List, Optional, cast
+from typing import List, Mapping, Optional, cast
 
-from pybushka.async_commands.core import BaseTransaction, CoreCommands, InfoSection
+from pybushka.async_commands.core import CoreCommands, InfoSection
+from pybushka.async_commands.transaction import BaseTransaction, Transaction
 from pybushka.constants import TOK, TResult
 from pybushka.protobuf.redis_request_pb2 import RequestType
 
 
-class Transaction(BaseTransaction):
-    """
-    Extends BaseTransaction class for standalone Redis commands.
-    """
-
-    # TODO: add MOVE, SLAVEOF and all SENTINEL commands
-    def select(self, index: int):
-        """Change the currently selected Redis database.
-        See https://redis.io/commands/select/ for details.
-
-        Args:
-            index (int): The index of the database to select.
-
-        Command response:
-            A simple OK response.
-        """
-        self.append_command(RequestType.Select, [str(index)])
-
-
-class CMDCommands(CoreCommands):
+class StandaloneCommands(CoreCommands):
     async def custom_command(self, command_args: List[str]) -> TResult:
         """Executes a single command, without checking inputs.
             @example - Return a list of all pub/sub clients:
@@ -133,3 +115,44 @@ class CMDCommands(CoreCommands):
         """
         argument = [] if message is None else [message]
         return cast(str, await self._execute_command(RequestType.Ping, argument))
+
+    async def config_get(self, parameters: List[str]) -> List[str]:
+        """Get the values of configuration parameters.
+        See https://redis.io/commands/config-get/ for details.
+
+        Args:
+            parameters (List[str]): A list of configuration parameter names to retrieve values for.
+
+        Returns:
+            List[str]: A list of values corresponding to the configuration parameters.
+
+        Examples:
+            >>> config_get(["timeout"])
+            ["timeout", "1000"]
+            >>> config_get(["timeout", "maxmemory"])
+            ["timeout", "1000", "maxmemory", "1GB"]
+
+        """
+        return cast(
+            List[str], await self._execute_command(RequestType.ConfigGet, parameters)
+        )
+
+    async def config_set(self, parameters_map: Mapping[str, str]) -> TOK:
+        """Set configuration parameters to the specified values.
+        See https://redis.io/commands/config-set/ for details.
+
+        Args:
+            parameters_map (Mapping[str, str]): A map consisting of configuration
+            parameters and their respective values to set.
+
+        Returns:
+            OK: Returns OK if all configurations have been successfully set. Otherwise, raises an error.
+
+        Examples:
+            >>> config_set({"timeout": "1000", "maxmemory": "1GB"})
+            OK
+        """
+        parameters: List[str] = []
+        for pair in parameters_map.items():
+            parameters.extend(pair)
+        return cast(TOK, await self._execute_command(RequestType.ConfigSet, parameters))

@@ -21,7 +21,7 @@ export function parseInfoResponse(response: string): Record<string, string> {
     const lines = response.split("\n");
     const parsedResponse: Record<string, string> = {};
     for (const line of lines) {
-        /// Ignore lines that start with '#'
+        // Ignore lines that start with '#'
         if (!line.startsWith("#")) {
             const [key, value] = line.trim().split(":");
             parsedResponse[key] = value;
@@ -56,22 +56,42 @@ export function createGet(key: string): redis_request.Command {
 }
 
 export type SetOptions = {
-    /// `onlyIfDoesNotExist` - Only set the key if it does not already exist. Equivalent to `NX` in the Redis API.
-    /// `onlyIfExists` - Only set the key if it already exist. Equivalent to `EX` in the Redis API.
-    /// if `conditional` is not set the value will be set regardless of prior value existence.
-    /// If value isn't set because of the condition, return null.
+    /**
+     *  `onlyIfDoesNotExist` - Only set the key if it does not already exist. Equivalent to `NX` in the Redis API.
+     * `onlyIfExists` - Only set the key if it already exist. Equivalent to `EX` in the Redis API.
+     * if `conditional` is not set the value will be set regardless of prior value existence.
+     * If value isn't set because of the condition, return null.
+     */
     conditionalSet?: "onlyIfExists" | "onlyIfDoesNotExist";
-    /// Return the old string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value stored at key is not a string. Equivalent to `GET` in the Redis API.
+    /**
+     * Return the old string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value stored at key is not a string.
+     * Equivalent to `GET` in the Redis API.
+     */
     returnOldValue?: boolean;
-    /// If not set, no expiry time will be set for the value.
-    expiry?:
-        | "keepExisting" /// Retain the time to live associated with the key. Equivalent to `KEEPTTL` in the Redis API.
+    /**
+     * If not set, no expiry time will be set for the value.
+     */
+    expiry?: /**
+     * Retain the time to live associated with the key. Equivalent to `KEEPTTL` in the Redis API.
+     */
+    | "keepExisting"
         | {
-              type:
-                  | "seconds" /// Set the specified expire time, in seconds. Equivalent to `EX` in the Redis API.
-                  | "milliseconds" ///  Set the specified expire time, in milliseconds. Equivalent to `PX` in the Redis API.
-                  | "unixSeconds" /// Set the specified Unix time at which the key will expire, in seconds. Equivalent to `EXAT` in the Redis API.
-                  | "unixMilliseconds"; /// Set the specified Unix time at which the key will expire, in milliseconds. Equivalent to `PXAT` in the Redis API.
+              type: /**
+               * Set the specified expire time, in seconds. Equivalent to `EX` in the Redis API.
+               */
+              | "seconds"
+                  /**
+                   * Set the specified expire time, in milliseconds. Equivalent to `PX` in the Redis API.
+                   */
+                  | "milliseconds"
+                  /**
+                   * Set the specified Unix time at which the key will expire, in seconds. Equivalent to `EXAT` in the Redis API.
+                   */
+                  | "unixSeconds"
+                  /**
+                   * Set the specified Unix time at which the key will expire, in milliseconds. Equivalent to `PXAT` in the Redis API.
+                   */
+                  | "unixMilliseconds";
               count: number;
           };
 };
@@ -117,44 +137,79 @@ export function createSet(
     return createCommand(RequestType.SetString, args);
 }
 
+/**
+ * INFO option: a specific section of information:
+ * When no parameter is provided, the default option is assumed.
+ */
 export enum InfoOptions {
-    /// INFO option: a specific section of information:
-
-    /// -SERVER: General information about the Redis server
+    /**
+     * SERVER: General information about the Redis server
+     */
     Server = "server",
-    /// -CLIENTS: Client connections section
+    /**
+     * CLIENTS: Client connections section
+     */
     Clients = "clients",
-    /// -MEMORY: Memory consumption related information
+    /**
+     * MEMORY: Memory consumption related information
+     */
     Memory = "memory",
-    /// -PERSISTENCE: RDB and AOF related information
+    /**
+     * PERSISTENCE: RDB and AOF related information
+     */
     Persistence = "persistence",
-    /// -STATS: General statistics
+    /**
+     * STATS: General statistics
+     */
     Stats = "stats",
-    /// -REPLICATION: Master/replica replication information
+    /**
+     * REPLICATION: Master/replica replication information
+     */
     Replication = "replication",
-    /// -CPU: CPU consumption statistics
+    /**
+     * CPU: CPU consumption statistics
+     */
     Cpu = "cpu",
-    /// -COMMANDSTATS: Redis command statistics
+    /**
+     * COMMANDSTATS: Redis command statistics
+     */
     Commandstats = "commandstats",
-    /// -LATENCYSTATS: Redis command latency percentile distribution statistics
+    /**
+     * LATENCYSTATS: Redis command latency percentile distribution statistics
+     */
     Latencystats = "latencystats",
-    /// -SENTINEL: Redis Sentinel section (only applicable to Sentinel instances)
+    /**
+     * SENTINEL: Redis Sentinel section (only applicable to Sentinel instances)
+     */
     Sentinel = "sentinel",
-    /// -CLUSTER: Redis Cluster section
+    /**
+     * CLUSTER: Redis Cluster section
+     */
     Cluster = "cluster",
-    /// -MODULES: Modules section
+    /**
+     * MODULES: Modules section
+     */
     Modules = "modules",
-    /// -KEYSPACE: Database related statistics
+    /**
+     * KEYSPACE: Database related statistics
+     */
     Keyspace = "keyspace",
-    /// -ERRORSTATS: Redis error statistics
+    /**
+     * ERRORSTATS: Redis error statistics
+     */
     Errorstats = "errorstats",
-    /// -ALL: Return all sections (excluding module generated ones)
+    /**
+     * ALL: Return all sections (excluding module generated ones)
+     */
     All = "all",
-    /// -DEFAULT: Return only the default set of sections
+    /**
+     * DEFAULT: Return only the default set of sections
+     */
     Default = "default",
-    /// EVERYTHING: Includes all and modules
+    /**
+     * EVERYTHING: Includes all and modules
+     */
     Everything = "everything",
-    /// When no parameter is provided, the default option is assumed.
 }
 
 export function createPing(str?: string): redis_request.Command {
@@ -175,12 +230,26 @@ export function createSelect(index: number): redis_request.Command {
     return createCommand(RequestType.Select, [index.toString()]);
 }
 
+export function createClientGetName(): redis_request.Command {
+    return createCommand(RequestType.ClientGetName, []);
+}
+
 export function createConfigRewrite(): redis_request.Command {
     return createCommand(RequestType.ConfigRewrite, []);
 }
 
 export function createConfigResetStat(): redis_request.Command {
     return createCommand(RequestType.ConfigResetStat, []);
+}
+
+export function createMGet(keys: string[]): redis_request.Command {
+    return createCommand(RequestType.MGet, keys);
+}
+
+export function createMSet(
+    keyValueMap: Record<string, string>
+): redis_request.Command {
+    return createCommand(RequestType.MSet, Object.entries(keyValueMap).flat());
 }
 
 export function createIncr(key: string): redis_request.Command {
@@ -199,6 +268,73 @@ export function createIncrByFloat(
     amount: number
 ): redis_request.Command {
     return createCommand(RequestType.IncrByFloat, [key, amount.toString()]);
+}
+
+export function createClientId(): redis_request.Command {
+    return createCommand(RequestType.ClientId, []);
+}
+
+export function createConfigGet(parameters: string[]): redis_request.Command {
+    return createCommand(RequestType.ConfigGet, parameters);
+}
+
+export function createConfigSet(
+    parameters: Record<string, string>
+): redis_request.Command {
+    return createCommand(
+        RequestType.ConfigSet,
+        Object.entries(parameters).flat()
+    );
+}
+
+export function createHGet(key: string, field: string): redis_request.Command {
+    return createCommand(RequestType.HashGet, [key, field]);
+}
+
+export function createHSet(
+    key: string,
+    fieldValueMap: Record<string, string>
+): redis_request.Command {
+    return createCommand(
+        RequestType.HashSet,
+        [key].concat(Object.entries(fieldValueMap).flat())
+    );
+}
+
+export function createDecr(key: string): redis_request.Command {
+    return createCommand(RequestType.Decr, [key]);
+}
+
+export function createDecrBy(
+    key: string,
+    amount: number
+): redis_request.Command {
+    return createCommand(RequestType.DecrBy, [key, amount.toString()]);
+}
+
+export function createHDel(
+    key: string,
+    fields: string[]
+): redis_request.Command {
+    return createCommand(RequestType.HashDel, [key].concat(fields));
+}
+
+export function createHMGet(
+    key: string,
+    fields: string[]
+): redis_request.Command {
+    return createCommand(RequestType.HashMGet, [key].concat(fields));
+}
+
+export function createHExists(
+    key: string,
+    field: string
+): redis_request.Command {
+    return createCommand(RequestType.HashExists, [key, field]);
+}
+
+export function createHGetAll(key: string): redis_request.Command {
+    return createCommand(RequestType.HashGetAll, [key]);
 }
 
 export function createCustomCommand(commandName: string, args: string[]) {
