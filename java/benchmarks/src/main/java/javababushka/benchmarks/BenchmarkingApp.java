@@ -151,6 +151,7 @@ public class BenchmarkingApp {
                             ClientName.JEDIS_ASYNC,
                             ClientName.JNA_FFI,
                             ClientName.JNI_FFI,
+                            ClientName.KOTLIN,
                             // ClientName.BABUSHKA_ASYNC,
                             ClientName.LETTUCE,
                             ClientName.LETTUCE_ASYNC);

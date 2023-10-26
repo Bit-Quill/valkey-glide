@@ -138,7 +138,9 @@ public class JnaFfi implements SyncClient {
   }
 
   @Override
-  public void set(String key, String value) {}
+  public void set(String key, String value) {
+    var res = lib.set0(ptr, key, value);
+  }
 
   @Override
   public String get(String key) {
