@@ -121,7 +121,7 @@ public class Benchmarking {
   public static void testClientSetGet(
       Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
     for (int concurrentNum : config.concurrentTasks) {
-      int iterations = 1000; // Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
+      int iterations = Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
       for (int clientCount : config.clientCount) {
         for (int dataSize : config.dataSize) {
           System.out.printf(
