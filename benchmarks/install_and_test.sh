@@ -205,7 +205,7 @@ do
         -go)
             runAllBenchmarks=0
             runGo=1
-            chosenClients="babushka"
+            chosenClients="all"
             ;;
         -go-redis)
             runAllBenchmarks=0
