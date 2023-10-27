@@ -4,9 +4,6 @@
 #include <ostream>
 #include <new>
 
-template<typename T = void>
-struct Option;
-
 struct BabushkaResultStr {
   const char *error;
   const char *result;
@@ -17,12 +14,6 @@ struct BabushkaResult {
   uint32_t value_type;
   const char *str;
   int64_t num;
-};
-
-struct BabushkaClient {
-  Option<Mutex<Runtime>> runtime;
-  Option<Mutex<MultiplexedConnection>> connection;
-  int32_t data;
 };
 
 extern "C" {
@@ -52,9 +43,5 @@ BabushkaResult connect0(uint64_t ptr, const char *address);
 BabushkaResult set0(uint64_t ptr, const char *key, const char *value);
 
 BabushkaResult get0(uint64_t ptr, const char *key);
-
-BabushkaResult set(BabushkaClient *self, const char *key, const char *value);
-
-BabushkaResult get(BabushkaClient *self, const char *key);
 
 } // extern "C"

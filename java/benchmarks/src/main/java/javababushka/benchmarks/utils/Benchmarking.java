@@ -89,32 +89,38 @@ public class Benchmarking {
       ChosenAction action = entry.getKey();
       ArrayList<Long> latencies = entry.getValue();
 
-      double avgLatency = latencies.stream().mapToLong(Long::longValue).sum() / latencies.size();
+      double avgLatency =
+          latencies.stream().mapToLong(Long::longValue).sum() * 1e-6 / latencies.size();
 
       Collections.sort(latencies);
       results.put(
           action,
           new LatencyResults(
               avgLatency,
-              percentile(latencies, 50),
-              percentile(latencies, 90),
-              percentile(latencies, 99),
-              stdDeviation(latencies, avgLatency)));
+              percentile(latencies, 50) * 1e-6,
+              percentile(latencies, 90) * 1e-6,
+              percentile(latencies, 99) * 1e-6,
+              stdDeviation(latencies, avgLatency) * 1e-6));
     }
 
     return results;
   }
 
-  public static void printResults(Map<ChosenAction, LatencyResults> resultsMap) {
+  public static void printResults(
+      Map<ChosenAction, LatencyResults> resultsMap, double duration, int iterations) {
+    System.out.printf("Runtime s: %f%n", duration);
+    System.out.printf("Iterations: %d%n", iterations);
+    System.out.printf("TPS: %f%n", iterations / duration);
     for (Map.Entry<ChosenAction, LatencyResults> entry : resultsMap.entrySet()) {
       ChosenAction action = entry.getKey();
       LatencyResults results = entry.getValue();
 
-      System.out.println("Avg. time in ms per " + action + ": " + results.avgLatency / 1000000);
-      System.out.println(action + " p50 latency in ms: " + results.p50Latency / 1000000);
-      System.out.println(action + " p90 latency in ms: " + results.p90Latency / 1000000);
-      System.out.println(action + " p99 latency in ms: " + results.p99Latency / 1000000);
-      System.out.println(action + " std dev in ms: " + results.stdDeviation / 1000000);
+      System.out.printf("===> %s <===%n", action);
+      System.out.printf("avg. time ms: %f%n", results.avgLatency);
+      System.out.printf("std dev ms: %f%n", results.stdDeviation);
+      System.out.printf("p50 latency ms: %f%n", results.p50Latency);
+      System.out.printf("p90 latency ms: %f%n", results.p90Latency);
+      System.out.printf("p99 latency ms: %f%n", results.p99Latency);
     }
   }
 
@@ -188,6 +194,7 @@ public class Benchmarking {
                       e.printStackTrace();
                     }
                   });
+          long ended = System.nanoTime();
 
           var calculatedResults = calculateResults(actionResults);
           if (config.resultsFile.isPresent()) {
@@ -198,9 +205,9 @@ public class Benchmarking {
                 clientCreator.get().getName(),
                 clientCount,
                 concurrentNum,
-                iterationCounter.get() * 1e9 / (System.nanoTime() - started));
+                iterationCounter.get() * 1e9 / (ended - started));
           }
-          printResults(calculatedResults);
+          printResults(calculatedResults, (ended - started) / 1e9, iterationCounter.get());
         }
       }
     }

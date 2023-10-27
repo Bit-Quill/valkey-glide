@@ -26,9 +26,9 @@ runNode=0
 runCsharp=0
 runJava=0
 runRust=0
-concurrentTasks="1 10 100 1000"
-dataSize="100 4000"
-clientCount="1"
+concurrentTasks="10 100 1000"
+dataSize="100"
+clientCount="2"
 chosenClients="all"
 host="localhost"
 port=6379
@@ -71,18 +71,20 @@ function runCSharpBenchmark(){
 }
 
 function runJavaBenchmark(){
+  cd ${BENCH_FOLDER}/../kotlin
+  ./gradlew build
   cd ${BENCH_FOLDER}/../java
-  echo "./gradlew run --args=\"--resultsFile=${BENCH_FOLDER}/$1 --clients $chosenClients --host $host --port $port\""
-#  ./gradlew run --args="--resultsFile=../$1 --dataSize $2 --concurrentTasks $concurrentTasks --clients $chosenClients --host $host --port $port --clientCount $clientCount $tlsFlag"
-  ./gradlew run --args="--resultsFile=${BENCH_FOLDER}/$1 --clients $chosenClients --host $host --port $port"
-  cd ${BENCH_FOLDER}/java
+  cargo build
+  # ./gradlew build
+  # echo ./gradlew :benchmarks:run --args="-resultsFile ${BENCH_FOLDER}/$1 -dataSize \"$2\" -concurrentTasks \"$concurrentTasks\" -clients \"$chosenClients\" -host $host -port $port -clientCount \"$clientCount\" $tlsFlag"
+  ./gradlew :benchmarks:run --args="-resultsFile ${BENCH_FOLDER}/$1 -dataSize \"$2\" -concurrentTasks \"$concurrentTasks\" -clients \"$chosenClients\" -host $host -port $port -clientCount \"$clientCount\" $tlsFlag"
 }
 
 function runRustBenchmark(){
   rustConcurrentTasks=
   for value in $concurrentTasks
   do
-    rustConcurrentTasks=$rustConcurrentTasks" --concurrentTasks "$value
+    rustConcurrentTasks="$rustConcurrentTasks --concurrentTasks $value"
   done
   cd ${BENCH_FOLDER}/rust
   cargo run --release -- --resultsFile=../$1 --dataSize $2 $rustConcurrentTasks --host $host --clientCount $clientCount $tlsFlag $clusterFlag $portFlag
@@ -198,7 +200,7 @@ do
         -java)
             runAllBenchmarks=0
             runJava=1
-            chosenClients="Babushka"
+            chosenClients="Lettuce,JNI_FFI,JNA_FFI,Kotlin"
             ;;
         -lettuce)
             runAllBenchmarks=0

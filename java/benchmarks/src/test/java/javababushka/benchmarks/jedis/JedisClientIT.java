@@ -66,6 +66,6 @@ public class JedisClientIT {
       latencies.get(latency.getKey()).add(latency.getValue());
     }
 
-    Benchmarking.printResults(Benchmarking.calculateResults(latencies));
+    Benchmarking.printResults(Benchmarking.calculateResults(latencies), 0, iterations);
   }
 }

@@ -38,7 +38,7 @@ public class JsonWriter {
               // TODO:  is_cluster
               .data_size(dataSize)
               .client(client)
-              .client_count(clientCount)
+              .clientCount(clientCount)
               .num_of_tasks(numOfTasks)
               .tps(tps)
               .get_existing_average_latency(
@@ -79,7 +79,7 @@ public class JsonWriter {
   @Builder
   public static class Measurements {
     private String client;
-    private int client_count;
+    private int clientCount;
     private int data_size;
     private double get_existing_average_latency;
     private double get_existing_p50_latency;
