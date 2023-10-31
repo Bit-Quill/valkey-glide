@@ -28,11 +28,17 @@ impl RotatingBuffer {
                 if (start_pos + request_len as usize) > buffer_len {
                     break;
                 } else {
+                    log_error("parse input", format!("incoming: start {start_pos}, len {request_len}, buffer_len: {buffer_len}"));
+                    let bytes = buffer.slice(start_pos..start_pos + request_len as usize);
+                    log_error("parse input", format!("{:#x?}", bytes.as_ref()));
+                    //let str_bytes = std::str::from_utf8(&bytes[..]);
+                    //log_error("String bytes", str_bytes.unwrap().to_string());
                     match T::parse_from_tokio_bytes(
                         &buffer.slice(start_pos..start_pos + request_len as usize),
                     ) {
                         Ok(request) => {
                             prev_position += request_len as usize + bytes_read;
+
                             results.push(request);
                         }
                         Err(err) => {
@@ -45,6 +51,8 @@ impl RotatingBuffer {
                 break;
             }
         }
+
+        log_error("parse input", format!("results: {}", results.len()));
 
         if prev_position != buffer.len() {
             self.backing_buffer
