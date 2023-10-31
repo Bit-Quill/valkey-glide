@@ -525,6 +525,8 @@ async fn read_values_loop(
                 return reason;
             }
             ReceivedValues(received_requests) => {
+                print!("Received {} requests: {:?}", received_requests.len(), received_requests);
+                log_error("parse input", format!("Received {} requests: {:?}", received_requests.len(), received_requests));
                 handle_requests(received_requests, client, &writer).await;
             }
         }

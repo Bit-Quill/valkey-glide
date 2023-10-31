@@ -156,6 +156,7 @@ public class Benchmarking {
               "%n =====> %s <===== %d clients %d concurrent %d data %n%n",
               clientCreator.get().getName(), clientCount, concurrentNum, dataSize);
           AtomicInteger iterationCounter = new AtomicInteger(0);
+          // Collections.synchronizedList
           Map<ChosenAction, List<Long>> actionResults =
               Map.of(
                   ChosenAction.GET_EXISTING, new ArrayList<>(),

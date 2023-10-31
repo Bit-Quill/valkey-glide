@@ -3,6 +3,8 @@ package javababushka.client;
 public class RedisClient {
   public static native void startSocketListenerExternal(RedisClient callback);
 
+  public static native String startSocketListenerExternal() throws Exception;
+
   public static native Object valueFromPointer(long pointer);
 
   static {
