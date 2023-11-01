@@ -1,6 +1,8 @@
 # Babushka Socket Listener
 
-## Sequence Diagram - Unix Domain Socket Manager
+## Unix Domain Socket Manager
+
+### Sequence Diagram 
 
 **Summary**: The Babushka "UDS" solution uses a socket manager to redis-client worker threads, and UDS to manage the communication
 between the wrapper and redis-client threads.  This works well because we allow the socket to manage the communication. This 
@@ -58,7 +60,7 @@ deactivate Client
 deactivate Socket
 ```
 
-## Elements
+### Elements
 * **Wrapper**: Our Babushka wrapper that exposes a client API (java, python, node, etc)
 * **Babushka FFI**: Foreign Function Interface definitions from our wrapper to our Rust Babushka-Core
 * **Babushka impl**: public interface layer and thread manager
@@ -67,10 +69,12 @@ deactivate Socket
 * **Unix Domain Socket**: Unix Domain Socket to handle communication
 * **Redis**: Our data store
 
-## (Current) Raw-FFI Benchmark Test
+## Raw-FFI Benchmark Test
 
 **Summary**: We copied the C# benchmarking implementation, and discovered that it wasn't using the Babushka/Redis client 
 at all, but instead spawning a single worker thread to connect to Redis using a general Rust Redis client.
+
+### (Current) Sequence Diagram for test
 
 ```mermaid
 sequenceDiagram
@@ -89,6 +93,35 @@ Wrapper ->>+ ffi: create_connection
 Wrapper ->> ffi: command (GET/SET)
     ffi ->>+ worker: Runtime::spawn
         worker ->> Client: Connection::clone(command)
+        Client -->> worker: Result
+    worker -->> ffi: success_callback
+ffi ->> Wrapper: async Result
+deactivate Wrapper
+deactivate Client
+```
+
+### (New) Sequence Diagram for test
+
+Shachar [updated C# benchmark tests](https://github.com/aws/babushka/pull/559/files) to connect to babushka core, instead
+of a redis client. 
+
+```mermaid
+sequenceDiagram
+
+participant Wrapper as Client-Wrapper
+participant ffi as Babushka FFI
+participant worker as Tokio Worker
+participant Client as Redis
+
+activate Wrapper
+activate Client
+Wrapper ->>+ ffi: create_connection
+    ffi ->>+ worker: Create Tokio::Runtime (count: 1)
+        worker ->> Client: BabushkaClient::new
+    ffi -->> Wrapper: Connection
+Wrapper ->> ffi: cmd[GET/SET]
+    ffi ->>+ worker: Runtime::spawn
+        worker ->> Client: Connection::clone.req_packed_command(cmd)
         Client -->> worker: Result
     worker -->> ffi: success_callback
 ffi ->> Wrapper: async Result
