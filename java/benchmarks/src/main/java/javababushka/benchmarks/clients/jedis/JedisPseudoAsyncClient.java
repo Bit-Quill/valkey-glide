@@ -4,6 +4,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javababushka.benchmarks.clients.AsyncClient;
+import javababushka.benchmarks.utils.ConnectionSettings;
 
 /**
  * A jedis client with pseudo-sync capabilities. Jedis doesn't provide async API
@@ -13,6 +14,11 @@ import javababushka.benchmarks.clients.AsyncClient;
  */
 public class JedisPseudoAsyncClient extends JedisClient implements AsyncClient {
   @Override
+  public Future<?> asyncConnectToRedis(ConnectionSettings connectionSettings) {
+    return CompletableFuture.runAsync(() -> super.connectToRedis(connectionSettings));
+  }
+
+  @Override
   public Future<?> asyncSet(String key, String value) {
     return CompletableFuture.runAsync(() -> super.set(key, value));
   }
@@ -20,20 +26,6 @@ public class JedisPseudoAsyncClient extends JedisClient implements AsyncClient {
   @Override
   public Future<String> asyncGet(String key) {
     return CompletableFuture.supplyAsync(() -> super.get(key));
-  }
-
-  @Override
-  public <T> T waitForResult(Future<T> future) {
-    return waitForResult(future, DEFAULT_TIMEOUT);
-  }
-
-  @Override
-  public <T> T waitForResult(Future<T> future, long timeout) {
-    try {
-      return future.get(timeout, TimeUnit.MILLISECONDS);
-    } catch (Exception ignored) {
-      return null;
-    }
   }
 
   @Override

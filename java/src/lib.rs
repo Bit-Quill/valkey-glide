@@ -9,10 +9,12 @@ use logger_core::Level;
 use redis::Value;
 
 fn redis_value_to_java<'local>(mut env: JNIEnv<'local>, val: Value) -> JObject<'local> {
+    println!("==r value {:?}", val);
     match val {
         Value::Nil => JObject::null(),
         Value::Status(str) => JObject::from(env.new_string(str).unwrap()),
         Value::Okay => JObject::from(env.new_string("OK").unwrap()),
+        // TODO use primitive integer
         Value::Int(num) => env.new_object("java/lang/Integer", "(I)V", &[num.into()]).unwrap(),
         Value::Data(data) => match std::str::from_utf8(data.as_ref()) {
             Ok(val) => JObject::from(env.new_string(val).unwrap()),
@@ -42,7 +44,9 @@ pub extern "system" fn Java_javababushka_client_RedisClient_valueFromPointer<'lo
     _class: JClass<'local>,
     pointer: jlong
 ) -> JObject<'local> {
+    println!("==r pointer {:?}", pointer);
     let value = unsafe { Box::from_raw(pointer as *mut Value) };
+    println!("==r value {:?}", value);
     redis_value_to_java(env, *value)
 }
 

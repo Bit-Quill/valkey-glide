@@ -134,6 +134,9 @@ async fn write_to_output(writer: &Rc<Writer>) {
         if output.is_empty() {
             return;
         }
+
+        log_warn("write_to_output", format!("output: {} {:?}", output.len(), output));
+
         let mut total_written_bytes = 0;
         while total_written_bytes < output.len() {
             if let Err(err) = writer.socket.writable().await {
@@ -165,6 +168,8 @@ async fn write_closing_error(
     callback_index: u32,
     writer: &Rc<Writer>,
 ) -> Result<(), io::Error> {
+    log_warn("write_closing_error", format!("err: {}, callback: {callback_index}", err.err_message));
+
     let err = err.err_message;
     log_error("client creation", err.as_str());
     let mut response = Response::new();
@@ -179,6 +184,9 @@ async fn write_result(
     callback_index: u32,
     writer: &Rc<Writer>,
 ) -> Result<(), io::Error> {
+
+    log_warn("write_result", format!("resp_result: {resp_result:?}, callback: {callback_index}"));
+
     let mut response = Response::new();
     response.callback_idx = callback_index;
     response.value = match resp_result {
@@ -240,6 +248,8 @@ async fn write_result(
 async fn write_to_writer(response: Response, writer: &Rc<Writer>) -> Result<(), io::Error> {
     let mut vec = writer.accumulated_outputs.take();
     let encode_result = response.write_length_delimited_to_vec(&mut vec);
+
+    log_warn("write_to_writer", format!("Response: {response:?}"));
 
     // Write the response' length to the buffer
     match encode_result {

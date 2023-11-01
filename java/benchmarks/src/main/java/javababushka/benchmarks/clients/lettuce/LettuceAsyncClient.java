@@ -2,18 +2,21 @@ package javababushka.benchmarks.clients.lettuce;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
+import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import io.lettuce.core.codec.StringCodec;
 import javababushka.benchmarks.clients.AsyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 
 /** A Lettuce client with async capabilities see: https://lettuce.io/ */
-public class LettuceAsyncClient implements AsyncClient {
+public class LettuceAsyncClient implements AsyncClient<String> {
 
   RedisClient client;
-  RedisAsyncCommands asyncCommands;
+  RedisAsyncCommands<String, String> asyncCommands;
   StatefulRedisConnection<String, String> connection;
 
   @Override
@@ -35,27 +38,27 @@ public class LettuceAsyncClient implements AsyncClient {
   }
 
   @Override
-  public RedisFuture<?> asyncSet(String key, String value) {
+  public Future<String> asyncConnectToRedis(ConnectionSettings connectionSettings) {
+    client = RedisClient.create();
+    var asyncConnection  = client.connectAsync(
+        new StringCodec(),
+        RedisURI.create(String.format(
+            "%s://%s:%d",
+            connectionSettings.useSsl ? "rediss" : "redis",
+            connectionSettings.host,
+            connectionSettings.port)));
+    asyncConnection.whenComplete((connection, exception) -> asyncCommands = connection.async());
+    return asyncConnection.thenApply((connection) -> "OK");
+  }
+
+  @Override
+  public RedisFuture<String> asyncSet(String key, String value) {
     return asyncCommands.set(key, value);
   }
 
   @Override
   public RedisFuture<String> asyncGet(String key) {
     return asyncCommands.get(key);
-  }
-
-  @Override
-  public Object waitForResult(Future future) {
-    return waitForResult(future, DEFAULT_TIMEOUT);
-  }
-
-  @Override
-  public Object waitForResult(Future future, long timeoutMS) {
-    try {
-      return future.get(timeoutMS, TimeUnit.MILLISECONDS);
-    } catch (Exception ignored) {
-      return null;
-    }
   }
 
   @Override
