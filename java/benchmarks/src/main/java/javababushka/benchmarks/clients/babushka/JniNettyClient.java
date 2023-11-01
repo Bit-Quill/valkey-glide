@@ -104,6 +104,19 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
   }
 
+  public JniNettyClient(boolean async) {
+    name += async ? " async" : " sync";
+  }
+
+  public JniNettyClient() {}
+
+  private String name = "JNI Netty";
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
   @Override
   public void connectToRedis() {
     connectToRedis(new ConnectionSettings("localhost", 6379, false));
@@ -150,7 +163,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                       buf.readBytes(bytes);
                       // TODO surround parsing with try-catch
                       var response = Response.parseFrom(bytes);
-                      System.out.printf("== Received response with callback %d%n", response.getCallbackIdx());
+                      //System.out.printf("== Received response with callback %d%n", response.getCallbackIdx());
                       responses.get(response.getCallbackIdx()).complete(response);
                       super.channelRead(ctx, bytes);
                     }
@@ -165,26 +178,26 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                   .addLast(new ChannelOutboundHandlerAdapter() {
                     @Override
                     public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) throws Exception {
-                      System.out.printf("=== bind %s %s %s %n", ctx, localAddress, promise);
+                      //System.out.printf("=== bind %s %s %s %n", ctx, localAddress, promise);
                       super.bind(ctx, localAddress, promise);
                     }
 
                     @Override
                     public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) throws Exception {
-                      System.out.printf("=== connect %s %s %s %s %n", ctx, remoteAddress, localAddress, promise);
+                      //System.out.printf("=== connect %s %s %s %s %n", ctx, remoteAddress, localAddress, promise);
                       super.connect(ctx, remoteAddress, localAddress, promise);
                     }
 
                     @Override
                     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-                      System.out.printf("=== write %s %s %s %n", ctx, msg, promise);
+                      //System.out.printf("=== write %s %s %s %n", ctx, msg, promise);
 
                       super.write(ctx, Unpooled.copiedBuffer((byte[])msg), promise);
                     }
 
                     @Override
                     public void flush(ChannelHandlerContext ctx) throws Exception {
-                      System.out.printf("=== flush %s %n", ctx);
+                      //System.out.printf("=== flush %s %n", ctx);
                       super.flush(ctx);
                     }
                   });
@@ -216,11 +229,6 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     } finally {
       group.shutdownGracefully();
     }
-  }
-
-  @Override
-  public String getName() {
-    return "JNI Netty";
   }
 
   @Override
@@ -296,6 +304,29 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     long afterGetE = System.nanoTime();
     System.out.printf("++++ get E: %d%n", afterGetE - beforeGetE);
 
+    ///////
+
+    long beforeSetA = System.nanoTime();
+    for (int i = 0; i < 1000; i++) {
+      client.asyncSet("name", "value");
+    }
+    long afterSetA = System.nanoTime();
+    System.out.printf("++++ set: %d%n", afterSetA - beforeSetA);
+
+    long beforeGetNEA = System.nanoTime();
+    for (int i = 0; i < 1000; i++) {
+      client.asyncGet("namevalue");
+    }
+    long afterGetNEA = System.nanoTime();
+    System.out.printf("++++ get NE: %d%n", afterGetNEA - beforeGetNEA);
+
+    long beforeGetEA = System.nanoTime();
+    for (int i = 0; i < 1000; i++) {
+      client.asyncGet(key);
+    }
+    long afterGetEA = System.nanoTime();
+    System.out.printf("++++ get E: %d%n", afterGetEA - beforeGetEA);
+
     client.closeConnection();
   }
 
@@ -346,7 +377,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   @Override
   public Future<Response> asyncSet(String key, String value) {
     int callbackId = getNextCallbackId();
-    System.out.printf("== set(%s, %s), callback %d%n", key, value, callbackId);
+    //System.out.printf("== set(%s, %s), callback %d%n", key, value, callbackId);
     RedisRequest request =
         RedisRequest.newBuilder()
             .setCallbackIdx(callbackId)
@@ -367,7 +398,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   @Override
   public Future<String> asyncGet(String key) {
     int callbackId = getNextCallbackId();
-    System.out.printf("== get(%s), callback %d%n", key, callbackId);
+    //System.out.printf("== get(%s), callback %d%n", key, callbackId);
     RedisRequest request =
         RedisRequest.newBuilder()
             .setCallbackIdx(callbackId)

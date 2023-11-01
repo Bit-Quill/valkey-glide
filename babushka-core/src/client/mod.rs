@@ -264,8 +264,6 @@ impl Client {
     pub async fn new(request: ConnectionRequest) -> Result<Self, ConnectionError> {
         const DEFAULT_CLIENT_CREATION_TIMEOUT: Duration = Duration::from_millis(2500);
 
-        log_info("Connection configuration", format!("received {} addresses", request.addresses.len()));
-
         log_info(
             "Connection configuration",
             sanitized_request_string(&request),

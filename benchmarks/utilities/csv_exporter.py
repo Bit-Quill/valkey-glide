@@ -1,3 +1,5 @@
+#!/bin/python3
+
 import csv
 import json
 import os
@@ -12,7 +14,7 @@ with open(output_file_name, "w+") as output_file:
         "is_cluster",
         "num_of_tasks",
         "data_size",
-        "clientCount",
+        "client_count",
         "tps",
         "get_non_existing_p50_latency",
         "get_non_existing_p90_latency",
@@ -51,5 +53,5 @@ with open(output_file_name, "w+") as output_file:
                 values = [json_object[field] for field in base_fields]
                 writer.writerow(values)
 
-for json_file_full_path in sys.argv[1:-1]:
-    os.remove(json_file_full_path)
+# for json_file_full_path in sys.argv[1:-1]:
+#     os.remove(json_file_full_path)

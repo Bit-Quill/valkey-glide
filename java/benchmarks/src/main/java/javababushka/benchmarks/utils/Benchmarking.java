@@ -148,7 +148,7 @@ public class Benchmarking {
   public static void testClientSetGet(
       Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
     for (int concurrentNum : config.concurrentTasks) {
-      int iterations =
+      int iterations = 1000;
           Math.min(Math.max(LATENCY_MIN, concurrentNum * LATENCY_MULTIPLIER), LATENCY_MAX);
       for (int clientCount : config.clientCount) {
         for (int dataSize : config.dataSize) {
@@ -248,6 +248,8 @@ public class Benchmarking {
                 }
               });
           long after = System.nanoTime();
+
+          clients.forEach(Client::closeConnection);
 
           var calculatedResults = calculateResults(actionResults);
           if (config.resultsFile.isPresent()) {

@@ -5,6 +5,8 @@ import static javababushka.benchmarks.utils.Benchmarking.testClientSetGet;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import javababushka.benchmarks.clients.babushka.JniNettyClient;
 import javababushka.benchmarks.clients.babushka.JniSyncClient;
 import javababushka.benchmarks.clients.jedis.JedisClient;
 import javababushka.benchmarks.clients.jedis.JedisPseudoAsyncClient;
@@ -63,6 +65,10 @@ public class BenchmarkingApp {
           break;
         case BABUSHKA_JNI:
           testClientSetGet(JniSyncClient::new, runConfiguration, false);
+          break;
+        case JNI_NETTY:
+          testClientSetGet(() -> new JniNettyClient(false), runConfiguration, false);
+          testClientSetGet(() -> new JniNettyClient(true), runConfiguration, true);
           break;
         case BABUSHKA_ASYNC:
           System.out.println("Babushka async not yet configured");
@@ -195,6 +201,7 @@ public class BenchmarkingApp {
   }
 
   public enum ClientName {
+    JNI_NETTY("JNI netty"),
     JEDIS("Jedis"),
     JEDIS_ASYNC("Jedis async"),
     LETTUCE("Lettuce"),
@@ -236,13 +243,14 @@ public class BenchmarkingApp {
 
     public RunConfiguration() {
       configuration = "Release";
-      resultsFile = Optional.empty();
+      resultsFile = Optional.of("res_java.json");//Optional.empty();
       dataSize = new int[] {100, 4000};
       concurrentTasks = new int[] {100, 1000};
       clients =
           new ClientName[] {
             // ClientName.BABUSHKA_ASYNC,
-            ClientName.JEDIS, ClientName.JEDIS_ASYNC, ClientName.LETTUCE, ClientName.LETTUCE_ASYNC
+            //ClientName.JEDIS, ClientName.JEDIS_ASYNC, ClientName.LETTUCE, ClientName.LETTUCE_ASYNC
+              ClientName.JNI_NETTY
           };
       host = "localhost";
       port = 6379;

@@ -9,7 +9,6 @@ use logger_core::Level;
 use redis::Value;
 
 fn redis_value_to_java<'local>(mut env: JNIEnv<'local>, val: Value) -> JObject<'local> {
-    println!("==r value {:?}", val);
     match val {
         Value::Nil => JObject::null(),
         Value::Status(str) => JObject::from(env.new_string(str).unwrap()),
@@ -44,9 +43,7 @@ pub extern "system" fn Java_javababushka_client_RedisClient_valueFromPointer<'lo
     _class: JClass<'local>,
     pointer: jlong
 ) -> JObject<'local> {
-    println!("==r pointer {:?}", pointer);
     let value = unsafe { Box::from_raw(pointer as *mut Value) };
-    println!("==r value {:?}", value);
     redis_value_to_java(env, *value)
 }
 
@@ -87,7 +84,7 @@ pub extern "system" fn Java_javababushka_client_RedisClient_startSocketListenerE
 ) -> JObject<'local> {
     let (tx, rx) = mpsc::channel::<Result<String, String>>();
 
-    logger_core::init(Some(Level::Trace), None);
+    //logger_core::init(Some(Level::Trace), None);
 
     start_socket_listener(move |socket_path : Result<String, String>| {
         // Signals that thread has started
