@@ -220,7 +220,7 @@ public class Benchmarking {
                 concurrentNum, clientCount, tasks.size());
           }
           long before = System.nanoTime();
-          ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+          ExecutorService threadPool = Executors.newFixedThreadPool(concurrentNum);
 
           // create threads and add them to the async pool.
           // This will start execution of all the concurrent tasks.
