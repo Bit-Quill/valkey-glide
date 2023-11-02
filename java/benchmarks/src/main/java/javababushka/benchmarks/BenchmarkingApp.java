@@ -245,12 +245,12 @@ public class BenchmarkingApp {
       configuration = "Release";
       resultsFile = Optional.of("res_java.json");//Optional.empty();
       dataSize = new int[] {100, 4000};
-      concurrentTasks = new int[] {100, 1000};
+      concurrentTasks = new int[] {100};
       clients =
           new ClientName[] {
             // ClientName.BABUSHKA_ASYNC,
             //ClientName.JEDIS, ClientName.JEDIS_ASYNC, ClientName.LETTUCE, ClientName.LETTUCE_ASYNC
-              ClientName.JNI_NETTY
+              ClientName.JNI_NETTY, ClientName.LETTUCE, ClientName.LETTUCE_ASYNC
           };
       host = "localhost";
       port = 6379;

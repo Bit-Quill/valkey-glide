@@ -148,7 +148,7 @@ public class Benchmarking {
   public static void testClientSetGet(
       Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
     for (int concurrentNum : config.concurrentTasks) {
-      int iterations = 1000;
+      int iterations = 100000;
           Math.min(Math.max(LATENCY_MIN, concurrentNum * LATENCY_MULTIPLIER), LATENCY_MAX);
       for (int clientCount : config.clientCount) {
         for (int dataSize : config.dataSize) {
@@ -263,6 +263,9 @@ public class Benchmarking {
                 iterations / ((after - before) / TPS_NORMALIZATION));
           }
           printResults(calculatedResults, (after - before) / TPS_NORMALIZATION, iterations);
+          try {
+            Thread.sleep(2000);
+          } catch (InterruptedException ignored) {}
         }
       }
     }

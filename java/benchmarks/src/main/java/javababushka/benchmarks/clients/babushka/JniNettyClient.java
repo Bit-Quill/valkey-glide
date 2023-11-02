@@ -18,12 +18,14 @@ import static redis_request.RedisRequestOuterClass.Routes;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelOutboundHandler;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
@@ -31,6 +33,7 @@ import io.netty.channel.CombinedChannelDuplexHandler;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.SimpleUserEventChannelHandler;
+import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueue;
@@ -69,13 +72,23 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCloseable {
 
+  // https://netty.io/3.6/api/org/jboss/netty/handler/queue/BufferedWriteHandler.html
+  private final static int AUTO_FLUSH_THRESHOLD = 512;//1024;
+  private final AtomicInteger nonFlushedCounter = new AtomicInteger(0);
+
+  private final static int AUTO_FLUSH_TIMEOUT_MILLIS = 100;
+
+  private final static int PENDING_RESPONSES_ON_CLOSE_TIMEOUT_MILLIS = 1000;
+
   // Futures to handle responses. Index is callback id, starting from 1 (0 index is for connection request always).
+  // TODO clean up completed futures
   private final List<CompletableFuture<Response>> responses = Collections.synchronizedList(new ArrayList<>());
 
-  private final static String unixSocket = getSocket();
+  private final String unixSocket = getSocket();
 
   // TODO static or move to constructor?
   private static String getSocket() {
@@ -83,13 +96,15 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
       return RedisClient.startSocketListenerExternal();
     } catch (Exception | UnsatisfiedLinkError e) {
       System.err.printf("Failed to get UDS from babushka and dedushka: %s%n%n", e);
-      return null;
+      throw new RuntimeException(e);
     }
   }
 
   private Channel channel = null;
   private EventLoopGroup group = null;
 
+  // We support MacOS and Linux only, because Babushka does not support Windows, because tokio does not support it.
+  // Probably we should use NIO (NioEventLoopGroup) for Windows.
   private final static boolean isMacOs = isMacOs();
   private static boolean isMacOs() {
     try {
@@ -101,6 +116,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   }
 
   static {
+    // TODO fix: netty still doesn't use slf4j nor log4j
     InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
   }
 
@@ -128,7 +144,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     Response connected = null;
     try {
       connected = waitForResult(asyncConnectToRedis(connectionSettings));
-      System.out.printf("Connection %s%n", connected != null ? connected.getConstantResponse() : null);
+      //System.out.printf("Connection %s%n", connected != null ? connected.getConstantResponse() : null);
     } catch (Exception e) {
       System.err.println("Connection time out");
     }
@@ -139,9 +155,11 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   private void createChannel() {
     // TODO maybe move to constructor or to static?
     // ======
-    //EventLoopGroup group = new NioEventLoopGroup();
     try {
       channel = new Bootstrap()
+          .option(ChannelOption.WRITE_BUFFER_WATER_MARK,
+              new WriteBufferWaterMark(1024 * 1024 * 2 + 10, 1024 * 1024 * 10))
+          .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
           .group(group = isMacOs ? new KQueueEventLoopGroup() : new EpollEventLoopGroup())
           .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
           .handler(new ChannelInitializer<UnixChannel>() {
@@ -191,8 +209,21 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                     @Override
                     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
                       //System.out.printf("=== write %s %s %s %n", ctx, msg, promise);
+                      var bytes = (byte[])msg;
 
-                      super.write(ctx, Unpooled.copiedBuffer((byte[])msg), promise);
+                      boolean needFlush = false;
+                      synchronized (nonFlushedCounter) {
+                        if (nonFlushedCounter.addAndGet(bytes.length) >= AUTO_FLUSH_THRESHOLD) {
+                          nonFlushedCounter.set(0);
+                          needFlush = true;
+                        }
+                      }
+                      if (needFlush) {
+                        // flush outside the sync block
+                        flush(ctx);
+                        //System.out.println("-- auto flush - buffer");
+                      }
+                      super.write(ctx, Unpooled.copiedBuffer(bytes), promise);
                     }
 
                     @Override
@@ -224,6 +255,24 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   @Override
   public void closeConnection() {
     try {
+      channel.flush();
+
+      long waitStarted = System.nanoTime();
+      long waitUntil = waitStarted + PENDING_RESPONSES_ON_CLOSE_TIMEOUT_MILLIS * 100_000; // in nanos
+      for (var future : responses) {
+        if (future.isDone()) {
+          continue;
+        }
+        try {
+          future.get(waitUntil - System.nanoTime(), TimeUnit.NANOSECONDS);
+        } catch (InterruptedException | ExecutionException ignored) {
+        } catch (TimeoutException e) {
+          future.cancel(true);
+          // TODO cancel the rest
+          break;
+        }
+      }
+
 //      channel.closeFuture().sync();
 //   } catch (InterruptedException ignored) {
     } finally {
@@ -374,46 +423,54 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     return future;
   }
 
-  @Override
-  public Future<Response> asyncSet(String key, String value) {
+  private CompletableFuture<Response> submitNewCommand(RequestType command, List<String> args) {
     int callbackId = getNextCallbackId();
-    //System.out.printf("== set(%s, %s), callback %d%n", key, value, callbackId);
+    //System.out.printf("== %s(%s), callback %d%n", command, String.join(", ", args), callbackId);
     RedisRequest request =
         RedisRequest.newBuilder()
             .setCallbackIdx(callbackId)
             .setSingleCommand(
                 Command.newBuilder()
-                    .setRequestType(RequestType.SetString)
-                    .setArgsArray(ArgsArray.newBuilder().addArgs(key).addArgs(value).build())
+                    .setRequestType(command)
+                    .setArgsArray(ArgsArray.newBuilder().addAllArgs(args).build())
                     .build())
             .setRoute(
                 Routes.newBuilder()
                     .setSimpleRoutes(SimpleRoutes.AllNodes)
                     .build())
             .build();
-    channel.writeAndFlush(request.toByteArray());
-    return responses.get(callbackId);
+    channel.write(request.toByteArray());
+    return autoFlushFutureWrapper(responses.get(callbackId));
+  }
+
+  private <T> CompletableFuture<T> autoFlushFutureWrapper(Future<T> future) {
+    return CompletableFuture.supplyAsync(() -> {
+      try {
+        return future.get(AUTO_FLUSH_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException | ExecutionException e) {
+        throw new RuntimeException(e);
+      } catch (TimeoutException e) {
+        //System.out.println("-- auto flush - timeout");
+        channel.flush();
+      }
+      try {
+        return future.get();
+      } catch (InterruptedException | ExecutionException e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+
+  @Override
+  public Future<Response> asyncSet(String key, String value) {
+    //System.out.printf("== set(%s, %s), callback %d%n", key, value, callbackId);
+    return submitNewCommand(RequestType.SetString, List.of(key, value));
   }
 
   @Override
   public Future<String> asyncGet(String key) {
-    int callbackId = getNextCallbackId();
     //System.out.printf("== get(%s), callback %d%n", key, callbackId);
-    RedisRequest request =
-        RedisRequest.newBuilder()
-            .setCallbackIdx(callbackId)
-            .setSingleCommand(
-                Command.newBuilder()
-                    .setRequestType(RequestType.GetString)
-                    .setArgsArray(ArgsArray.newBuilder().addArgs(key).build())
-                    .build())
-            .setRoute(
-                Routes.newBuilder()
-                    .setSimpleRoutes(SimpleRoutes.AllNodes)
-                    .build())
-            .build();
-    channel.writeAndFlush(request.toByteArray());
-    return responses.get(callbackId)
+    return submitNewCommand(RequestType.GetString, List.of(key))
         .thenApply(response -> response.hasRespPointer()
             ? RedisClient.valueFromPointer(response.getRespPointer()).toString()
             : null);
