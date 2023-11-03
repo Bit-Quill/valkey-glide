@@ -1,6 +1,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    id 'io.freefair.lombok'
 }
 
 repositories {
@@ -25,14 +26,18 @@ dependencies {
 
     implementation group: 'io.netty', name: 'netty-handler', version: '4.1.100.Final'
     // https://github.com/netty/netty/wiki/Native-transports
+    // Windows is not supported, because babushka does not support windows, because tokio does not support windows, because ... 42
     implementation group: 'io.netty', name: 'netty-transport-native-epoll', version: '4.1.100.Final', classifier: 'linux-x86_64'
     implementation group: 'io.netty', name: 'netty-transport-native-kqueue', version: '4.1.100.Final', classifier: 'osx-x86_64'
+    implementation group: 'io.netty', name: 'netty-transport-native-kqueue', version: '4.1.100.Final', classifier: 'osx-aarch_64'
 
     //testImplementation group: 'org.slf4j', name: 'slf4j-reload4j', version: '2.0.9'
     //testImplementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.9'
 
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -45,14 +50,15 @@ java {
 application {
     // Define the main class for the application.
     mainClass = 'javababushka.benchmarks.BenchmarkingApp'
-    // mainClass = 'javababushka.benchmarks.clients.babushka.JniNettyClient'
+    mainClass = 'javababushka.benchmarks.clients.babushka.JniNettyClient'
     applicationDefaultJvmArgs += "-Djava.library.path=${projectDir}/../target/debug"
 }
 
 tasks.withType(Test) { 
-  testLogging {
-    exceptionFormat "full"
-    events "started", "skipped", "passed", "failed"
-    showStandardStreams true
-  }
+    testLogging {
+        exceptionFormat "full"
+        events "started", "skipped", "passed", "failed"
+        showStandardStreams true
+    }
+    jvmArgs "-Djava.library.path=${projectDir}/../target/debug"
 }

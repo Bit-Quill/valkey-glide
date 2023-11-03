@@ -8,7 +8,7 @@ use log::error;
 use logger_core::Level;
 use redis::Value;
 
-fn redis_value_to_java<'local>(mut env: JNIEnv<'local>, val: Value) -> JObject<'local> {
+fn redis_value_to_java(mut env: JNIEnv, val: Value) -> JObject {
     match val {
         Value::Nil => JObject::null(),
         Value::Status(str) => JObject::from(env.new_string(str).unwrap()),
@@ -119,7 +119,7 @@ fn throw_java_exception(mut env: JNIEnv, message: String) {
 
     match res {
         Ok(res) => {
-            env.throw(JThrowable::from(res));
+            let _ = env.throw(JThrowable::from(res));
         },
         Err(err) => {
             error!("Failed to create exception with string {}: {}", message, err.to_string());
