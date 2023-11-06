@@ -15,24 +15,25 @@ import static redis_request.RedisRequestOuterClass.SimpleRoutes;
 import static redis_request.RedisRequestOuterClass.Routes;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.AbstractMessageLite;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueue;
 import io.netty.channel.kqueue.KQueueDomainSocketChannel;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.channel.unix.UnixChannel;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
@@ -58,6 +59,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @VisibleForTesting
 public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCloseable {
@@ -79,6 +81,29 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   public static int AUTO_FLUSH_TIMER_MILLIS = 200;
 
   public static int PENDING_RESPONSES_ON_CLOSE_TIMEOUT_MILLIS = 1000;
+
+  public static final AtomicLong READ_TIME = new AtomicLong(0);
+  public static final AtomicLong READ_TIME_INNER = new AtomicLong(0);
+  public static final AtomicLong READ_COUNT = new AtomicLong(0);
+  public static final AtomicLong WRITE_TIME = new AtomicLong(0);
+  public static final AtomicLong WRITE_TIME_INNER = new AtomicLong(0);
+  public static final AtomicLong WRITE_COUNT = new AtomicLong(0);
+
+  public static final AtomicLong BUFFER_ON_WRITE_TIME = new AtomicLong(0);
+  public static final AtomicLong BUFFER_ON_READ_TIME = new AtomicLong(0);
+  public static final AtomicLong PARSING_ON_READ_TIME = new AtomicLong(0);
+  public static final AtomicLong SERIALIZATION_ON_WRITE_TIME = new AtomicLong(0);
+  public static final AtomicLong SET_FUTURE_ON_READ_TIME1 = new AtomicLong(0);
+  public static final AtomicLong SET_FUTURE_ON_READ_TIME2 = new AtomicLong(0);
+
+  public static final AtomicLong BUILD_COMMAND_ON_WRITE_TIME = new AtomicLong(0);
+  public static final AtomicLong WRITE_ON_WRITE_TIME = new AtomicLong(0);
+
+  private boolean isFirstResult = true;
+  public static final AtomicLong WAIT_FOR_RESULT = new AtomicLong(0);
+  public static final List<Long> REQUEST_TIMESTAMPS = Collections.synchronizedList(new ArrayList<>());
+  public static final List<Long> RESPONSE_TIMESTAMPS = Collections.synchronizedList(new ArrayList<>());
+
 
   // Futures to handle responses. Index is callback id, starting from 1 (0 index is for connection request always).
   // TODO clean up completed futures
@@ -153,9 +178,9 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     // ======
     try {
       channel = new Bootstrap()
-          .option(ChannelOption.WRITE_BUFFER_WATER_MARK,
-              new WriteBufferWaterMark(1024, 4096))
-          .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
+//          .option(ChannelOption.WRITE_BUFFER_WATER_MARK,
+//              new WriteBufferWaterMark(1024, 4096))
+//          .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
           .group(group = isMacOs ? new KQueueEventLoopGroup() : new EpollEventLoopGroup())
           .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
           .handler(new ChannelInitializer<UnixChannel>() {
@@ -172,14 +197,31 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                     @Override
                     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                       //System.out.printf("=== channelRead %s %s %n", ctx, msg);
+            long readBefore = System.nanoTime();
+
                       var buf = (ByteBuf) msg;
                       var bytes = new byte[buf.readableBytes()];
+            long bufferBefore = System.nanoTime();
                       buf.readBytes(bytes);
+            BUFFER_ON_READ_TIME.addAndGet(System.nanoTime() - bufferBefore);
                       // TODO surround parsing with try-catch
+            long parseBefore = System.nanoTime();
                       var response = Response.parseFrom(bytes);
+            PARSING_ON_READ_TIME.addAndGet(System.nanoTime() - parseBefore);
                       //System.out.printf("== Received response with callback %d%n", response.getCallbackIdx());
-                      responses.get(response.getCallbackIdx()).complete(response);
+            long futureBefore1 = System.nanoTime();
+                      var future = responses.get(response.getCallbackIdx());
+            SET_FUTURE_ON_READ_TIME1.addAndGet(System.nanoTime() - futureBefore1);
+            long futureBefore2 = System.nanoTime();
+                      future.complete(response);
+            SET_FUTURE_ON_READ_TIME2.addAndGet(System.nanoTime() - futureBefore2);
+            long innerReadBefore = System.nanoTime();
                       super.channelRead(ctx, bytes);
+            READ_TIME_INNER.addAndGet(System.nanoTime() - innerReadBefore);
+                      buf.release();
+            READ_TIME.addAndGet(System.nanoTime() - readBefore);
+            READ_COUNT.incrementAndGet();
+            RESPONSE_TIMESTAMPS.add(System.nanoTime());
                     }
 
                     @Override
@@ -205,7 +247,9 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                     @Override
                     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
                       //System.out.printf("=== write %s %s %s %n", ctx, msg, promise);
-                      var bytes = (byte[])msg;
+            long writeBefore = System.nanoTime();
+                      byte[] bytes = ((AbstractMessageLite)msg).toByteArray();
+            SERIALIZATION_ON_WRITE_TIME.addAndGet(System.nanoTime() - writeBefore);
 
                       boolean needFlush = false;
                       if (!ALWAYS_FLUSH_ON_WRITE) {
@@ -218,12 +262,21 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                           }
                         }
                       }
-                      super.write(ctx, Unpooled.copiedBuffer(bytes), promise);
+            long bufferBefore = System.nanoTime();
+                      var buffer = Unpooled.copiedBuffer(bytes);
+            BUFFER_ON_WRITE_TIME.addAndGet(System.nanoTime() - bufferBefore);
+            long innerWriteBefore = System.nanoTime();
+                      super.write(ctx, buffer, promise);
+            WRITE_TIME_INNER.addAndGet(System.nanoTime() - innerWriteBefore);
                       if (needFlush) {
                         // flush outside the sync block
                         flush(ctx);
                         //System.out.println("-- auto flush - buffer");
                       }
+                      //buffer.release();
+            WRITE_TIME.addAndGet(System.nanoTime() - writeBefore);
+            WRITE_COUNT.incrementAndGet();
+            REQUEST_TIMESTAMPS.add(System.nanoTime());
                     }
 
                     @Override
@@ -231,6 +284,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                       //System.out.printf("=== flush %s %n", ctx);
                       super.flush(ctx);
                     }
+
                   });
                     /*
                   .addLast(new SimpleUserEventChannelHandler<String>() {
@@ -315,6 +369,18 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     */
   }
 
+  @Override
+  public <T> T waitForResult(Future<T> future) {
+long before = System.nanoTime();
+    var res = AsyncClient.super.waitForResult(future);
+if (!isFirstResult) { // skip first result - it is connection
+  WAIT_FOR_RESULT.addAndGet(System.nanoTime() - before);
+} else {
+  isFirstResult = false;
+}
+    return res;
+  }
+
   // TODO use reentrant lock
   // https://www.geeksforgeeks.org/reentrant-lock-java/
   private synchronized int getNextCallbackId() {
@@ -323,11 +389,13 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   }
 
   public static void main(String[] args) {
+    JniNettyClient.ALWAYS_FLUSH_ON_WRITE = true;
     var client = new JniNettyClient();
     client.connectToRedis();
 
-    var get_ne = client.get("sdf");
     var key = String.valueOf(ProcessHandle.current().pid());
+    /*
+    var get_ne = client.get("sdf");
     client.set(key, "asfsdf");
     var get_e = client.get(key);
 
@@ -342,28 +410,67 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     var res1 = client.waitForResult(get_nea);
     var res2 = client.waitForResult(set_a);
     var res3 = client.waitForResult(get_ea);
-
+    */
     long beforeSet = System.nanoTime();
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
       client.set("name", "value");
     }
     long afterSet = System.nanoTime();
-    System.out.printf("++++ set: %d%n", afterSet - beforeSet);
+    System.out.printf("++++ set:    %10d%n", afterSet - beforeSet);
 
     long beforeGetNE = System.nanoTime();
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
       client.get("namevalue");
     }
     long afterGetNE = System.nanoTime();
-    System.out.printf("++++ get NE: %d%n", afterGetNE - beforeGetNE);
+    System.out.printf("++++ get NE: %10d%n", afterGetNE - beforeGetNE);
 
     long beforeGetE = System.nanoTime();
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
       client.get(key);
     }
     long afterGetE = System.nanoTime();
-    System.out.printf("++++ get E: %d%n", afterGetE - beforeGetE);
+    System.out.printf("++++ get E:  %10d%n", afterGetE - beforeGetE);
 
+    System.out.printf("++++ total:  %10d, waiting %d%n", afterSet - beforeSet + afterGetNE - beforeGetNE + afterGetE - beforeGetE, WAIT_FOR_RESULT.get());
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException ignored) {}
+
+    System.out.printf("-> write times:  %10d %10d, count %5d%n", WRITE_TIME_INNER.get(), WRITE_TIME.get(), WRITE_COUNT.get());
+    System.out.printf("-> read times:   %10d %10d, count %5d%n", READ_TIME_INNER.get(), READ_TIME.get(), READ_COUNT.get());
+    System.out.printf("-> write: buffer %10d, write  %10d%n", BUFFER_ON_WRITE_TIME.get(), SERIALIZATION_ON_WRITE_TIME.get());
+    System.out.printf("-> read:  buffer %10d, parse  %10d%n", BUFFER_ON_READ_TIME.get(), PARSING_ON_READ_TIME.get());
+    System.out.printf("-> read:  future %10d, part2  %10d%n", SET_FUTURE_ON_READ_TIME1.get(), SET_FUTURE_ON_READ_TIME2.get());
+    System.out.printf("-> write: build  %10d, submit %10d%n", BUILD_COMMAND_ON_WRITE_TIME.get(), WRITE_ON_WRITE_TIME.get());
+
+    long prev = 0;
+    for (int i = 0; i < REQUEST_TIMESTAMPS.size(); i++) {
+      if (prev > REQUEST_TIMESTAMPS.get(i)) {
+        System.err.printf("Request timestamps %d <-> %d are reordered%n", i, i - 1);
+      }
+      prev = REQUEST_TIMESTAMPS.get(i);
+    }
+    prev = 0;
+    for (int i = 0; i < RESPONSE_TIMESTAMPS.size(); i++) {
+      if (prev > RESPONSE_TIMESTAMPS.get(i)) {
+        System.err.printf("Response timestamps %d <-> %d are reordered%n", i, i - 1);
+      }
+      prev = RESPONSE_TIMESTAMPS.get(i);
+    }
+    if (REQUEST_TIMESTAMPS.size() != RESPONSE_TIMESTAMPS.size()) {
+      System.err.printf("Req and res data size mismatch: requests %d responses %d%n", REQUEST_TIMESTAMPS.size(), RESPONSE_TIMESTAMPS.size());
+    } else {
+      long avg = 0;
+      for (int i = 0; i < REQUEST_TIMESTAMPS.size(); i++) {
+        avg += RESPONSE_TIMESTAMPS.get(i) - REQUEST_TIMESTAMPS.get(i);
+      }
+      System.out.printf("-> avg response time %d%n", avg / REQUEST_TIMESTAMPS.size());
+    }
+
+    client.closeConnection();
+    if (true)
+      return;
     ///////
 
     long beforeSetA = System.nanoTime();
@@ -430,11 +537,12 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
 
     var future = new CompletableFuture<Response>();
     responses.add(future);
-    channel.writeAndFlush(request.toByteArray());
+    channel.writeAndFlush(request);
     return future;
   }
 
   private CompletableFuture<Response> submitNewCommand(RequestType command, List<String> args) {
+long beforeBuild = System.nanoTime();
     int callbackId = getNextCallbackId();
     //System.out.printf("== %s(%s), callback %d%n", command, String.join(", ", args), callbackId);
     RedisRequest request =
@@ -450,11 +558,15 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                     .setSimpleRoutes(SimpleRoutes.AllNodes)
                     .build())
             .build();
+BUILD_COMMAND_ON_WRITE_TIME.addAndGet(System.nanoTime() - beforeBuild);
+long beforeWrite = System.nanoTime();
     if (ALWAYS_FLUSH_ON_WRITE) {
-      channel.writeAndFlush(request.toByteArray());
+      channel.writeAndFlush(request);
+WRITE_ON_WRITE_TIME.addAndGet(System.nanoTime() - beforeWrite);
       return responses.get(callbackId);
     }
-    channel.write(request.toByteArray());
+    channel.write(request);
+WRITE_ON_WRITE_TIME.addAndGet(System.nanoTime() - beforeWrite);
     return autoFlushFutureWrapper(responses.get(callbackId));
   }
 
