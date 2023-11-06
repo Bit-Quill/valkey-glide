@@ -17,15 +17,16 @@ It's responsible for parsing and holding the raw values provided by the user.
 If some arguments are not passed, options will set default values for them.
 */
 type options struct {
-	tls             bool
-	host            string
-	port            int
-	resultsFile     string
-	clientCount     string
-	clientNames     string
-	configuration   string
-	concurrentTasks string
-	dataSize        string
+	tls                bool
+	clusterModeEnabled bool
+	host               string
+	port               int
+	resultsFile        string
+	clientCount        string
+	clientNames        string
+	configuration      string
+	concurrentTasks    string
+	dataSize           string
 }
 
 /*
@@ -34,15 +35,16 @@ ensuring their validity and converting them to the appropriate types
 for the program's execution requirements.
 */
 type runConfiguration struct {
-	tls             bool
-	host            string
-	port            int
-	resultsFile     *os.File
-	clientCount     []int
-	clientNames     []string
-	configuration   string
-	concurrentTasks []int
-	dataSize        []int
+	tls                bool
+	clusterModeEnabled bool
+	host               string
+	port               int
+	resultsFile        *os.File
+	clientCount        []int
+	clientNames        []string
+	configuration      string
+	concurrentTasks    []int
+	dataSize           []int
 }
 
 type clientNameOptions struct {
@@ -81,6 +83,7 @@ func parseArguments() *options {
 	var opts options
 
 	tls := flag.Bool("tls", false, "Use TLS (default: false)")
+	clusterModeEnabled := flag.Bool("clusterModeEnabled", false, "Use ClusterModeEnabled (default: false)")
 	host := flag.String("host", "localhost", "Host address")
 	port := flag.Int("port", 6379, "Port number")
 	resultsFile := flag.String("resultsFile", "", "Path to results file")
@@ -93,6 +96,7 @@ func parseArguments() *options {
 	flag.Parse()
 
 	opts.tls = *tls
+	opts.clusterModeEnabled = *clusterModeEnabled
 	opts.host = *host
 	opts.port = *port
 	opts.resultsFile = *resultsFile
@@ -155,6 +159,7 @@ func verifyOptions(opts *options) (*runConfiguration, error) {
 	runConfig.host = opts.host
 	runConfig.port = opts.port
 	runConfig.tls = opts.tls
+	runConfig.clusterModeEnabled = opts.clusterModeEnabled
 
 	return &runConfig, nil
 }
@@ -166,6 +171,7 @@ func runBenchmarks(runConfig *runConfiguration) error {
 		runConfig.host,
 		runConfig.port,
 		runConfig.tls,
+		runConfig.clusterModeEnabled,
 	)
 
 	err := executeBenchmarks(runConfig, connectionSettings)
@@ -210,7 +216,7 @@ func runSingleBenchmark(resultsFile *os.File, clientName string, dataSize, concu
 		concurrentTasks,
 		dataSize,
 		clientCount,
-		false,
+		connectionSettings.ClusterModeEnabled,
 	)
 
 	if resultsFile == os.Stdout {

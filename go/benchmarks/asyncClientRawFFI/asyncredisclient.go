@@ -37,7 +37,7 @@ func (asyncRedisClient *AsyncRedisClient) ConnectToRedis(connectionSettings *ben
 	caddress := C.CString(connectionSettings.Host)
 	defer C.free(unsafe.Pointer(caddress))
 
-	asyncRedisClient.coreClient = C.create_connection(caddress, C.uint32_t(connectionSettings.Port), C._Bool(connectionSettings.UseSsl), (C.success_callback)(unsafe.Pointer(C.successCallback)), (C.failure_callback)(unsafe.Pointer(C.failureCallback)))
+	asyncRedisClient.coreClient = C.create_connection(caddress, C.uint32_t(connectionSettings.Port), C._Bool(connectionSettings.UseSsl), C._Bool(connectionSettings.ClusterModeEnabled), (C.success_callback)(unsafe.Pointer(C.successCallback)), (C.failure_callback)(unsafe.Pointer(C.failureCallback)))
 	if asyncRedisClient.coreClient == nil {
 		return fmt.Errorf("error connecting to asyncRedisClient")
 	}

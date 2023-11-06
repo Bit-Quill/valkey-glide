@@ -8,20 +8,33 @@ import (
 )
 
 type GoRedisClient struct {
-	coreClient *redis.Client
+	coreClient redis.Cmdable
 }
 
 func (goRedisClient *GoRedisClient) ConnectToRedis(connectionSettings *ConnectionSettings) error {
-	options := &redis.Options{
-		Addr: fmt.Sprintf("%s:%d", connectionSettings.Host, connectionSettings.Port),
-		DB:   0,
-	}
 
-	if connectionSettings.UseSsl {
-		options.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
-	}
+	if connectionSettings.ClusterModeEnabled {
+		clusterOptions := &redis.ClusterOptions{
+			Addrs: []string{fmt.Sprintf("%s:%d", connectionSettings.Host, connectionSettings.Port)},
+		}
 
-	goRedisClient.coreClient = redis.NewClient(options)
+		if connectionSettings.UseSsl {
+			clusterOptions.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+		}
+
+		goRedisClient.coreClient = redis.NewClusterClient(clusterOptions)
+	} else {
+		options := &redis.Options{
+			Addr: fmt.Sprintf("%s:%d", connectionSettings.Host, connectionSettings.Port),
+			DB:   0,
+		}
+
+		if connectionSettings.UseSsl {
+			options.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+		}
+
+		goRedisClient.coreClient = redis.NewClient(options)
+	}
 
 	return goRedisClient.coreClient.Ping(context.Background()).Err()
 }
@@ -39,7 +52,14 @@ func (goRedisClient *GoRedisClient) Get(key string) (string, error) {
 }
 
 func (goRedisClient *GoRedisClient) CloseConnection() error {
-	return goRedisClient.coreClient.Close()
+	switch c := goRedisClient.coreClient.(type) {
+	case *redis.Client:
+		return c.Close()
+	case *redis.ClusterClient:
+		return c.Close()
+	default:
+		return fmt.Errorf("unsupported client type")
+	}
 }
 
 func (goRedisClient *GoRedisClient) GetName() string {

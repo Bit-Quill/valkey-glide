@@ -28,6 +28,7 @@ fn create_connection_request(
     host: String,
     port: u32,
     use_tls: bool,
+    use_cluster_mode: bool,
 ) -> connection_request::ConnectionRequest {
     let mut address_info = AddressInfo::new();
     address_info.host = host.to_string().into();
@@ -35,6 +36,7 @@ fn create_connection_request(
     let addresses_info = vec![address_info];
     let mut connection_request = connection_request::ConnectionRequest::new();
     connection_request.addresses = addresses_info;
+    connection_request.cluster_mode_enabled = use_cluster_mode;
     connection_request.tls_mode = if use_tls {
         connection_request::TlsMode::InsecureTls
     } else {
@@ -49,12 +51,13 @@ fn create_connection_internal(
     host: *const c_char,
     port: u32,
     use_tls: bool,
+    use_cluster_mode: bool,
     success_callback: unsafe extern "C" fn(usize, *const c_char, usize) -> (),
     failure_callback: unsafe extern "C" fn(usize) -> (),
 ) -> RedisResult<Connection> {
     let host_cstring = unsafe { CStr::from_ptr(host as *mut c_char) };
     let host_string = host_cstring.to_str()?.to_string();
-    let request = create_connection_request(host_string, port, use_tls);
+    let request = create_connection_request(host_string, port, use_tls, use_cluster_mode);
     let runtime = Builder::new_multi_thread()
         .enable_all()
         .thread_name("Babushka go thread")
@@ -75,10 +78,11 @@ pub extern "C" fn create_connection(
     host: *const c_char,
     port: u32,
     use_tls: bool,
+    use_cluster_mode: bool,
     success_callback: unsafe extern "C" fn(usize, *const c_char, usize) -> (),
     failure_callback: unsafe extern "C" fn(usize) -> (),
 ) -> *const c_void {
-    match create_connection_internal(host, port, use_tls, success_callback, failure_callback) {
+    match create_connection_internal(host, port, use_tls, use_cluster_mode, success_callback, failure_callback) {
         Err(_) => std::ptr::null(), // TODO - log errors
         Ok(connection) => Box::into_raw(Box::new(connection)) as *const c_void,
     }

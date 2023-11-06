@@ -219,8 +219,8 @@ func getKeysInSortedOrderForPrint(m map[string]latencyResults) []string {
 }
 
 func PrintResultsStdOut(benchmarkConfig *BenchmarkConfig, resultMap map[string]latencyResults, tps float64, resultsFile *os.File) {
-	writeFileOrPanic(resultsFile, fmt.Sprintf("Client Name: %s, Tasks Count: %d, Data Size: %d, Client Count: %d, TPS: %f\n",
-		benchmarkConfig.ClientName, benchmarkConfig.TasksCount, benchmarkConfig.DataSize, benchmarkConfig.ClientCount, tps))
+	writeFileOrPanic(resultsFile, fmt.Sprintf("Client Name: %s, Cluster Mode Enabled: %t, Tasks Count: %d, Data Size: %d, Client Count: %d, TPS: %f\n",
+		benchmarkConfig.ClientName, benchmarkConfig.IsCluster, benchmarkConfig.TasksCount, benchmarkConfig.DataSize, benchmarkConfig.ClientCount, tps))
 	keys := getKeysInSortedOrderForPrint(resultMap)
 	for _, key := range keys {
 		action := key
