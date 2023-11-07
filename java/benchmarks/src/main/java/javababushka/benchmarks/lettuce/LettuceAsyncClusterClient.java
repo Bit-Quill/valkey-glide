@@ -3,20 +3,21 @@
  */
 package javababushka.benchmarks.lettuce;
 
-import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.async.RedisAdvancedClusterAsyncCommands;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javababushka.benchmarks.AsyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 
-public class LettuceAsyncClient implements AsyncClient {
+public class LettuceAsyncClusterClient implements AsyncClient {
 
-  RedisClient client;
-  RedisAsyncCommands asyncCommands;
-  StatefulRedisConnection<String, String> connection;
+  RedisClusterClient client;
+  RedisAdvancedClusterAsyncCommands asyncCommands;
+  StatefulRedisClusterConnection<String, String> connection;
 
   @Override
   public void connectToRedis() {
@@ -25,13 +26,13 @@ public class LettuceAsyncClient implements AsyncClient {
 
   @Override
   public void connectToRedis(ConnectionSettings connectionSettings) {
-    client =
-        RedisClient.create(
-            String.format(
-                "%s://%s:%d",
-                connectionSettings.useSsl ? "rediss" : "redis",
-                connectionSettings.host,
-                connectionSettings.port));
+    RedisURI uri =
+        RedisURI.builder()
+            .withHost(connectionSettings.host)
+            .withPort(connectionSettings.port)
+            .withSsl(connectionSettings.useSsl)
+            .build();
+    client = RedisClusterClient.create(uri);
     connection = client.connect();
     asyncCommands = connection.async();
   }

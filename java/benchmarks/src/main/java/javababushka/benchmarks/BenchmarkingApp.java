@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import javababushka.benchmarks.jedis.JedisClient;
 import javababushka.benchmarks.jedis.JedisPseudoAsyncClient;
 import javababushka.benchmarks.lettuce.LettuceAsyncClient;
+import javababushka.benchmarks.lettuce.LettuceAsyncClusterClient;
 import javababushka.benchmarks.lettuce.LettuceClient;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -56,7 +57,11 @@ public class BenchmarkingApp {
           testClientSetGet(LettuceClient::new, runConfiguration, false);
           break;
         case LETTUCE_ASYNC:
-          testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
+          if (runConfiguration.clusterModeEnabled) {
+            testClientSetGet(LettuceAsyncClusterClient::new, runConfiguration, true);
+          } else {
+            testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
+          }
           break;
         case BABUSHKA:
           System.out.println("Babushka not yet configured");
@@ -96,6 +101,13 @@ public class BenchmarkingApp {
     options.addOption(
         Option.builder("clientCount").hasArg(true).desc("Number of clients to run [1]").build());
     options.addOption(Option.builder("tls").hasArg(false).desc("TLS [false]").build());
+    options.addOption(
+        Option.builder("clusterModeEnabled")
+            .hasArg(false)
+            .desc("Is cluster-mode enabled, other standalone mode is used [false]")
+            .build());
+    options.addOption(
+        Option.builder("debugLogging").hasArg(false).desc("Verbose logs [false]").build());
 
     return options;
   }
@@ -171,6 +183,8 @@ public class BenchmarkingApp {
     }
 
     runConfiguration.tls = line.hasOption("tls");
+    runConfiguration.clusterModeEnabled = line.hasOption("clusterModeEnabled");
+    runConfiguration.debugLogging = line.hasOption("debugLogging");
 
     return runConfiguration;
   }
@@ -227,7 +241,8 @@ public class BenchmarkingApp {
     public int port;
     public int[] clientCount;
     public boolean tls;
-    public boolean debugLogging = false;
+    public boolean clusterModeEnabled;
+    public boolean debugLogging;
 
     public RunConfiguration() {
       configuration = "Release";
@@ -243,6 +258,8 @@ public class BenchmarkingApp {
       port = 6379;
       clientCount = new int[] {1, 2};
       tls = false;
+      clusterModeEnabled = false;
+      debugLogging = false;
     }
   }
 }
