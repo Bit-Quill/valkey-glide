@@ -197,7 +197,7 @@ public class BenchmarkingApp {
       lineValue = lineValue.substring(1, lineValue.length() - 1);
     }
     // check if it's the correct format
-    if (!lineValue.matches("\\d+(\\s+\\d+)?")) {
+    if (!lineValue.matches("\\d+(\\s+\\d+)*")) {
       throw new ParseException("Invalid option: " + line);
     }
     // split the string into a list of integers

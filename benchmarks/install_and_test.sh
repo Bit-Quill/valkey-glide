@@ -33,7 +33,7 @@ chosenClients="all"
 host="localhost"
 port=6379
 tlsFlag="--tls"
-javaTlsFlag="--tls"
+javaTlsFlag="-tls"
 
 function runPythonBenchmark(){
   # generate protobuf files
@@ -73,8 +73,8 @@ function runCSharpBenchmark(){
 
 function runJavaBenchmark(){
   cd ${BENCH_FOLDER}/../java
-  echo "./gradlew run --args=\"-resultsFile ${BENCH_FOLDER}/$1 -dataSize $2 -concurrentTasks $concurrentTasks -clientCount $clientCount -clients $chosenClients -host $host $javaPortFlag $javaTlsFlag $javaClusterFlag\""
-  ./gradlew run --args="-resultsFile \"${BENCH_FOLDER}/$1\" -dataSize $2 -concurrentTasks $concurrentTasks -clients $chosenClients -host $host $javaPortFlag -clientCount $clientCount $javaTlsFlag $javaClusterFlag"
+  echo "./gradlew run --args=\"-resultsFile ${BENCH_FOLDER}/$1 -dataSize \"$2\" -concurrentTasks \"$concurrentTasks\" -clientCount \"$clientCount\" -clients $chosenClients -host $host $javaPortFlag $javaTlsFlag $javaClusterFlag\""
+  ./gradlew run --args="-resultsFile \"${BENCH_FOLDER}/$1\" -dataSize \"$2\" -concurrentTasks \"$concurrentTasks\" -clients \"$chosenClients\" -host $host $javaPortFlag -clientCount \"$clientCount\" $javaTlsFlag $javaClusterFlag"
   cd ${BENCH_FOLDER}/java
 }
 
@@ -234,7 +234,7 @@ do
             ;;
         -is-cluster)
             clusterFlag="--clusterModeEnabled"
-            javaClusterFlag="--clusterModeEnabled"
+            javaClusterFlag="-clusterModeEnabled"
             ;;
         -port)
             portFlag="--port "$2
