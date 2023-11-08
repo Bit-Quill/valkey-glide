@@ -12,6 +12,7 @@ import javababushka.benchmarks.clients.jedis.JedisClient;
 import javababushka.benchmarks.clients.jedis.JedisPseudoAsyncClient;
 import javababushka.benchmarks.clients.lettuce.LettuceAsyncClient;
 import javababushka.benchmarks.clients.lettuce.LettuceClient;
+import lombok.SneakyThrows;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -24,7 +25,11 @@ import org.apache.commons.cli.ParseException;
 public class BenchmarkingApp {
 
   // main application entrypoint
+  @SneakyThrows
   public static void main(String[] args) {
+    System.out.printf("PID = %d%n%n", ProcessHandle.current().pid());
+
+    Thread.sleep(10000);
 
     // create the parser
     CommandLineParser parser = new DefaultParser();
@@ -245,7 +250,7 @@ public class BenchmarkingApp {
       configuration = "Release";
       resultsFile = Optional.of("res_java.json");//Optional.empty();
       dataSize = new int[] {100};
-      concurrentTasks = new int[] {100};
+      concurrentTasks = new int[] {1000};
       clients =
           new ClientName[] {
             // ClientName.BABUSHKA_ASYNC,
@@ -254,7 +259,7 @@ public class BenchmarkingApp {
           };
       host = "localhost";
       port = 6379;
-      clientCount = new int[] {2};
+      clientCount = new int[] {1};
       tls = false;
     }
   }

@@ -28,6 +28,25 @@ impl RotatingBuffer {
                 if (start_pos + request_len as usize) > buffer_len {
                     break;
                 } else {
+                    if request_len != 41 {
+                        let byte2 = buffer.get(2).unwrap();
+                        let byte3 = buffer.get(3).unwrap();
+                        let byte4 = buffer.get(4).unwrap();
+                        let callback_id: u32;
+                        if *byte4 == 0x12 {
+                            if *byte3 > 1 {
+                                callback_id = (*byte3 - 1) as u32 * 256 + *byte2 as u32 - 0x80;
+                            } else {
+                                callback_id = *byte2 as u32;
+                            }
+                        } else {
+                            callback_id = *byte2 as u32;
+                        }
+                        log_error("callback id received", callback_id.to_string());
+                    }
+                    //log_error("parse input", format!("incoming: start {start_pos}, len {request_len}, buffer_len: {buffer_len}"));
+                    //let bytes = buffer.slice(start_pos..start_pos + request_len as usize);
+                    //log_error("parse input", format!("{:#x?}", bytes.as_ref()));
                     match T::parse_from_tokio_bytes(
                         &buffer.slice(start_pos..start_pos + request_len as usize),
                     ) {

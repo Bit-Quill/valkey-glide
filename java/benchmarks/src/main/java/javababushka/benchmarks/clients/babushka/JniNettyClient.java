@@ -46,8 +46,10 @@ import javababushka.benchmarks.clients.SyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 import io.netty.channel.unix.DomainSocketAddress;
 import javababushka.client.RedisClient;
+import lombok.SneakyThrows;
 
 import java.net.SocketAddress;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -107,9 +109,10 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
 
   // Futures to handle responses. Index is callback id, starting from 1 (0 index is for connection request always).
   // TODO clean up completed futures
+  // TODO avoid same numbers for multiple clients
   private final List<CompletableFuture<Response>> responses = Collections.synchronizedList(new ArrayList<>());
 
-  private final String unixSocket = getSocket();
+  private static final String unixSocket = getSocket();
 
   // TODO static or move to constructor?
   private static String getSocket() {
@@ -208,6 +211,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
             long parseBefore = System.nanoTime();
                       var response = Response.parseFrom(bytes);
             PARSING_ON_READ_TIME.addAndGet(System.nanoTime() - parseBefore);
+            System.out.printf("%s     received callback id %d%n", LocalDateTime.now(), response.getCallbackIdx());
                       //System.out.printf("== Received response with callback %d%n", response.getCallbackIdx());
             long futureBefore1 = System.nanoTime();
                       var future = responses.get(response.getCallbackIdx());
@@ -265,6 +269,9 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
             long bufferBefore = System.nanoTime();
                       var buffer = Unpooled.copiedBuffer(bytes);
             BUFFER_ON_WRITE_TIME.addAndGet(System.nanoTime() - bufferBefore);
+            if (msg instanceof RedisRequest) {
+              System.out.printf("%s      sending callback id %d%n", LocalDateTime.now(), ((RedisRequest)msg).getCallbackIdx());
+            }
             long innerWriteBefore = System.nanoTime();
                       super.write(ctx, buffer, promise);
             WRITE_TIME_INNER.addAndGet(System.nanoTime() - innerWriteBefore);
@@ -388,6 +395,7 @@ if (!isFirstResult) { // skip first result - it is connection
     return responses.size() - 1;
   }
 
+  @SneakyThrows
   public static void main(String[] args) {
     JniNettyClient.ALWAYS_FLUSH_ON_WRITE = true;
     var client = new JniNettyClient();
@@ -416,20 +424,23 @@ if (!isFirstResult) { // skip first result - it is connection
       client.set("name", "value");
     }
     long afterSet = System.nanoTime();
-    System.out.printf("++++ set:    %10d%n", afterSet - beforeSet);
+
 
     long beforeGetNE = System.nanoTime();
     for (int i = 0; i < 100; i++) {
       client.get("namevalue");
     }
     long afterGetNE = System.nanoTime();
-    System.out.printf("++++ get NE: %10d%n", afterGetNE - beforeGetNE);
+
 
     long beforeGetE = System.nanoTime();
     for (int i = 0; i < 100; i++) {
       client.get(key);
     }
     long afterGetE = System.nanoTime();
+
+    System.out.printf("++++ set:    %10d%n", afterSet - beforeSet);
+    System.out.printf("++++ get NE: %10d%n", afterGetNE - beforeGetNE);
     System.out.printf("++++ get E:  %10d%n", afterGetE - beforeGetE);
 
     System.out.printf("++++ total:  %10d, waiting %d%n", afterSet - beforeSet + afterGetNE - beforeGetNE + afterGetE - beforeGetE, WAIT_FOR_RESULT.get());

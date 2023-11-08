@@ -238,6 +238,9 @@ async fn write_result(
 }
 
 async fn write_to_writer(response: Response, writer: &Rc<Writer>) -> Result<(), io::Error> {
+    if response.callback_idx > 0 {
+        log_error("callback id sent    ", response.callback_idx.to_string());
+    }
     let mut vec = writer.accumulated_outputs.take();
     let encode_result = response.write_length_delimited_to_vec(&mut vec);
 

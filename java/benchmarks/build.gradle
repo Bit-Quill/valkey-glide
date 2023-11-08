@@ -2,6 +2,7 @@ plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
     id 'io.freefair.lombok'
+    id "com.wiredforcode.spawn" version "0.8.2"
 }
 
 repositories {
@@ -61,4 +62,48 @@ tasks.withType(Test) {
         showStandardStreams true
     }
     jvmArgs "-Djava.library.path=${projectDir}/../target/debug"
+}
+
+long unixdump_pid = 0;
+
+task('start_unixdump') {
+    var process = new ProcessBuilder()
+        .command('sudo', 'unixdump', '-b', '-s', "/run/user/1000/babushka-socket-")
+        //.redirectErrorStream(true)
+        .redirectError(ProcessBuilder.Redirect.INHERIT)
+        .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+        //.inheritIO()
+        .start()
+/*
+    InputStream stdout = process.getInputStream()
+    BufferedReader reader = new BufferedReader(new InputStreamReader(stdout))
+
+    String line
+    while ((line = reader.readLine()) != null) {
+        // println line
+        if (line.contains('Listening...')) {
+            break;
+        }
+    }
+*/
+    unixdump_pid = process.pid()
+}
+
+task('stop_unixdump') {
+    if (unixdump_pid > 0) {
+        "sudo killall -9 unixdump".execute().waitFor()
+    }
+}
+
+//run.dependsOn start_unixdump
+//run.finalizedBy stop_unixdump
+
+task startUnixdump(type: SpawnProcessTask) {
+    command "unixdump -s /run/user/1000/babushka-socket-*"
+    ready 'Listening...'
+}
+
+// run.dependsOn startUnixdump
+
+task stopUnixdump(type: KillProcessTask) {
 }
