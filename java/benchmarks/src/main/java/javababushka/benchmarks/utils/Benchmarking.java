@@ -100,7 +100,8 @@ public class Benchmarking {
               SECONDS_IN_NANO * percentile(latencies, 50),
               SECONDS_IN_NANO * percentile(latencies, 90),
               SECONDS_IN_NANO * percentile(latencies, 99),
-              SECONDS_IN_NANO * stdDeviation(latencies, avgLatency)));
+              SECONDS_IN_NANO * stdDeviation(latencies, avgLatency),
+              latencies.size()));
     }
 
     return results;
@@ -116,6 +117,7 @@ public class Benchmarking {
       System.out.println(action + " p90 latency in ms: " + results.p90Latency / 1000000.0);
       System.out.println(action + " p99 latency in ms: " + results.p99Latency / 1000000.0);
       System.out.println(action + " std dev in ms: " + results.stdDeviation / 1000000.0);
+      System.out.println(action + " total hits: " + results.totalHits);
     }
   }
 
@@ -195,6 +197,7 @@ public class Benchmarking {
             JsonWriter.Write(
                 calculatedResults,
                 config.resultsFile.get(),
+                config.clusterModeEnabled,
                 dataSize,
                 clientCreator.get().getName(),
                 clientCount,
