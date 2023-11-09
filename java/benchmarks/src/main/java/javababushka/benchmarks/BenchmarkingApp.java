@@ -18,7 +18,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-/** Benchmarking app for reporting performance of various redis-rs Java-clients */
+/** Benchmarking app for reporting performance of various Redis Java-clients */
 public class BenchmarkingApp {
 
   // main application entrypoint
@@ -63,8 +63,8 @@ public class BenchmarkingApp {
             testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
           }
           break;
-        case BABUSHKA:
-          System.out.println("Babushka not yet configured");
+        case BABUSHKA_ASYNC:
+          System.out.println("Babushka async not yet configured");
           break;
       }
     }
@@ -149,20 +149,16 @@ public class BenchmarkingApp {
                         return Stream.of(
                             ClientName.JEDIS,
                             ClientName.JEDIS_ASYNC,
-                            ClientName.BABUSHKA,
-                            // ClientName.BABUSHKA_ASYNC,
+                            ClientName.BABUSHKA_ASYNC,
                             ClientName.LETTUCE,
                             ClientName.LETTUCE_ASYNC);
                       case ALL_ASYNC:
                         return Stream.of(
                             ClientName.JEDIS_ASYNC,
-                            // ClientName.BABUSHKA_ASYNC,
+                            ClientName.BABUSHKA_ASYNC,
                             ClientName.LETTUCE_ASYNC);
                       case ALL_SYNC:
-                        return Stream.of(
-                            ClientName.JEDIS,
-                            // ClientName.BABUSHKA,
-                            ClientName.LETTUCE);
+                        return Stream.of(ClientName.JEDIS, ClientName.LETTUCE);
                       default:
                         return Stream.of(e);
                     }
@@ -213,7 +209,6 @@ public class BenchmarkingApp {
     JEDIS_ASYNC("Jedis async"),
     LETTUCE("Lettuce"),
     LETTUCE_ASYNC("Lettuce async"),
-    BABUSHKA("Babushka"),
     BABUSHKA_ASYNC("Babushka async"),
     ALL("All"),
     ALL_SYNC("All sync"),
@@ -256,7 +251,7 @@ public class BenchmarkingApp {
       clients =
           new ClientName[] {
             // ClientName.BABUSHKA_ASYNC,
-            ClientName.JEDIS, ClientName.JEDIS_ASYNC, ClientName.LETTUCE, ClientName.LETTUCE_ASYNC
+            ClientName.LETTUCE_ASYNC
           };
       host = "localhost";
       port = 6379;

@@ -15,7 +15,6 @@ import javababushka.benchmarks.AsyncClient;
 import javababushka.benchmarks.BenchmarkingApp;
 import javababushka.benchmarks.Client;
 import javababushka.benchmarks.SyncClient;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class Benchmarking {
@@ -184,6 +183,7 @@ public class Benchmarking {
 
                         tasksCompleted++;
                         iterationIncrement = iterationCounter.getAndIncrement();
+                        clientIndex = iterationIncrement % clients.size();
                       }
                       System.out.println(
                           "Tasks " + taskNumDebugging + " completed " + tasksCompleted + " tasks");
@@ -248,7 +248,7 @@ public class Benchmarking {
   public static Map<ChosenAction, Operation> getActionMap(
       Client client, int dataSize, boolean async) {
 
-    String value = RandomStringUtils.randomAlphanumeric(dataSize);
+    String value = "0".repeat(dataSize);
     Map<ChosenAction, Operation> actions = new HashMap<>();
     actions.put(
         ChosenAction.GET_EXISTING,
