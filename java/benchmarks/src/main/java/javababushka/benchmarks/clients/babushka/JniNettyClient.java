@@ -403,7 +403,7 @@ if (!isFirstResult) { // skip first result - it is connection
     client.connectToRedis();
 
     var key = String.valueOf(ProcessHandle.current().pid());
-    System.out.printf("PID = %s%n%n", key);
+    System.out.printf("socket = %s%n%n", unixSocket);
     Thread.sleep(10000);
     /*
     var get_ne = client.get("sdf");
