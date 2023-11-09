@@ -1,5 +1,5 @@
 [package]
-name = "gorustffi"
+name = "babushkaclient"
 version = "0.1.0"
 edition = "2021"
 build = "build.rs"
@@ -12,7 +12,7 @@ cbindgen = "0.20"
 crate-type = ["cdylib"]
 
 [dependencies]
-redis = { path = "../../../submodules/redis-rs/redis", features = ["aio", "tokio-comp", "tls", "tokio-native-tls-comp"] }
+redis = { path = "../../../submodules/redis-rs/redis", features = ["aio", "tokio-comp", "tls", "tokio-native-tls-comp", "tls-rustls-insecure"] }
 babushka = { path = "../../../babushka-core" }
 tokio = { version = "^1", features = ["rt", "macros", "rt-multi-thread", "time"] }
 num-derive = "0.4.0"

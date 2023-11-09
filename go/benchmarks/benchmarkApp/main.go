@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/aws/babushka/go/benchmarks"
-	"github.com/aws/babushka/go/benchmarks/asyncClientRawFFI"
+	"github.com/aws/babushka/go/benchmarks/babushkaclient"
 	"os"
 	"regexp"
 	"strconv"
@@ -48,19 +48,18 @@ type runConfiguration struct {
 }
 
 type clientNameOptions struct {
-	goRedis  string
-	babushka string
-	all      string
+	goRedis    string
+	goBabushka string
+	all        string
 }
 
 var clientNameOpts = clientNameOptions{
-	goRedis:  "go-redis",
-	babushka: "babushka",
-	all:      "all",
+	goRedis:    "go-redis",
+	goBabushka: "go-babushka",
+	all:        "all",
 }
 
 func main() {
-
 	opts := parseArguments()
 
 	runConfig, err := verifyOptions(opts)
@@ -88,7 +87,7 @@ func parseArguments() *options {
 	port := flag.Int("port", 6379, "Port number")
 	resultsFile := flag.String("resultsFile", "", "Path to results file")
 	clientCount := flag.String("clientCount", "[1]", "Client Count")
-	clientNames := flag.String("clients", "all", "One of: all|go-redis|babushka")
+	clientNames := flag.String("clients", "all", "One of: all|go-redis|go-babushka")
 	configuration := flag.String("configuration", "Release", "Configuration flag")
 	concurrentTasks := flag.String("concurrentTasks", "[1 10 100]", "Number of concurrent tasks")
 	dataSize := flag.String("dataSize", "[100 4000]", "Data block size")
@@ -147,13 +146,13 @@ func verifyOptions(opts *options) (*runConfiguration, error) {
 	case strings.EqualFold(opts.clientNames, clientNameOpts.goRedis):
 		runConfig.clientNames = append(runConfig.clientNames, clientNameOpts.goRedis)
 
-	case strings.EqualFold(opts.clientNames, clientNameOpts.babushka):
-		runConfig.clientNames = append(runConfig.clientNames, clientNameOpts.babushka)
+	case strings.EqualFold(opts.clientNames, clientNameOpts.goBabushka):
+		runConfig.clientNames = append(runConfig.clientNames, clientNameOpts.goBabushka)
 
 	case strings.EqualFold(opts.clientNames, clientNameOpts.all):
-		runConfig.clientNames = append(runConfig.clientNames, clientNameOpts.goRedis, clientNameOpts.babushka)
+		runConfig.clientNames = append(runConfig.clientNames, clientNameOpts.goRedis, clientNameOpts.goBabushka)
 	default:
-		return nil, fmt.Errorf("invalid clients option: all|go-redis|babushka")
+		return nil, fmt.Errorf("invalid clients option: all|go-redis|go-babushka")
 	}
 
 	runConfig.host = opts.host
@@ -236,8 +235,8 @@ func createClients(clientCount int, clientType string, connectionSettings *bench
 		switch clientType {
 		case clientNameOpts.goRedis:
 			client = &benchmarks.GoRedisClient{}
-		case clientNameOpts.babushka:
-			client = &asyncClientRawFFI.AsyncRedisClient{}
+		case clientNameOpts.goBabushka:
+			client = &babushkaclient.BabushkaRedisClient{}
 		}
 		err := client.ConnectToRedis(connectionSettings)
 		if err != nil {

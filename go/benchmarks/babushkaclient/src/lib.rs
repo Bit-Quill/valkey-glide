@@ -17,10 +17,16 @@ pub enum Level {
     Trace = 4,
 }
 
+
+pub type SuccessCallback = unsafe extern "C" fn(message: *const c_char, channel_address: usize) -> ();
+pub type FailureCallback = unsafe extern "C" fn(channel_address: usize) -> ();
+
+
+
 pub struct Connection {
     connection: BabushkaClient,
-    success_callback: unsafe extern "C" fn(usize, *const c_char, usize) -> (),
-    failure_callback: unsafe extern "C" fn(usize) -> (), // TODO - add specific error codes
+    success_callback: SuccessCallback,
+    failure_callback: FailureCallback, // TODO - add specific error codes
     runtime: Runtime,
 }
 
@@ -52,8 +58,8 @@ fn create_connection_internal(
     port: u32,
     use_tls: bool,
     use_cluster_mode: bool,
-    success_callback: unsafe extern "C" fn(usize, *const c_char, usize) -> (),
-    failure_callback: unsafe extern "C" fn(usize) -> (),
+    success_callback: SuccessCallback,
+    failure_callback: FailureCallback,
 ) -> RedisResult<Connection> {
     let host_cstring = unsafe { CStr::from_ptr(host as *mut c_char) };
     let host_string = host_cstring.to_str()?.to_string();
@@ -79,8 +85,8 @@ pub extern "C" fn create_connection(
     port: u32,
     use_tls: bool,
     use_cluster_mode: bool,
-    success_callback: unsafe extern "C" fn(usize, *const c_char, usize) -> (),
-    failure_callback: unsafe extern "C" fn(usize) -> (),
+    success_callback: SuccessCallback,
+    failure_callback: FailureCallback,
 ) -> *const c_void {
     match create_connection_internal(host, port, use_tls, use_cluster_mode, success_callback, failure_callback) {
         Err(_) => std::ptr::null(), // TODO - log errors
@@ -99,7 +105,6 @@ pub extern "C" fn close_connection(connection_ptr: *const c_void) {
 #[no_mangle]
 pub extern "C" fn set(
     connection_ptr: *const c_void,
-    callback_index: usize,
     key: *const c_char,
     value: *const c_char,
     channel: usize
@@ -120,8 +125,8 @@ pub extern "C" fn set(
         unsafe {
             let client = Box::leak(Box::from_raw(ptr_address as *mut Connection));
             match result {
-                Ok(_) => (client.success_callback)(callback_index, std::ptr::null(), channel),
-                Err(_) => (client.failure_callback)(callback_index), // TODO - report errors
+                Ok(_) => (client.success_callback)(std::ptr::null(), channel),
+                Err(_) => (client.failure_callback)(channel), // TODO - report errors
             };
         }
     });
@@ -130,7 +135,7 @@ pub extern "C" fn set(
 /// Expects that key will be kept valid until the callback is called. If the callback is called with a string pointer, the pointer must
 /// be used synchronously, because the string will be dropped after the callback.
 #[no_mangle]
-pub extern "C" fn get(connection_ptr: *const c_void, callback_index: usize, key: *const c_char, channel: usize) {
+pub extern "C" fn get(connection_ptr: *const c_void, key: *const c_char, channel: usize) {
     let connection = unsafe { Box::leak(Box::from_raw(connection_ptr as *mut Connection)) };
     // The safety of this needs to be ensured by the calling code. Cannot dispose of the pointer before all operations have completed.
     let ptr_address = connection_ptr as usize;
@@ -146,7 +151,7 @@ pub extern "C" fn get(connection_ptr: *const c_void, callback_index: usize, key:
         let value = match result {
             Ok(value) => value,
             Err(_) => {
-                unsafe { (connection.failure_callback)(callback_index) }; // TODO - report errors,
+                unsafe { (connection.failure_callback)(channel) }; // TODO - report errors,
                 return;
             }
         };
@@ -154,9 +159,9 @@ pub extern "C" fn get(connection_ptr: *const c_void, callback_index: usize, key:
 
         unsafe {
             match result {
-                Ok(None) => (connection.success_callback)(callback_index, std::ptr::null(), channel),
-                Ok(Some(c_str)) => (connection.success_callback)(callback_index, c_str.as_ptr(), channel),
-                Err(_) => (connection.failure_callback)(callback_index), // TODO - report errors
+                Ok(None) => (connection.success_callback)(std::ptr::null(), channel),
+                Ok(Some(c_str)) => (connection.success_callback)(c_str.as_ptr(), channel),
+                Err(_) => (connection.failure_callback)(channel), // TODO - report errors
             };
         }
     });
