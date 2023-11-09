@@ -52,7 +52,7 @@ application {
     // Define the main class for the application.
     mainClass = 'javababushka.benchmarks.BenchmarkingApp'
     mainClass = 'javababushka.benchmarks.clients.babushka.JniNettyClient'
-    applicationDefaultJvmArgs += "-Djava.library.path=${projectDir}/../target/debug"
+    applicationDefaultJvmArgs += "-Djava.library.path=${projectDir}/../target/release"
 }
 
 tasks.withType(Test) { 
@@ -65,7 +65,7 @@ tasks.withType(Test) {
 }
 
 long unixdump_pid = 0;
-
+/*
 task('start_unixdump') {
     var process = new ProcessBuilder()
         .command('sudo', 'unixdump', '-b', '-s', "/run/user/1000/babushka-socket-")
@@ -85,10 +85,9 @@ task('start_unixdump') {
             break;
         }
     }
-*/
     unixdump_pid = process.pid()
 }
-
+/*
 task('stop_unixdump') {
     if (unixdump_pid > 0) {
         "sudo killall -9 unixdump".execute().waitFor()
@@ -102,7 +101,7 @@ task startUnixdump(type: SpawnProcessTask) {
     command "unixdump -s /run/user/1000/babushka-socket-*"
     ready 'Listening...'
 }
-
+*/
 // run.dependsOn startUnixdump
 
 task stopUnixdump(type: KillProcessTask) {

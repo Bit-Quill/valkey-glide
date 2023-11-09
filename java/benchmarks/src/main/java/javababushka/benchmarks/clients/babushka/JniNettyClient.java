@@ -211,7 +211,8 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
             long parseBefore = System.nanoTime();
                       var response = Response.parseFrom(bytes);
             PARSING_ON_READ_TIME.addAndGet(System.nanoTime() - parseBefore);
-            System.out.printf("%s     received callback id %d%n", LocalDateTime.now(), response.getCallbackIdx());
+            System.out.printf("%s     received callback id %d%n",
+                LocalDateTime.now().minusNanos(System.nanoTime() - readBefore), response.getCallbackIdx());
                       //System.out.printf("== Received response with callback %d%n", response.getCallbackIdx());
             long futureBefore1 = System.nanoTime();
                       var future = responses.get(response.getCallbackIdx());
@@ -225,7 +226,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                       buf.release();
             READ_TIME.addAndGet(System.nanoTime() - readBefore);
             READ_COUNT.incrementAndGet();
-            RESPONSE_TIMESTAMPS.add(System.nanoTime());
+            RESPONSE_TIMESTAMPS.add(readBefore);
                     }
 
                     @Override
@@ -283,7 +284,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                       //buffer.release();
             WRITE_TIME.addAndGet(System.nanoTime() - writeBefore);
             WRITE_COUNT.incrementAndGet();
-            REQUEST_TIMESTAMPS.add(System.nanoTime());
+            REQUEST_TIMESTAMPS.add(innerWriteBefore);
                     }
 
                     @Override
@@ -402,6 +403,8 @@ if (!isFirstResult) { // skip first result - it is connection
     client.connectToRedis();
 
     var key = String.valueOf(ProcessHandle.current().pid());
+    System.out.printf("PID = %s%n%n", key);
+    Thread.sleep(10000);
     /*
     var get_ne = client.get("sdf");
     client.set(key, "asfsdf");
