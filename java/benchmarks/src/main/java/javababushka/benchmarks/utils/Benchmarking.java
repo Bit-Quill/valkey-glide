@@ -1,5 +1,7 @@
 package javababushka.benchmarks.utils;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,9 +9,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javababushka.benchmarks.AsyncClient;
 import javababushka.benchmarks.BenchmarkingApp;
 import javababushka.benchmarks.Client;
@@ -23,8 +28,8 @@ public class Benchmarking {
   static final int SIZE_GET_KEYSPACE = 3750000;
   static final int SIZE_SET_KEYSPACE = 3000000;
   static final int ASYNC_OPERATION_TIMEOUT_SEC = 1;
-  // measurements are done in nano-seconds, but it should be converted to seconds later
-  static final double SECONDS_IN_NANO = 1e-9;
+  // measurements are done in nanoseconds, but it should be converted to seconds later
+  public static final double SECONDS_IN_NANO = 1e-9;
 
   private static ChosenAction randomAction() {
     if (Math.random() > PROB_GET) {
@@ -108,6 +113,7 @@ public class Benchmarking {
   }
 
   public static void printResults(Map<ChosenAction, LatencyResults> resultsMap) {
+    int totalHits = 0;
     for (Map.Entry<ChosenAction, LatencyResults> entry : resultsMap.entrySet()) {
       ChosenAction action = entry.getKey();
       LatencyResults results = entry.getValue();
@@ -118,7 +124,9 @@ public class Benchmarking {
       System.out.println(action + " p99 latency in ms: " + results.p99Latency / 1000000.0);
       System.out.println(action + " std dev in ms: " + results.stdDeviation / 1000000.0);
       System.out.println(action + " total hits: " + results.totalHits);
+      totalHits += results.totalHits;
     }
+    System.out.println("Total hits: " + totalHits);
   }
 
   public static void testClientSetGet(
@@ -172,7 +180,8 @@ public class Benchmarking {
 
                     iterationIncrement = iterationCounter.getAndIncrement();
                   }
-                });
+                }
+            );
           }
           if (config.debugLogging) {
             System.out.printf("%s client Benchmarking: %n", clientCreator.get().getName());
@@ -180,20 +189,37 @@ public class Benchmarking {
                 "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
                 concurrentNum, clientCount, tasks.size());
           }
-          long started = System.nanoTime();
-          tasks.stream()
-              .map(CompletableFuture::runAsync)
-              .forEach(
-                  f -> {
-                    try {
-                      f.get();
-                    } catch (Exception e) {
-                      e.printStackTrace();
-                    }
-                  });
 
+          ExecutorService threadPool = Executors.newFixedThreadPool(concurrentNum);
+          long started = System.nanoTime();
+          // create threads and add them to the async pool.
+          // This will start execution of all the concurrent tasks.
+          List<CompletableFuture> asyncTasks =
+              tasks.stream().map((runnable) -> runAsync(runnable, threadPool)).collect(Collectors.toList());
+          // close pool and await for tasks to complete
+          threadPool.shutdown();
+          while (!threadPool.isTerminated()) {
+            try {
+              // wait before waiting for threads to complete
+              Thread.sleep(100);
+            } catch (InterruptedException interruptedException) {
+              interruptedException.printStackTrace();
+            }
+          }
+          // wait for all futures to complete
+          asyncTasks.forEach(
+              future -> {
+                try {
+                  future.get();
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+              });
+          long after = System.nanoTime();
           var calculatedResults = calculateResults(actionResults);
+
           if (config.resultsFile.isPresent()) {
+            double tps = iterationCounter.get() * SECONDS_IN_NANO / (after - started);
             JsonWriter.Write(
                 calculatedResults,
                 config.resultsFile.get(),
@@ -202,7 +228,7 @@ public class Benchmarking {
                 clientCreator.get().getName(),
                 clientCount,
                 concurrentNum,
-                iterationCounter.get() * 1e9 / (System.nanoTime() - started));
+                tps);
           }
           printResults(calculatedResults);
         }
