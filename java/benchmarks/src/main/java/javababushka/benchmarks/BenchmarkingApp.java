@@ -196,6 +196,10 @@ public class BenchmarkingApp {
     if (lineValue.startsWith("[") && lineValue.endsWith("]")) {
       lineValue = lineValue.substring(1, lineValue.length() - 1);
     }
+
+    // trim whitespace
+    lineValue = lineValue.trim();
+
     // check if it's the correct format
     if (!lineValue.matches("\\d+(\\s+\\d+)*")) {
       throw new ParseException("Invalid option: " + line);
