@@ -84,28 +84,49 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
 
   public static int PENDING_RESPONSES_ON_CLOSE_TIMEOUT_MILLIS = 1000;
 
-  public static final AtomicLong READ_TIME = new AtomicLong(0);
-  public static final AtomicLong READ_TIME_INNER = new AtomicLong(0);
-  public static final AtomicLong READ_COUNT = new AtomicLong(0);
-  public static final AtomicLong WRITE_TIME = new AtomicLong(0);
-  public static final AtomicLong WRITE_TIME_INNER = new AtomicLong(0);
-  public static final AtomicLong WRITE_COUNT = new AtomicLong(0);
+  public final AtomicLong READ_TIME = new AtomicLong(0);
+  public final AtomicLong READ_COUNT = new AtomicLong(0);
+  public final AtomicLong WRITE_TIME = new AtomicLong(0);
+  public final AtomicLong WRITE_TIME_INNER = new AtomicLong(0);
+  public final AtomicLong WRITE_COUNT = new AtomicLong(0);
 
-  public static final AtomicLong BUFFER_ON_WRITE_TIME = new AtomicLong(0);
-  public static final AtomicLong BUFFER_ON_READ_TIME = new AtomicLong(0);
-  public static final AtomicLong PARSING_ON_READ_TIME = new AtomicLong(0);
-  public static final AtomicLong SERIALIZATION_ON_WRITE_TIME = new AtomicLong(0);
-  public static final AtomicLong SET_FUTURE_ON_READ_TIME1 = new AtomicLong(0);
-  public static final AtomicLong SET_FUTURE_ON_READ_TIME2 = new AtomicLong(0);
+  public final AtomicLong FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME = new AtomicLong(0);
+  public final AtomicLong BUFFER_ON_WRITE_TIME = new AtomicLong(0);
+  public final AtomicLong BUFFER_ON_READ_TIME = new AtomicLong(0);
+  public final AtomicLong PARSING_ON_READ_TIME = new AtomicLong(0);
+  public final AtomicLong SERIALIZATION_ON_WRITE_TIME = new AtomicLong(0);
+  public final AtomicLong SET_FUTURE_ON_READ_TIME1 = new AtomicLong(0);
+  public final AtomicLong SET_FUTURE_ON_READ_TIME2 = new AtomicLong(0);
+  public final AtomicLong GET_FUTURE_RESULT_AFTER_SET = new AtomicLong(0);
 
-  public static final AtomicLong BUILD_COMMAND_ON_WRITE_TIME = new AtomicLong(0);
-  public static final AtomicLong WRITE_ON_WRITE_TIME = new AtomicLong(0);
+  public final AtomicLong BUILD_COMMAND_ON_WRITE_TIME = new AtomicLong(0);
+  public final AtomicLong WRITE_ON_WRITE_TIME = new AtomicLong(0);
 
-  private boolean isFirstResult = true;
-  public static final AtomicLong WAIT_FOR_RESULT = new AtomicLong(0);
-  public static final List<Long> REQUEST_TIMESTAMPS = Collections.synchronizedList(new ArrayList<>());
-  public static final List<Long> RESPONSE_TIMESTAMPS = Collections.synchronizedList(new ArrayList<>());
+  public final AtomicLong WAIT_FOR_RESULT = new AtomicLong(0);
+  public final List<Long> REQUEST_TIMESTAMPS = Collections.synchronizedList(new ArrayList<>());
+  public final List<Long> RESPONSE_TIMESTAMPS = Collections.synchronizedList(new ArrayList<>());
 
+
+  private void resetCounters() {
+    READ_TIME.set(0);
+    READ_COUNT.set(0);
+    WRITE_TIME.set(0);
+    WRITE_TIME_INNER.set(0);
+    WRITE_COUNT.set(0);
+    FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.set(0);
+    BUFFER_ON_WRITE_TIME.set(0);
+    BUFFER_ON_READ_TIME.set(0);
+    PARSING_ON_READ_TIME.set(0);
+    SERIALIZATION_ON_WRITE_TIME.set(0);
+    SET_FUTURE_ON_READ_TIME1.set(0);
+    SET_FUTURE_ON_READ_TIME2.set(0);
+    BUILD_COMMAND_ON_WRITE_TIME.set(0);
+    WRITE_ON_WRITE_TIME.set(0);
+    WAIT_FOR_RESULT.set(0);
+    GET_FUTURE_RESULT_AFTER_SET.set(0);
+    REQUEST_TIMESTAMPS.clear();
+    RESPONSE_TIMESTAMPS.clear();
+  }
 
   // Futures to handle responses. Index is callback id, starting from 1 (0 index is for connection request always).
   // TODO clean up completed futures
@@ -173,7 +194,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
       System.err.println("Connection time out");
     }
 
-    int a = 5;
+    resetCounters();
   }
 
   private void createChannel() {
@@ -211,22 +232,23 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
             long parseBefore = System.nanoTime();
                       var response = Response.parseFrom(bytes);
             PARSING_ON_READ_TIME.addAndGet(System.nanoTime() - parseBefore);
-            System.out.printf("%s     received callback id %d%n",
-                LocalDateTime.now().minusNanos(System.nanoTime() - readBefore), response.getCallbackIdx());
+            if (response.getCallbackIdx() > 0) {
+              System.out.printf("%s     received callback id %d%n",
+                  LocalDateTime.now().minusNanos(System.nanoTime() - readBefore), response.getCallbackIdx());
+            }
                       //System.out.printf("== Received response with callback %d%n", response.getCallbackIdx());
             long futureBefore1 = System.nanoTime();
                       var future = responses.get(response.getCallbackIdx());
             SET_FUTURE_ON_READ_TIME1.addAndGet(System.nanoTime() - futureBefore1);
             long futureBefore2 = System.nanoTime();
                       future.complete(response);
-            SET_FUTURE_ON_READ_TIME2.addAndGet(System.nanoTime() - futureBefore2);
-            long innerReadBefore = System.nanoTime();
-                      super.channelRead(ctx, bytes);
-            READ_TIME_INNER.addAndGet(System.nanoTime() - innerReadBefore);
+            long futureAfter2 = System.nanoTime();
+            SET_FUTURE_ON_READ_TIME2.addAndGet(futureAfter2 - futureBefore2);
                       buf.release();
             READ_TIME.addAndGet(System.nanoTime() - readBefore);
             READ_COUNT.incrementAndGet();
             RESPONSE_TIMESTAMPS.add(readBefore);
+            GET_FUTURE_RESULT_AFTER_SET.addAndGet(-futureAfter2);
                     }
 
                     @Override
@@ -275,7 +297,8 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
             }
             long innerWriteBefore = System.nanoTime();
                       super.write(ctx, buffer, promise);
-            WRITE_TIME_INNER.addAndGet(System.nanoTime() - innerWriteBefore);
+            long innerWriteAfter = System.nanoTime();
+            WRITE_TIME_INNER.addAndGet(innerWriteAfter - innerWriteBefore);
                       if (needFlush) {
                         // flush outside the sync block
                         flush(ctx);
@@ -284,7 +307,8 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                       //buffer.release();
             WRITE_TIME.addAndGet(System.nanoTime() - writeBefore);
             WRITE_COUNT.incrementAndGet();
-            REQUEST_TIMESTAMPS.add(innerWriteBefore);
+            REQUEST_TIMESTAMPS.add(innerWriteAfter);
+            FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.addAndGet(writeBefore);
                     }
 
                     @Override
@@ -381,11 +405,9 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   public <T> T waitForResult(Future<T> future) {
 long before = System.nanoTime();
     var res = AsyncClient.super.waitForResult(future);
-if (!isFirstResult) { // skip first result - it is connection
-  WAIT_FOR_RESULT.addAndGet(System.nanoTime() - before);
-} else {
-  isFirstResult = false;
-}
+long after = System.nanoTime();
+WAIT_FOR_RESULT.addAndGet(after - before);
+GET_FUTURE_RESULT_AFTER_SET.addAndGet(after);
     return res;
   }
 
@@ -397,14 +419,59 @@ if (!isFirstResult) { // skip first result - it is connection
   }
 
   @SneakyThrows
+  public static void dumpStats(JniNettyClient client, String operation, long total) {
+    System.out.printf("%n==== %s ====%n", operation);
+    System.out.printf("-> total:                 %10d%n", total);
+    System.out.printf("-> waiting:               %10d%n", client.WAIT_FOR_RESULT.get());
+    System.out.printf("-> write: count writes    %10d%n", client.WRITE_COUNT.get());
+    System.out.printf("-> write: build command   %10d%n", client.BUILD_COMMAND_ON_WRITE_TIME.get());
+    System.out.printf("-> write: submit command  %10d%n", client.WRITE_ON_WRITE_TIME.get());
+    System.out.printf("-> write: handling        %10d%n", client.FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.get());
+    System.out.printf("-> write: buffer          %10d%n", client.BUFFER_ON_WRITE_TIME.get());
+    System.out.printf("-> write: serialize       %10d%n", client.SERIALIZATION_ON_WRITE_TIME.get());
+    System.out.printf("-> write: submit          %10d%n", client.WRITE_TIME_INNER.get());
+    System.out.printf("-> write: total netty     %10d%n", client.WRITE_TIME.get());
+    System.out.printf("-> read: count reads      %10d%n", client.READ_COUNT.get());
+    System.out.printf("-> read: buffer           %10d%n", client.BUFFER_ON_READ_TIME.get());
+    System.out.printf("-> read: parse            %10d%n", client.PARSING_ON_READ_TIME.get());
+    System.out.printf("-> read: set future res   %10d%n", client.SET_FUTURE_ON_READ_TIME1.get() + client.SET_FUTURE_ON_READ_TIME2.get());
+    System.out.printf("-> read: total netty      %10d%n", client.READ_TIME.get());
+    System.out.printf("-> read: get future res   %10d%n", client.GET_FUTURE_RESULT_AFTER_SET.get());
+
+    long prev = 0;
+    for (int i = 0; i < client.REQUEST_TIMESTAMPS.size(); i++) {
+      if (prev > client.REQUEST_TIMESTAMPS.get(i)) {
+        System.err.printf("Request timestamps %d <-> %d are reordered%n", i, i - 1);
+      }
+      prev = client.REQUEST_TIMESTAMPS.get(i);
+    }
+    prev = 0;
+    for (int i = 0; i < client.RESPONSE_TIMESTAMPS.size(); i++) {
+      if (prev > client.RESPONSE_TIMESTAMPS.get(i)) {
+        System.err.printf("Response timestamps %d <-> %d are reordered%n", i, i - 1);
+      }
+      prev = client.RESPONSE_TIMESTAMPS.get(i);
+    }
+    if (client.REQUEST_TIMESTAMPS.size() != client.RESPONSE_TIMESTAMPS.size()) {
+      System.err.printf("Req and res data size mismatch: requests %d responses %d%n", client.REQUEST_TIMESTAMPS.size(), client.RESPONSE_TIMESTAMPS.size());
+    } else {
+      long avg = 0;
+      for (int i = 0; i < client.REQUEST_TIMESTAMPS.size(); i++) {
+        avg += client.RESPONSE_TIMESTAMPS.get(i) - client.REQUEST_TIMESTAMPS.get(i);
+      }
+      System.out.printf("-> avg response time      %10d%n", avg / client.REQUEST_TIMESTAMPS.size());
+    }
+    System.out.printf("========%n");
+  }
+
+  @SneakyThrows
   public static void main(String[] args) {
     JniNettyClient.ALWAYS_FLUSH_ON_WRITE = true;
-    var client = new JniNettyClient();
-    client.connectToRedis();
-
     var key = String.valueOf(ProcessHandle.current().pid());
-    System.out.printf("socket = %s%n%n", unixSocket);
-    Thread.sleep(10000);
+
+    var clientSet = new JniNettyClient();
+    clientSet.connectToRedis();
+
     /*
     var get_ne = client.get("sdf");
     client.set(key, "asfsdf");
@@ -422,93 +489,74 @@ if (!isFirstResult) { // skip first result - it is connection
     var res2 = client.waitForResult(set_a);
     var res3 = client.waitForResult(get_ea);
     */
+    System.out.printf("%n++++ START OF TEST ++++%n");
     long beforeSet = System.nanoTime();
     for (int i = 0; i < 100; i++) {
-      client.set("name", "value");
+      clientSet.set("name", "value");
     }
     long afterSet = System.nanoTime();
+    clientSet.closeConnection();
 
+    dumpStats(clientSet, "SET", afterSet - beforeSet);
+    System.out.printf("%n++++ END OF TEST ++++%n");
 
+    var clientGetNE = new JniNettyClient();
+    clientGetNE.connectToRedis();
+    System.out.printf("%n++++ START OF TEST ++++%n");
     long beforeGetNE = System.nanoTime();
     for (int i = 0; i < 100; i++) {
-      client.get("namevalue");
+      clientGetNE.get("namevalue");
     }
     long afterGetNE = System.nanoTime();
+    clientGetNE.closeConnection();
 
+    dumpStats(clientGetNE, "GET NE", afterGetNE - beforeGetNE);
+    System.out.printf("%n++++ END OF TEST ++++%n");
 
+    var clientGetE = new JniNettyClient();
+    clientGetE.connectToRedis();
+    System.out.printf("%n++++ START OF TEST ++++%n");
     long beforeGetE = System.nanoTime();
     for (int i = 0; i < 100; i++) {
-      client.get(key);
+      clientGetE.get(key);
     }
     long afterGetE = System.nanoTime();
+    clientGetE.closeConnection();
 
-    System.out.printf("++++ set:    %10d%n", afterSet - beforeSet);
-    System.out.printf("++++ get NE: %10d%n", afterGetNE - beforeGetNE);
-    System.out.printf("++++ get E:  %10d%n", afterGetE - beforeGetE);
+    dumpStats(clientGetE, "GET E", afterGetE - beforeGetE);
+    System.out.printf("%n++++ END OF TEST ++++%n");
+    System.out.printf("%n%n%n%n%n");
 
-    System.out.printf("++++ total:  %10d, waiting %d%n", afterSet - beforeSet + afterGetNE - beforeGetNE + afterGetE - beforeGetE, WAIT_FOR_RESULT.get());
-    try {
-      Thread.sleep(1000);
-    } catch (InterruptedException ignored) {}
+    dumpStats(clientSet, "SET", afterSet - beforeSet);
+    dumpStats(clientGetE, "GET E", afterGetE - beforeGetE);
+    dumpStats(clientGetNE, "GET NE", afterGetNE - beforeGetNE);
 
-    System.out.printf("-> write times:  %10d %10d, count %5d%n", WRITE_TIME_INNER.get(), WRITE_TIME.get(), WRITE_COUNT.get());
-    System.out.printf("-> read times:   %10d %10d, count %5d%n", READ_TIME_INNER.get(), READ_TIME.get(), READ_COUNT.get());
-    System.out.printf("-> write: buffer %10d, write  %10d%n", BUFFER_ON_WRITE_TIME.get(), SERIALIZATION_ON_WRITE_TIME.get());
-    System.out.printf("-> read:  buffer %10d, parse  %10d%n", BUFFER_ON_READ_TIME.get(), PARSING_ON_READ_TIME.get());
-    System.out.printf("-> read:  future %10d, part2  %10d%n", SET_FUTURE_ON_READ_TIME1.get(), SET_FUTURE_ON_READ_TIME2.get());
-    System.out.printf("-> write: build  %10d, submit %10d%n", BUILD_COMMAND_ON_WRITE_TIME.get(), WRITE_ON_WRITE_TIME.get());
-
-    long prev = 0;
-    for (int i = 0; i < REQUEST_TIMESTAMPS.size(); i++) {
-      if (prev > REQUEST_TIMESTAMPS.get(i)) {
-        System.err.printf("Request timestamps %d <-> %d are reordered%n", i, i - 1);
-      }
-      prev = REQUEST_TIMESTAMPS.get(i);
-    }
-    prev = 0;
-    for (int i = 0; i < RESPONSE_TIMESTAMPS.size(); i++) {
-      if (prev > RESPONSE_TIMESTAMPS.get(i)) {
-        System.err.printf("Response timestamps %d <-> %d are reordered%n", i, i - 1);
-      }
-      prev = RESPONSE_TIMESTAMPS.get(i);
-    }
-    if (REQUEST_TIMESTAMPS.size() != RESPONSE_TIMESTAMPS.size()) {
-      System.err.printf("Req and res data size mismatch: requests %d responses %d%n", REQUEST_TIMESTAMPS.size(), RESPONSE_TIMESTAMPS.size());
-    } else {
-      long avg = 0;
-      for (int i = 0; i < REQUEST_TIMESTAMPS.size(); i++) {
-        avg += RESPONSE_TIMESTAMPS.get(i) - REQUEST_TIMESTAMPS.get(i);
-      }
-      System.out.printf("-> avg response time %d%n", avg / REQUEST_TIMESTAMPS.size());
-    }
-
-    client.closeConnection();
     if (true)
       return;
     ///////
 
     long beforeSetA = System.nanoTime();
     for (int i = 0; i < 1000; i++) {
-      client.asyncSet("name", "value");
+      clientGetE.asyncSet("name", "value");
     }
     long afterSetA = System.nanoTime();
     System.out.printf("++++ set: %d%n", afterSetA - beforeSetA);
 
     long beforeGetNEA = System.nanoTime();
     for (int i = 0; i < 1000; i++) {
-      client.asyncGet("namevalue");
+      clientGetE.asyncGet("namevalue");
     }
     long afterGetNEA = System.nanoTime();
     System.out.printf("++++ get NE: %d%n", afterGetNEA - beforeGetNEA);
 
     long beforeGetEA = System.nanoTime();
     for (int i = 0; i < 1000; i++) {
-      client.asyncGet(key);
+      clientGetE.asyncGet(key);
     }
     long afterGetEA = System.nanoTime();
     System.out.printf("++++ get E: %d%n", afterGetEA - beforeGetEA);
 
-    client.closeConnection();
+    clientGetE.closeConnection();
   }
 
   @Override
@@ -576,11 +624,15 @@ BUILD_COMMAND_ON_WRITE_TIME.addAndGet(System.nanoTime() - beforeBuild);
 long beforeWrite = System.nanoTime();
     if (ALWAYS_FLUSH_ON_WRITE) {
       channel.writeAndFlush(request);
-WRITE_ON_WRITE_TIME.addAndGet(System.nanoTime() - beforeWrite);
+long afterWrite = System.nanoTime();
+WRITE_ON_WRITE_TIME.addAndGet(afterWrite - beforeWrite);
+FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.addAndGet(-afterWrite);
       return responses.get(callbackId);
     }
     channel.write(request);
-WRITE_ON_WRITE_TIME.addAndGet(System.nanoTime() - beforeWrite);
+long afterWrite = System.nanoTime();
+WRITE_ON_WRITE_TIME.addAndGet(afterWrite - beforeWrite);
+FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.addAndGet(-afterWrite);
     return autoFlushFutureWrapper(responses.get(callbackId));
   }
 
