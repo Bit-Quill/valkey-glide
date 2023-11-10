@@ -8,9 +8,6 @@ import io.lettuce.core.RedisURI;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.async.RedisAdvancedClusterAsyncCommands;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import javababushka.benchmarks.AsyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 
 public class LettuceAsyncClusterClient extends LettuceAsyncClient {
@@ -33,8 +30,8 @@ public class LettuceAsyncClusterClient extends LettuceAsyncClient {
             .withSsl(connectionSettings.useSsl)
             .build();
     clusterClient = RedisClusterClient.create(uri);
-    clusterConnection = client.connect();
-    clusterAsyncCommands = connection.async();
+    clusterConnection = clusterClient.connect();
+    clusterAsyncCommands = clusterConnection.async();
   }
 
   @Override
