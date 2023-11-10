@@ -9,15 +9,6 @@ use std::{
 use tokio::runtime::Builder;
 use tokio::runtime::Runtime;
 
-pub enum Level {
-    Error = 0,
-    Warn = 1,
-    Info = 2,
-    Debug = 3,
-    Trace = 4,
-}
-
-
 pub type SuccessCallback = unsafe extern "C" fn(message: *const c_char, channel_address: usize) -> ();
 pub type FailureCallback = unsafe extern "C" fn(channel_address: usize) -> ();
 
@@ -26,7 +17,7 @@ pub type FailureCallback = unsafe extern "C" fn(channel_address: usize) -> ();
 pub struct Connection {
     connection: BabushkaClient,
     success_callback: SuccessCallback,
-    failure_callback: FailureCallback, // TODO - add specific error codes
+    failure_callback: FailureCallback,
     runtime: Runtime,
 }
 
@@ -89,7 +80,7 @@ pub extern "C" fn create_connection(
     failure_callback: FailureCallback,
 ) -> *const c_void {
     match create_connection_internal(host, port, use_tls, use_cluster_mode, success_callback, failure_callback) {
-        Err(_) => std::ptr::null(), // TODO - log errors
+        Err(_) => std::ptr::null(),
         Ok(connection) => Box::into_raw(Box::new(connection)) as *const c_void,
     }
 }
@@ -126,7 +117,7 @@ pub extern "C" fn set(
             let client = Box::leak(Box::from_raw(ptr_address as *mut Connection));
             match result {
                 Ok(_) => (client.success_callback)(std::ptr::null(), channel),
-                Err(_) => (client.failure_callback)(channel), // TODO - report errors
+                Err(_) => (client.failure_callback)(channel),
             };
         }
     });
@@ -151,7 +142,7 @@ pub extern "C" fn get(connection_ptr: *const c_void, key: *const c_char, channel
         let value = match result {
             Ok(value) => value,
             Err(_) => {
-                unsafe { (connection.failure_callback)(channel) }; // TODO - report errors,
+                unsafe { (connection.failure_callback)(channel) };
                 return;
             }
         };
@@ -161,76 +152,9 @@ pub extern "C" fn get(connection_ptr: *const c_void, key: *const c_char, channel
             match result {
                 Ok(None) => (connection.success_callback)(std::ptr::null(), channel),
                 Ok(Some(c_str)) => (connection.success_callback)(c_str.as_ptr(), channel),
-                Err(_) => (connection.failure_callback)(channel), // TODO - report errors
+                Err(_) => (connection.failure_callback)(channel),
             };
         }
     });
 }
 
-impl From<logger_core::Level> for Level {
-    fn from(level: logger_core::Level) -> Self {
-        match level {
-            logger_core::Level::Error => Level::Error,
-            logger_core::Level::Warn => Level::Warn,
-            logger_core::Level::Info => Level::Info,
-            logger_core::Level::Debug => Level::Debug,
-            logger_core::Level::Trace => Level::Trace,
-        }
-    }
-}
-
-impl From<Level> for logger_core::Level {
-    fn from(level: Level) -> logger_core::Level {
-        match level {
-            Level::Error => logger_core::Level::Error,
-            Level::Warn => logger_core::Level::Warn,
-            Level::Info => logger_core::Level::Info,
-            Level::Debug => logger_core::Level::Debug,
-            Level::Trace => logger_core::Level::Trace,
-        }
-    }
-}
-
-#[no_mangle]
-#[allow(improper_ctypes_definitions)]
-/// # Safety
-/// Unsafe function because creating string from pointer
-pub unsafe extern "C" fn log(
-    log_level: Level,
-    log_identifier: *const c_char,
-    message: *const c_char,
-) {
-    unsafe {
-        logger_core::log(
-            log_level.into(),
-            CStr::from_ptr(log_identifier)
-                .to_str()
-                .expect("Can not read log_identifier argument."),
-            CStr::from_ptr(message)
-                .to_str()
-                .expect("Can not read message argument."),
-        );
-    }
-}
-
-#[no_mangle]
-#[allow(improper_ctypes_definitions)]
-/// # Safety
-/// Unsafe function because creating string from pointer
-pub unsafe extern "C" fn init(level: Option<Level>, file_name: *const c_char) -> Level {
-    let file_name_as_str;
-    unsafe {
-        file_name_as_str = if file_name.is_null() {
-            None
-        } else {
-            Some(
-                CStr::from_ptr(file_name)
-                    .to_str()
-                    .expect("Can not read string argument."),
-            )
-        };
-
-        let logger_level = logger_core::init(level.map(|level| level.into()), file_name_as_str);
-        logger_level.into()
-    }
-}
