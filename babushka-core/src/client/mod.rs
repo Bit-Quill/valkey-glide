@@ -1,18 +1,19 @@
 use crate::connection_request::{
     AddressInfo, AuthenticationInfo, ConnectionRequest, ReadFromReplicaStrategy, TlsMode,
 };
-pub use client_cmd::ClientCMD;
 use futures::FutureExt;
+use logger_core::log_info;
 use redis::cluster_async::ClusterConnection;
 use redis::cluster_routing::{RoutingInfo, SingleNodeRoutingInfo};
 use redis::{
     aio::{ConnectionLike, ConnectionManager, MultiplexedConnection},
     RedisResult,
 };
+pub use standalone_client::StandaloneClient;
 use std::io;
 use std::time::Duration;
-mod client_cmd;
 mod reconnecting_connection;
+mod standalone_client;
 
 pub const HEARTBEAT_SLEEP_DURATION: Duration = Duration::from_secs(1);
 
@@ -45,14 +46,18 @@ fn chars_to_string_option(chars: &::protobuf::Chars) -> Option<String> {
 
 pub(super) fn get_redis_connection_info(
     authentication_info: Option<Box<AuthenticationInfo>>,
+    database_id: u32,
 ) -> redis::RedisConnectionInfo {
     match authentication_info {
         Some(info) => redis::RedisConnectionInfo {
-            db: 0,
+            db: database_id as i64,
             username: chars_to_string_option(&info.username),
             password: chars_to_string_option(&info.password),
         },
-        None => redis::RedisConnectionInfo::default(),
+        None => redis::RedisConnectionInfo {
+            db: database_id as i64,
+            ..Default::default()
+        },
     }
 }
 
@@ -78,11 +83,8 @@ pub(super) fn get_connection_info(
 
 #[derive(Clone)]
 pub enum ClientWrapper {
-    CMD(ClientCMD),
-    CME {
-        client: ClusterConnection,
-        read_from_replicas: bool,
-    },
+    Standalone(StandaloneClient),
+    Cluster { client: ClusterConnection },
 }
 
 #[derive(Clone)]
@@ -109,14 +111,10 @@ impl Client {
     ) -> redis::RedisFuture<'a, redis::Value> {
         run_with_timeout(self.response_timeout, async {
             match self.internal_client {
-                ClientWrapper::CMD(ref mut client) => client.send_packed_command(cmd).await,
+                ClientWrapper::Standalone(ref mut client) => client.send_packed_command(cmd).await,
 
-                ClientWrapper::CME {
-                    ref mut client,
-                    read_from_replicas,
-                } => {
-                    let routing =
-                        routing.or_else(|| RoutingInfo::for_routable(cmd, read_from_replicas));
+                ClientWrapper::Cluster { ref mut client } => {
+                    let routing = routing.or_else(|| RoutingInfo::for_routable(cmd));
                     client.send_packed_command(cmd, routing).await
                 }
             }
@@ -133,14 +131,11 @@ impl Client {
     ) -> redis::RedisFuture<'a, Vec<redis::Value>> {
         (async move {
             match self.internal_client {
-                ClientWrapper::CMD(ref mut client) => {
+                ClientWrapper::Standalone(ref mut client) => {
                     client.send_packed_commands(cmd, offset, count).await
                 }
 
-                ClientWrapper::CME {
-                    ref mut client,
-                    read_from_replicas: _,
-                } => {
+                ClientWrapper::Cluster { ref mut client } => {
                     let route = match routing {
                         Some(RoutingInfo::SingleNode(SingleNodeRoutingInfo::SpecificNode(
                             route,
@@ -169,10 +164,10 @@ fn to_duration(time_in_millis: u32, default: Duration) -> Duration {
 
 async fn create_cluster_client(
     request: ConnectionRequest,
-) -> RedisResult<(redis::cluster_async::ClusterConnection, bool)> {
+) -> RedisResult<redis::cluster_async::ClusterConnection> {
     // TODO - implement timeout for each connection attempt
-    let tls_mode = request.tls_mode.enum_value_or(TlsMode::NoTls);
-    let redis_connection_info = get_redis_connection_info(request.authentication_info.0);
+    let tls_mode = request.tls_mode.enum_value_or_default();
+    let redis_connection_info = get_redis_connection_info(request.authentication_info.0, 0);
     let initial_nodes = request
         .addresses
         .into_iter()
@@ -200,21 +195,21 @@ async fn create_cluster_client(
         builder = builder.tls(tls);
     }
     let client = builder.build()?;
-    Ok((client.get_async_connection().await?, read_from_replicas))
+    client.get_async_connection().await
 }
 
 #[derive(thiserror::Error)]
 pub enum ConnectionError {
-    CMD(client_cmd::ClientCMDConnectionError),
-    CME(redis::RedisError),
+    Standalone(standalone_client::StandaloneClientConnectionError),
+    Cluster(redis::RedisError),
     Timeout,
 }
 
 impl std::fmt::Debug for ConnectionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::CMD(arg0) => f.debug_tuple("CMD").field(arg0).finish(),
-            Self::CME(arg0) => f.debug_tuple("CME").field(arg0).finish(),
+            Self::Standalone(arg0) => f.debug_tuple("Standalone").field(arg0).finish(),
+            Self::Cluster(arg0) => f.debug_tuple("Cluster").field(arg0).finish(),
             Self::Timeout => write!(f, "Timeout"),
         }
     }
@@ -223,17 +218,56 @@ impl std::fmt::Debug for ConnectionError {
 impl std::fmt::Display for ConnectionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ConnectionError::CMD(err) => write!(f, "{err:?}"),
-            ConnectionError::CME(err) => write!(f, "{err}"),
+            ConnectionError::Standalone(err) => write!(f, "{err:?}"),
+            ConnectionError::Cluster(err) => write!(f, "{err}"),
             ConnectionError::Timeout => f.write_str("connection attempt timed out"),
         }
     }
+}
+
+fn format_non_zero_value(name: &'static str, value: u32) -> String {
+    if value > 0 {
+        format!("\n{name}: {value}")
+    } else {
+        String::new()
+    }
+}
+
+fn sanitized_request_string(request: &ConnectionRequest) -> String {
+    let addresses = request
+        .addresses
+        .iter()
+        .map(|address| format!("{}:{}", address.host, address.port))
+        .collect::<Vec<_>>()
+        .join(", ");
+    let tls_mode = request.tls_mode.enum_value_or_default();
+    let cluster_mode = request.cluster_mode_enabled;
+    let response_timeout = format_non_zero_value("response timeout", request.response_timeout);
+    let client_creation_timeout =
+        format_non_zero_value("client creation timeout", request.client_creation_timeout);
+    let database_id = format_non_zero_value("database ID", request.database_id);
+    let rfr_strategy = request.read_from_replica_strategy.enum_value_or_default();
+    let connection_retry_strategy = match &request.connection_retry_strategy.0 {
+        Some(strategy) => {
+            format!("\nreconnect backoff strategy: number of increasing duration retries: {}, base: {}, factor: {}",
+        strategy.number_of_retries, strategy.exponent_base, strategy.factor)
+        }
+        None => String::new(),
+    };
+
+    format!(
+        "\naddresses: {addresses}\nTLS mode: {tls_mode:?}\ncluster mode: {cluster_mode}{response_timeout}{client_creation_timeout}\nRead from replica strategy: {rfr_strategy:?}{database_id}{connection_retry_strategy}",
+    )
 }
 
 impl Client {
     pub async fn new(request: ConnectionRequest) -> Result<Self, ConnectionError> {
         const DEFAULT_CLIENT_CREATION_TIMEOUT: Duration = Duration::from_millis(2500);
 
+        log_info(
+            "Connection configuration",
+            sanitized_request_string(&request),
+        );
         let response_timeout = to_duration(request.response_timeout, DEFAULT_RESPONSE_TIMEOUT);
         let total_connection_timeout = to_duration(
             request.client_creation_timeout,
@@ -241,18 +275,15 @@ impl Client {
         );
         tokio::time::timeout(total_connection_timeout, async move {
             let internal_client = if request.cluster_mode_enabled {
-                let (client, read_from_replicas) = create_cluster_client(request)
+                let client = create_cluster_client(request)
                     .await
-                    .map_err(ConnectionError::CME)?;
-                ClientWrapper::CME {
-                    client,
-                    read_from_replicas,
-                }
+                    .map_err(ConnectionError::Cluster)?;
+                ClientWrapper::Cluster { client }
             } else {
-                ClientWrapper::CMD(
-                    ClientCMD::create_client(request)
+                ClientWrapper::Standalone(
+                    StandaloneClient::create_client(request)
                         .await
-                        .map_err(ConnectionError::CMD)?,
+                        .map_err(ConnectionError::Standalone)?,
                 )
             };
 

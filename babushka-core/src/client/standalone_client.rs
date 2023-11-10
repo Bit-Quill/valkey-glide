@@ -3,14 +3,14 @@ use super::reconnecting_connection::ReconnectingConnection;
 use crate::connection_request::{AddressInfo, ConnectionRequest, TlsMode};
 use crate::retry_strategies::RetryStrategy;
 use futures::{stream, StreamExt};
-#[cfg(cmd_heartbeat)]
+#[cfg(standalone_heartbeat)]
 use logger_core::log_debug;
 use logger_core::{log_trace, log_warn};
 use protobuf::EnumOrUnknown;
 use redis::cluster_routing::is_readonly;
 use redis::{RedisError, RedisResult, Value};
 use std::sync::Arc;
-#[cfg(cmd_heartbeat)]
+#[cfg(standalone_heartbeat)]
 use tokio::task;
 
 enum ReadFromReplicaStrategy {
@@ -36,22 +36,22 @@ impl Drop for DropWrapper {
 }
 
 #[derive(Clone)]
-pub struct ClientCMD {
+pub struct StandaloneClient {
     inner: Arc<DropWrapper>,
 }
 
-pub enum ClientCMDConnectionError {
+pub enum StandaloneClientConnectionError {
     NoAddressesProvided,
     FailedConnection(Vec<(String, RedisError)>),
 }
 
-impl std::fmt::Debug for ClientCMDConnectionError {
+impl std::fmt::Debug for StandaloneClientConnectionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ClientCMDConnectionError::NoAddressesProvided => {
+            StandaloneClientConnectionError::NoAddressesProvided => {
                 write!(f, "No addresses provided")
             }
-            ClientCMDConnectionError::FailedConnection(errs) => {
+            StandaloneClientConnectionError::FailedConnection(errs) => {
                 writeln!(f, "Received errors:")?;
                 for (address, error) in errs {
                     writeln!(f, "{address}: {error}")?;
@@ -62,18 +62,20 @@ impl std::fmt::Debug for ClientCMDConnectionError {
     }
 }
 
-impl ClientCMD {
+impl StandaloneClient {
     pub async fn create_client(
         connection_request: ConnectionRequest,
-    ) -> Result<Self, ClientCMDConnectionError> {
+    ) -> Result<Self, StandaloneClientConnectionError> {
         if connection_request.addresses.is_empty() {
-            return Err(ClientCMDConnectionError::NoAddressesProvided);
+            return Err(StandaloneClientConnectionError::NoAddressesProvided);
         }
         let retry_strategy = RetryStrategy::new(&connection_request.connection_retry_strategy.0);
-        let redis_connection_info =
-            get_redis_connection_info(connection_request.authentication_info.0);
+        let redis_connection_info = get_redis_connection_info(
+            connection_request.authentication_info.0,
+            connection_request.database_id,
+        );
 
-        let tls_mode = connection_request.tls_mode.enum_value_or(TlsMode::NoTls);
+        let tls_mode = connection_request.tls_mode.enum_value_or_default();
         let node_count = connection_request.addresses.len();
         let mut stream = stream::iter(connection_request.addresses.iter())
             .map(|address| async {
@@ -110,7 +112,7 @@ impl ClientCMD {
         }
 
         let Some(primary_index) = primary_index else {
-            return Err(ClientCMDConnectionError::FailedConnection(
+            return Err(StandaloneClientConnectionError::FailedConnection(
                 addresses_and_errors,
             ));
         };
@@ -125,7 +127,7 @@ impl ClientCMD {
         let read_from_replica_strategy =
             get_read_from_replica_strategy(&connection_request.read_from_replica_strategy);
 
-        #[cfg(cmd_heartbeat)]
+        #[cfg(standalone_heartbeat)]
         for node in nodes.iter() {
             Self::start_heartbeat(node.clone());
         }
@@ -184,12 +186,16 @@ impl ClientCMD {
     }
 
     pub async fn send_packed_command(&mut self, cmd: &redis::Cmd) -> RedisResult<Value> {
-        log_trace("ClientCMD", "sending command");
+        log_trace("StandaloneClient", "sending command");
         let reconnecting_connection = self.get_connection(cmd);
         let mut connection = reconnecting_connection.get_connection().await?;
         let result = connection.send_packed_command(cmd).await;
         match result {
             Err(err) if err.is_connection_dropped() => {
+                log_warn(
+                    "single request",
+                    format!("received disconnect error `{err}`"),
+                );
                 reconnecting_connection.reconnect();
                 Err(err)
             }
@@ -208,6 +214,10 @@ impl ClientCMD {
         let result = connection.send_packed_commands(cmd, offset, count).await;
         match result {
             Err(err) if err.is_connection_dropped() => {
+                log_warn(
+                    "pipeline request",
+                    format!("received disconnect error `{err}`"),
+                );
                 reconnecting_connection.reconnect();
                 Err(err)
             }
@@ -215,14 +225,14 @@ impl ClientCMD {
         }
     }
 
-    #[cfg(cmd_heartbeat)]
+    #[cfg(standalone_heartbeat)]
     fn start_heartbeat(reconnecting_connection: ReconnectingConnection) {
         task::spawn(async move {
             loop {
                 tokio::time::sleep(super::HEARTBEAT_SLEEP_DURATION).await;
                 if reconnecting_connection.is_dropped() {
                     log_debug(
-                        "ClientCMD",
+                        "StandaloneClient",
                         "heartbeat stopped after connection was dropped",
                     );
                     // Client was dropped, heartbeat can stop.
@@ -232,19 +242,19 @@ impl ClientCMD {
                 let Some(mut connection) = reconnecting_connection.try_get_connection().await
                 else {
                     log_debug(
-                        "ClientCMD",
+                        "StandaloneClient",
                         "heartbeat stopped while connection is reconnecting",
                     );
                     // Client is reconnecting..
                     continue;
                 };
-                log_debug("ClientCMD", "performing heartbeat");
+                log_debug("StandaloneClient", "performing heartbeat");
                 if connection
                     .send_packed_command(&redis::cmd("PING"))
                     .await
                     .is_err_and(|err| err.is_connection_dropped() || err.is_connection_refusal())
                 {
-                    log_debug("ClientCMD", "heartbeat triggered reconnect");
+                    log_debug("StandaloneClient", "heartbeat triggered reconnect");
                     reconnecting_connection.reconnect();
                 }
             }
@@ -290,9 +300,7 @@ async fn get_connection_and_replication_info(
 fn get_read_from_replica_strategy(
     read_from_replica_strategy: &EnumOrUnknown<crate::connection_request::ReadFromReplicaStrategy>,
 ) -> ReadFromReplicaStrategy {
-    match read_from_replica_strategy
-        .enum_value_or(crate::connection_request::ReadFromReplicaStrategy::AlwaysFromPrimary)
-    {
+    match read_from_replica_strategy.enum_value_or_default() {
         crate::connection_request::ReadFromReplicaStrategy::AlwaysFromPrimary => {
             ReadFromReplicaStrategy::AlwaysFromPrimary
         }

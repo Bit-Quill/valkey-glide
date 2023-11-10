@@ -3,13 +3,13 @@ import threading
 from typing import List, Optional, Tuple, Union, cast
 
 import async_timeout
-from pybushka.async_commands.cmd_commands import CMDCommands
-from pybushka.async_commands.cme_commands import CMECommands
+from pybushka.async_commands.cluster_commands import ClusterCommands
 from pybushka.async_commands.core import CoreCommands
+from pybushka.async_commands.standalone_commands import StandaloneCommands
 from pybushka.config import ClientConfiguration
 from pybushka.constants import DEFAULT_READ_BYTES_SIZE, OK, TRequest, TResult
-from pybushka.Logger import Level as LogLevel
-from pybushka.Logger import Logger as ClientLogger
+from pybushka.logger import Level as LogLevel
+from pybushka.logger import Logger as ClientLogger
 from pybushka.protobuf.connection_request_pb2 import ConnectionRequest
 from pybushka.protobuf.redis_request_pb2 import Command, RedisRequest, RequestType
 from pybushka.protobuf.response_pb2 import Response
@@ -26,14 +26,12 @@ class BaseRedisClient(CoreCommands):
         To create a new client, use the `create` classmethod
         """
         self.config: ClientConfiguration = config
-        self._write_buffer: bytearray = bytearray(1024)
         self._available_futures: dict[int, asyncio.Future] = {}
         self._available_callbackIndexes: set[int] = set()
         self._buffered_requests: List[TRequest] = list()
         self._writer_lock = threading.Lock()
         self.socket_path: Optional[str] = None
         self._reader_task: Optional[asyncio.Task] = None
-        self._done_init = None
 
     @classmethod
     async def create(cls, config: Optional[ClientConfiguration] = None) -> Self:
@@ -70,10 +68,6 @@ class BaseRedisClient(CoreCommands):
         await self._set_connection_configurations()
         return self
 
-    async def _wait_for_init_complete(self) -> None:
-        while not self._done_init:
-            await asyncio.sleep(0.1)
-
     async def _create_uds_connection(self) -> None:
         try:
             # Open an UDS connection
@@ -108,7 +102,7 @@ class BaseRedisClient(CoreCommands):
         return response_future
 
     def _get_protobuf_conn_request(self) -> ConnectionRequest:
-        return self.config.convert_to_protobuf_request()
+        return self.config._create_a_protobuf_conn_request()
 
     async def _set_connection_configurations(self) -> None:
         conn_request = self._get_protobuf_conn_request()
@@ -225,12 +219,12 @@ class BaseRedisClient(CoreCommands):
                         res_future.set_result(None)
 
 
-class RedisClusterClient(BaseRedisClient, CMECommands):
+class RedisClusterClient(BaseRedisClient, ClusterCommands):
     def _get_protobuf_conn_request(self) -> ConnectionRequest:
-        return self.config.convert_to_protobuf_request(cluster_mode=True)
+        return self.config._create_a_protobuf_conn_request(cluster_mode=True)
 
 
-class RedisClient(BaseRedisClient, CMDCommands):
+class RedisClient(BaseRedisClient, StandaloneCommands):
     pass
 
 

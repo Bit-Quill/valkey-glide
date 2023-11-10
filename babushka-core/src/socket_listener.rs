@@ -10,11 +10,12 @@ use crate::retry_strategies::get_fixed_interval_backoff;
 use directories::BaseDirs;
 use dispose::{Disposable, Dispose};
 use futures::stream::StreamExt;
-use logger_core::{log_debug, log_error, log_info, log_trace};
+use logger_core::{log_debug, log_error, log_info, log_trace, log_warn};
 use protobuf::Message;
 use redis::cluster_routing::{
     MultipleNodeRoutingInfo, Route, RoutingInfo, SingleNodeRoutingInfo, SlotAddr,
 };
+use redis::cluster_routing::{ResponsePolicy, Routable};
 use redis::RedisError;
 use redis::{cmd, Cmd, Value};
 use signal_hook::consts::signal::*;
@@ -209,6 +210,7 @@ async fn write_result(
                     error_message.into(),
                 ))
             } else {
+                log_warn("received error", error_message.as_str());
                 let mut request_error = response::RequestError::default();
                 if err.is_connection_dropped() {
                     request_error.type_ = response::RequestErrorType::Disconnect.into();
@@ -306,6 +308,23 @@ fn get_command(request: &Command) -> Option<Cmd> {
         RequestType::IncrByFloat => Some(cmd("INCRBYFLOAT")),
         RequestType::Decr => Some(cmd("DECR")),
         RequestType::DecrBy => Some(cmd("DECRBY")),
+        RequestType::HashGetAll => Some(cmd("HGETALL")),
+        RequestType::HashMSet => Some(cmd("HMSET")),
+        RequestType::HashMGet => Some(cmd("HMGET")),
+        RequestType::HashIncrBy => Some(cmd("HINCRBY")),
+        RequestType::HashIncrByFloat => Some(cmd("HINCRBYFLOAT")),
+        RequestType::LPush => Some(cmd("LPUSH")),
+        RequestType::LPop => Some(cmd("LPOP")),
+        RequestType::RPush => Some(cmd("RPUSH")),
+        RequestType::RPop => Some(cmd("RPOP")),
+        RequestType::LLen => Some(cmd("LLEN")),
+        RequestType::LRem => Some(cmd("LREM")),
+        RequestType::LRange => Some(cmd("LRANGE")),
+        RequestType::LTrim => Some(cmd("LTRIM")),
+        RequestType::SAdd => Some(cmd("SADD")),
+        RequestType::SRem => Some(cmd("SREM")),
+        RequestType::SMembers => Some(cmd("SMEMBERS")),
+        RequestType::SCard => Some(cmd("SCARD")),
     }
 }
 
@@ -340,12 +359,10 @@ fn get_redis_command(command: &Command) -> Result<Cmd, ClienUsageError> {
 }
 
 async fn send_command(
-    request: Command,
+    cmd: Cmd,
     mut client: Client,
     routing: Option<RoutingInfo>,
 ) -> ClientUsageResult<Value> {
-    let cmd = get_redis_command(&request)?;
-
     client
         .req_packed_command(&cmd, routing)
         .await
@@ -376,14 +393,17 @@ fn get_slot_addr(slot_type: &protobuf::EnumOrUnknown<SlotTypes>) -> ClientUsageR
         .enum_value()
         .map(|slot_type| match slot_type {
             SlotTypes::Primary => SlotAddr::Master,
-            SlotTypes::Replica => SlotAddr::Replica,
+            SlotTypes::Replica => SlotAddr::ReplicaRequired,
         })
         .map_err(|id| {
             ClienUsageError::InternalError(format!("Received unexpected slot id type {id}"))
         })
 }
 
-fn get_route(route: Option<Box<Routes>>) -> ClientUsageResult<Option<RoutingInfo>> {
+fn get_route(
+    route: Option<Box<Routes>>,
+    response_policy: Option<ResponsePolicy>,
+) -> ClientUsageResult<Option<RoutingInfo>> {
     use crate::redis_request::routes::Value;
     let Some(route) = route.and_then(|route| route.value) else {
         return Ok(None);
@@ -396,11 +416,12 @@ fn get_route(route: Option<Box<Routes>>) -> ClientUsageResult<Option<RoutingInfo
                 ))
             })?;
             match simple_route {
-                crate::redis_request::SimpleRoutes::AllNodes => Ok(Some(RoutingInfo::MultiNode(
+                crate::redis_request::SimpleRoutes::AllNodes => Ok(Some(RoutingInfo::MultiNode((
                     MultipleNodeRoutingInfo::AllNodes,
-                ))),
+                    response_policy,
+                )))),
                 crate::redis_request::SimpleRoutes::AllPrimaries => Ok(Some(
-                    RoutingInfo::MultiNode(MultipleNodeRoutingInfo::AllMasters),
+                    RoutingInfo::MultiNode((MultipleNodeRoutingInfo::AllMasters, response_policy)),
                 )),
                 crate::redis_request::SimpleRoutes::Random => {
                     Ok(Some(RoutingInfo::SingleNode(SingleNodeRoutingInfo::Random)))
@@ -424,22 +445,28 @@ fn get_route(route: Option<Box<Routes>>) -> ClientUsageResult<Option<RoutingInfo
 
 fn handle_request(request: RedisRequest, client: Client, writer: Rc<Writer>) {
     task::spawn_local(async move {
-        let routes = get_route(request.route.0);
-        let routing = match routes {
-            Ok(route) => route,
-            Err(err) => {
-                let _res = write_result(Err(err), request.callback_idx, &writer).await;
-                return;
-            }
-        };
-
         let result = match request.command {
             Some(action) => match action {
                 redis_request::Command::SingleCommand(command) => {
-                    send_command(command, client, routing).await
+                    match get_redis_command(&command) {
+                        Ok(cmd) => {
+                            let response_policy = cmd
+                                .command()
+                                .map(|cmd| ResponsePolicy::for_command(&cmd))
+                                .unwrap_or(None);
+                            match get_route(request.route.0, response_policy) {
+                                Ok(routes) => send_command(cmd, client, routes).await,
+                                Err(e) => Err(e),
+                            }
+                        }
+                        Err(e) => Err(e),
+                    }
                 }
                 redis_request::Command::Transaction(transaction) => {
-                    send_transaction(transaction, client, routing).await
+                    match get_route(request.route.0, None) {
+                        Ok(routes) => send_transaction(transaction, client, routes).await,
+                        Err(e) => Err(e),
+                    }
                 }
             },
             None => Err(ClienUsageError::InternalError(
