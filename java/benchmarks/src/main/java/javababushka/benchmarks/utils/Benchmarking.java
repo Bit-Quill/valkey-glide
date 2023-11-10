@@ -25,6 +25,7 @@ public class Benchmarking {
   static final int ASYNC_OPERATION_TIMEOUT_SEC = 1;
   // measurements are done in nanoseconds, but it should be converted to seconds later
   public static final double SECONDS_IN_NANO = 1e-9;
+  public static final double NANO_TO_SECONDS = 1e9;
 
   private static ChosenAction randomAction() {
     if (Math.random() > PROB_GET) {
@@ -90,7 +91,7 @@ public class Benchmarking {
       ArrayList<Long> latencies = entry.getValue();
 
       double avgLatency =
-          latencies.size() <= 0
+          latencies.size() == 0
               ? 0
               : SECONDS_IN_NANO
                   * latencies.stream().mapToLong(Long::longValue).sum()
@@ -185,8 +186,6 @@ public class Benchmarking {
                         iterationIncrement = iterationCounter.getAndIncrement();
                         clientIndex = iterationIncrement % clients.size();
                       }
-                      System.out.println(
-                          "Tasks " + taskNumDebugging + " completed " + tasksCompleted + " tasks");
                       return taskActionResults;
                     }));
           }
@@ -207,11 +206,15 @@ public class Benchmarking {
             e.printStackTrace();
             throw new RuntimeException(e);
           }
+
+          // Map to save latency results separately for each action
           Map<ChosenAction, ArrayList<Long>> actionResults =
               Map.of(
                   ChosenAction.GET_EXISTING, new ArrayList<>(),
                   ChosenAction.GET_NON_EXISTING, new ArrayList<>(),
                   ChosenAction.SET, new ArrayList<>());
+
+          // for each task, call future.get() to retrieve & save the result in the map
           asyncTasks.forEach(
               future -> {
                 try {
@@ -226,7 +229,7 @@ public class Benchmarking {
           var calculatedResults = calculateResults(actionResults);
 
           if (config.resultsFile.isPresent()) {
-            double tps = iterationCounter.get() * SECONDS_IN_NANO / (after - started);
+            double tps = iterationCounter.get() * NANO_TO_SECONDS / (after - started);
             JsonWriter.Write(
                 calculatedResults,
                 config.resultsFile.get(),

@@ -13,11 +13,11 @@ import java.util.concurrent.TimeUnit;
 import javababushka.benchmarks.AsyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 
-public class LettuceAsyncClusterClient implements AsyncClient {
+public class LettuceAsyncClusterClient extends LettuceAsyncClient {
 
-  RedisClusterClient client;
-  RedisAdvancedClusterAsyncCommands asyncCommands;
-  StatefulRedisClusterConnection<String, String> connection;
+  private RedisClusterClient clusterClient;
+  private RedisAdvancedClusterAsyncCommands clusterAsyncCommands;
+  private StatefulRedisClusterConnection<String, String> clusterConnection;
 
   @Override
   public void connectToRedis() {
@@ -32,43 +32,29 @@ public class LettuceAsyncClusterClient implements AsyncClient {
             .withPort(connectionSettings.port)
             .withSsl(connectionSettings.useSsl)
             .build();
-    client = RedisClusterClient.create(uri);
-    connection = client.connect();
-    asyncCommands = connection.async();
+    clusterClient = RedisClusterClient.create(uri);
+    clusterConnection = client.connect();
+    clusterAsyncCommands = connection.async();
   }
 
   @Override
   public RedisFuture<?> asyncSet(String key, String value) {
-    return asyncCommands.set(key, value);
+    return clusterAsyncCommands.set(key, value);
   }
 
   @Override
   public RedisFuture<String> asyncGet(String key) {
-    return asyncCommands.get(key);
-  }
-
-  @Override
-  public Object waitForResult(Future future) {
-    return waitForResult(future, DEFAULT_TIMEOUT);
-  }
-
-  @Override
-  public Object waitForResult(Future future, long timeoutMS) {
-    try {
-      return future.get(timeoutMS, TimeUnit.MILLISECONDS);
-    } catch (Exception ignored) {
-      return null;
-    }
+    return clusterAsyncCommands.get(key);
   }
 
   @Override
   public void closeConnection() {
-    connection.close();
-    client.shutdown();
+    clusterConnection.close();
+    clusterClient.shutdown();
   }
 
   @Override
   public String getName() {
-    return "Lettuce Async";
+    return "Lettuce Cluster Async";
   }
 }

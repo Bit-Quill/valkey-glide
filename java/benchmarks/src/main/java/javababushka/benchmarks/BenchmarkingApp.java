@@ -241,7 +241,7 @@ public class BenchmarkingApp {
     public int[] clientCount;
     public boolean tls;
     public boolean clusterModeEnabled;
-    public boolean debugLogging;
+    public boolean debugLogging = false;
 
     public RunConfiguration() {
       configuration = "Release";
@@ -258,7 +258,6 @@ public class BenchmarkingApp {
       clientCount = new int[] {1, 2};
       tls = false;
       clusterModeEnabled = false;
-      debugLogging = false;
     }
   }
 }
