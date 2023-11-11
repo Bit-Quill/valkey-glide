@@ -45,13 +45,10 @@ import javababushka.benchmarks.clients.SyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 import io.netty.channel.unix.DomainSocketAddress;
 import javababushka.client.RedisClient;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -81,12 +78,15 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   public static int PENDING_RESPONSES_ON_CLOSE_TIMEOUT_MILLIS = 1000;
 
   // Futures to handle responses. Index is callback id, starting from 1 (0 index is for connection request always).
+  // Is it not a concurrent nor sync collection, but it is synced on adding. No removes.
   // TODO clean up completed futures
-  private final List<CompletableFuture<Response>> responses = Collections.synchronizedList(new ArrayList<>());
+  private final List<CompletableFuture<Response>> responses = new ArrayList<>();
+  // Unique offset for every client to avoid having multiple commands with the same id at a time.
+  // For debugging replace with: new Random().nextInt(1000) * 1000
+  private final int callbackOffset = new Random().nextInt();
 
   private final String unixSocket = getSocket();
 
-  // TODO static or move to constructor?
   private static String getSocket() {
     try {
       return RedisClient.startSocketListenerExternal();
@@ -150,7 +150,6 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
 
   private void createChannel() {
     // TODO maybe move to constructor or to static?
-    // ======
     try {
       channel = new Bootstrap()
           .option(ChannelOption.WRITE_BUFFER_WATER_MARK,
@@ -175,10 +174,17 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                       var buf = (ByteBuf) msg;
                       var bytes = new byte[buf.readableBytes()];
                       buf.readBytes(bytes);
-                      // TODO surround parsing with try-catch
+                      // TODO surround parsing with try-catch, set error to future if parsing failed.
                       var response = Response.parseFrom(bytes);
+                      int callbackId = response.getCallbackIdx();
+                      if (callbackId != 0) {
+                        // connection request has hardcoded callback id = 0
+                        // https://github.com/aws/babushka/issues/600
+                        callbackId -= callbackOffset;
+                      }
                       //System.out.printf("== Received response with callback %d%n", response.getCallbackIdx());
-                      responses.get(response.getCallbackIdx()).complete(response);
+                      responses.get(callbackId).complete(response);
+                      responses.set(callbackId, null);
                       super.channelRead(ctx, bytes);
                     }
 
@@ -190,18 +196,6 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                     }
                   })
                   .addLast(new ChannelOutboundHandlerAdapter() {
-                    @Override
-                    public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) throws Exception {
-                      //System.out.printf("=== bind %s %s %s %n", ctx, localAddress, promise);
-                      super.bind(ctx, localAddress, promise);
-                    }
-
-                    @Override
-                    public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) throws Exception {
-                      //System.out.printf("=== connect %s %s %s %s %n", ctx, remoteAddress, localAddress, promise);
-                      super.connect(ctx, remoteAddress, localAddress, promise);
-                    }
-
                     @Override
                     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
                       //System.out.printf("=== write %s %s %s %n", ctx, msg, promise);
@@ -226,21 +220,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                       }
                     }
 
-                    @Override
-                    public void flush(ChannelHandlerContext ctx) throws Exception {
-                      //System.out.printf("=== flush %s %n", ctx);
-                      super.flush(ctx);
-                    }
                   });
-                    /*
-                  .addLast(new SimpleUserEventChannelHandler<String>() {
-                    @Override
-                    protected void eventReceived(ChannelHandlerContext ctx, String evt) throws Exception {
-
-                    }
-                  });
-                  */
-                      //.addLast(new CombinedChannelDuplexHandler(new ChannelInboundHandler(), new ChannelOutboundHandler()));
             }
           })
       .connect(new DomainSocketAddress(unixSocket)).sync().channel();
@@ -271,7 +251,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
       long waitStarted = System.nanoTime();
       long waitUntil = waitStarted + PENDING_RESPONSES_ON_CLOSE_TIMEOUT_MILLIS * 100_000; // in nanos
       for (var future : responses) {
-        if (future.isDone()) {
+        if (future == null || future.isDone()) {
           continue;
         }
         try {
@@ -283,9 +263,6 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
           break;
         }
       }
-
-//      channel.closeFuture().sync();
-//   } catch (InterruptedException ignored) {
     } finally {
       group.shutdownGracefully();
     }
@@ -300,26 +277,13 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   @Override
   public String get(String key) {
     return waitForResult(asyncGet(key));
-    /*
-    try {
-      var response = responses.get(callbackId).get(DEFAULT_FUTURE_TIMEOUT_SEC, TimeUnit.SECONDS);
-      return response.hasRespPointer()
-          ? RedisClient.valueFromPointer(response.getRespPointer()).toString()
-          : null;
-    } catch (Exception e) {
-      System.err.printf("Failed to process `get` response, callback = %d: %s %s%n",
-          callbackId, e.getClass().getSimpleName(), e.getMessage());
-      e.printStackTrace(System.err);
-      return null;
-    }
-    */
+    // TODO support non-strings
   }
 
-  // TODO use reentrant lock
-  // https://www.geeksforgeeks.org/reentrant-lock-java/
-  private synchronized int getNextCallbackId() {
-    responses.add(new CompletableFuture<>());
-    return responses.size() - 1;
+  private synchronized Pair<Integer, CompletableFuture<Response>> getNextCallbackId() {
+    var future = new CompletableFuture<Response>();
+    responses.add(future);
+    return Pair.of(responses.size() - 1, future);
   }
 
   public static void main(String[] args) {
@@ -435,27 +399,31 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   }
 
   private CompletableFuture<Response> submitNewCommand(RequestType command, List<String> args) {
-    int callbackId = getNextCallbackId();
-    //System.out.printf("== %s(%s), callback %d%n", command, String.join(", ", args), callbackId);
-    RedisRequest request =
-        RedisRequest.newBuilder()
-            .setCallbackIdx(callbackId)
-            .setSingleCommand(
-                Command.newBuilder()
-                    .setRequestType(command)
-                    .setArgsArray(ArgsArray.newBuilder().addAllArgs(args).build())
-                    .build())
-            .setRoute(
-                Routes.newBuilder()
-                    .setSimpleRoutes(SimpleRoutes.AllNodes)
-                    .build())
-            .build();
-    if (ALWAYS_FLUSH_ON_WRITE) {
-      channel.writeAndFlush(request.toByteArray());
-      return responses.get(callbackId);
-    }
-    channel.write(request.toByteArray());
-    return autoFlushFutureWrapper(responses.get(callbackId));
+    var commandId = getNextCallbackId();
+    //System.out.printf("== %s(%s), callback %d%n", command, String.join(", ", args), commandId);
+
+    //commandId.getRight().
+    return CompletableFuture.supplyAsync(() -> {
+      RedisRequest request =
+          RedisRequest.newBuilder()
+              .setCallbackIdx(commandId.getKey() + callbackOffset)
+              .setSingleCommand(
+                  Command.newBuilder()
+                      .setRequestType(command)
+                      .setArgsArray(ArgsArray.newBuilder().addAllArgs(args).build())
+                      .build())
+              .setRoute(
+                  Routes.newBuilder()
+                      .setSimpleRoutes(SimpleRoutes.AllNodes)
+                      .build())
+              .build();
+      if (ALWAYS_FLUSH_ON_WRITE) {
+        channel.writeAndFlush(request.toByteArray());
+        return commandId.getRight();
+      }
+      channel.write(request.toByteArray());
+      return autoFlushFutureWrapper(commandId.getRight());
+    }).thenCompose(f -> f);
   }
 
   private <T> CompletableFuture<T> autoFlushFutureWrapper(Future<T> future) {
