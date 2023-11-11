@@ -136,16 +136,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
 
   @Override
   public void connectToRedis(ConnectionSettings connectionSettings) {
-
-    Response connected = null;
-    try {
-      connected = waitForResult(asyncConnectToRedis(connectionSettings));
-      //System.out.printf("Connection %s%n", connected != null ? connected.getConstantResponse() : null);
-    } catch (Exception e) {
-      System.err.println("Connection time out");
-    }
-
-    int a = 5;
+    waitForResult(asyncConnectToRedis(connectionSettings));
   }
 
   private void createChannel() {
@@ -402,7 +393,6 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     var commandId = getNextCallbackId();
     //System.out.printf("== %s(%s), callback %d%n", command, String.join(", ", args), commandId);
 
-    //commandId.getRight().
     return CompletableFuture.supplyAsync(() -> {
       RedisRequest request =
           RedisRequest.newBuilder()
