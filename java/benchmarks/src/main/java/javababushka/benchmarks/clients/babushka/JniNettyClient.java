@@ -401,12 +401,16 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     */
   }
 
+  // don't delete it otherwise java compiler will optimize next func and GET_FUTURE_RESULT_AFTER_SET will be always negative o_O
+  private int counter = 0;
+
   @Override
   public <T> T waitForResult(Future<T> future) {
 long before = System.nanoTime();
     var res = AsyncClient.super.waitForResult(future);
 long after = System.nanoTime();
 WAIT_FOR_RESULT.addAndGet(after - before);
+counter++;
 GET_FUTURE_RESULT_AFTER_SET.addAndGet(after);
     return res;
   }
