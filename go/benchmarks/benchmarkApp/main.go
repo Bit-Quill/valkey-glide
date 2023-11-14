@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/aws/babushka/go/benchmarks"
+	"github.com/aws/babushka/go/benchmarks/babushkaclient"
 	"os"
 	"regexp"
 	"strconv"
@@ -16,15 +17,16 @@ It's responsible for parsing and holding the raw values provided by the user.
 If some arguments are not passed, options will set default values for them.
 */
 type options struct {
-	tls             bool
-	host            string
-	port            int
-	resultsFile     string
-	clientCount     string
-	clientName      string
-	configuration   string
-	concurrentTasks string
-	dataSize        string
+	tls                bool
+	clusterModeEnabled bool
+	host               string
+	port               int
+	resultsFile        string
+	clientCount        string
+	clientNames        string
+	configuration      string
+	concurrentTasks    string
+	dataSize           string
 }
 
 /*
@@ -33,31 +35,31 @@ ensuring their validity and converting them to the appropriate types
 for the program's execution requirements.
 */
 type runConfiguration struct {
-	tls             bool
-	host            string
-	port            int
-	resultsFile     *os.File
-	clientCount     []int
-	clientName      string
-	configuration   string
-	concurrentTasks []int
-	dataSize        []int
+	tls                bool
+	clusterModeEnabled bool
+	host               string
+	port               int
+	resultsFile        *os.File
+	clientCount        []int
+	clientNames        []string
+	configuration      string
+	concurrentTasks    []int
+	dataSize           []int
 }
 
-type clientNames struct {
-	goRedis  string
-	babushka string
-	all      string
+type clientNameOptions struct {
+	goRedis    string
+	goBabushka string
+	all        string
 }
 
-var clientNameOptions = clientNames{
-	goRedis:  "go-redis",
-	babushka: "babushka",
-	all:      "all",
+var clientNameOpts = clientNameOptions{
+	goRedis:    "go-redis",
+	goBabushka: "go-babushka",
+	all:        "all",
 }
 
 func main() {
-
 	opts := parseArguments()
 
 	runConfig, err := verifyOptions(opts)
@@ -68,18 +70,7 @@ func main() {
 
 	defer closeFileIfNotStdout(runConfig.resultsFile)
 
-	switch runConfig.clientName {
-	case clientNameOptions.goRedis:
-		err = testClientSetGet(runConfig)
-
-	case clientNameOptions.babushka:
-		fmt.Println("Not yet configured for babushka benchmarking.")
-
-	case clientNameOptions.all:
-		err = testClientSetGet(runConfig)
-		fmt.Println("Not yet configured for babushka benchmarking.")
-	}
-
+	err = runBenchmarks(runConfig)
 	if err != nil {
 		fmt.Println("Error running benchmarking: ", err)
 		return
@@ -91,11 +82,12 @@ func parseArguments() *options {
 	var opts options
 
 	tls := flag.Bool("tls", false, "Use TLS (default: false)")
+	clusterModeEnabled := flag.Bool("clusterModeEnabled", false, "Use ClusterModeEnabled (default: false)")
 	host := flag.String("host", "localhost", "Host address")
 	port := flag.Int("port", 6379, "Port number")
 	resultsFile := flag.String("resultsFile", "", "Path to results file")
 	clientCount := flag.String("clientCount", "[1]", "Client Count")
-	clientName := flag.String("clients", "all", "One of: all|go-redis|babushka")
+	clientNames := flag.String("clients", "all", "One of: all|go-redis|go-babushka")
 	configuration := flag.String("configuration", "Release", "Configuration flag")
 	concurrentTasks := flag.String("concurrentTasks", "[1 10 100]", "Number of concurrent tasks")
 	dataSize := flag.String("dataSize", "[100 4000]", "Data block size")
@@ -103,11 +95,12 @@ func parseArguments() *options {
 	flag.Parse()
 
 	opts.tls = *tls
+	opts.clusterModeEnabled = *clusterModeEnabled
 	opts.host = *host
 	opts.port = *port
 	opts.resultsFile = *resultsFile
 	opts.clientCount = *clientCount
-	opts.clientName = *clientName
+	opts.clientNames = *clientNames
 	opts.configuration = *configuration
 	opts.concurrentTasks = *concurrentTasks
 	opts.dataSize = *dataSize
@@ -150,32 +143,34 @@ func verifyOptions(opts *options) (*runConfiguration, error) {
 	}
 
 	switch {
-	case strings.EqualFold(opts.clientName, clientNameOptions.goRedis):
-		runConfig.clientName = clientNameOptions.goRedis
+	case strings.EqualFold(opts.clientNames, clientNameOpts.goRedis):
+		runConfig.clientNames = append(runConfig.clientNames, clientNameOpts.goRedis)
 
-	case strings.EqualFold(opts.clientName, clientNameOptions.babushka):
-		runConfig.clientName = clientNameOptions.babushka
+	case strings.EqualFold(opts.clientNames, clientNameOpts.goBabushka):
+		runConfig.clientNames = append(runConfig.clientNames, clientNameOpts.goBabushka)
 
-	case strings.EqualFold(opts.clientName, clientNameOptions.all):
-		runConfig.clientName = clientNameOptions.all
+	case strings.EqualFold(opts.clientNames, clientNameOpts.all):
+		runConfig.clientNames = append(runConfig.clientNames, clientNameOpts.goRedis, clientNameOpts.goBabushka)
 	default:
-		return nil, fmt.Errorf("invalid clients option: all|go-redis|babushka")
+		return nil, fmt.Errorf("invalid clients option: all|go-redis|go-babushka")
 	}
 
 	runConfig.host = opts.host
 	runConfig.port = opts.port
 	runConfig.tls = opts.tls
+	runConfig.clusterModeEnabled = opts.clusterModeEnabled
 
 	return &runConfig, nil
 }
 
-func testClientSetGet(runConfig *runConfiguration) error {
-	fmt.Printf("\n =====> %s <===== \n\n", runConfig.clientName)
+func runBenchmarks(runConfig *runConfiguration) error {
+	fmt.Printf("\n =====> %s <===== \n\n", runConfig.clientNames)
 
 	connectionSettings := benchmarks.NewConnectionSettings(
 		runConfig.host,
 		runConfig.port,
 		runConfig.tls,
+		runConfig.clusterModeEnabled,
 	)
 
 	err := executeBenchmarks(runConfig, connectionSettings)
@@ -191,12 +186,14 @@ func testClientSetGet(runConfig *runConfiguration) error {
 }
 
 func executeBenchmarks(runConfig *runConfiguration, connectionSettings *benchmarks.ConnectionSettings) error {
-	for _, dataSize := range runConfig.dataSize {
-		for _, concurrentTasks := range runConfig.concurrentTasks {
-			for _, clientCount := range runConfig.clientCount {
-				err := runSingleBenchmark(runConfig, connectionSettings, dataSize, concurrentTasks, clientCount)
-				if err != nil {
-					return err
+	for _, clientName := range runConfig.clientNames {
+		for _, dataSize := range runConfig.dataSize {
+			for _, concurrentTasks := range runConfig.concurrentTasks {
+				for _, clientCount := range runConfig.clientCount {
+					err := runSingleBenchmark(runConfig.resultsFile, clientName, dataSize, concurrentTasks, clientCount, connectionSettings)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -204,25 +201,25 @@ func executeBenchmarks(runConfig *runConfiguration, connectionSettings *benchmar
 	return nil
 }
 
-func runSingleBenchmark(runConfig *runConfiguration, connectionSettings *benchmarks.ConnectionSettings, dataSize, concurrentTasks, clientCount int) error {
-	fmt.Printf("Starting %s data size: %d concurrency: %d client count: %d\n", runConfig.clientName, dataSize, concurrentTasks, clientCount)
+func runSingleBenchmark(resultsFile *os.File, clientName string, dataSize, concurrentTasks, clientCount int, connectionSettings *benchmarks.ConnectionSettings) error {
+	fmt.Printf("Starting %s data size: %d concurrency: %d client count: %d\n", clientName, dataSize, concurrentTasks, clientCount)
 
-	clients, err := createClients(clientCount, runConfig.clientName, connectionSettings)
+	clients, err := createClients(clientCount, clientName, connectionSettings)
 	if err != nil {
 		return err
 	}
 
 	tps, latencyResults := benchmarks.MeasurePerformance(clients, concurrentTasks, dataSize)
 	benchmarkConfig := benchmarks.NewBenchmarkConfig(
-		runConfig.clientName,
+		clientName,
 		concurrentTasks,
 		dataSize,
 		clientCount,
-		false,
+		connectionSettings.ClusterModeEnabled,
 	)
 
-	if runConfig.resultsFile == os.Stdout {
-		benchmarks.PrintResultsStdOut(benchmarkConfig, latencyResults, tps, runConfig.resultsFile)
+	if resultsFile == os.Stdout {
+		benchmarks.PrintResultsStdOut(benchmarkConfig, latencyResults, tps, resultsFile)
 	} else {
 		benchmarks.AddResultsJsonFormat(benchmarkConfig, latencyResults, tps)
 	}
@@ -236,8 +233,10 @@ func createClients(clientCount int, clientType string, connectionSettings *bench
 	for clientNum := 0; clientNum < clientCount; clientNum++ {
 		var client benchmarks.Client
 		switch clientType {
-		case clientNameOptions.goRedis:
+		case clientNameOpts.goRedis:
 			client = &benchmarks.GoRedisClient{}
+		case clientNameOpts.goBabushka:
+			client = &babushkaclient.BabushkaRedisClient{}
 		}
 		err := client.ConnectToRedis(connectionSettings)
 		if err != nil {
