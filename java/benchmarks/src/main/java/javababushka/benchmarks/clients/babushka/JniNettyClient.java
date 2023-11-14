@@ -393,6 +393,11 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     var commandId = getNextCallbackId();
     //System.out.printf("== %s(%s), callback %d%n", command, String.join(", ", args), commandId);
 
+    var commandArgs = ArgsArray.newBuilder();
+    for (var arg : args) {
+      commandArgs.addArgs(arg);
+    }
+
     return CompletableFuture.supplyAsync(() -> {
       RedisRequest request =
           RedisRequest.newBuilder()
@@ -400,7 +405,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
               .setSingleCommand(
                   Command.newBuilder()
                       .setRequestType(command)
-                      .setArgsArray(ArgsArray.newBuilder().addAllArgs(args).build())
+                      .setArgsArray(commandArgs.build())
                       .build())
               .setRoute(
                   Routes.newBuilder()
