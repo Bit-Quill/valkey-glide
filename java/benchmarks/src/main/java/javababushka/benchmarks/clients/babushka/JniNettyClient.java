@@ -47,7 +47,6 @@ import io.netty.channel.unix.DomainSocketAddress;
 import javababushka.client.RedisClient;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.net.SocketAddress;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -271,7 +270,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     // TODO support non-strings
   }
 
-  private synchronized Pair<Integer, CompletableFuture<Response>> getNextCallbackId() {
+  private synchronized Pair<Integer, CompletableFuture<Response>> getNextCallback() {
     var future = new CompletableFuture<Response>();
     responses.add(future);
     return Pair.of(responses.size() - 1, future);
@@ -390,7 +389,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   }
 
   private CompletableFuture<Response> submitNewCommand(RequestType command, List<String> args) {
-    var commandId = getNextCallbackId();
+    var commandId = getNextCallback();
     //System.out.printf("== %s(%s), callback %d%n", command, String.join(", ", args), commandId);
 
     return CompletableFuture.supplyAsync(() -> {
