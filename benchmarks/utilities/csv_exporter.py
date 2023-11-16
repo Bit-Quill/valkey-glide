@@ -53,5 +53,5 @@ with open(output_file_name, "w+") as output_file:
                 values = [json_object[field] for field in base_fields]
                 writer.writerow(values)
 
-# for json_file_full_path in sys.argv[1:-1]:
-#     os.remove(json_file_full_path)
+for json_file_full_path in sys.argv[1:-1]:
+    os.remove(json_file_full_path)

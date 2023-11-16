@@ -253,9 +253,9 @@ public class BenchmarkingApp {
 
     public RunConfiguration() {
       configuration = "Release";
-      resultsFile = Optional.of("res_java.json"); // Optional.empty();
-      dataSize = new int[] {100};
-      concurrentTasks = new int[] {100};
+      resultsFile = Optional.empty();
+      dataSize = new int[] {100, 4000};
+      concurrentTasks = new int[] {100, 1000};
       clients =
           new ClientName[] {
             // ClientName.BABUSHKA_ASYNC,
@@ -266,7 +266,7 @@ public class BenchmarkingApp {
           };
       host = "localhost";
       port = 6379;
-      clientCount = new int[] {2};
+      clientCount = new int[] {1, 2};
       tls = false;
       clusterModeEnabled = false;
     }

@@ -30,7 +30,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response> {
 
   @Override
   public void connectToRedis() {
-    connectToRedis(new ConnectionSettings("localhost", 6379, false));
+    connectToRedis(new ConnectionSettings("localhost", 6379, false, false));
   }
 
   @Override
@@ -41,7 +41,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response> {
   @Override
   public Future<Response> asyncConnectToRedis(ConnectionSettings connectionSettings) {
     return testClient.asyncConnectToRedis(
-        connectionSettings.host, connectionSettings.port, connectionSettings.useSsl, false);
+        connectionSettings.host, connectionSettings.port, connectionSettings.useSsl, connectionSettings.clusterMode);
   }
 
   @Override
