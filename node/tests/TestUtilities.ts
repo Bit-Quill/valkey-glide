@@ -53,6 +53,9 @@ export function transactionTest(
     const key2 = "{key}" + uuidv4();
     const key3 = "{key}" + uuidv4();
     const key4 = "{key}" + uuidv4();
+    const key5 = "{key}" + uuidv4();
+    const key6 = "{key}" + uuidv4();
+    const key7 = "{key}" + uuidv4();
     const field = uuidv4();
     const value = uuidv4();
     baseTransaction.set(key1, "bar");
@@ -66,8 +69,18 @@ export function transactionTest(
     baseTransaction.del([key1]);
     baseTransaction.hset(key4, { [field]: value });
     baseTransaction.hget(key4, field);
+    baseTransaction.hgetall(key4);
     baseTransaction.hdel(key4, [field]);
     baseTransaction.hmget(key4, [field]);
+    baseTransaction.hexists(key4, field);
+    baseTransaction.lpush(key5, [field + "1", field + "2"]);
+    baseTransaction.lpop(key5);
+    baseTransaction.rpush(key6, [field + "1", field + "2"]);
+    baseTransaction.rpop(key6);
+    baseTransaction.sadd(key7, ["bar", "foo"]);
+    baseTransaction.srem(key7, ["foo"]);
+    baseTransaction.scard(key7);
+    baseTransaction.smembers(key7);
     return [
         "OK",
         null,
@@ -77,7 +90,17 @@ export function transactionTest(
         1,
         1,
         value,
+        [field, value],
         1,
         [null],
+        0,
+        2,
+        field + "2",
+        2,
+        field + "2",
+        2,
+        1,
+        1,
+        ["bar"],
     ];
 }

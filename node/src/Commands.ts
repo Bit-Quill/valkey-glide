@@ -326,6 +326,99 @@ export function createHMGet(
     return createCommand(RequestType.HashMGet, [key].concat(fields));
 }
 
+export function createHExists(
+    key: string,
+    field: string
+): redis_request.Command {
+    return createCommand(RequestType.HashExists, [key, field]);
+}
+
+export function createHGetAll(key: string): redis_request.Command {
+    return createCommand(RequestType.HashGetAll, [key]);
+}
+
+export function createLPush(
+    key: string,
+    elements: string[]
+): redis_request.Command {
+    return createCommand(RequestType.LPush, [key].concat(elements));
+}
+
+export function createLPop(key: string, count?: number): redis_request.Command {
+    const args: string[] = count == undefined ? [key] : [key, count.toString()];
+    return createCommand(RequestType.LPop, args);
+}
+
+export function createLRange(
+    key: string,
+    start: number,
+    end: number
+): redis_request.Command {
+    return createCommand(RequestType.LRange, [
+        key,
+        start.toString(),
+        end.toString(),
+    ]);
+}
+
+export function createRPush(
+    key: string,
+    elements: string[]
+): redis_request.Command {
+    return createCommand(RequestType.RPush, [key].concat(elements));
+}
+
+export function createRPop(key: string, count?: number): redis_request.Command {
+    const args: string[] = count == undefined ? [key] : [key, count.toString()];
+    return createCommand(RequestType.RPop, args);
+}
+
+export function createSAdd(
+    key: string,
+    members: string[]
+): redis_request.Command {
+    return createCommand(RequestType.SAdd, [key].concat(members));
+}
+
+export function createSRem(
+    key: string,
+    members: string[]
+): redis_request.Command {
+    return createCommand(RequestType.SRem, [key].concat(members));
+}
+
+export function createSMembers(key: string): redis_request.Command {
+    return createCommand(RequestType.SMembers, [key]);
+}
+
+export function createSCard(key: string): redis_request.Command {
+    return createCommand(RequestType.SCard, [key]);
+}
+
 export function createCustomCommand(commandName: string, args: string[]) {
     return createCommand(RequestType.CustomCommand, [commandName, ...args]);
+}
+
+export function createHIncrBy(
+    key: string,
+    field: string,
+    amount: number
+): redis_request.Command {
+    return createCommand(RequestType.HashIncrBy, [
+        key,
+        field,
+        amount.toString(),
+    ]);
+}
+
+export function createHIncrByFloat(
+    key: string,
+    field: string,
+    amount: number
+): redis_request.Command {
+    return createCommand(RequestType.HashIncrByFloat, [
+        key,
+        field,
+        amount.toString(),
+    ]);
 }
