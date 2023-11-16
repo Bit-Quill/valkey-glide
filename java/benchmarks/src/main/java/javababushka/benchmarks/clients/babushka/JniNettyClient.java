@@ -35,7 +35,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response> {
 
   @Override
   public void connectToRedis(ConnectionSettings connectionSettings) {
-waitForResult(asyncConnectToRedis(connectionSettings));
+    waitForResult(asyncConnectToRedis(connectionSettings));
   }
 
   @Override

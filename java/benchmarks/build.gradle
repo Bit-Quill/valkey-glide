@@ -45,14 +45,14 @@ java {
 application {
     // Define the main class for the application.
     mainClass = 'javababushka.benchmarks.BenchmarkingApp'
-    applicationDefaultJvmArgs += "-Djava.library.path=${projectDir}/../target/release"
+    applicationDefaultJvmArgs += "-Djava.library.path=${projectDir}/../target/release:${projectDir}/../target/debug"
 }
 
-tasks.withType(Test) { 
+tasks.withType(Test) {
     testLogging {
         exceptionFormat "full"
         events "started", "skipped", "passed", "failed"
         showStandardStreams true
     }
-    jvmArgs "-Djava.library.path=${projectDir}/../target/debug"
+    jvmArgs "-Djava.library.path=${projectDir}/../target/release:${projectDir}/../target/debug"
 }

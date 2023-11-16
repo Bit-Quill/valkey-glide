@@ -227,28 +227,40 @@ public class Client implements AutoCloseable {
   }
 
   public void closeConnection() {
-    try {
-      channel.flush();
 
+    // flush and close the channel
+    channel.flush();
+    channel.close();
+    // TODO: check that the channel is closed
+
+    // shutdown the event loop group gracefully by waiting for the remaining response
+    // and then shutting down the connection
+    try {
       long waitStarted = System.nanoTime();
       long waitUntil =
           waitStarted + PENDING_RESPONSES_ON_CLOSE_TIMEOUT_MILLIS * 100_000; // in nanos
-      for (var future : responses) {
-        if (future == null || future.isDone()) {
+      for (var responseFuture : responses) {
+        if (responseFuture == null || responseFuture.isDone()) {
           continue;
         }
         try {
-          future.get(waitUntil - System.nanoTime(), TimeUnit.NANOSECONDS);
+          responseFuture.get(waitUntil - System.nanoTime(), TimeUnit.NANOSECONDS);
         } catch (InterruptedException | ExecutionException ignored) {
+          // TODO: print warning
         } catch (TimeoutException e) {
-          future.cancel(true);
-          // TODO cancel the rest
+          responseFuture.cancel(true);
+          // TODO: cancel the rest
           break;
         }
       }
     } finally {
-      // channel.closeFuture().sync()
-      group.shutdownGracefully();
+      var shuttingDown = group.shutdownGracefully();
+      try {
+        shuttingDown.get();
+      } catch (InterruptedException | ExecutionException e) {
+        e.printStackTrace();
+      }
+      assert group.isShutdown() : "Redis connection did not shutdown gracefully";
     }
   }
 
