@@ -14,243 +14,17 @@ import static redis_request.RedisRequestOuterClass.Routes;
 import static redis_request.RedisRequestOuterClass.SimpleRoutes;
 import static response.ResponseOuterClass.Response;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
-import io.netty.channel.ChannelPromise;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.WriteBufferWaterMark;
-import io.netty.channel.epoll.EpollDomainSocketChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueDomainSocketChannel;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
-import io.netty.channel.unix.DomainSocketAddress;
-import io.netty.channel.unix.UnixChannel;
-import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
-import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.internal.logging.InternalLoggerFactory;
-import io.netty.util.internal.logging.Slf4JLoggerFactory;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.tuple.Pair;
 
-public class Client implements AutoCloseable {
-
+public class Client {
   private static final long DEFAULT_TIMEOUT_MILLISECONDS = 1000;
-  public static boolean ALWAYS_FLUSH_ON_WRITE = false;
 
-  // https://netty.io/3.6/api/org/jboss/netty/handler/queue/BufferedWriteHandler.html
-  // Flush every N bytes if !ALWAYS_FLUSH_ON_WRITE
-  public static int AUTO_FLUSH_THRESHOLD_BYTES = 512; // 1024;
-  private final AtomicInteger nonFlushedBytesCounter = new AtomicInteger(0);
-
-  // Flush every N writes if !ALWAYS_FLUSH_ON_WRITE
-  public static int AUTO_FLUSH_THRESHOLD_WRITES = 10;
-  private final AtomicInteger nonFlushedWritesCounter = new AtomicInteger(0);
-
-  // If !ALWAYS_FLUSH_ON_WRITE and a command has no response in N millis, flush (probably it wasn't
-  // send)
-  public static int AUTO_FLUSH_RESPONSE_TIMEOUT_MILLIS = 100;
-  // If !ALWAYS_FLUSH_ON_WRITE flush on timer (like a cron)
-  public static int AUTO_FLUSH_TIMER_MILLIS = 200;
-
-  public static int PENDING_RESPONSES_ON_CLOSE_TIMEOUT_MILLIS = 1000;
-
-  // Futures to handle responses. Index is callback id, starting from 1 (0 index is for connection
-  // request always).
-  // Is it not a concurrent nor sync collection, but it is synced on adding. No removes.
-  // TODO clean up completed futures
-  private final List<CompletableFuture<Response>> responses = new ArrayList<>();
-  // Unique offset for every client to avoid having multiple commands with the same id at a time.
-  // For debugging replace with: new Random().nextInt(1000) * 1000
-  private final int callbackOffset = new Random().nextInt();
-
-  private final String unixSocket = getSocket();
-
-  private static String getSocket() {
-    try {
-      return RustWrapper.startSocketListenerExternal();
-    } catch (Exception | UnsatisfiedLinkError e) {
-      System.err.printf("Failed to get UDS from babushka and dedushka: %s%n%n", e);
-      throw new RuntimeException(e);
-    }
-  }
-
-  private Channel channel = null;
-  private EventLoopGroup group = null;
-
-  // We support MacOS and Linux only, because Babushka does not support Windows, because tokio does
-  // not support it.
-  // Probably we should use NIO (NioEventLoopGroup) for Windows.
-  private static final boolean isMacOs = isMacOs();
-
-  private static boolean isMacOs() {
-    try {
-      Class.forName("io.netty.channel.kqueue.KQueue");
-      return KQueue.isAvailable();
-    } catch (ClassNotFoundException e) {
-      return false;
-    }
-  }
-
-  static {
-    // TODO fix: netty still doesn't use slf4j nor log4j
-    InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
-  }
-
-  private void createChannel() {
-    // TODO maybe move to constructor or to static?
-    try {
-      channel =
-          new Bootstrap()
-              .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(1024, 4096))
-              .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
-              .group(group = isMacOs ? new KQueueEventLoopGroup() : new EpollEventLoopGroup())
-              .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
-              .handler(
-                  new ChannelInitializer<UnixChannel>() {
-                    @Override
-                    public void initChannel(UnixChannel ch) throws Exception {
-                      ch.pipeline()
-                          .addLast("logger", new LoggingHandler(LogLevel.DEBUG))
-                          // https://netty.io/4.1/api/io/netty/handler/codec/protobuf/ProtobufEncoder.html
-                          .addLast("protobufDecoder", new ProtobufVarint32FrameDecoder())
-                          .addLast("protobufEncoder", new ProtobufVarint32LengthFieldPrepender())
-                          .addLast(
-                              new ChannelInboundHandlerAdapter() {
-                                @Override
-                                public void channelRead(ChannelHandlerContext ctx, Object msg)
-                                    throws Exception {
-                                  // System.out.printf("=== channelRead %s %s %n", ctx, msg);
-                                  var buf = (ByteBuf) msg;
-                                  var bytes = new byte[buf.readableBytes()];
-                                  buf.readBytes(bytes);
-                                  // TODO surround parsing with try-catch, set error to future if
-                                  // parsing failed.
-                                  var response = Response.parseFrom(bytes);
-                                  int callbackId = response.getCallbackIdx();
-                                  if (callbackId != 0) {
-                                    // connection request has hardcoded callback id = 0
-                                    // https://github.com/aws/babushka/issues/600
-                                    callbackId -= callbackOffset;
-                                  }
-                                  // System.out.printf("== Received response with callback %d%n",
-                                  // response.getCallbackIdx());
-                                  responses.get(callbackId).complete(response);
-                                  responses.set(callbackId, null);
-                                  super.channelRead(ctx, bytes);
-                                }
-
-                                @Override
-                                public void exceptionCaught(
-                                    ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                                  System.out.printf("=== exceptionCaught %s %s %n", ctx, cause);
-                                  cause.printStackTrace();
-                                  super.exceptionCaught(ctx, cause);
-                                }
-                              })
-                          .addLast(
-                              new ChannelOutboundHandlerAdapter() {
-                                @Override
-                                public void write(
-                                    ChannelHandlerContext ctx, Object msg, ChannelPromise promise)
-                                    throws Exception {
-                                  // System.out.printf("=== write %s %s %s %n", ctx, msg, promise);
-                                  var bytes = (byte[]) msg;
-
-                                  boolean needFlush = false;
-                                  if (!ALWAYS_FLUSH_ON_WRITE) {
-                                    synchronized (nonFlushedBytesCounter) {
-                                      if (nonFlushedBytesCounter.addAndGet(bytes.length)
-                                              >= AUTO_FLUSH_THRESHOLD_BYTES
-                                          || nonFlushedWritesCounter.incrementAndGet()
-                                              >= AUTO_FLUSH_THRESHOLD_WRITES) {
-                                        nonFlushedBytesCounter.set(0);
-                                        nonFlushedWritesCounter.set(0);
-                                        needFlush = true;
-                                      }
-                                    }
-                                  }
-                                  super.write(ctx, Unpooled.copiedBuffer(bytes), promise);
-                                  if (needFlush) {
-                                    // flush outside the sync block
-                                    flush(ctx);
-                                    // System.out.println("-- auto flush - buffer");
-                                  }
-                                }
-                              });
-                    }
-                  })
-              .connect(new DomainSocketAddress(unixSocket))
-              .sync()
-              .channel();
-
-    } catch (Exception e) {
-      System.err.printf(
-          "Failed to create a channel %s: %s%n", e.getClass().getSimpleName(), e.getMessage());
-      e.printStackTrace(System.err);
-    }
-
-    if (!ALWAYS_FLUSH_ON_WRITE) {
-      new Timer(true)
-          .scheduleAtFixedRate(
-              new TimerTask() {
-                @Override
-                public void run() {
-                  channel.flush();
-                  nonFlushedBytesCounter.set(0);
-                  nonFlushedWritesCounter.set(0);
-                }
-              },
-              0,
-              AUTO_FLUSH_TIMER_MILLIS);
-    }
-  }
-
-  public void closeConnection() {
-    try {
-      channel.flush();
-
-      long waitStarted = System.nanoTime();
-      long waitUntil =
-          waitStarted + PENDING_RESPONSES_ON_CLOSE_TIMEOUT_MILLIS * 100_000; // in nanos
-      for (var future : responses) {
-        if (future == null || future.isDone()) {
-          continue;
-        }
-        try {
-          future.get(waitUntil - System.nanoTime(), TimeUnit.NANOSECONDS);
-        } catch (InterruptedException | ExecutionException ignored) {
-        } catch (TimeoutException e) {
-          future.cancel(true);
-          // TODO cancel the rest
-          break;
-        }
-      }
-    } finally {
-      // channel.closeFuture().sync()
-      group.shutdownGracefully();
-    }
-  }
+  private final NettyWrapper innerClient = NettyWrapper.INSTANCE;
 
   public void set(String key, String value) {
     waitForResult(asyncSet(key, value));
@@ -264,19 +38,13 @@ public class Client implements AutoCloseable {
 
   private synchronized Pair<Integer, CompletableFuture<Response>> getNextCallback() {
     var future = new CompletableFuture<Response>();
-    responses.add(future);
-    return Pair.of(responses.size() - 1, future);
-  }
-
-  @Override
-  public void close() throws Exception {
-    closeConnection();
+    var callbackId = new Random().nextInt();
+    innerClient.registerRequest(callbackId, future);
+    return Pair.of(callbackId, future);
   }
 
   public Future<Response> asyncConnectToRedis(
       String host, int port, boolean useSsl, boolean clusterMode) {
-    createChannel();
-
     var request =
         ConnectionRequest.newBuilder()
             .addAddresses(AddressInfo.newBuilder().setHost(host).setPort(port).build())
@@ -302,8 +70,10 @@ public class Client implements AutoCloseable {
             .build();
 
     var future = new CompletableFuture<Response>();
-    responses.add(future);
-    channel.writeAndFlush(request.toByteArray());
+    // connection request has hardcoded callback id = 0
+    // https://github.com/aws/babushka/issues/600
+    innerClient.registerRequest(0, future);
+    innerClient.getChannel().writeAndFlush(request.toByteArray());
     return future;
   }
 
@@ -320,7 +90,7 @@ public class Client implements AutoCloseable {
 
               RedisRequest request =
                   RedisRequest.newBuilder()
-                      .setCallbackIdx(commandId.getKey() + callbackOffset)
+                      .setCallbackIdx(commandId.getKey())
                       .setSingleCommand(
                           Command.newBuilder()
                               .setRequestType(command)
@@ -328,35 +98,10 @@ public class Client implements AutoCloseable {
                               .build())
                       .setRoute(Routes.newBuilder().setSimpleRoutes(SimpleRoutes.AllNodes).build())
                       .build();
-              if (ALWAYS_FLUSH_ON_WRITE) {
-                channel.writeAndFlush(request.toByteArray());
-                return commandId.getRight();
-              }
-              channel.write(request.toByteArray());
-              return autoFlushFutureWrapper(commandId.getRight());
+              innerClient.getChannel().writeAndFlush(request.toByteArray());
+              return commandId.getValue();
             })
         .thenCompose(f -> f);
-  }
-
-  private <T> CompletableFuture<T> autoFlushFutureWrapper(Future<T> future) {
-    return CompletableFuture.supplyAsync(
-        () -> {
-          try {
-            return future.get(AUTO_FLUSH_RESPONSE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
-          } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-          } catch (TimeoutException e) {
-            // System.out.println("-- auto flush - timeout");
-            channel.flush();
-            nonFlushedBytesCounter.set(0);
-            nonFlushedWritesCounter.set(0);
-          }
-          try {
-            return future.get();
-          } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-          }
-        });
   }
 
   public Future<Response> asyncSet(String key, String value) {

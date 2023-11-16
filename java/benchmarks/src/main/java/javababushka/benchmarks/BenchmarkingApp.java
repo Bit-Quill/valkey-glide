@@ -139,20 +139,17 @@ public class BenchmarkingApp {
                         return Stream.of(
                             ClientName.JEDIS,
                             ClientName.JEDIS_ASYNC,
-                            // ClientName.BABUSHKA_ASYNC,
                             ClientName.BABUSHKA,
+                            ClientName.BABUSHKA_ASYNC,
                             ClientName.LETTUCE,
                             ClientName.LETTUCE_ASYNC);
                       case ALL_ASYNC:
                         return Stream.of(
                             ClientName.JEDIS_ASYNC,
-                            // ClientName.BABUSHKA_ASYNC,
+                            ClientName.BABUSHKA_ASYNC,
                             ClientName.LETTUCE_ASYNC);
                       case ALL_SYNC:
-                        return Stream.of(
-                            ClientName.JEDIS,
-                            // ClientName.BABUSHKA,
-                            ClientName.LETTUCE);
+                        return Stream.of(ClientName.JEDIS, ClientName.BABUSHKA, ClientName.LETTUCE);
                       default:
                         return Stream.of(e);
                     }
@@ -238,11 +235,9 @@ public class BenchmarkingApp {
       concurrentTasks = new int[] {100};
       clients =
           new ClientName[] {
-            // ClientName.BABUSHKA_ASYNC,
-            // ClientName.JEDIS, ClientName.JEDIS_ASYNC, ClientName.LETTUCE,
+            // ClientName.LETTUCE,
             // ClientName.LETTUCE_ASYNC
-            ClientName.BABUSHKA_ASYNC,
-            ClientName.BABUSHKA // , ClientName.LETTUCE, ClientName.LETTUCE_ASYNC
+            ClientName.BABUSHKA_ASYNC, ClientName.BABUSHKA
           };
       host = "localhost";
       port = 6379;

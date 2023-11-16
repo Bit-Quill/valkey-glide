@@ -24,18 +24,13 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response> {
   }
 
   @Override
-  public void closeConnection() {
-    testClient.closeConnection();
-  }
-
-  @Override
   public void connectToRedis() {
     connectToRedis(new ConnectionSettings("localhost", 6379, false));
   }
 
   @Override
   public void connectToRedis(ConnectionSettings connectionSettings) {
-waitForResult(asyncConnectToRedis(connectionSettings));
+    waitForResult(asyncConnectToRedis(connectionSettings));
   }
 
   @Override
