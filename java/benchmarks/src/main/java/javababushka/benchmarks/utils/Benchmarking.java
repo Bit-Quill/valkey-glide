@@ -148,8 +148,8 @@ public class Benchmarking {
   public static void testClientSetGet(
       Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
     for (int concurrentNum : config.concurrentTasks) {
-      int iterations = 100000;
-      Math.min(Math.max(LATENCY_MIN, concurrentNum * LATENCY_MULTIPLIER), LATENCY_MAX);
+      int iterations =
+          Math.min(Math.max(LATENCY_MIN, concurrentNum * LATENCY_MULTIPLIER), LATENCY_MAX);
       for (int clientCount : config.clientCount) {
         for (int dataSize : config.dataSize) {
           AtomicInteger iterationCounter = new AtomicInteger(0);

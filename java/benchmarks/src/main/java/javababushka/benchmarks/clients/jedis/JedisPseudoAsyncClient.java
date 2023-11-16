@@ -2,7 +2,6 @@ package javababushka.benchmarks.clients.jedis;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import javababushka.benchmarks.clients.AsyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 

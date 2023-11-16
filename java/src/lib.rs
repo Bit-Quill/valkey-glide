@@ -38,7 +38,7 @@ fn redis_value_to_java(mut env: JNIEnv, val: Value) -> JObject {
 }
 
 #[no_mangle]
-pub extern "system" fn Java_javababushka_client_RedisClient_valueFromPointer<'local>(
+pub extern "system" fn Java_javababushka_RustWrapper_valueFromPointer<'local>(
     mut env: JNIEnv<'local>,
     _class: JClass<'local>,
     pointer: jlong
@@ -48,37 +48,7 @@ pub extern "system" fn Java_javababushka_client_RedisClient_valueFromPointer<'lo
 }
 
 #[no_mangle]
-pub extern "system" fn Java_javababushka_client_RedisClient_startSocketListenerExternal__Ljavababushka_client_RedisClient_2<'local>(
-    mut env: JNIEnv<'local>,
-    _class: JClass<'local>,
-    callback: JObject<'local>
-) {
-    let jvm = env.get_java_vm().unwrap();
-
-    let callback = env.new_global_ref(callback).unwrap();
-
-    let (tx, rx) = mpsc::channel();
-    start_socket_listener(move |socket_path| {
-        // Signals that thread has started
-        tx.send(()).unwrap();
-        let mut env = jvm.attach_current_thread().unwrap();
-        match socket_path {
-            Ok(path) => {
-                let path = env.new_string(path).unwrap();
-                let _ = env.call_method(callback, "initCallback", "(Ljava/lang/String;Ljava/lang/String;)V", &[(&JObject::from(path)).into(), (&JObject::null()).into()]);
-            },
-            Err(error_message) => {
-                let error_message = env.new_string(error_message).unwrap();
-                let _ = env.call_method(callback, "initCallback", "(Ljava/lang/String;Ljava/lang/String;)V", &[(&JObject::null()).into(), (&JObject::from(error_message)).into()]);
-            }
-        }
-    });
-    // Wait until the thread has started
-    rx.recv().unwrap();
-}
-
-#[no_mangle]
-pub extern "system" fn Java_javababushka_client_RedisClient_startSocketListenerExternal__<'local>(
+pub extern "system" fn Java_javababushka_RustWrapper_startSocketListenerExternal<'local>(
     mut env: JNIEnv<'local>,
     _class: JClass<'local>
 ) -> JObject<'local> {

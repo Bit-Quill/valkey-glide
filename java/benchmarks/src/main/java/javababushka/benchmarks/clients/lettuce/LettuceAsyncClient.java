@@ -5,10 +5,8 @@ import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
 import io.lettuce.core.codec.StringCodec;
+import java.util.concurrent.Future;
 import javababushka.benchmarks.clients.AsyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 
@@ -40,13 +38,15 @@ public class LettuceAsyncClient implements AsyncClient<String> {
   @Override
   public Future<String> asyncConnectToRedis(ConnectionSettings connectionSettings) {
     client = RedisClient.create();
-    var asyncConnection  = client.connectAsync(
-        new StringCodec(),
-        RedisURI.create(String.format(
-            "%s://%s:%d",
-            connectionSettings.useSsl ? "rediss" : "redis",
-            connectionSettings.host,
-            connectionSettings.port)));
+    var asyncConnection =
+        client.connectAsync(
+            new StringCodec(),
+            RedisURI.create(
+                String.format(
+                    "%s://%s:%d",
+                    connectionSettings.useSsl ? "rediss" : "redis",
+                    connectionSettings.host,
+                    connectionSettings.port)));
     asyncConnection.whenComplete((connection, exception) -> asyncCommands = connection.async());
     return asyncConnection.thenApply((connection) -> "OK");
   }
