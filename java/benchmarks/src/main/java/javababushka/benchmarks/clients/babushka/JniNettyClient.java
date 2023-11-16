@@ -275,14 +275,10 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
       var shuttingDown = group.shutdownGracefully();
       try {
         shuttingDown.get();
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (InterruptedException | ExecutionException exception) {
+        exception.printStackTrace();
       }
-      if (group.isShutdown()) {
-        System.out.println("Done shutdownGracefully");
-      } else {
-        System.out.println("Something went wrong");
-      }
+      assert group.isShutdown(): "Redis connection failed to shutdown gracefully";
     }
   }
 
