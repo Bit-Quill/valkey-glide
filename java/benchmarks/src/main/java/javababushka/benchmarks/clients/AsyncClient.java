@@ -1,9 +1,8 @@
 package javababushka.benchmarks.clients;
 
-import javababushka.benchmarks.utils.ConnectionSettings;
-
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import javababushka.benchmarks.utils.ConnectionSettings;
 
 /** A Redis client with async capabilities */
 public interface AsyncClient<T> extends Client {
