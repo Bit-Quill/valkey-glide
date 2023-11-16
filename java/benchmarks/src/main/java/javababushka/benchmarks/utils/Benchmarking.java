@@ -149,14 +149,11 @@ public class Benchmarking {
       Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
     for (int concurrentNum : config.concurrentTasks) {
       int iterations = 100000;
-          Math.min(Math.max(LATENCY_MIN, concurrentNum * LATENCY_MULTIPLIER), LATENCY_MAX);
+      Math.min(Math.max(LATENCY_MIN, concurrentNum * LATENCY_MULTIPLIER), LATENCY_MAX);
       for (int clientCount : config.clientCount) {
         for (int dataSize : config.dataSize) {
-          System.out.printf(
-              "%n =====> %s <===== %d clients %d concurrent %d data %n%n",
-              clientCreator.get().getName(), clientCount, concurrentNum, dataSize);
           AtomicInteger iterationCounter = new AtomicInteger(0);
-          // Collections.synchronizedList
+
           Map<ChosenAction, List<Long>> actionResults =
               Map.of(
                   ChosenAction.GET_EXISTING, new ArrayList<>(),
@@ -171,6 +168,12 @@ public class Benchmarking {
             newClient.connectToRedis(new ConnectionSettings(config.host, config.port, config.tls));
             clients.add(newClient);
           }
+
+          String clientName = clients.get(0).getName();
+
+          System.out.printf(
+              "%n =====> %s <===== %d clients %d concurrent %d data %n%n",
+              clientName, clientCount, concurrentNum, dataSize);
 
           for (int taskNum = 0; taskNum < concurrentNum; taskNum++) {
             final int taskNumDebugging = taskNum;
@@ -214,7 +217,7 @@ public class Benchmarking {
                 });
           }
           if (config.debugLogging) {
-            System.out.printf("%s client Benchmarking: %n", clientCreator.get().getName());
+            System.out.printf("%s client Benchmarking: %n", clientName);
             System.out.printf(
                 "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
                 concurrentNum, clientCount, tasks.size());
@@ -257,7 +260,7 @@ public class Benchmarking {
                 calculatedResults,
                 config.resultsFile.get(),
                 dataSize,
-                clientCreator.get().getName(),
+                clientName,
                 clientCount,
                 concurrentNum,
                 iterations / ((after - before) / TPS_NORMALIZATION));
@@ -265,7 +268,8 @@ public class Benchmarking {
           printResults(calculatedResults, (after - before) / TPS_NORMALIZATION, iterations);
           try {
             Thread.sleep(2000);
-          } catch (InterruptedException ignored) {}
+          } catch (InterruptedException ignored) {
+          }
         }
       }
     }

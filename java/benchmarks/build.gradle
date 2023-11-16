@@ -51,7 +51,7 @@ application {
     // Define the main class for the application.
     mainClass = 'javababushka.benchmarks.BenchmarkingApp'
     mainClass = 'javababushka.benchmarks.clients.babushka.JniNettyClient'
-    applicationDefaultJvmArgs += "-Djava.library.path=${projectDir}/../target/debug"
+    applicationDefaultJvmArgs += "-Djava.library.path=${projectDir}/../target/release:${projectDir}/../target/debug"
 }
 
 tasks.withType(Test) { 
@@ -60,5 +60,5 @@ tasks.withType(Test) {
         events "started", "skipped", "passed", "failed"
         showStandardStreams true
     }
-    jvmArgs "-Djava.library.path=${projectDir}/../target/debug"
+    jvmArgs "-Djava.library.path=${projectDir}/../target/release:${projectDir}/../target/debug"
 }
