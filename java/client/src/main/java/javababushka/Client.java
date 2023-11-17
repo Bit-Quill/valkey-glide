@@ -382,7 +382,8 @@ public class Client implements AutoCloseable {
         .thenApply(
             response ->
                 response.getRespPointer() != 0
-                    ? BabushkaCoreNativeDefinitions.valueFromPointer(response.getRespPointer()).toString()
+                    ? BabushkaCoreNativeDefinitions.valueFromPointer(response.getRespPointer())
+                        .toString()
                     : null);
   }
 

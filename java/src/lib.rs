@@ -38,7 +38,7 @@ fn redis_value_to_java(mut env: JNIEnv, val: Value) -> JObject {
 }
 
 #[no_mangle]
-pub extern "system" fn Java_javababushka_RustWrapper_valueFromPointer<'local>(
+pub extern "system" fn Java_javababushka_BabushkaCoreNativeDefinitions_valueFromPointer<'local>(
     mut env: JNIEnv<'local>,
     _class: JClass<'local>,
     pointer: jlong
@@ -48,7 +48,7 @@ pub extern "system" fn Java_javababushka_RustWrapper_valueFromPointer<'local>(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_javababushka_RustWrapper_startSocketListenerExternal<'local>(
+pub extern "system" fn Java_javababushka_BabushkaCoreNativeDefinitions_startSocketListenerExternal<'local>(
     mut env: JNIEnv<'local>,
     _class: JClass<'local>
 ) -> JObject<'local> {
