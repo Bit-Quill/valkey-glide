@@ -12,12 +12,12 @@ cbindgen = "0.20"
 crate-type = ["cdylib"]
 
 [dependencies]
-redis = { path = "../../../submodules/redis-rs/redis", features = ["aio", "tokio-comp", "tls", "tokio-native-tls-comp", "tls-rustls-insecure"] }
-babushka = { path = "../../../babushka-core" }
+redis = { path = "../../submodules/redis-rs/redis", features = ["aio", "tokio-comp", "tls", "tokio-native-tls-comp", "tls-rustls-insecure"] }
+babushka = { path = "../../babushka-core" }
 tokio = { version = "^1", features = ["rt", "macros", "rt-multi-thread", "time"] }
 num-derive = "0.4.0"
 num-traits = "0.2.15"
-logger_core = {path = "../../../logger_core"}
+logger_core = {path = "../../logger_core"}
 tracing-subscriber = "0.3.16"
 
 [profile.release]

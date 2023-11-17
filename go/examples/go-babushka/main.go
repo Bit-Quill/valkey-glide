@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/aws/babushka/go/babushkaclient"
 	"github.com/aws/babushka/go/benchmarks"
-	"github.com/aws/babushka/go/benchmarks/babushkaclient"
 )
 
 func main() {

@@ -12,8 +12,6 @@ import "C"
 import (
 	"fmt"
 	"unsafe"
-
-	"github.com/aws/babushka/go/benchmarks"
 )
 
 type BabushkaRedisClient struct {
@@ -41,11 +39,11 @@ func failureCallback(errMessage *C.char, channelPtr C.uintptr_t) {
 	resultChannel <- payload{value: "", errMessage: fmt.Errorf("error at redis operation: %s", goMessage)}
 }
 
-func (babushkaRedisClient *BabushkaRedisClient) ConnectToRedis(connectionSettings *benchmarks.ConnectionSettings) error {
-	caddress := C.CString(connectionSettings.Host)
+func (babushkaRedisClient *BabushkaRedisClient) ConnectToRedis(host string, port int, useSSL bool, clusterModeEnabled bool) error {
+	caddress := C.CString(host)
 	defer C.free(unsafe.Pointer(caddress))
 
-	babushkaRedisClient.coreClient = C.create_connection(caddress, C.uint32_t(connectionSettings.Port), C._Bool(connectionSettings.UseSsl), C._Bool(connectionSettings.ClusterModeEnabled), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback)))
+	babushkaRedisClient.coreClient = C.create_connection(caddress, C.uint32_t(port), C._Bool(useSSL), C._Bool(clusterModeEnabled), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback)))
 	if babushkaRedisClient.coreClient == nil {
 		return fmt.Errorf("error connecting to babushkaRedisClient")
 	}
@@ -102,11 +100,6 @@ func (babushkaRedisClient *BabushkaRedisClient) Info() (string, error) {
 	return resultPayload.value, resultPayload.errMessage
 }
 
-func (babushkaRedisClient *BabushkaRedisClient) CloseConnection() error {
+func (babushkaRedisClient *BabushkaRedisClient) CloseConnection() {
 	C.close_connection(babushkaRedisClient.coreClient)
-	return nil
-}
-
-func (babushkaRedisClient *BabushkaRedisClient) GetName() string {
-	return "babushka"
 }

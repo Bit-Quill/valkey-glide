@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/aws/babushka/go/benchmarks"
-	"github.com/aws/babushka/go/benchmarks/babushkaclient"
 	"os"
 	"regexp"
 	"strconv"
@@ -236,7 +235,7 @@ func createClients(clientCount int, clientType string, connectionSettings *bench
 		case clientNameOpts.goRedis:
 			client = &benchmarks.GoRedisClient{}
 		case clientNameOpts.goBabushka:
-			client = &babushkaclient.BabushkaRedisClient{}
+			client = &benchmarks.GoBabushkaBenchmarkClient{}
 		}
 		err := client.ConnectToRedis(connectionSettings)
 		if err != nil {
