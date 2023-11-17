@@ -1,6 +1,6 @@
 package javababushka;
 
-public class RustWrapper {
+public class BabushkaCoreNativeDefinitions {
   public static native String startSocketListenerExternal() throws Exception;
 
   public static native Object valueFromPointer(long pointer);

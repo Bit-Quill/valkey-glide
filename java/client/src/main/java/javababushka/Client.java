@@ -88,7 +88,7 @@ public class Client implements AutoCloseable {
 
   private static String getSocket() {
     try {
-      return RustWrapper.startSocketListenerExternal();
+      return BabushkaCoreNativeDefinitions.startSocketListenerExternal();
     } catch (Exception | UnsatisfiedLinkError e) {
       System.err.printf("Failed to get UDS from babushka and dedushka: %s%n%n", e);
       throw new RuntimeException(e);
@@ -382,7 +382,7 @@ public class Client implements AutoCloseable {
         .thenApply(
             response ->
                 response.getRespPointer() != 0
-                    ? RustWrapper.valueFromPointer(response.getRespPointer()).toString()
+                    ? BabushkaCoreNativeDefinitions.valueFromPointer(response.getRespPointer()).toString()
                     : null);
   }
 
