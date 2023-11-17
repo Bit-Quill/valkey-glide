@@ -5,31 +5,40 @@ package babushkaclient
 #include "lib.h"
 
 void successCallback(char *message, uintptr_t channelPtr);
-void failureCallback(uintptr_t channelPtr);
+void failureCallback(char *errMessage, uintptr_t channelPtr);
 */
 import "C"
 
 import (
 	"fmt"
-	"github.com/aws/babushka/go/benchmarks"
 	"unsafe"
+
+	"github.com/aws/babushka/go/benchmarks"
 )
 
 type BabushkaRedisClient struct {
 	coreClient unsafe.Pointer
 }
 
+type payload struct {
+	value      string
+	errMessage error
+}
+
 //export successCallback
 func successCallback(message *C.char, channelPtr C.uintptr_t) {
 	goMessage := C.GoString(message)
-	channelAddress := uintptr(channelPtr)
-	channel := *(*chan string)(unsafe.Pointer(channelAddress))
-	channel <- goMessage
+	goChannelPointer := uintptr(channelPtr)
+	resultChannel := *(*chan payload)(unsafe.Pointer(goChannelPointer))
+	resultChannel <- payload{value: goMessage, errMessage: nil}
 }
 
 //export failureCallback
-func failureCallback(channelPtr C.uintptr_t) {
-	panic("Failure for get or set")
+func failureCallback(errMessage *C.char, channelPtr C.uintptr_t) {
+	goMessage := C.GoString(errMessage)
+	goChannelPointer := uintptr(channelPtr)
+	resultChannel := *(*chan payload)(unsafe.Pointer(goChannelPointer))
+	resultChannel <- payload{value: "", errMessage: fmt.Errorf("error at redis operation: %s", goMessage)}
 }
 
 func (babushkaRedisClient *BabushkaRedisClient) ConnectToRedis(connectionSettings *benchmarks.ConnectionSettings) error {
@@ -50,27 +59,47 @@ func (babushkaRedisClient *BabushkaRedisClient) Set(key string, value interface{
 	defer C.free(unsafe.Pointer(ckey))
 	defer C.free(unsafe.Pointer(cval))
 
-	result := make(chan string)
-	chAddress := uintptr(unsafe.Pointer(&result))
+	resultChannel := make(chan payload)
+	resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
 
-	C.set(babushkaRedisClient.coreClient, ckey, cval, C.uintptr_t(chAddress))
+	C.set(babushkaRedisClient.coreClient, ckey, cval, C.uintptr_t(resultChannelPtr))
 
-	<-result
+	resultPayload := <-resultChannel
 
-	return nil
+	return resultPayload.errMessage
 }
 
 func (babushkaRedisClient *BabushkaRedisClient) Get(key string) (string, error) {
 	ckey := C.CString(key)
 	defer C.free(unsafe.Pointer(ckey))
 
-	result := make(chan string)
-	chAddress := uintptr(unsafe.Pointer(&result))
+	resultChannel := make(chan payload)
+	resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
 
-	C.get(babushkaRedisClient.coreClient, ckey, C.uintptr_t(chAddress))
-	value := <-result
+	C.get(babushkaRedisClient.coreClient, ckey, C.uintptr_t(resultChannelPtr))
+	resultPayload := <-resultChannel
 
-	return value, nil
+	return resultPayload.value, nil
+}
+
+func (babushkaRedisClient *BabushkaRedisClient) Ping() (string, error) {
+	resultChannel := make(chan payload)
+	resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
+
+	C.ping(babushkaRedisClient.coreClient, C.uintptr_t(resultChannelPtr))
+	resultPayload := <-resultChannel
+
+	return resultPayload.value, resultPayload.errMessage
+}
+
+func (babushkaRedisClient *BabushkaRedisClient) Info() (string, error) {
+	resultChannel := make(chan payload)
+	resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
+
+	C.info(babushkaRedisClient.coreClient, C.uintptr_t(resultChannelPtr))
+	resultPayload := <-resultChannel
+
+	return resultPayload.value, resultPayload.errMessage
 }
 
 func (babushkaRedisClient *BabushkaRedisClient) CloseConnection() error {

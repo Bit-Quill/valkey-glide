@@ -10,7 +10,7 @@ use tokio::runtime::Builder;
 use tokio::runtime::Runtime;
 
 pub type SuccessCallback = unsafe extern "C" fn(message: *const c_char, channel_address: usize) -> ();
-pub type FailureCallback = unsafe extern "C" fn(channel_address: usize) -> ();
+pub type FailureCallback = unsafe extern "C" fn(err_message: *const c_char, channel_address: usize) -> ();
 
 
 
@@ -117,7 +117,10 @@ pub extern "C" fn set(
             let client = Box::leak(Box::from_raw(ptr_address as *mut Connection));
             match result {
                 Ok(_) => (client.success_callback)(std::ptr::null(), channel),
-                Err(_) => (client.failure_callback)(channel),
+                Err(err) => {
+                    let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
+                    (client.failure_callback)(c_err_str.as_ptr(), channel)
+                }
             };
         }
     });
@@ -141,8 +144,9 @@ pub extern "C" fn get(connection_ptr: *const c_void, key: *const c_char, channel
         let connection = unsafe { Box::leak(Box::from_raw(ptr_address as *mut Connection)) };
         let value = match result {
             Ok(value) => value,
-            Err(_) => {
-                unsafe { (connection.failure_callback)(channel) };
+            Err(err) => {
+                let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
+                unsafe { (connection.failure_callback)(c_err_str.as_ptr(), channel) };
                 return;
             }
         };
@@ -152,7 +156,85 @@ pub extern "C" fn get(connection_ptr: *const c_void, key: *const c_char, channel
             match result {
                 Ok(None) => (connection.success_callback)(std::ptr::null(), channel),
                 Ok(Some(c_str)) => (connection.success_callback)(c_str.as_ptr(), channel),
-                Err(_) => (connection.failure_callback)(channel),
+                Err(err) =>{
+                    let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
+                    (connection.failure_callback)(c_err_str.as_ptr(), channel)
+                }
+            };
+        }
+    });
+}
+
+/// Expects that key and value will be kept valid until the callback is called.
+#[no_mangle]
+pub extern "C" fn ping(
+    connection_ptr: *const c_void,
+    channel: usize
+) {
+    let connection = unsafe { Box::leak(Box::from_raw(connection_ptr as *mut Connection)) };
+    // The safety of this needs to be ensured by the calling code. Cannot dispose of the pointer before all operations have completed.
+    let ptr_address = connection_ptr as usize;
+
+    let mut connection_clone = connection.connection.clone();
+    connection.runtime.spawn(async move {
+        let mut cmd = Cmd::new();
+        cmd.arg("PING");
+        let result = connection_clone.req_packed_command(&cmd, None).await;
+        let connection = unsafe { Box::leak(Box::from_raw(ptr_address as *mut Connection)) };
+        let value = match result {
+            Ok(value) => value,
+            Err(err) => {
+                let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
+                unsafe { (connection.failure_callback)(c_err_str.as_ptr(), channel) };
+                return;
+            }
+        };
+        let result = Option::<CString>::from_redis_value(&value);
+        unsafe {
+            match result {
+                Ok(None) => (connection.success_callback)(std::ptr::null(), channel),
+                Ok(Some(c_str)) => (connection.success_callback)(c_str.as_ptr(), channel),
+                Err(err) => {
+                    let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
+                    (connection.failure_callback)(c_err_str.as_ptr(), channel)
+                }
+            };
+        }
+    });
+}
+
+#[no_mangle]
+pub extern "C" fn info(
+    connection_ptr: *const c_void,
+    channel: usize
+) {
+    let connection = unsafe { Box::leak(Box::from_raw(connection_ptr as *mut Connection)) };
+    // The safety of this needs to be ensured by the calling code. Cannot dispose of the pointer before all operations have completed.
+    let ptr_address = connection_ptr as usize;
+
+    let mut connection_clone = connection.connection.clone();
+    connection.runtime.spawn(async move {
+        let mut cmd = Cmd::new();
+        cmd.arg("INFO");
+        let result = connection_clone.req_packed_command(&cmd, None).await;
+        let connection = unsafe { Box::leak(Box::from_raw(ptr_address as *mut Connection)) };
+        let value = match result {
+            Ok(value) => value,
+            Err(err) => {
+                let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
+                unsafe { (connection.failure_callback)(c_err_str.as_ptr(), channel) };
+                return;
+            }
+        };
+        let result = Option::<CString>::from_redis_value(&value);
+        unsafe {
+            match result {
+                Ok(None) => (connection.success_callback)(std::ptr::null(), channel),
+                Ok(Some(c_str)) => (connection.success_callback)(c_str.as_ptr(), channel),
+                Err(err) => {
+                    let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
+                    (connection.failure_callback)(c_err_str.as_ptr(), channel)
+                }
             };
         }
     });
