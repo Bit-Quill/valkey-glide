@@ -149,20 +149,22 @@ public class Benchmarking {
       int iterations = Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
       for (int clientCount : config.clientCount) {
         for (int dataSize : config.dataSize) {
-          System.out.printf(
-              "%n =====> %s <===== %d clients %d concurrent %n%n",
-              clientCreator.get().getName(), clientCount, concurrentNum);
-          AtomicInteger iterationCounter = new AtomicInteger(0);
-
           // create clients
           List<Client> clients = new LinkedList<>();
           for (int cc = 0; cc < clientCount; cc++) {
             Client newClient = clientCreator.get();
             newClient.connectToRedis(
-                new ConnectionSettings(
-                    config.host, config.port, config.tls, config.clusterModeEnabled));
+                    new ConnectionSettings(
+                            config.host, config.port, config.tls, config.clusterModeEnabled));
             clients.add(newClient);
           }
+
+          var clientName = clients.get(0).getName();
+
+          System.out.printf(
+              "%n =====> %s <===== %d clients %d concurrent %n%n",
+                  clientName, clientCount, concurrentNum);
+          AtomicInteger iterationCounter = new AtomicInteger(0);
 
           long started = System.nanoTime();
           List<CompletableFuture<Map<ChosenAction, ArrayList<Long>>>> asyncTasks =
@@ -204,7 +206,7 @@ public class Benchmarking {
                     }));
           }
           if (config.debugLogging) {
-            System.out.printf("%s client Benchmarking: %n", clientCreator.get().getName());
+            System.out.printf("%s client Benchmarking: %n", clientName);
             System.out.printf(
                 "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
                 concurrentNum, clientCount, asyncTasks.size());
@@ -242,6 +244,8 @@ public class Benchmarking {
               });
           var calculatedResults = calculateResults(actionResults);
 
+          clients.forEach(Client::closeConnection);
+
           if (config.resultsFile.isPresent()) {
             double tps = iterationCounter.get() * NANO_TO_SECONDS / (after - started);
             JsonWriter.Write(
@@ -249,7 +253,7 @@ public class Benchmarking {
                 config.resultsFile.get(),
                 config.clusterModeEnabled,
                 dataSize,
-                clientCreator.get().getName(),
+                clientName,
                 clientCount,
                 concurrentNum,
                 tps);
