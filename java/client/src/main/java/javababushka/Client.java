@@ -55,6 +55,10 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public class Client implements AutoCloseable {
 
+  private static final int RESPONSE_TIMEOUT_MILLISECONDS = 250;
+  private static final int CLIENT_CREATION_TIMEOUT_MILLISECONDS = 250;
+  private static final int HIGH_WRITE_WATERMARK = 4096;
+  private static final int LOW_WRITE_WATERMARK = 1024;
   private static final long DEFAULT_TIMEOUT_MILLISECONDS = 1000;
   public static boolean ALWAYS_FLUSH_ON_WRITE = false;
 
@@ -78,12 +82,12 @@ public class Client implements AutoCloseable {
   // Futures to handle responses. Index is callback id, starting from 1 (0 index is for connection
   // request always).
   // Is it not a concurrent nor sync collection, but it is synced on adding. No removes.
-  // TODO clean up completed futures
   private final List<CompletableFuture<Response>> responses = new ArrayList<>();
   // Unique offset for every client to avoid having multiple commands with the same id at a time.
   // For debugging replace with: new Random().nextInt(1000) * 1000
   private final int callbackOffset = new Random().nextInt();
 
+  // TODO move to a [static] constructor.
   private final String unixSocket = getSocket();
 
   private static String getSocket() {
@@ -122,7 +126,9 @@ public class Client implements AutoCloseable {
     try {
       channel =
           new Bootstrap()
-              .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(1024, 4096))
+              .option(
+                  ChannelOption.WRITE_BUFFER_WATER_MARK,
+                  new WriteBufferWaterMark(LOW_WRITE_WATERMARK, HIGH_WRITE_WATERMARK))
               .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
               .group(group = isMacOs ? new KQueueEventLoopGroup() : new EpollEventLoopGroup())
               .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
@@ -297,10 +303,8 @@ public class Client implements AutoCloseable {
                     ? TlsMode.SecureTls
                     : TlsMode.NoTls)
             .setClusterModeEnabled(clusterMode)
-            // In millis
-            .setResponseTimeout(250)
-            // In millis
-            .setClientCreationTimeout(2500)
+            .setResponseTimeout(RESPONSE_TIMEOUT_MILLISECONDS)
+            .setClientCreationTimeout(CLIENT_CREATION_TIMEOUT_MILLISECONDS)
             .setReadFromReplicaStrategy(ReadFromReplicaStrategy.AlwaysFromPrimary)
             .setConnectionRetryStrategy(
                 ConnectionRetryStrategy.newBuilder()
