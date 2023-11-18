@@ -19,7 +19,7 @@ The Go client contains the following parts:
    Run the command: `cargo build --release`.
 2) Build go-babushka within the Go Benchmarks:  
    Change your current directory to: `babushka/go/babushkaclient`.   
-   Execute the build command: cargo `build --release`.  
+   Execute the build command: `cargo build --release`.  
 ## Code style
 
 
