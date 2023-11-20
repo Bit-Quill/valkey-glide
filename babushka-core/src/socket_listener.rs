@@ -24,6 +24,7 @@ use std::cell::Cell;
 use std::rc::Rc;
 use std::{env, str};
 use std::{io, thread};
+use std::fmt::format;
 use thiserror::Error;
 use tokio::io::ErrorKind::AddrInUse;
 use tokio::net::{UnixListener, UnixStream};
@@ -124,7 +125,7 @@ impl UnixStreamListener {
     }
 }
 
-async fn write_to_output(writer: &Rc<Writer>) {
+async fn write_to_output(writer: &Rc<Writer>, callback_idx: u32) {
     let Ok(_guard) = writer.lock.try_lock() else {
         return;
     };
@@ -135,6 +136,9 @@ async fn write_to_output(writer: &Rc<Writer>) {
             return;
         }
         let mut total_written_bytes = 0;
+        if callback_idx > 0 {
+            //log_error("callback id sent    ", callback_idx.to_string());
+        }
         while total_written_bytes < output.len() {
             if let Err(err) = writer.socket.writable().await {
                 let _res = writer.closing_sender.send(err.into()).await; // we ignore the error, because it means that the reader was dropped, which is ok.
@@ -230,6 +234,7 @@ async fn write_result(
                     };
                     request_error.message = error_message.into();
                 }
+                log_error("received error", format!("{:?}", err));
                 Some(response::response::Value::RequestError(request_error))
             }
         }
@@ -245,7 +250,7 @@ async fn write_to_writer(response: Response, writer: &Rc<Writer>) -> Result<(), 
     match encode_result {
         Ok(_) => {
             writer.accumulated_outputs.set(vec);
-            write_to_output(writer).await;
+            write_to_output(writer, response.callback_idx).await;
             Ok(())
         }
         Err(err) => {
@@ -458,7 +463,7 @@ fn handle_request(request: RedisRequest, client: Client, writer: Rc<Writer>) {
                 }
             },
             None => Err(ClienUsageError::InternalError(
-                "Received empty request".to_string(),
+                format!("Received empty request: {}", request.callback_idx),
             )),
         };
 

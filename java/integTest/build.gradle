@@ -1,0 +1,18 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':client')
+}
+
+application {
+    // Define the main class for the application.
+    mainClass = 'javababushka.Test'
+    applicationDefaultJvmArgs += "-Djava.library.path=${projectDir}/../target/release"
+}

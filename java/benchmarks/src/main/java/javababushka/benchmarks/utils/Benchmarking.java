@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +36,7 @@ public class Benchmarking {
   static final int LATENCY_MULTIPLIER = 10000;
   static final double TPS_NORMALIZATION = 1000000000.0; // nano to seconds
   // measurements are done in nano-seconds, but it should be converted to seconds later
+  static final double NANO_TO_SECONDS = 1e9;
   static final double SECONDS_IN_NANO = 1e-9;
 
   private static ChosenAction randomAction() {
@@ -67,6 +69,8 @@ public class Benchmarking {
     try {
       actions.get(action).go();
     } catch (Exception e) {
+      System.out.printf("Error from Future::get: %s%n", e.getMessage());
+      e.printStackTrace();
       // timed out - exception from Future::get
       return null;
     }
@@ -146,127 +150,126 @@ public class Benchmarking {
   }
 
   public static void testClientSetGet(
-      Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
+          Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
     for (int concurrentNum : config.concurrentTasks) {
-      int iterations = 100000;
-      Math.min(Math.max(LATENCY_MIN, concurrentNum * LATENCY_MULTIPLIER), LATENCY_MAX);
+      int iterations = 1000000;//Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
       for (int clientCount : config.clientCount) {
         for (int dataSize : config.dataSize) {
-          System.out.printf(
-              "%n =====> %s <===== %d clients %d concurrent %d data %n%n",
-              clientCreator.get().getName(), clientCount, concurrentNum, dataSize);
-          AtomicInteger iterationCounter = new AtomicInteger(0);
-          // Collections.synchronizedList
-          Map<ChosenAction, List<Long>> actionResults =
-              Map.of(
-                  ChosenAction.GET_EXISTING, new ArrayList<>(),
-                  ChosenAction.GET_NON_EXISTING, new ArrayList<>(),
-                  ChosenAction.SET, new ArrayList<>());
-          List<Runnable> tasks = new ArrayList<>();
-
           // create clients
           List<Client> clients = new LinkedList<>();
           for (int cc = 0; cc < clientCount; cc++) {
             Client newClient = clientCreator.get();
-            newClient.connectToRedis(new ConnectionSettings(config.host, config.port, config.tls));
+            newClient.connectToRedis(
+                    new ConnectionSettings(
+                            config.host, config.port, config.tls));
             clients.add(newClient);
           }
 
+          var clientName = clients.get(0).getName();
+
+          System.out.printf(
+                  "%n =====> %s <===== %d clients %d concurrent %d data size%n%n",
+                  clientName, clientCount, concurrentNum, dataSize);
+          AtomicInteger iterationCounter = new AtomicInteger(0);
+
+          var threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+
+          long started = System.nanoTime();
+          List<CompletableFuture<Map<ChosenAction, ArrayList<Long>>>> asyncTasks =
+                  new ArrayList<>();
           for (int taskNum = 0; taskNum < concurrentNum; taskNum++) {
             final int taskNumDebugging = taskNum;
-            tasks.add(
-                () -> {
-                  int iterationIncrement = iterationCounter.getAndIncrement();
-                  int clientIndex = iterationIncrement % clients.size();
+            asyncTasks.add(
+                    CompletableFuture.supplyAsync(
+                            () -> {
+                              Map<ChosenAction, ArrayList<Long>> taskActionResults =
+                                      Map.of(
+                                              ChosenAction.GET_EXISTING, new ArrayList<>(),
+                                              ChosenAction.GET_NON_EXISTING, new ArrayList<>(),
+                                              ChosenAction.SET, new ArrayList<>());
+                              int iterationIncrement = iterationCounter.getAndIncrement();
+                              int clientIndex = iterationIncrement % clients.size();
 
-                  if (config.debugLogging) {
-                    System.out.printf(
-                        "%n concurrent = %d/%d, client# = %d/%d%n",
-                        taskNumDebugging, concurrentNum, clientIndex + 1, clientCount);
-                  }
-                  while (iterationIncrement < iterations) {
-                    if (config.debugLogging) {
-                      System.out.printf(
-                          "> task = %d, iteration = %d/%d, client# = %d/%d%n",
-                          taskNumDebugging,
-                          iterationIncrement + 1,
-                          iterations,
-                          clientIndex + 1,
-                          clientCount);
-                    }
-                    var actions = getActionMap(clients.get(clientIndex), dataSize, async);
-                    // operate and calculate tik-tok
-                    Pair<ChosenAction, Long> result = measurePerformance(actions);
-                    if (config.debugLogging) {
-                      System.out.printf(
-                          "> task = %d, iteration = %d/%d, client# = %d/%d - DONE%n",
-                          taskNumDebugging,
-                          iterationIncrement + 1,
-                          iterations,
-                          clientIndex + 1,
-                          clientCount);
-                    }
-                    if (result != null) {
-                      actionResults.get(result.getLeft()).add(result.getRight());
-                    }
-                    iterationIncrement = iterationCounter.getAndIncrement();
-                  }
-                });
+                              if (config.debugLogging) {
+                                System.out.printf(
+                                        "%n concurrent = %d/%d, client# = %d/%d%n",
+                                        taskNumDebugging, concurrentNum, clientIndex + 1, clientCount);
+                              }
+                              while (iterationIncrement < iterations) {
+                                if (config.debugLogging) {
+                                  System.out.printf(
+                                          "> iteration = %d/%d, client# = %d/%d%n",
+                                          iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
+                                }
+
+                                var actions = getActionMap(clients.get(clientIndex), dataSize, async);
+                                // operate and calculate tik-tok
+                                Pair<ChosenAction, Long> result = measurePerformance(actions);
+                                if (result != null) {
+                                  taskActionResults.get(result.getLeft()).add(result.getRight());
+                                }
+
+                                iterationIncrement = iterationCounter.getAndIncrement();
+                                clientIndex = iterationIncrement % clients.size();
+                              }
+                              return taskActionResults;
+                            }, threadPool));
           }
           if (config.debugLogging) {
-            System.out.printf("%s client Benchmarking: %n", clientCreator.get().getName());
+            System.out.printf("%s client Benchmarking: %n", clientName);
             System.out.printf(
-                "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
-                concurrentNum, clientCount, tasks.size());
+                    "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
+                    concurrentNum, clientCount, asyncTasks.size());
           }
-          long before = System.nanoTime();
-          ExecutorService threadPool = Executors.newFixedThreadPool(concurrentNum);
 
-          // create threads and add them to the async pool.
-          // This will start execution of all the concurrent tasks.
-          List<CompletableFuture> asyncTasks =
-              tasks.stream()
-                  .map((runnable) -> runAsync(runnable, threadPool))
-                  .collect(Collectors.toList());
-          // close pool and await for tasks to complete
-          threadPool.shutdown();
-          while (!threadPool.isTerminated()) {
-            try {
-              // wait 1 second before waiting for threads to complete
-              Thread.sleep(100);
-            } catch (InterruptedException interruptedException) {
-              interruptedException.printStackTrace();
-            }
+          // This will start execution of all the concurrent tasks asynchronously
+          CompletableFuture<Map<ChosenAction, ArrayList<Long>>>[] completableAsyncTaskArray =
+                  asyncTasks.toArray(new CompletableFuture[asyncTasks.size()]);
+          try {
+            // wait for all futures to complete
+            CompletableFuture.allOf(completableAsyncTaskArray).get();
+          } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
           }
-          // wait for all futures to complete
+          long ended = System.nanoTime();
+
+          threadPool.shutdown();
+
+          // Map to save latency results separately for each action
+          Map<ChosenAction, List<Long>> actionResults =
+                  Map.of(
+                          ChosenAction.GET_EXISTING, new ArrayList<>(),
+                          ChosenAction.GET_NON_EXISTING, new ArrayList<>(),
+                          ChosenAction.SET, new ArrayList<>());
+
+          // for each task, call future.get() to retrieve & save the result in the map
           asyncTasks.forEach(
-              future -> {
-                try {
-                  future.get();
-                } catch (Exception e) {
-                  e.printStackTrace();
-                }
-              });
-          long after = System.nanoTime();
+                  future -> {
+                    try {
+                      var futureResult = future.get();
+                      futureResult.forEach(
+                              (action, result) -> actionResults.get(action).addAll(result));
+                    } catch (Exception e) {
+                      e.printStackTrace();
+                    }
+                  });
+          var calculatedResults = calculateResults(actionResults);
 
           clients.forEach(Client::closeConnection);
 
-          var calculatedResults = calculateResults(actionResults);
           if (config.resultsFile.isPresent()) {
+            double tps = iterationCounter.get() * NANO_TO_SECONDS / (ended - started);
             JsonWriter.Write(
-                calculatedResults,
-                config.resultsFile.get(),
-                dataSize,
-                clientCreator.get().getName(),
-                clientCount,
-                concurrentNum,
-                iterations / ((after - before) / TPS_NORMALIZATION));
+                    calculatedResults,
+                    config.resultsFile.get(),
+                    dataSize,
+                    clientName,
+                    clientCount,
+                    concurrentNum,
+                    tps);
           }
-          printResults(calculatedResults, (after - before) / TPS_NORMALIZATION, iterations);
-          try {
-            Thread.sleep(2000);
-          } catch (InterruptedException ignored) {
-          }
+          printResults(calculatedResults, (ended - started) / TPS_NORMALIZATION, iterations);
         }
       }
     }

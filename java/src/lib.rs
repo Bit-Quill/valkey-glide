@@ -25,14 +25,6 @@ fn redis_value_to_java(mut env: JNIEnv, val: Value) -> JObject {
         Value::Bulk(_bulk) => {
             let _ = env.throw("Not implemented");
             JObject::null()
-            /*
-            let elements: &PyList = PyList::new(
-                py,
-                bulk.into_iter()
-                    .map(|item| redis_value_to_py(py, item).unwrap()),
-            );
-            Ok(elements.into_py(py))
-            */
         }
     }
 }

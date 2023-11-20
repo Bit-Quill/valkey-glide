@@ -40,6 +40,11 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response> {
   }
 
   @Override
+  public void closeConnection() {
+    testClient.closeConnection();
+  }
+
+  @Override
   public Future<Response> asyncSet(String key, String value) {
     return testClient.asyncSet(key, value);
   }

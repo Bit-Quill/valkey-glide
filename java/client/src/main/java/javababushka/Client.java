@@ -21,10 +21,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 
-public class Client {
+public class Client implements AutoCloseable {
   private static final long DEFAULT_TIMEOUT_MILLISECONDS = 1000;
 
-  private final NettyWrapper innerClient = NettyWrapper.INSTANCE;
+  private final NettyWrapper innerClient;
 
   public void set(String key, String value) {
     waitForResult(asyncSet(key, value));
@@ -34,6 +34,10 @@ public class Client {
   public String get(String key) {
     return waitForResult(asyncGet(key));
     // TODO support non-strings
+  }
+
+  public void connectToRedis(String host, int port, boolean useSsl, boolean clusterMode) {
+    waitForResult(asyncConnectToRedis(host, port, useSsl, clusterMode));
   }
 
   private synchronized Pair<Integer, CompletableFuture<Response>> getNextCallback() {
@@ -81,6 +85,7 @@ public class Client {
     var commandId = getNextCallback();
     // System.out.printf("== %s(%s), callback %d%n", command, String.join(", ", args), commandId);
 
+    // TODO this explicitly uses ForkJoin thread pool. May be we should use another one.
     return CompletableFuture.supplyAsync(
             () -> {
               var commandArgs = ArgsArray.newBuilder();
@@ -130,4 +135,45 @@ public class Client {
       return null;
     }
   }
+
+  private boolean closed = false;
+
+  public synchronized void closeConnection() {
+    if (!closed) {
+      //innerClient = null;
+      NettyWrapper.deregisterClient();
+      closed = true;
+    }
+  }
+
+  @Override
+  public void close() {
+    System.out.println("close");
+    closeConnection();
+  }
+
+  public Client() {
+    innerClient = NettyWrapper.registerNewClient();
+  }
+
+  static {
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      System.out.println("hook");
+      NettyWrapper.deregisterClient();
+    }));
+  }
+
+  // TODO use Cleaner and/or PhantomReference
+  // https://blog.ragozin.info/2016/03/finalizers-and-references-in-java.html
+  // https://stackoverflow.com/questions/43311825/how-to-use-phantomreference-as-finalize-replacement
+  // https://docs.oracle.com/javase/9/docs/api/java/lang/ref/Cleaner.html
+  // Or follow Netty's approach
+  // https://netty.io/wiki/reference-counted-objects.html
+  //*
+  @Override
+  protected void finalize() throws Throwable {
+    System.out.println("finalize");
+    //NettyWrapper.deregisterClient();
+  }
+  //*/
 }

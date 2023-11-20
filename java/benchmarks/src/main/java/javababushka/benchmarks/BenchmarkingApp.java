@@ -235,13 +235,13 @@ public class BenchmarkingApp {
       concurrentTasks = new int[] {100};
       clients =
           new ClientName[] {
-            // ClientName.LETTUCE,
-            // ClientName.LETTUCE_ASYNC
-            ClientName.BABUSHKA_ASYNC, ClientName.BABUSHKA
+            ClientName.LETTUCE,
+            //ClientName.LETTUCE_ASYNC,
+            //ClientName.BABUSHKA_ASYNC, ClientName.BABUSHKA
           };
       host = "localhost";
       port = 6379;
-      clientCount = new int[] {2};
+      clientCount = new int[] {1, 2};
       tls = false;
     }
   }

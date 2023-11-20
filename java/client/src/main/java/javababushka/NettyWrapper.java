@@ -29,10 +29,13 @@ import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import lombok.Getter;
 import response.ResponseOuterClass;
 
-class NettyWrapper implements AutoCloseable {
+class NettyWrapper {
   private final String unixSocket = getSocket();
 
   private static String getSocket() {
@@ -50,9 +53,8 @@ class NettyWrapper implements AutoCloseable {
   // Futures to handle responses. Index is callback id, starting from 1 (0 index is for connection
   // request always).
   // Is it not a concurrent nor sync collection, but it is synced on adding. No removes.
-  @Getter
-  private final Map<Integer, CompletableFuture<ResponseOuterClass.Response>> responses =
-      new HashMap<>();
+  private static final Map<Integer, CompletableFuture<ResponseOuterClass.Response>> responses =
+      new ConcurrentHashMap<>();
 
   // We support MacOS and Linux only, because Babushka does not support Windows, because tokio does
   // not support it.
@@ -70,13 +72,12 @@ class NettyWrapper implements AutoCloseable {
 
   static {
     // TODO fix: netty still doesn't use slf4j nor log4j
-    InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
+    //InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
   }
 
-  public static NettyWrapper INSTANCE = new NettyWrapper();
+  private static NettyWrapper INSTANCE = null;
 
   private NettyWrapper() {
-    // TODO maybe move to constructor or to static?
     try {
       channel =
           new Bootstrap()
@@ -111,14 +112,14 @@ class NettyWrapper implements AutoCloseable {
                                   if (callbackId != 0) {
                                     responses.remove(callbackId);
                                   }
-                                  super.channelRead(ctx, bytes);
+                                  buf.release();
                                 }
 
                                 @Override
                                 public void exceptionCaught(
                                     ChannelHandlerContext ctx, Throwable cause) throws Exception {
                                   System.out.printf("=== exceptionCaught %s %s %n", ctx, cause);
-                                  cause.printStackTrace();
+                                  cause.printStackTrace(System.err);
                                   super.exceptionCaught(ctx, cause);
                                 }
                               })
@@ -152,9 +153,47 @@ class NettyWrapper implements AutoCloseable {
     responses.put(callbackId, future);
   }
 
-  @Override
-  public void close() throws Exception {
+  public void close() {
     // channel.closeFuture().sync()
+    channel.close();
     group.shutdownGracefully();
   }
+
+/*
+The java.lang.ref.Cleaner and java.lang.ref.PhantomReference provide more flexible and efficient ways to release resources when an object becomes unreachable
+*/
+
+  static {
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      if (INSTANCE != null) {
+        INSTANCE.close();
+      }
+    }));
+  }
+
+  private static final AtomicInteger REF_COUNT = new AtomicInteger(0);
+
+  public static synchronized NettyWrapper registerNewClient() {
+    if (0 == REF_COUNT.getAndIncrement()) {
+      INSTANCE = new NettyWrapper();
+    }
+    return INSTANCE;
+  }
+
+  public static synchronized void deregisterClient() {
+    if (REF_COUNT.get() == 0) {
+      return;
+    }
+    if (0 == REF_COUNT.decrementAndGet()) {
+      INSTANCE.close();
+      INSTANCE = null;
+      responses.clear();
+    }
+  }
+
+  @Override
+  protected void finalize() throws Throwable {
+    System.err.println("FINISH HIM");
+  }
+// TODO log warning on finalize - client wasn't closed
 }
