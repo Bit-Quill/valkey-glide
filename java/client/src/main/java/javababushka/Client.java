@@ -60,7 +60,7 @@ public class Client implements AutoCloseable {
   private static final int HIGH_WRITE_WATERMARK = 4096;
   private static final int LOW_WRITE_WATERMARK = 1024;
   private static final long DEFAULT_TIMEOUT_MILLISECONDS = 1000;
-  public static boolean ALWAYS_FLUSH_ON_WRITE = false;
+  public static boolean ALWAYS_FLUSH_ON_WRITE = true;
 
   // https://netty.io/3.6/api/org/jboss/netty/handler/queue/BufferedWriteHandler.html
   // Flush every N bytes if !ALWAYS_FLUSH_ON_WRITE
