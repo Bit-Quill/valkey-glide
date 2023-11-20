@@ -197,7 +197,9 @@ public class Benchmarking {
                         var actions = getActionMap(clients.get(clientIndex), dataSize, async);
                         // operate and calculate tik-tok
                         Pair<ChosenAction, Long> result = measurePerformance(actions);
-                        taskActionResults.get(result.getLeft()).add(result.getRight());
+                        if (result != null) {
+                          taskActionResults.get(result.getLeft()).add(result.getRight());
+                        }
 
                         iterationIncrement = iterationCounter.getAndIncrement();
                         clientIndex = iterationIncrement % clients.size();
