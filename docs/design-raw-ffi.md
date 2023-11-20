@@ -2,25 +2,22 @@
 
 ## Summary
 
-The Babushka client enables Redis users connect to Redis using a variety of languages and supported commands.  The client
-uses a performant core to establish and manage connections, and a thin wrapper layer written in various languages, to
-communicate 
+The Babushka client allows Redis users to connect to Redis using a variety of commands through a thin-client optimized for 
+various languages.  The client uses a performant core to establish and manage connections and communicate with Redis. The thin-client
+wrapper talks to the core using an FFI (foreign function interface) to Rust. 
 
-The following document discusses two primary communication protocol architectures for wrapping the babushka clients, and 
-how Java-Babushka and Go-Babushka use each of those protocols differently by taking advantage of language-specific attributes.  
-
-### References
-
-* Babushka - communication protocol architecture: describes high-level approaches to communication protocols. 
+The following document discusses two primary communication protocol architectures for wrapping the Babushka clients. Specifically, 
+it details how Java-Babushka and Go-Babushka each use a different protocol and describes the advantages of each language-specific approach.
 
 # Unix Domain Socket Manager Connector
 
 ## High-Level Design 
 
 **Summary**: The Babushka "UDS" solution uses a socket listener to manage rust-to-wrapper worker threads, and unix domain sockets 
-to deliver package between the wrapper and redis-client threads.  This works well because we allow the unix sockets to pass messages
-through the OS and is very performant. This results in simple/fast communication.  But the concern is that the unix sockets can 
-become a bottleneck for data-intensive communication; ie read/write buffer operations.
+to deliver command requests between the wrapper and redis-client threads.  This works well because we allow the unix sockets to pass messages and manage threads
+through the OS, and unix sockets are very performant. This results in simple/fast communication.  The risk to avoid is that 
+unix sockets can become a bottleneck for data-intensive commands, and the library can spend too much time waiting on I/O
+blocking operations. 
 
 ```mermaid
 stateDiagram-v2
@@ -40,7 +37,7 @@ stateDiagram-v2
 
 ## Decision to use UDS Sockets for a Java-Babushka Wrapper
 
-The decision to use Unix Domain Sockets (UDS) to manage the Java-wrapper to Babushka Redis-client communication was two-fold, as opposed to a raw-FFI solution:  
+The decision to use Unix Domain Sockets (UDS) to manage the Java-wrapper to Babushka Redis-client communication was two-fold, vs a raw-FFI solution:  
 1. Java contains an efficient socket protocol library (netty.io) that provides a highly configurable environment to manage sockets.
 2. Java objects serialization/de-serialization is an expensive operation, and a performing multiple io operations between raw-ffi calls would be inefficient.
 
@@ -50,7 +47,7 @@ The decision to use Unix Domain Sockets (UDS) to manage the Java-wrapper to Babu
 |----------------------------------------------|---------------------------------------------------------|-----------------------------|----------------------------------------------------|
 | Unix Domain Sockets (jni/netty)              | JNI to submit commands; netty.io for message passing    | netty.io standard lib;      | complex configuration; limited by socket interface |
 | Raw-FFI (JNA, uniffi-rs, j4rs, interoptopus) | JNA to submit commands; protobuf for message processing | reusable in other languages | Slow performance and uses JNI under the hood;      |
-| Panama/jextract                              | Performance similar to a raw-ffi using JNI              |                             | lacks early Java support (JDK 18+); prototype      |
+| Panama/jextract                              | Performance similar to a raw-ffi using JNI              | modern                      | lacks early Java support (JDK 18+); prototype      |
 
 ### Sequence Diagram
 
@@ -119,10 +116,10 @@ Wrapper ->> SocketListener: shutdown
 
 ## Wrapper-to-Core Connector with raw-FFI calls
 
-**Summary**: Foreign Function Calls are simple to implement inter-language calls.  The setup between Golang and the Rust-core
+**Summary**: Foreign Function Interface (FFI) calls are simple to implement, cross-language calls.  The setup between Golang and the Rust-core
 is fairly simple using the well-supported CGO library.  While sending language calls is easy, setting it up in an async manner
-is more complex because of the requirement to handle async callbacks. Golang as a simple, light-weight solution, using goroutines
-and channels, to pass callbacks and execution between langugages. 
+requires that we handle async callbacks. Golang has a simple, light-weight solution to that, using goroutines and channels, 
+to pass callbacks and execution between the languages. 
 
 ```mermaid
 stateDiagram-v2
@@ -144,12 +141,14 @@ stateDiagram-v2
 
 ### Decision Log
 
-***TODO***
+The decision to use raw FFI request from Golang to Rust-core was straight forward:
+1. Golang contains goroutines as an alternative, lightweight, and performant solution serves as an obvious solution to pass request, even at scale. 
 
-| Protocol                                     | Details | Pros | Cons |
-|----------------------------------------------|---------|------|------|
-| Unix Domain Sockets (jni/netty)              |         |      |      |
-| Raw-FFI (JNA, uniffi-rs, j4rs, interoptopus) |         |      |      |
+
+| Protocol                 | Details | Pros                                                   | Cons                                 |
+|--------------------------|---------|--------------------------------------------------------|--------------------------------------|
+| Unix Domain Sockets      |         | UDS performance; consistent protocol between languages | complex configuration                |
+| Raw-FFI (CGO/goroutines) |         | simplified and light-weight interface                  | separate management for each request |
 
 ## Sequence Diagram - Raw-FFI Client
 
