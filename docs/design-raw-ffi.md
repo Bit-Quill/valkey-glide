@@ -17,37 +17,39 @@ it details how Java-Babushka and Go-Babushka each use a different protocol and d
 to deliver command requests between the wrapper and redis-client threads.  This works well because we allow the unix sockets to pass messages and manage threads
 through the OS, and unix sockets are very performant. This results in simple/fast communication.  The risk to avoid is that 
 unix sockets can become a bottleneck for data-intensive commands, and the library can spend too much time waiting on I/O
-blocking operations. 
+blocking operations.
 
 ```mermaid
 stateDiagram-v2
   direction LR
   
-  JavaWrapper: Java Wrapper
+  Wrapper: Wrapper
   UnixDomainSocket: Unix Domain Socket
   RustCore: Rust-Core
   
-  [*] --> JavaWrapper: User
-  JavaWrapper --> UnixDomainSocket
-  UnixDomainSocket --> JavaWrapper
+  [*] --> Wrapper: User
+  Wrapper --> UnixDomainSocket
+  UnixDomainSocket --> Wrapper
   RustCore --> UnixDomainSocket
   UnixDomainSocket --> RustCore
   RustCore --> Redis
+  Redis --> RustCore
 ```
 
 ## Decision to use UDS Sockets for a Java-Babushka Wrapper
 
-The decision to use Unix Domain Sockets (UDS) to manage the Java-wrapper to Babushka Redis-client communication was two-fold, vs a raw-FFI solution:  
-1. Java contains an efficient socket protocol library (netty.io) that provides a highly configurable environment to manage sockets.
-2. Java objects serialization/de-serialization is an expensive operation, and a performing multiple io operations between raw-ffi calls would be inefficient.
+The decision to use Unix Domain Sockets (UDS) to manage the Java-wrapper to Babushka Redis-client communication was thus:  
+1. Java contains an efficient socket protocol library ([netty.io](https://netty.io/)) that provides a highly configurable environment to manage sockets. 
+2. Java objects serialization/de-serialization is an expensive operation, and a performing multiple io operations between raw-ffi calls would be inefficient. 
+3. The async FFI requests with callbacks requires that we manage multiple runtimes (Rust and Java Thread management), and JNI does not provide an out-of-box solution for this.
 
 ### Decision Log
 
-| Protocol                                     | Details                                                 | Pros                        | Cons                                               |
-|----------------------------------------------|---------------------------------------------------------|-----------------------------|----------------------------------------------------|
-| Unix Domain Sockets (jni/netty)              | JNI to submit commands; netty.io for message passing    | netty.io standard lib;      | complex configuration; limited by socket interface |
-| Raw-FFI (JNA, uniffi-rs, j4rs, interoptopus) | JNA to submit commands; protobuf for message processing | reusable in other languages | Slow performance and uses JNI under the hood;      |
-| Panama/jextract                              | Performance similar to a raw-ffi using JNI              | modern                      | lacks early Java support (JDK 18+); prototype      |
+| Protocol                                     | Details                                                     | Pros                        | Cons                                               |
+|----------------------------------------------|-------------------------------------------------------------|-----------------------------|----------------------------------------------------|
+| Unix Domain Sockets (jni/netty)              | JNI to submit commands; netty.io for message passing; async | netty.io standard lib;      | complex configuration; limited by socket interface |
+| Raw-FFI (JNA, uniffi-rs, j4rs, interoptopus) | FFI to submit commands; Rust for message processing         | reusable in other languages | slow performance and uses JNI under the hood       |
+| Panama/jextract                              | Performance similar to a raw-ffi using JNI                  | modern                      | lacks early Java support (JDK 18+); prototype      |
 
 ### Sequence Diagram
 
@@ -55,8 +57,8 @@ The decision to use Unix Domain Sockets (UDS) to manage the Java-wrapper to Babu
 sequenceDiagram
 
 participant Wrapper as Client-Wrapper
-participant ffi as Babushka FFI
-participant manager as Babushka impl
+participant ffi as FFI
+participant manager as Rust-Core
 participant worker as Tokio Worker
 participant SocketListener as Socket Listener
 participant Socket as Unix Domain Socket
@@ -66,11 +68,12 @@ activate Wrapper
 activate Client
 Wrapper -)+ ffi: connect_to_redis
 ffi -)+ manager: start_socket_listener(init_callback)
-    manager ->> worker: Create Tokio::Runtime (count: CPUs)
+    manager -) worker: Create Tokio::Runtime (count: CPUs)
         activate worker
         worker ->> SocketListener: listen_on_socket(init_callback)
         SocketListener ->> SocketListener: loop: listen_on_client_stream
             activate SocketListener
+        SocketListener -->> manager: 
     manager -->> ffi: socket_path
 ffi -->>- Wrapper: socket_path
     SocketListener -->> Socket: UnixStreamListener::new
@@ -111,7 +114,7 @@ Wrapper ->> SocketListener: shutdown
 * **Babushka impl**: public interface layer and thread manager
 * **Tokio Worker**: Tokio worker threads (number of CPUs)
 * **SocketListener**: listens for work from the Socket, and handles commands
-* **Unix Domain Socket**: Unix Domain Socket to handle communication
+* **Unix Domain Socket**: Unix Domain Socket to handle incoming requests and response payloads between Rust-Core and Wrapper 
 * **Redis**: Our data store
 
 ## Wrapper-to-Core Connector with raw-FFI calls
@@ -144,6 +147,8 @@ stateDiagram-v2
 The decision to use raw FFI request from Golang to Rust-core was straight forward:
 1. Golang contains goroutines as an alternative, lightweight, and performant solution serves as an obvious solution to pass request, even at scale. 
 
+Due to lightweight thread management solution, we chose a solution that scales quickly and requires less configuration to achieve a performant solution 
+on par with existing industrial standards ([go-redis](https://github.com/redis/go-redis)).
 
 | Protocol                 | Details | Pros                                                   | Cons                                 |
 |--------------------------|---------|--------------------------------------------------------|--------------------------------------|
