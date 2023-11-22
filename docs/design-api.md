@@ -59,7 +59,7 @@ Two different methods of sending requests will be supported.
 We will expose an `executeRaw` method that does no validation of the input types or command on the client side, leaving it up to Redis to reject the request should it be malformed. This gives the user the flexibility to send any type of request they want, including ones not officially supported yet.
 
 ### With Redis Type Validation
-We will expose separate methods for each supported command, and will attempt to validate the inputs for each of these methods.
+We will expose separate methods for each supported command, and will attempt to validate the inputs for each of these methods. We may leverage the compiler for the wrapper language to validate the types of the command arguments, or, for non-statically typed languages, we may try to implement this using explicit checks.
 
 ## Errors
 ClosingError: Errors that report that the client has closed and is no longer usable.
