@@ -5,7 +5,7 @@ import javababushka.benchmarks.utils.ConnectionSettings;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-/** A jedis client with sync capabilities. See: https://github.com/redis/jedis */
+/** A Jedis client with sync capabilities. See: https://github.com/redis/jedis */
 public class JedisClient implements SyncClient {
 
   public static final String DEFAULT_HOST = "localhost";

@@ -18,7 +18,7 @@ public class LettuceAsyncClusterClient extends LettuceAsyncClient {
 
   @Override
   public void connectToRedis() {
-    connectToRedis(new ConnectionSettings("localhost", 6379, false, false));
+    connectToRedis(new ConnectionSettings("localhost", 6379, false, true));
   }
 
   @Override

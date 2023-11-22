@@ -6,7 +6,7 @@ import javababushka.benchmarks.clients.AsyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 
 /**
- * A jedis client with pseudo-sync capabilities. Jedis doesn't provide async API
+ * A Jedis client with pseudo-async capabilities. Jedis doesn't provide async API
  * https://github.com/redis/jedis/issues/241
  *
  * <p>See: https://github.com/redis/jedis
