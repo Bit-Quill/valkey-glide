@@ -240,9 +240,9 @@ public class BenchmarkingApp {
 
   public static class RunConfiguration {
     public String configuration;
+    public Optional<String> resultsFile;
     public int[] dataSize;
     public int[] concurrentTasks;
-    public Optional<String> resultsFile;
     public ClientName[] clients;
     public String host;
     public int port;
@@ -258,11 +258,9 @@ public class BenchmarkingApp {
       concurrentTasks = new int[] {100, 1000};
       clients =
           new ClientName[] {
-            // ClientName.BABUSHKA_ASYNC,
-            // ClientName.JEDIS, ClientName.JEDIS_ASYNC, ClientName.LETTUCE,
-            // ClientName.LETTUCE_ASYNC
-            ClientName.BABUSHKA_ASYNC,
-            ClientName.BABUSHKA // , ClientName.LETTUCE, ClientName.LETTUCE_ASYNC
+            // ClientName.LETTUCE,
+            // ClientName.LETTUCE_ASYNC,
+            ClientName.BABUSHKA_ASYNC, ClientName.BABUSHKA,
           };
       host = "localhost";
       port = 6379;

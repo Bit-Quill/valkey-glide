@@ -154,8 +154,8 @@ public class Benchmarking {
           for (int cc = 0; cc < clientCount; cc++) {
             Client newClient = clientCreator.get();
             newClient.connectToRedis(
-                    new ConnectionSettings(
-                            config.host, config.port, config.tls, config.clusterModeEnabled));
+                new ConnectionSettings(
+                    config.host, config.port, config.tls, config.clusterModeEnabled));
             clients.add(newClient);
           }
 
@@ -163,7 +163,7 @@ public class Benchmarking {
 
           System.out.printf(
               "%n =====> %s <===== %d clients %d concurrent %n%n",
-                  clientName, clientCount, concurrentNum);
+              clientName, clientCount, concurrentNum);
           AtomicInteger iterationCounter = new AtomicInteger(0);
 
           long started = System.nanoTime();

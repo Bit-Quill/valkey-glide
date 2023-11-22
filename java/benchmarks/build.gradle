@@ -23,9 +23,6 @@ dependencies {
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
 
-    //testImplementation group: 'org.slf4j', name: 'slf4j-reload4j', version: '2.0.9'
-    //testImplementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.9'
-
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
