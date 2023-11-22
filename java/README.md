@@ -30,7 +30,7 @@ You can run benchmarks using `./gradlew run`. You can set arguments using the ar
 
 ```shell
 ./gradlew run --args="-help"
-./gradlew run --args="-resultsFile=output.csv -dataSize \"100 1000\" -concurrentTasks \"10 100\" -clients all -host localhost -port 6279 -clientCount \"1 5\" -tls"
+./gradlew run --args="-resultsFile=output.json -dataSize \"100 1000\" -concurrentTasks \"10 100\" -clients all -host localhost -port 6279 -clientCount \"1 5\" -tls"
 ```
 
 The following arguments are accepted: 
@@ -44,7 +44,6 @@ The following arguments are accepted:
 
 ### Troubleshooting
 
-* Connection Timeout: 
+* Connection Timeout:
   * If you're unable to connect to redis, check that you are connecting to the correct host, port, and TLS configuration.
 * Only server-side certificates are supported by the TLS configured redis.
-
