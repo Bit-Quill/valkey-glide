@@ -3,14 +3,18 @@ API Design
 # Client Wrapper API design doc
 
 ## API requirements:
-- The API will be thread-safe
-- The API will accept as inputs all of RESP3 types.
+- The API will be thread-safe.
+- The API will accept as inputs all of [RESP3 types](https://redis.io/docs/reference/protocol-spec/).
 - The API will attempt authentication, topology refreshes, reconnections, etc., automatically. In case of failures concrete errors will be returned to the user.
 
 ## Command Interface
 
 ### Unix Domain Socket solution
-For clients based on Unix Domain Sockets (UDS), we will simply use the existing protobuf messages for creating a connection, sending requests, and receiving responses. Supported commands are enumerated in the [protobuf definition for requests](https://github.com/Bit-Quill/babushka/blob/main/babushka-core/src/protobuf/redis_request.proto) and we may add more in the future, although the `CustomCommand` request type is also adequate for all commands. As defined in the [protobuf definition for responses](https://github.com/Bit-Quill/babushka/blob/main/babushka-core/src/protobuf/response.proto), client wrappers will receive data as a pointer, which can be passed to Rust to marshal the data back into the wrapper language’s native data types.
+For clients based on Unix Domain Sockets (UDS), we will simply use the existing protobuf messages for creating a connection, sending requests, and receiving responses. Supported commands are enumerated in the [protobuf definition for requests](../babushka-core/src/protobuf/redis_request.proto) and we may add more in the future, although the `CustomCommand` request type is also adequate for all commands. As defined in the [protobuf definition for responses](../babushka-core/src/protobuf/response.proto), client wrappers will receive data as a pointer, which can be passed to Rust to marshal the data back into the wrapper language’s native data types.
+
+Transactions will be handled by adding a list of `Command`s to the protobuf request. The response will be a `redis::Value::Bulk`, which should be handled in the same Rust function that marshals the data back into the wrapper language's native data types. This is handled by storing the results in a collection type native to the wrapper language.
+
+When running Redis in Cluster Mode, several routing options will be provided. These are all specified in the protobuf request.
 
 ### Raw FFI solution
 For clients using a raw FFI solution, in Rust, we will expose a general command that is able to take any command and arguments as strings. 
@@ -19,6 +23,8 @@ We have 2 options for passing the command, arguments, and any additional configu
 
 #### Protobuf
 The wrapper language will pass the commands, arguments, and configuration as protobuf messages using the same definitions as in the UDS solution.
+
+Transactions will be handled by adding a list of `Command`s to the protobuf request. The response will be a `redis::Value::Bulk`, which can be marshalled into a C array of values before being passed from Rust to the wrapper language. The wrapper language is responsible for converting the array of results to its own native collection type.
 
 Pros:
 - We get to reuse the protobuf definitions, meaning fewer files to update if we make changes to the protobuf definitions
@@ -29,6 +35,8 @@ Cons:
 
 #### C Data Types
 The wrapper language will pass commands, arguments, and configuration as C data types.
+
+Transactions will be handled by passing a C array of an array of arguments to Rust from the wrapper language. The response will be a `redis::Value::Bulk`, which can be marshalled in the same way as explained in the protobuf solution.
 
 Pros:
 - No additional overhead from marshalling to and from protobuf, so this should perform better
@@ -41,10 +49,17 @@ We will be testing both approaches to see which is easier to implement, as well 
 
 To marshal Redis data types back into the corresponding types for the wrapper language, we will convert them into appropriate C types, which can then be translated by the wrapper language into its native data types.
 
-In our client wrappers, we will expose separate methods for each supported command. We do not need to validate data types for inputs, because Redis will do that for us.
-
 ## Supported Commands
-We will be supporting all Redis commands. Commands with higher usage will be prioritized.
+We will be supporting all Redis commands. Commands with higher usage will be prioritized, as determined by usage numbers from AWS ElastiCache usage logs.
+
+## Command Input and Output Types
+Two different methods of sending requests will be supported. 
+
+### No Redis Type Validation
+We will expose an `executeRaw` method that does no validation of the input types or command on the client side, leaving it up to Redis to reject the request should it be malformed. This gives the user the flexibility to send any type of request they want, including ones not officially supported yet.
+
+### With Redis Type Validation
+We will expose separate methods for each supported command, and will attempt to validate the inputs for each of these methods.
 
 ## Errors
 ClosingError: Errors that report that the client has closed and is no longer usable.
