@@ -1,10 +1,10 @@
 package javababushka;
 
-import static connection_request.ConnectionRequestOuterClass.AddressInfo;
 import static connection_request.ConnectionRequestOuterClass.AuthenticationInfo;
 import static connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import static connection_request.ConnectionRequestOuterClass.ConnectionRetryStrategy;
-import static connection_request.ConnectionRequestOuterClass.ReadFromReplicaStrategy;
+import static connection_request.ConnectionRequestOuterClass.NodeAddress;
+import static connection_request.ConnectionRequestOuterClass.ReadFrom;
 import static connection_request.ConnectionRequestOuterClass.TlsMode;
 import static redis_request.RedisRequestOuterClass.Command;
 import static redis_request.RedisRequestOuterClass.Command.ArgsArray;
@@ -55,7 +55,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public class Client implements AutoCloseable {
 
-  private static final int RESPONSE_TIMEOUT_MILLISECONDS = 250;
+  private static final int REQUEST_TIMEOUT_MILLISECONDS = 250;
   private static final int CLIENT_CREATION_TIMEOUT_MILLISECONDS = 250;
   private static final int HIGH_WRITE_WATERMARK = 4096;
   private static final int LOW_WRITE_WATERMARK = 1024;
@@ -297,15 +297,14 @@ public class Client implements AutoCloseable {
 
     var request =
         ConnectionRequest.newBuilder()
-            .addAddresses(AddressInfo.newBuilder().setHost(host).setPort(port).build())
+            .addAddresses(NodeAddress.newBuilder().setHost(host).setPort(port).build())
             .setTlsMode(
                 useSsl // TODO: secure or insecure TLS?
                     ? TlsMode.SecureTls
                     : TlsMode.NoTls)
             .setClusterModeEnabled(clusterMode)
-            .setResponseTimeout(RESPONSE_TIMEOUT_MILLISECONDS)
-            .setClientCreationTimeout(CLIENT_CREATION_TIMEOUT_MILLISECONDS)
-            .setReadFromReplicaStrategy(ReadFromReplicaStrategy.AlwaysFromPrimary)
+            .setRequestTimeout(REQUEST_TIMEOUT_MILLISECONDS)
+            .setReadFrom(ReadFrom.Primary)
             .setConnectionRetryStrategy(
                 ConnectionRetryStrategy.newBuilder()
                     .setNumberOfRetries(1)
