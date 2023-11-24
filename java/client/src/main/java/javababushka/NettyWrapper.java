@@ -1,5 +1,7 @@
 package javababushka;
 
+import static response.ResponseOuterClass.Response;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -24,17 +26,15 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.internal.logging.InternalLoggerFactory;
-import io.netty.util.internal.logging.Slf4JLoggerFactory;
-import java.util.HashMap;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import response.ResponseOuterClass;
+import lombok.NonNull;
 
+@AllArgsConstructor
 class NettyWrapper {
   private final String unixSocket = getSocket();
 
@@ -53,14 +53,14 @@ class NettyWrapper {
   // Futures to handle responses. Index is callback id, starting from 1 (0 index is for connection
   // request always).
   // Is it not a concurrent nor sync collection, but it is synced on adding. No removes.
-  private static final Map<Integer, CompletableFuture<ResponseOuterClass.Response>> responses =
-      new ConcurrentHashMap<>();
+  private final Map<Integer, CompletableFuture<Response>> responses = new ConcurrentHashMap<>();
 
   // We support MacOS and Linux only, because Babushka does not support Windows, because tokio does
   // not support it.
   // Probably we should use NIO (NioEventLoopGroup) for Windows.
   private static final boolean isMacOs = isMacOs();
 
+  // TODO support IO-Uring and NIO
   private static boolean isMacOs() {
     try {
       Class.forName("io.netty.channel.kqueue.KQueue");
@@ -70,25 +70,27 @@ class NettyWrapper {
     }
   }
 
-  static {
-    // TODO fix: netty still doesn't use slf4j nor log4j
-    //InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
-  }
-
-  private static NettyWrapper INSTANCE = null;
+  public static NettyWrapper INSTANCE = null;
 
   private NettyWrapper() {
     try {
+      int cpuCount = Runtime.getRuntime().availableProcessors();
+      group =
+          isMacOs
+              ? new KQueueEventLoopGroup(
+                  cpuCount, new DefaultThreadFactory("NettyWrapper-kqueue-elg", true))
+              : new EpollEventLoopGroup(
+                  cpuCount, new DefaultThreadFactory("NettyWrapper-epoll-elg", true));
       channel =
           new Bootstrap()
               .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(1024, 4096))
               .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
-              .group(group = isMacOs ? new KQueueEventLoopGroup() : new EpollEventLoopGroup())
+              .group(group)
               .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
               .handler(
                   new ChannelInitializer<UnixChannel>() {
                     @Override
-                    public void initChannel(UnixChannel ch) throws Exception {
+                    public void initChannel(@NonNull UnixChannel ch) throws Exception {
                       ch.pipeline()
                           .addLast("logger", new LoggingHandler(LogLevel.DEBUG))
                           // https://netty.io/4.1/api/io/netty/handler/codec/protobuf/ProtobufEncoder.html
@@ -97,7 +99,8 @@ class NettyWrapper {
                           .addLast(
                               new ChannelInboundHandlerAdapter() {
                                 @Override
-                                public void channelRead(ChannelHandlerContext ctx, Object msg)
+                                public void channelRead(
+                                    @NonNull ChannelHandlerContext ctx, @NonNull Object msg)
                                     throws Exception {
                                   // System.out.printf("=== channelRead %s %s %n", ctx, msg);
                                   var buf = (ByteBuf) msg;
@@ -105,7 +108,7 @@ class NettyWrapper {
                                   buf.readBytes(bytes);
                                   // TODO surround parsing with try-catch, set error to future if
                                   // parsing failed.
-                                  var response = ResponseOuterClass.Response.parseFrom(bytes);
+                                  var response = Response.parseFrom(bytes);
                                   int callbackId = response.getCallbackIdx();
                                   // System.out.printf("== Received response with callback %d%n",
                                   responses.get(callbackId).complete(response);
@@ -148,8 +151,7 @@ class NettyWrapper {
     }
   }
 
-  public void registerRequest(
-      Integer callbackId, CompletableFuture<ResponseOuterClass.Response> future) {
+  public void registerRequest(Integer callbackId, CompletableFuture<Response> future) {
     responses.put(callbackId, future);
   }
 
@@ -159,41 +161,18 @@ class NettyWrapper {
     group.shutdownGracefully();
   }
 
-/*
-The java.lang.ref.Cleaner and java.lang.ref.PhantomReference provide more flexible and efficient ways to release resources when an object becomes unreachable
-*/
-
-  static {
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+  private static class ShutdownHook implements Runnable {
+    @Override
+    public void run() {
       if (INSTANCE != null) {
         INSTANCE.close();
       }
-    }));
-  }
-
-  private static final AtomicInteger REF_COUNT = new AtomicInteger(0);
-
-  public static synchronized NettyWrapper registerNewClient() {
-    if (0 == REF_COUNT.getAndIncrement()) {
-      INSTANCE = new NettyWrapper();
-    }
-    return INSTANCE;
-  }
-
-  public static synchronized void deregisterClient() {
-    if (REF_COUNT.get() == 0) {
-      return;
-    }
-    if (0 == REF_COUNT.decrementAndGet()) {
-      INSTANCE.close();
-      INSTANCE = null;
-      responses.clear();
     }
   }
 
-  @Override
-  protected void finalize() throws Throwable {
-    System.err.println("FINISH HIM");
+  static {
+    INSTANCE = new NettyWrapper();
+    Runtime.getRuntime()
+        .addShutdownHook(new Thread(new ShutdownHook(), "NettyWrapper-shutdown-hook"));
   }
-// TODO log warning on finalize - client wasn't closed
 }

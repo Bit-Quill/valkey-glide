@@ -21,10 +21,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 
-public class Client implements AutoCloseable {
+public class Client {
   private static final long DEFAULT_TIMEOUT_MILLISECONDS = 1000;
-
-  private final NettyWrapper innerClient;
 
   public void set(String key, String value) {
     waitForResult(asyncSet(key, value));
@@ -43,7 +41,7 @@ public class Client implements AutoCloseable {
   private synchronized Pair<Integer, CompletableFuture<Response>> getNextCallback() {
     var future = new CompletableFuture<Response>();
     var callbackId = new Random().nextInt();
-    innerClient.registerRequest(callbackId, future);
+    NettyWrapper.INSTANCE.registerRequest(callbackId, future);
     return Pair.of(callbackId, future);
   }
 
@@ -76,8 +74,8 @@ public class Client implements AutoCloseable {
     var future = new CompletableFuture<Response>();
     // connection request has hardcoded callback id = 0
     // https://github.com/aws/babushka/issues/600
-    innerClient.registerRequest(0, future);
-    innerClient.getChannel().writeAndFlush(request.toByteArray());
+    NettyWrapper.INSTANCE.registerRequest(0, future);
+    NettyWrapper.INSTANCE.getChannel().writeAndFlush(request.toByteArray());
     return future;
   }
 
@@ -103,7 +101,7 @@ public class Client implements AutoCloseable {
                               .build())
                       .setRoute(Routes.newBuilder().setSimpleRoutes(SimpleRoutes.AllNodes).build())
                       .build();
-              innerClient.getChannel().writeAndFlush(request.toByteArray());
+              NettyWrapper.INSTANCE.getChannel().writeAndFlush(request.toByteArray());
               return commandId.getValue();
             })
         .thenCompose(f -> f);
@@ -135,45 +133,4 @@ public class Client implements AutoCloseable {
       return null;
     }
   }
-
-  private boolean closed = false;
-
-  public synchronized void closeConnection() {
-    if (!closed) {
-      //innerClient = null;
-      NettyWrapper.deregisterClient();
-      closed = true;
-    }
-  }
-
-  @Override
-  public void close() {
-    System.out.println("close");
-    closeConnection();
-  }
-
-  public Client() {
-    innerClient = NettyWrapper.registerNewClient();
-  }
-
-  static {
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      System.out.println("hook");
-      NettyWrapper.deregisterClient();
-    }));
-  }
-
-  // TODO use Cleaner and/or PhantomReference
-  // https://blog.ragozin.info/2016/03/finalizers-and-references-in-java.html
-  // https://stackoverflow.com/questions/43311825/how-to-use-phantomreference-as-finalize-replacement
-  // https://docs.oracle.com/javase/9/docs/api/java/lang/ref/Cleaner.html
-  // Or follow Netty's approach
-  // https://netty.io/wiki/reference-counted-objects.html
-  //*
-  @Override
-  protected void finalize() throws Throwable {
-    System.out.println("finalize");
-    //NettyWrapper.deregisterClient();
-  }
-  //*/
 }
