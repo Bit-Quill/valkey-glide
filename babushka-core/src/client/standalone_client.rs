@@ -5,7 +5,7 @@ use crate::retry_strategies::RetryStrategy;
 use futures::{stream, StreamExt};
 #[cfg(standalone_heartbeat)]
 use logger_core::log_debug;
-use logger_core::{log_error, log_trace, log_warn};
+use logger_core::{log_trace, log_warn};
 use protobuf::EnumOrUnknown;
 use redis::cluster_routing::is_readonly;
 use redis::{RedisError, RedisResult, Value};
@@ -186,7 +186,7 @@ impl StandaloneClient {
     }
 
     pub async fn send_packed_command(&mut self, cmd: &redis::Cmd) -> RedisResult<Value> {
-        //log_error("StandaloneClient", "sending command");
+        log_trace("StandaloneClient", "sending command");
         let reconnecting_connection = self.get_connection(cmd);
         let mut connection = reconnecting_connection.get_connection().await?;
         let result = connection.send_packed_command(cmd).await;
@@ -199,10 +199,7 @@ impl StandaloneClient {
                 reconnecting_connection.reconnect();
                 Err(err)
             }
-            _ => {
-                //log_error("StandaloneClient", "received response");
-                result
-            },
+            _ => result,
         }
     }
 

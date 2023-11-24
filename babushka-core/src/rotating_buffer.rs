@@ -1,10 +1,8 @@
-use std::any::TypeId;
 use bytes::BytesMut;
 use integer_encoding::VarInt;
 use logger_core::log_error;
 use protobuf::Message;
 use std::io;
-use crate::redis_request::RedisRequest;
 
 /// An object handling a arranging read buffers, and parsing the data in the buffers into requests.
 pub struct RotatingBuffer {
@@ -30,28 +28,10 @@ impl RotatingBuffer {
                 if (start_pos + request_len as usize) > buffer_len {
                     break;
                 } else {
-                    //log_error("parse input", format!("incoming: start {start_pos}, len {request_len}, buffer_len: {buffer_len}"));
-                    //let bytes = buffer.slice(start_pos..start_pos + request_len as usize);
-                    //log_error("parse input", format!("{:#x?}", bytes.as_ref()));
                     match T::parse_from_tokio_bytes(
                         &buffer.slice(start_pos..start_pos + request_len as usize),
                     ) {
                         Ok(request) => {
-                            /*
-                            if request_len != 41 {
-                                let mut callback_id: i32 = 0;
-                                let mut pos = start_pos + 1;
-                                for shift in (0..64).step_by(7) {
-                                    let b: &u8 = buffer.get(pos).unwrap();
-                                    pos += 1;
-                                    callback_id |= ((b & 0x7F) as i32) << shift;
-                                    if (b & 0x80) == 0 {
-                                        break;
-                                    }
-                                }
-                                log_error("callback id received", callback_id.to_string());
-                            }
-                            */
                             prev_position += request_len as usize + bytes_read;
                             results.push(request);
                         }
