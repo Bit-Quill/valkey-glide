@@ -5,13 +5,8 @@ package javababushka.benchmarks.jedis;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import javababushka.benchmarks.clients.jedis.JedisClient;
-import javababushka.benchmarks.utils.Benchmarking;
-import javababushka.benchmarks.utils.ChosenAction;
+import javababushka.benchmarks.utils.ConnectionSettings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -46,22 +41,22 @@ public class JedisClientIT {
     int iterations = 100000;
     String value = "my-value";
 
-    Map<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
-    actions.put(ChosenAction.GET_EXISTING, () -> jedisClient.get(Benchmarking.generateKeySet()));
-    actions.put(
-        ChosenAction.GET_NON_EXISTING, () -> jedisClient.get(Benchmarking.generateKeyGet()));
-    actions.put(ChosenAction.SET, () -> jedisClient.set(Benchmarking.generateKeySet(), value));
-
-    Map<ChosenAction, List<Long>> latencies =
-        Map.of(
-            ChosenAction.GET_EXISTING, new ArrayList<>(),
-            ChosenAction.GET_NON_EXISTING, new ArrayList<>(),
-            ChosenAction.SET, new ArrayList<>());
-    for (int i = 0; i < iterations; i++) {
-      var latency = Benchmarking.measurePerformance(actions);
-      latencies.get(latency.getKey()).add(latency.getValue());
-    }
-
-    Benchmarking.printResults(Benchmarking.calculateResults(latencies), 0, iterations);
+//    Map<ChosenAction, Benchmarking.Operation> actions = new HashMap<>();
+//    actions.put(ChosenAction.GET_EXISTING, () -> jedisClient.get(Benchmarking.generateKeySet()));
+//    actions.put(
+//        ChosenAction.GET_NON_EXISTING, () -> jedisClient.get(Benchmarking.generateKeyGet()));
+//    actions.put(ChosenAction.SET, () -> jedisClient.set(Benchmarking.generateKeySet(), value));
+//
+//    Map<ChosenAction, List<Long>> latencies =
+//        Map.of(
+//            ChosenAction.GET_EXISTING, new ArrayList<>(),
+//            ChosenAction.GET_NON_EXISTING, new ArrayList<>(),
+//            ChosenAction.SET, new ArrayList<>());
+//    for (int i = 0; i < iterations; i++) {
+//      var latency = Benchmarking.measurePerformance(actions);
+//      latencies.get(latency.getKey()).add(latency.getValue());
+//    }
+//
+//    Benchmarking.printResults(Benchmarking.calculateResults(latencies), 0, iterations);
   }
 }

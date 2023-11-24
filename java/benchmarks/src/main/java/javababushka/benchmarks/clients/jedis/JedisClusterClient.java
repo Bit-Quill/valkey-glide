@@ -6,12 +6,11 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 /** A Jedis client with sync capabilities. See: https://github.com/redis/jedis */
-public class JedisClient implements SyncClient {
+public class JedisClusterClient implements SyncClient {
 
   //  protected Jedis jedisResource;
   protected JedisPool pool;
 
-  // protected JedisPooled pooledConnection;
   @Override
   public void closeConnection() {
     // nothing to do
@@ -24,13 +23,15 @@ public class JedisClient implements SyncClient {
 
   @Override
   public void connectToRedis() {
-    connectToRedis(DEFAULT_CONNECTION_STRING);
+    connectToRedis();
   }
 
   @Override
   public void connectToRedis(ConnectionSettings connectionSettings) {
-    assert connectionSettings.clusterMode == false
-        : "JedisClient does not support clusterMode: use JedisClusterClient instead";
+    assert connectionSettings.clusterMode
+        : "JedisClusterClient does not support disabled clusterMode: use JedisClient instead";
+
+    // TODO: use JedisCluster instead
     pool =
         new JedisPool(connectionSettings.host, connectionSettings.port, connectionSettings.useSsl);
 

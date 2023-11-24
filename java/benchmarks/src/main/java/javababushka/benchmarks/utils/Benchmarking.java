@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import javababushka.benchmarks.BenchmarkingApp;
@@ -52,8 +53,9 @@ public class Benchmarking {
     return (Math.floor(Math.random() * SIZE_SET_KEYSPACE) + 1) + "";
   }
 
+  //
   public interface Operation {
-    void go() throws Exception;
+    void go() throws InterruptedException, ExecutionException, TimeoutException;
   }
 
   public static Pair<ChosenAction, Long> measurePerformance(Map<ChosenAction, Operation> actions) {
@@ -61,8 +63,13 @@ public class Benchmarking {
     long before = System.nanoTime();
     try {
       actions.get(action).go();
-    } catch (Exception e) {
-      // timed out - exception from Future::get
+    } catch (InterruptedException interruptedException) {
+      interruptedException.printStackTrace();
+      throw new RuntimeException("Unexpected InterruptedException");
+    } catch (ExecutionException executionException) {
+      return null;
+    } catch (TimeoutException timeoutException) {
+      System.err.println("Unexpected TimeoutException - ignoring for now");
       return null;
     }
     long after = System.nanoTime();

@@ -12,14 +12,13 @@ import javababushka.benchmarks.utils.ConnectionSettings;
 
 /** A Lettuce client with async capabilities see: https://lettuce.io/ */
 public class LettuceAsyncClient implements AsyncClient<String> {
-
   private RedisClient client;
   private RedisAsyncCommands asyncCommands;
   private StatefulRedisConnection<String, String> connection;
 
   @Override
   public void connectToRedis() {
-    connectToRedis(new ConnectionSettings("localhost", 6379, false, false));
+    connectToRedis(DEFAULT_CONNECTION_STRING);
   }
 
   @Override
