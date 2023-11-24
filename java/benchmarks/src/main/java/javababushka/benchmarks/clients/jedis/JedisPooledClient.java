@@ -4,11 +4,13 @@ import javababushka.benchmarks.clients.SyncClient;
 import javababushka.benchmarks.utils.ConnectionSettings;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPooled;
 
 /** A Jedis client with sync capabilities. See: https://github.com/redis/jedis */
-public class JedisClient implements SyncClient {
+public class JedisPooledClient implements SyncClient {
 
-  protected Jedis jedisResource;
+  //  protected Jedis jedisResource;
+  protected JedisPooled pool;
 
   // protected JedisPooled pooledConnection;
   @Override
@@ -30,29 +32,28 @@ public class JedisClient implements SyncClient {
   public void connectToRedis(ConnectionSettings connectionSettings) {
     assert connectionSettings.clusterMode == false
         : "JedisClient does not support clusterMode: use JedisClusterClient instead";
-    JedisPool pool =
-        new JedisPool(connectionSettings.host, connectionSettings.port, connectionSettings.useSsl);
+    pool =
+        new JedisPooled(connectionSettings.host, connectionSettings.port, connectionSettings.useSsl);
 
     // check if the pool is properly connected
-    jedisResource = pool.getResource();
-    assert jedisResource.isConnected() : "failed to connect to jedis";
+    assert pool.getPool().getResource().isConnected() : "failed to connect to jedis";
   }
 
   public String info() {
-    return jedisResource.info();
+    return "N/A";
   }
 
   public String info(String section) {
-    return jedisResource.info(section);
+    return "N/A";
   }
 
   @Override
   public void set(String key, String value) {
-    jedisResource.set(key, value);
+    pool.set(key, value);
   }
 
   @Override
   public String get(String key) {
-    return jedisResource.get(key);
+    return pool.get(key);
   }
 }

@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javababushka.benchmarks.clients.babushka.JniNettyClient;
 import javababushka.benchmarks.clients.jedis.JedisClient;
+import javababushka.benchmarks.clients.jedis.JedisPoolClient;
+import javababushka.benchmarks.clients.jedis.JedisPooledClient;
 import javababushka.benchmarks.clients.lettuce.LettuceAsyncClient;
 import javababushka.benchmarks.clients.lettuce.LettuceAsyncClusterClient;
 import org.apache.commons.cli.CommandLine;
@@ -49,6 +51,14 @@ public class BenchmarkingApp {
         case JEDIS:
           // run testClientSetGet on JEDIS sync client
           testClientSetGet(JedisClient::new, runConfiguration, false);
+          break;
+        case JEDIS_POOL:
+          // run testClientSetGet on JEDIS sync client
+          testClientSetGet(JedisPoolClient::new, runConfiguration, false);
+          break;
+        case JEDIS_POOLED:
+          // run testClientSetGet on JEDIS sync client
+          testClientSetGet(JedisPooledClient::new, runConfiguration, false);
           break;
         case LETTUCE:
           if (runConfiguration.clusterModeEnabled) {
@@ -194,7 +204,9 @@ public class BenchmarkingApp {
   }
 
   public enum ClientName {
-    JEDIS("Jedis"),
+    JEDIS("Jedis Single Resource Client"),
+    JEDIS_POOL("Jedis Single Pool Client"),
+    JEDIS_POOLED("Jedis Pooled Client"),
     LETTUCE("Lettuce"),
     BABUSHKA("Babushka"),
     ALL("All"),
