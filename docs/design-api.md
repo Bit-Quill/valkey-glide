@@ -4,7 +4,7 @@ API Design
 
 ## API requirements:
 - The API will be thread-safe.
-- The API will accept as inputs all of [RESP3 types](https://redis.io/docs/reference/protocol-spec/).
+- The API will accept as inputs all of [RESP3 types](https://redis.io/docs/reference/protocol-spec/). NOTE: Requires further discussion, since RESP3 isn't supported by redis-rs yet
 - The API will attempt authentication, topology refreshes, reconnections, etc., automatically. In case of failures concrete errors will be returned to the user.
 
 ## Command Interface
@@ -36,7 +36,7 @@ Cons:
 - There is additional overhead from marshalling data to and from protobuf, which could impact performance significantly
 
 #### C Data Types
-The wrapper language will pass commands, arguments, and configuration as C data types.
+The wrapper language will pass commands, arguments, and configuration as C data types. 
 
 Transactions will be handled by passing a C array of an array of arguments to Rust from the wrapper language. The response will be a `redis::Value::Bulk`, which can be marshalled in the same way as explained in the protobuf solution.
 
@@ -51,7 +51,18 @@ Cons:
 
 We will be testing both approaches to see which is easier to implement, as well as the performance impact before deciding on a solution.
 
-To marshal Redis data types back into the corresponding types for the wrapper language, we will convert them into appropriate C types, which can then be translated by the wrapper language into its native data types.
+To marshal Redis data types back into the corresponding types for the wrapper language, we will convert them into appropriate C types, which can then be translated by the wrapper language into its native data types. Here is what a Redis result might look like:
+```
+typedef struct redisValue {
+    enum {NIL, INT, DATA, STATUS, BULK, OKAY} kind;
+    union Payload {
+        long intValue;
+        unsigned char *dataValue;
+        char *statusValue;
+        struct redisValue *bulkValue;
+    } payload;
+} RedisValue
+```
 
 ## Routing Options
 We will be supporting routing Redis requests to all nodes, all primary nodes, or a random node. For more specific routing to a node, we will also allow sending a request to a primary or replica node with a specified hash slot or key. When the wrapper given a key route, the key is passed to the Rust core, which will find the corresponding hash slot for it.
@@ -59,11 +70,24 @@ We will be supporting routing Redis requests to all nodes, all primary nodes, or
 ## Supported Commands
 We will be supporting all Redis commands. Commands with higher usage will be prioritized, as determined by usage numbers from AWS ElastiCache usage logs.
 
-## Command Input Types
+## Type Validation
 Two different methods of sending requests will be supported. 
 
 ### No Redis Type Validation
 We will expose an `executeRaw` method that does no validation of the input types or command on the client side, leaving it up to Redis to reject the request should it be malformed. This gives the user the flexibility to send any type of request they want, including ones not officially supported yet.
+
+For example, if a user wants to implement support for the Redis ZADD command in Java, their implementation might look something like this:
+```java
+public Long zadd(K key, double score, V member) throws RequestException {
+    string[] args = { key.toString(), score.toString(), member.toString() };
+    return (Long) executeRaw(args);
+}
+```
+
+where `executeRaw` has the following signature:
+```java
+public Object executeRaw(string[] args) throws RequestException
+```
 
 ### With Redis Type Validation
 We will expose separate methods for each supported command, and will attempt to validate the inputs for each of these methods. There will be a separate version of each method for transactions, as well as another version for Cluster Mode clients. We may leverage the compiler for the wrapper language to validate the types of the command arguments for statically typed languages. Since wrappers should be as lightweight as possible, we most likely will not be performing any checks for proper typing for non-statically typed languages.
