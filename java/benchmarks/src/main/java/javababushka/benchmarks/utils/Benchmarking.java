@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -152,6 +154,8 @@ public class Benchmarking {
 
   public static void testClientSetGet(
       Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
+    ExecutorService asyncExecutor = Executors.newFixedThreadPool(
+        Runtime.getRuntime().availableProcessors() + 1);
     for (int concurrentNum : config.concurrentTasks) {
       int iterations = Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
       for (int clientCount : config.clientCount) {
@@ -212,7 +216,7 @@ public class Benchmarking {
                         clientIndex = iterationIncrement % clients.size();
                       }
                       return taskActionResults;
-                    }));
+                    }, asyncExecutor));
           }
           if (config.debugLogging) {
             System.out.printf("%s client Benchmarking: %n", clientName);
