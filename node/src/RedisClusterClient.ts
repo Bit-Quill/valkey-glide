@@ -1,5 +1,5 @@
 import * as net from "net";
-import { BaseClient, ConnectionOptions, ReturnType } from "./BaseClient";
+import { BaseClient, BaseClientConfiguration, ReturnType } from "./BaseClient";
 import {
     InfoOptions,
     createClientGetName,
@@ -13,7 +13,9 @@ import {
     createPing,
 } from "./Commands";
 import { connection_request, redis_request } from "./ProtobufMessage";
-import { ClusterTransaction } from "./Transaction";
+import { BaseTransaction, ClusterTransaction } from "./Transaction";
+
+export type ClusterClientConfiguration = BaseClientConfiguration;
 
 /**
  * If the command's routing is to one node we will get T as a response type,
@@ -23,7 +25,7 @@ export type ClusterResponse<T> = T | Record<string, T>;
 
 export type SlotIdTypes = {
     /**
-     * `replicaSlotId` overrides the `readFromReplicaStrategy` configuration. If it's used the request
+     * `replicaSlotId` overrides the `readFrom` configuration. If it's used the request
      * will be routed to a replica, even if the strategy is `alwaysFromPrimary`.
      */
     type: "primarySlotId" | "replicaSlotId";
@@ -36,7 +38,7 @@ export type SlotIdTypes = {
 
 export type SlotKeyTypes = {
     /**
-     * `replicaSlotKey` overrides the `readFromReplicaStrategy` configuration. If it's used the request
+     * `replicaSlotKey` overrides the `readFrom` configuration. If it's used the request
      * will be routed to a replica, even if the strategy is `alwaysFromPrimary`.
      */
     type: "primarySlotKey" | "replicaSlotKey";
@@ -46,16 +48,19 @@ export type SlotKeyTypes = {
     key: string;
 };
 
-export type Routes =
+export type Routes = 
+    | SingleNodeRoute      
     /**
      * Route request to all primary nodes.
      */
-
     | "allPrimaries"
     /**
      * Route request to all nodes.
      */
-    | "allNodes"
+    | "allNodes";
+    
+
+export type SingleNodeRoute =
     /**
      * Route request to a random node.
      */
@@ -139,7 +144,7 @@ export function convertMultiNodeResponseToDict<T>(
 
 export class RedisClusterClient extends BaseClient {
     protected createClientRequest(
-        options: ConnectionOptions
+        options: ClusterClientConfiguration
     ): connection_request.IConnectionRequest {
         const configuration = super.createClientRequest(options);
         configuration.clusterModeEnabled = true;
@@ -147,17 +152,17 @@ export class RedisClusterClient extends BaseClient {
     }
 
     public static async createClient(
-        options: ConnectionOptions
+        options: ClusterClientConfiguration
     ): Promise<RedisClusterClient> {
         return await super.createClientInternal(
             options,
-            (socket: net.Socket, options?: ConnectionOptions) =>
+            (socket: net.Socket, options?: ClusterClientConfiguration) =>
                 new RedisClusterClient(socket, options)
         );
     }
 
     static async __createClient(
-        options: ConnectionOptions,
+        options: BaseClientConfiguration,
         connectedSocket: net.Socket
     ): Promise<RedisClusterClient> {
         return super.__createClientInternal(
@@ -169,8 +174,8 @@ export class RedisClusterClient extends BaseClient {
 
     /** Executes a single command, without checking inputs. Every part of the command, including subcommands,
      *  should be added as a separate value in args.
-     *  The command will be routed automatically, unless `route` was provided, in which case the client will
-     *  initially try to route the command to the nodes defined by `route`.
+     *  The command will be routed automatically based on the passed command's default request policy, unless `route` is provided, 
+     *  in which case the client will route the command to the nodes defined by `route`.
      *
      * @example
      * Returns a list of all pub/sub clients on all primary nodes
@@ -191,20 +196,23 @@ export class RedisClusterClient extends BaseClient {
      *   See https://redis.io/topics/Transactions/ for details on Redis Transactions.
      *
      * @param transaction - A ClusterTransaction object containing a list of commands to be executed.
+     * @param route - If `route` is not provided, the transaction will be routed to the slot owner of the first key found in the transaction. 
+     *   If no key is found, the command will be sent to a random node.
+     *   If `route` is provided, the client will route the command to the nodes defined by `route`.  
      * @returns A list of results corresponding to the execution of each command in the transaction.
      *      If a command returns a value, it will be included in the list. If a command doesn't return a value,
      *      the list entry will be null.
      */
-    public exec(transaction: ClusterTransaction): Promise<ReturnType[]> {
-        return this.createWritePromise(transaction.commands);
+    public exec(transaction: ClusterTransaction | BaseTransaction , route?: SingleNodeRoute): Promise<ReturnType[]> {
+        return this.createWritePromise(transaction.commands , toProtobufRoute(route));
     }
 
     /** Ping the Redis server.
      * See https://redis.io/commands/ping/ for details.
      *
      * @param str - the ping argument that will be returned.
-     * @param route - The command will be routed automatically, unless `route` is provided, in which
-     *   case the client will initially try to route the command to the nodes defined by `route`.
+     * @param route - The command will be routed to all primaries, unless `route` is provided, in which
+     *   case the client will route the command to the nodes defined by `route`.
      * @returns PONG if no argument is provided, otherwise return a copy of the argument.
      */
     public ping(str?: string, route?: Routes): Promise<string> {
@@ -216,8 +224,8 @@ export class RedisClusterClient extends BaseClient {
      *
      * @param options - A list of InfoSection values specifying which sections of information to retrieve.
      *  When no parameter is provided, the default option is assumed.
-     * @param route - The command will be routed automatically, unless `route` is provided, in which
-     *   case the client will initially try to route the command to the nodes defined by `route`.
+     * @param route - The command will be routed to all primeries, unless `route` is provided, in which
+     *   case the client will route the command to the nodes defined by `route`.
      * @returns a string containing the information for the sections requested. When specifying a route other than a single node,
      * it returns a dictionary where each address is the key and its corresponding node response is the value.
      */
@@ -240,8 +248,8 @@ export class RedisClusterClient extends BaseClient {
     /** Get the name of the current connection.
      *  See https://redis.io/commands/client-getname/ for more details.
      *
-     * @param route - The command will be routed automatically, unless `route` is provided, in which
-     *   case the client will initially try to route the command to the nodes defined by `route`.
+     * @param route - The command will be routed a random node, unless `route` is provided, in which
+     *   case the client will route the command to the nodes defined by `route`.
      *
      * @returns - the name of the client connection as a string if a name is set, or null if no name is assigned.
      * When specifying a route other than a single node, it returns a dictionary where each address is the key and
@@ -265,8 +273,8 @@ export class RedisClusterClient extends BaseClient {
     /** Rewrite the configuration file with the current configuration.
      * See https://redis.io/commands/config-rewrite/ for details.
      *
-     * @param route - The command will be routed automatically, unless `route` is provided, in which
-     *   case the client will initially try to route the command to the nodes defined by `route`.
+     * @param route - The command will be routed to all nodes, unless `route` is provided, in which
+     *   case the client will route the command to the nodes defined by `route`.
      *
      * @returns "OK" when the configuration was rewritten properly, Otherwise an error is raised.
      */
@@ -280,8 +288,8 @@ export class RedisClusterClient extends BaseClient {
     /** Resets the statistics reported by Redis using the INFO and LATENCY HISTOGRAM commands.
      * See https://redis.io/commands/config-resetstat/ for details.
      *
-     * @param route - The command will be routed automatically, unless `route` is provided, in which
-     *   case the client will initially try to route the command to the nodes defined by `route`.
+     * @param route - The command will be routed to all nodes, unless `route` is provided, in which
+     *   case the client will route the command to the nodes defined by `route`.
      *
      * @returns always "OK"
      */
@@ -295,8 +303,8 @@ export class RedisClusterClient extends BaseClient {
     /** Returns the current connection id.
      * See https://redis.io/commands/client-id/ for details.
      *
-     * @param route - The command will be routed automatically, unless `route` is provided, in which
-     *   case the client will initially try to route the command to the nodes defined by `route`.
+     * @param route - The command will be routed to a random node, unless `route` is provided, in which
+     *   case the client will route the command to the nodes defined by `route`.
      * @returns the id of the client. When specifying a route other than a single node,
      * it returns a dictionary where each address is the key and its corresponding node response is the value.
      */
@@ -317,8 +325,8 @@ export class RedisClusterClient extends BaseClient {
      *  See https://redis.io/commands/config-get/ for details.
      *
      * @param parameters - A list of configuration parameter names to retrieve values for.
-     * @param route - The command will be routed automatically, unless `route` is provided, in which
-     *  case the client will initially try to route the command to the nodes defined by `route`.
+     * @param route - The command will be routed to all nodes, unless `route` is provided, in which
+     *  case the client will route the command to the nodes defined by `route`.
      *  If `route` is not provided, the command will be sent to the all nodes.
      *
      * @returns A map of values corresponding to the configuration parameters. When specifying a route other than a single node,
@@ -346,8 +354,8 @@ export class RedisClusterClient extends BaseClient {
      *   See https://redis.io/commands/config-set/ for details.
      *
      * @param parameters - A List of keyValuePairs consisting of configuration parameters and their respective values to set.
-     * @param route - The command will be routed automatically, unless `route` is provided, in which
-     *   case the client will initially try to route the command to the nodes defined by `route`.
+     * @param route - The command will be routed to all nodes, unless `route` is provided, in which
+     *   case the client will route the command to the nodes defined by `route`.
      *   If `route` is not provided, the command will be sent to the all nodes.
      *
      * @returns "OK" when the configuration was set properly. Otherwise an error is raised.

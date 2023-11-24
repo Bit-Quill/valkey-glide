@@ -44,6 +44,6 @@ The following arguments are accepted:
 
 ### Troubleshooting
 
-* Connection Timeout: 
+* Connection Timeout:
   * If you're unable to connect to redis, check that you are connecting to the correct host, port, and TLS configuration.
 * Only server-side certificates are supported by the TLS configured redis.

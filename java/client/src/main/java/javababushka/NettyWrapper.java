@@ -40,7 +40,7 @@ class NettyWrapper {
 
   private static String getSocket() {
     try {
-      return RustWrapper.startSocketListenerExternal();
+      return BabushkaCoreNativeDefinitions.startSocketListenerExternal();
     } catch (Exception | UnsatisfiedLinkError e) {
       System.err.printf("Failed to get UDS from babushka and dedushka: %s%n%n", e);
       throw new RuntimeException(e);

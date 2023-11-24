@@ -1,10 +1,10 @@
 package javababushka;
 
-import static connection_request.ConnectionRequestOuterClass.AddressInfo;
 import static connection_request.ConnectionRequestOuterClass.AuthenticationInfo;
 import static connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import static connection_request.ConnectionRequestOuterClass.ConnectionRetryStrategy;
-import static connection_request.ConnectionRequestOuterClass.ReadFromReplicaStrategy;
+import static connection_request.ConnectionRequestOuterClass.NodeAddress;
+import static connection_request.ConnectionRequestOuterClass.ReadFrom;
 import static connection_request.ConnectionRequestOuterClass.TlsMode;
 import static redis_request.RedisRequestOuterClass.Command;
 import static redis_request.RedisRequestOuterClass.Command.ArgsArray;
@@ -23,6 +23,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public class Client {
   private static final long DEFAULT_TIMEOUT_MILLISECONDS = 1000;
+  private static final int REQUEST_TIMEOUT_MILLISECONDS = 250;
 
   public void set(String key, String value) {
     waitForResult(asyncSet(key, value));
@@ -49,17 +50,14 @@ public class Client {
       String host, int port, boolean useSsl, boolean clusterMode) {
     var request =
         ConnectionRequest.newBuilder()
-            .addAddresses(AddressInfo.newBuilder().setHost(host).setPort(port).build())
+            .addAddresses(NodeAddress.newBuilder().setHost(host).setPort(port).build())
             .setTlsMode(
                 useSsl // TODO: secure or insecure TLS?
                     ? TlsMode.SecureTls
                     : TlsMode.NoTls)
             .setClusterModeEnabled(clusterMode)
-            // In millis
-            .setResponseTimeout(250)
-            // In millis
-            .setClientCreationTimeout(2500)
-            .setReadFromReplicaStrategy(ReadFromReplicaStrategy.AlwaysFromPrimary)
+            .setRequestTimeout(REQUEST_TIMEOUT_MILLISECONDS)
+            .setReadFrom(ReadFrom.Primary)
             .setConnectionRetryStrategy(
                 ConnectionRetryStrategy.newBuilder()
                     .setNumberOfRetries(1)
@@ -118,7 +116,8 @@ public class Client {
         .thenApply(
             response ->
                 response.getRespPointer() != 0
-                    ? RustWrapper.valueFromPointer(response.getRespPointer()).toString()
+                    ? BabushkaCoreNativeDefinitions.valueFromPointer(response.getRespPointer())
+                        .toString()
                     : null);
   }
 

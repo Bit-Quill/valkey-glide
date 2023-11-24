@@ -29,6 +29,13 @@ REDIS_CRT = f"{TLS_FOLDER}/redis.crt"
 REDIS_KEY = f"{TLS_FOLDER}/redis.key"
 
 
+def init_logger(logfile: str):
+    print(f"LOG_FILE={logfile}")
+    root_logger = logging.getLogger()
+    handler = logging.FileHandler(logfile, "w", "utf-8")
+    root_logger.addHandler(handler)
+
+
 def check_if_tls_cert_exist(tls_file: str, timeout: int = 15):
     timeout_start = time.time()
     while time.time() < timeout_start + timeout:
@@ -259,7 +266,12 @@ def create_cluster_folder(path: str, prefix: str) -> str:
 
 
 def start_redis_server(
-    host: str, port: Optional[int], cluster_folder: str, tls: bool, tls_args: List[str]
+    host: str,
+    port: Optional[int],
+    cluster_folder: str,
+    tls: bool,
+    tls_args: List[str],
+    cluster_mode: bool,
 ) -> Tuple[RedisServer, str]:
     port = port if port else next_free_port()
     logging.debug(f"Creating server {host}:{port}")
@@ -271,7 +283,7 @@ def start_redis_server(
         f"{'--tls-port' if tls else '--port'}",
         str(port),
         "--cluster-enabled",
-        "yes",
+        f"{'yes' if cluster_mode else 'no'}",
         "--dir",
         node_folder,
         "--daemonize",
@@ -302,6 +314,7 @@ def create_servers(
     ports: Optional[List[int]],
     cluster_folder: str,
     tls: bool,
+    cluster_mode: bool,
 ) -> List[RedisServer]:
     tic = time.perf_counter()
     logging.debug("## Creating servers")
@@ -335,7 +348,7 @@ def create_servers(
     for i in range(nodes_count):
         port = ports[i] if ports else None
         servers_to_check.add(
-            start_redis_server(host, port, cluster_folder, tls, tls_args)
+            start_redis_server(host, port, cluster_folder, tls, tls_args, cluster_mode)
         )
     # Check all servers
     while len(servers_to_check) > 0:
@@ -350,7 +363,9 @@ def create_servers(
                 )
             # The port was already taken, try to find a new free one
             servers_to_check.add(
-                start_redis_server(server.host, None, cluster_folder, tls, tls_args)
+                start_redis_server(
+                    server.host, None, cluster_folder, tls, tls_args, cluster_mode
+                )
             )
             continue
         if not wait_for_server(server, cluster_folder, tls):
@@ -695,12 +710,7 @@ def stop_cluster(
     keep_folder: bool,
 ):
     logfile = f"{cluster_folder}/cluster_manager.log" if not logfile else logfile
-    print(f"LOG_FILE={logfile}")
-    logging.basicConfig(
-        filename=logfile,
-        force=True,
-        encoding="utf-8",
-    )
+    init_logger(logfile)
     logging.debug(f"## Stopping cluster in path {cluster_folder}")
     for it in os.scandir(cluster_folder):
         if it.is_dir() and it.name.isdigit():
@@ -757,6 +767,12 @@ def main():
     # Start parser
     parser_start = subparsers.add_parser("start", help="Start a new cluster")
     parser_start.add_argument(
+        "--cluster-mode",
+        action="store_true",
+        help="Create a Redis Cluster with cluster mode enabled. If not specified, a Standalone Redis cluster will be created.",
+        required=False,
+    )
+    parser_start.add_argument(
         "--folder-path",
         type=dir_path,
         help="Path to create the cluster main folder (defaults to: %(default)s)",
@@ -772,11 +788,13 @@ def main():
         "The number of ports must be equal to the total number of nodes in the cluster",
         required=False,
     )
+
     parser_start.add_argument(
         "-n",
         "--shard-count",
         type=int,
-        help="Number of cluster shards (default: %(default)s)",
+        help="This option is only supported when used together with the --cluster-mode option."
+        "It sets the number of cluster shards (default: %(default)s).",
         default=3,
         required=False,
     )
@@ -843,6 +861,11 @@ def main():
     logging.info(f"## Executing cluster_manager.py with the following args:\n  {args}")
 
     if args.action == "start":
+        if not args.cluster_mode:
+            args.shard_count = 1
+            # TODO: remove setting the replica count to zero after replica support in standalone mode is added to the script
+            args.replica_count = 0
+
         if args.ports and len(args.ports) != args.shard_count * (
             1 + args.replica_count
         ):
@@ -860,12 +883,7 @@ def main():
             if not args.logfile
             else args.logfile
         )
-        print(f"LOG_FILE={logfile}")
-        logging.basicConfig(
-            filename=logfile,
-            force=True,
-            encoding="utf-8",
-        )
+        init_logger(logfile)
         servers = create_servers(
             args.host,
             args.shard_count,
@@ -873,13 +891,21 @@ def main():
             args.ports,
             cluster_folder,
             args.tls,
+            args.cluster_mode,
         )
-        create_cluster(
-            servers, args.shard_count, args.replica_count, cluster_folder, args.tls
-        )
+        if args.cluster_mode:
+            create_cluster(
+                servers,
+                args.shard_count,
+                args.replica_count,
+                cluster_folder,
+                args.tls,
+            )
         servers_str = ",".join(str(server) for server in servers)
         toc = time.perf_counter()
-        logging.info(f"Created cluster in {toc - tic:0.4f} seconds")
+        logging.info(
+            f"Created {'Cluster Redis' if args.cluster_mode else 'Standalone Redis'} in {toc - tic:0.4f} seconds"
+        )
         print(f"CLUSTER_FOLDER={cluster_folder}")
         print(f"CLUSTER_NODES={servers_str}")
 

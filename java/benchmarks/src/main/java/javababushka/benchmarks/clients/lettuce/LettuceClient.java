@@ -15,7 +15,7 @@ public class LettuceClient implements SyncClient {
 
   @Override
   public void connectToRedis() {
-    connectToRedis(new ConnectionSettings("localhost", 6379, false));
+    connectToRedis(new ConnectionSettings("localhost", 6379, false, false));
   }
 
   @Override

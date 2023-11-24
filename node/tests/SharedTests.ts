@@ -1,7 +1,13 @@
 import { expect, it } from "@jest/globals";
 import { exec } from "child_process";
 import { v4 as uuidv4 } from "uuid";
-import { InfoOptions, ReturnType, SetOptions, parseInfoResponse } from "../";
+import {
+    ExpireOptions,
+    InfoOptions,
+    ReturnType,
+    SetOptions,
+    parseInfoResponse,
+} from "../";
 import { ClusterResponse } from "../src/RedisClusterClient";
 import { Client, GetAndSetRandomValue, getFirstResult } from "./TestUtilities";
 
@@ -35,6 +41,49 @@ type BaseClient = {
     hget: (key: string, field: string) => Promise<string | null>;
     hdel: (key: string, fields: string[]) => Promise<number>;
     hmget: (key: string, fields: string[]) => Promise<(string | null)[]>;
+    hexists: (key: string, field: string) => Promise<number>;
+    hgetall: (key: string) => Promise<string[]>;
+    hincrBy: (key: string, field: string, amount: number) => Promise<number>;
+    hincrByFloat: (
+        key: string,
+        field: string,
+        amount: number
+    ) => Promise<string>;
+    lpush: (key: string, elements: string[]) => Promise<number>;
+    lpop: (key: string, count?: number) => Promise<string | string[] | null>;
+    lrange: (key: string, start: number, end: number) => Promise<string[]>;
+    llen: (key: string) => Promise<number>;
+    ltrim: (key: string, start: number, end: number) => Promise<"OK">;
+    lrem: (key: string, count: number, element: string) => Promise<number>;
+    rpush: (key: string, elements: string[]) => Promise<number>;
+    rpop: (key: string, count?: number) => Promise<string | string[] | null>;
+    sadd: (key: string, members: string[]) => Promise<number>;
+    srem: (key: string, members: string[]) => Promise<number>;
+    smembers: (key: string) => Promise<string[]>;
+    scard: (key: string) => Promise<number>;
+    exists: (keys: string[]) => Promise<number>;
+    unlink: (keys: string[]) => Promise<number>;
+    expire: (
+        key: string,
+        seconds: number,
+        option?: ExpireOptions
+    ) => Promise<number>;
+    expireAt: (
+        key: string,
+        unixSeconds: number,
+        option?: ExpireOptions
+    ) => Promise<number>;
+    pexpire: (
+        key: string,
+        milliseconds: number,
+        option?: ExpireOptions
+    ) => Promise<number>;
+    pexpireAt: (
+        key: string,
+        unixMilliseconds: number,
+        option?: ExpireOptions
+    ) => Promise<number>;
+    ttl: (key: string) => Promise<number>;
     customCommand: (commandName: string, args: string[]) => Promise<ReturnType>;
 };
 
@@ -291,7 +340,6 @@ export function runBaseTests<Context>(config: {
                 const key1 = uuidv4();
                 const key2 = uuidv4();
                 const key3 = uuidv4();
-                const nonExistingKey = uuidv4();
                 const value = uuidv4();
                 const keyValueList = {
                     [key1]: value,
@@ -300,7 +348,7 @@ export function runBaseTests<Context>(config: {
                 };
                 expect(await client.mset(keyValueList)).toEqual("OK");
                 expect(
-                    await client.mget([key1, key2, nonExistingKey, key3])
+                    await client.mget([key1, key2, "nonExistingKey", key3])
                 ).toEqual([value, value, null, value]);
             });
         },
@@ -489,7 +537,6 @@ export function runBaseTests<Context>(config: {
                 const key = uuidv4();
                 const field1 = uuidv4();
                 const field2 = uuidv4();
-                const nonExistingField = uuidv4();
                 const value = uuidv4();
                 const fieldValueMap = {
                     [field1]: value,
@@ -498,7 +545,9 @@ export function runBaseTests<Context>(config: {
                 expect(await client.hset(key, fieldValueMap)).toEqual(2);
                 expect(await client.hget(key, field1)).toEqual(value);
                 expect(await client.hget(key, field2)).toEqual(value);
-                expect(await client.hget(key, nonExistingField)).toEqual(null);
+                expect(await client.hget(key, "nonExistingField")).toEqual(
+                    null
+                );
             });
         },
         config.timeout
@@ -509,11 +558,9 @@ export function runBaseTests<Context>(config: {
         async () => {
             await runTest(async (client: BaseClient) => {
                 const key = uuidv4();
-                const nonExistingKey = uuidv4();
                 const field1 = uuidv4();
                 const field2 = uuidv4();
                 const field3 = uuidv4();
-                const nonExistingField = uuidv4();
                 const value = uuidv4();
                 const fieldValueMap = {
                     [field1]: value,
@@ -523,8 +570,10 @@ export function runBaseTests<Context>(config: {
 
                 expect(await client.hset(key, fieldValueMap)).toEqual(3);
                 expect(await client.hdel(key, [field1, field2])).toEqual(2);
-                expect(await client.hdel(key, [nonExistingField])).toEqual(0);
-                expect(await client.hdel(nonExistingKey, [field3])).toEqual(0);
+                expect(await client.hdel(key, ["nonExistingField"])).toEqual(0);
+                expect(await client.hdel("nonExistingKey", [field3])).toEqual(
+                    0
+                );
             });
         },
         config.timeout
@@ -535,10 +584,8 @@ export function runBaseTests<Context>(config: {
         async () => {
             await runTest(async (client: BaseClient) => {
                 const key = uuidv4();
-                const nonExistingKey = uuidv4();
                 const field1 = uuidv4();
                 const field2 = uuidv4();
-                const nonExistingField = uuidv4();
                 const value = uuidv4();
                 const fieldValueMap = {
                     [field1]: value,
@@ -546,11 +593,571 @@ export function runBaseTests<Context>(config: {
                 };
                 expect(await client.hset(key, fieldValueMap)).toEqual(2);
                 expect(
-                    await client.hmget(key, [field1, nonExistingField, field2])
+                    await client.hmget(key, [
+                        field1,
+                        "nonExistingField",
+                        field2,
+                    ])
                 ).toEqual([value, null, value]);
                 expect(
-                    await client.hmget(nonExistingKey, [field1, field2])
+                    await client.hmget("nonExistingKey", [field1, field2])
                 ).toEqual([null, null]);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "hexists existing field, an non existing field and an non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const field1 = uuidv4();
+                const field2 = uuidv4();
+                const fieldValueMap = {
+                    [field1]: "value1",
+                    [field2]: "value2",
+                };
+                expect(await client.hset(key, fieldValueMap)).toEqual(2);
+                expect(await client.hexists(key, field1)).toEqual(1);
+                expect(await client.hexists(key, "nonExistingField")).toEqual(
+                    0
+                );
+                expect(await client.hexists("nonExistingKey", field2)).toEqual(
+                    0
+                );
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "hgetall with multiple fields in an existing key and one non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const field1 = uuidv4();
+                const field2 = uuidv4();
+                const value = uuidv4();
+                const fieldValueMap = {
+                    [field1]: value,
+                    [field2]: value,
+                };
+                expect(await client.hset(key, fieldValueMap)).toEqual(2);
+                expect(await client.hgetall(key)).toEqual([
+                    field1,
+                    value,
+                    field2,
+                    value,
+                ]);
+                expect(await client.hgetall("nonExistingKey")).toEqual([]);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "hincrBy and hincrByFloat with existing key and field",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const field = uuidv4();
+                const fieldValueMap = {
+                    [field]: "10",
+                };
+                expect(await client.hset(key, fieldValueMap)).toEqual(1);
+                expect(await client.hincrBy(key, field, 1)).toEqual(11);
+                expect(await client.hincrBy(key, field, 4)).toEqual(15);
+                expect(await client.hincrByFloat(key, field, 1.5)).toEqual(
+                    "16.5"
+                );
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "hincrBy and hincrByFloat with non existing key and non existing field",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key1 = uuidv4();
+                const key2 = uuidv4();
+                const field = uuidv4();
+                const fieldValueMap = {
+                    [field]: "10",
+                };
+                expect(
+                    await client.hincrBy("nonExistingKey", field, 1)
+                ).toEqual(1);
+                expect(await client.hset(key1, fieldValueMap)).toEqual(1);
+                expect(
+                    await client.hincrBy(key1, "nonExistingField", 2)
+                ).toEqual(2);
+                expect(await client.hset(key2, fieldValueMap)).toEqual(1);
+                expect(
+                    await client.hincrByFloat(key2, "nonExistingField", -0.5)
+                ).toEqual("-0.5");
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "hincrBy and hincrByFloat with a field that contains a value of string that can not be represented as as integer or float",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const field = uuidv4();
+                const fieldValueMap = {
+                    [field]: "foo",
+                };
+                expect(await client.hset(key, fieldValueMap)).toEqual(1);
+                try {
+                    expect(await client.hincrBy(key, field, 2)).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "hash value is not an integer"
+                    );
+                }
+
+                try {
+                    expect(
+                        await client.hincrByFloat(key, field, 1.5)
+                    ).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "hash value is not a float"
+                    );
+                }
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "lpush, lpop and lrange with existing and non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const valueList = ["value4", "value3", "value2", "value1"];
+                expect(await client.lpush(key, valueList)).toEqual(4);
+                expect(await client.lpop(key)).toEqual("value1");
+                expect(await client.lrange(key, 0, -1)).toEqual([
+                    "value2",
+                    "value3",
+                    "value4",
+                ]);
+                expect(await client.lpop(key, 2)).toEqual(["value2", "value3"]);
+                expect(await client.lrange("nonExistingKey", 0, -1)).toEqual(
+                    []
+                );
+                expect(await client.lpop("nonExistingKey")).toEqual(null);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "lpush, lpop and lrange with key that holds a value that is not a list",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                expect(await client.set(key, "foo")).toEqual("OK");
+
+                try {
+                    expect(await client.lpush(key, ["bar"])).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+
+                try {
+                    expect(await client.lpop(key)).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+
+                try {
+                    expect(await client.lrange(key, 0, -1)).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "llen with existing, non-existing key and key that holds a value that is not a list",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key1 = uuidv4();
+                const key2 = uuidv4();
+                const valueList = ["value4", "value3", "value2", "value1"];
+                expect(await client.lpush(key1, valueList)).toEqual(4);
+                expect(await client.llen(key1)).toEqual(4);
+
+                expect(await client.llen("nonExistingKey")).toEqual(0);
+
+                expect(await client.set(key2, "foo")).toEqual("OK");
+                try {
+                    expect(await client.llen(key2)).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "ltrim with existing key and key that holds a value that is not a list",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const valueList = ["value4", "value3", "value2", "value1"];
+                expect(await client.lpush(key, valueList)).toEqual(4);
+                expect(await client.ltrim(key, 0, 1)).toEqual("OK");
+                expect(await client.lrange(key, 0, -1)).toEqual([
+                    "value1",
+                    "value2",
+                ]);
+
+                /// `start` is greater than `end` so the key will be removed.
+                expect(await client.ltrim(key, 4, 2)).toEqual("OK");
+                expect(await client.lrange(key, 0, -1)).toEqual([]);
+
+                expect(await client.set(key, "foo")).toEqual("OK");
+                try {
+                    expect(await client.ltrim(key, 0, 1)).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "lrem with existing key and non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const valueList = [
+                    "value1",
+                    "value2",
+                    "value1",
+                    "value1",
+                    "value2",
+                ];
+                expect(await client.lpush(key, valueList)).toEqual(5);
+                expect(await client.lrem(key, 2, "value1")).toEqual(2);
+                expect(await client.lrange(key, 0, -1)).toEqual([
+                    "value2",
+                    "value2",
+                    "value1",
+                ]);
+                expect(await client.lrem(key, -1, "value2")).toEqual(1);
+                expect(await client.lrange(key, 0, -1)).toEqual([
+                    "value2",
+                    "value1",
+                ]);
+                expect(await client.lrem(key, 0, "value2")).toEqual(1);
+                expect(await client.lrange(key, 0, -1)).toEqual(["value1"]);
+                expect(await client.lrem("nonExistingKey", 2, "value")).toEqual(
+                    0
+                );
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "rpush and rpop with existing and non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const valueList = ["value1", "value2", "value3", "value4"];
+                expect(await client.rpush(key, valueList)).toEqual(4);
+                expect(await client.rpop(key)).toEqual("value4");
+                expect(await client.rpop(key, 2)).toEqual(["value3", "value2"]);
+                expect(await client.rpop("nonExistingKey")).toEqual(null);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "rpush and rpop with key that holds a value that is not a list",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                expect(await client.set(key, "foo")).toEqual("OK");
+
+                try {
+                    expect(await client.rpush(key, ["bar"])).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+
+                try {
+                    expect(await client.rpop(key)).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "sadd, srem, scard and smembers with existing set",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const valueList = ["member1", "member2", "member3", "member4"];
+                expect(await client.sadd(key, valueList)).toEqual(4);
+                expect(
+                    await client.srem(key, ["member3", "nonExistingMember"])
+                ).toEqual(1);
+                /// compare the 2 sets.
+                expect((await client.smembers(key)).sort()).toEqual([
+                    "member1",
+                    "member2",
+                    "member4",
+                ]);
+                expect(await client.srem(key, ["member1"])).toEqual(1);
+                expect(await client.scard(key)).toEqual(2);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "srem, scard and smembers with non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                expect(await client.srem("nonExistingKey", ["member"])).toEqual(
+                    0
+                );
+                expect(await client.scard("nonExistingKey")).toEqual(0);
+                expect(await client.smembers("nonExistingKey")).toEqual([]);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "sadd, srem, scard and smembers with with key that holds a value that is not a set",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                expect(await client.set(key, "foo")).toEqual("OK");
+
+                try {
+                    expect(await client.sadd(key, ["bar"])).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+
+                try {
+                    expect(await client.srem(key, ["bar"])).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+
+                try {
+                    expect(await client.scard(key)).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+
+                try {
+                    expect(await client.smembers(key)).toThrow();
+                } catch (e) {
+                    expect((e as Error).message).toMatch(
+                        "Operation against a key holding the wrong kind of value"
+                    );
+                }
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "exists with existing keys, an non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key1 = uuidv4();
+                const key2 = uuidv4();
+                const value = uuidv4();
+                expect(await client.set(key1, value)).toEqual("OK");
+                expect(await client.exists([key1])).toEqual(1);
+                expect(await client.set(key2, value)).toEqual("OK");
+                expect(
+                    await client.exists([key1, "nonExistingKey", key2])
+                ).toEqual(2);
+                expect(await client.exists([key1, key1])).toEqual(2);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "unlink multiple existing keys and an non existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key1 = "{key}" + uuidv4();
+                const key2 = "{key}" + uuidv4();
+                const key3 = "{key}" + uuidv4();
+                const value = uuidv4();
+                expect(await client.set(key1, value)).toEqual("OK");
+                expect(await client.set(key2, value)).toEqual("OK");
+                expect(await client.set(key3, value)).toEqual("OK");
+                expect(
+                    await client.unlink([key1, key2, "nonExistingKey", key3])
+                ).toEqual(3);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "expire, pexpire and ttl with positive timeout",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                expect(await client.set(key, "foo")).toEqual("OK");
+                expect(await client.expire(key, 10)).toEqual(1);
+                expect(await client.ttl(key)).toBeLessThanOrEqual(10);
+                /// set command clears the timeout.
+                expect(await client.set(key, "bar")).toEqual("OK");
+                expect(
+                    await client.pexpire(key, 10000, ExpireOptions.HasNoExpiry)
+                ).toEqual(1);
+                expect(await client.ttl(key)).toBeLessThanOrEqual(10);
+                /// TTL will be updated to the new value = 15
+                expect(
+                    await client.expire(
+                        key,
+                        15,
+                        ExpireOptions.HasExistingExpiry
+                    )
+                ).toEqual(1);
+                expect(await client.ttl(key)).toBeLessThanOrEqual(15);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "expireAt, pexpireAt and ttl with positive timeout",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                expect(await client.set(key, "foo")).toEqual("OK");
+                expect(
+                    await client.expireAt(
+                        key,
+                        Math.floor(Date.now() / 1000) + 10
+                    )
+                ).toEqual(1);
+                expect(await client.ttl(key)).toBeLessThanOrEqual(10);
+                expect(
+                    await client.expireAt(
+                        key,
+                        Math.floor(Date.now() / 1000) + 50,
+                        ExpireOptions.NewExpiryGreaterThanCurrent
+                    )
+                ).toEqual(1);
+                expect(await client.ttl(key)).toBeLessThanOrEqual(50);
+
+                /// set command clears the timeout.
+                expect(await client.set(key, "bar")).toEqual("OK");
+                expect(
+                    await client.pexpireAt(
+                        key,
+                        Date.now() + 50000,
+                        ExpireOptions.HasExistingExpiry
+                    )
+                ).toEqual(0);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "expire, pexpire, expireAt and pexpireAt with timestamp in the past or negative timeout",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                expect(await client.set(key, "foo")).toEqual("OK");
+                expect(await client.ttl(key)).toEqual(-1);
+                expect(await client.expire(key, -10)).toEqual(1);
+                expect(await client.ttl(key)).toEqual(-2);
+                expect(await client.set(key, "foo")).toEqual("OK");
+                expect(await client.pexpire(key, -10000)).toEqual(1);
+                expect(await client.ttl(key)).toEqual(-2);
+                expect(await client.set(key, "foo")).toEqual("OK");
+                expect(
+                    await client.expireAt(
+                        key,
+                        Math.floor(Date.now() / 1000) - 50 /// timeout in the past
+                    )
+                ).toEqual(1);
+                expect(await client.ttl(key)).toEqual(-2);
+                expect(await client.set(key, "foo")).toEqual("OK");
+                expect(
+                    await client.pexpireAt(
+                        key,
+                        Date.now() - 50000 /// timeout in the past
+                    )
+                ).toEqual(1);
+                expect(await client.ttl(key)).toEqual(-2);
+            });
+        },
+        config.timeout
+    );
+
+    it(
+        "expire, pexpire, expireAt, pexpireAt and ttl with non-existing key",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                expect(await client.expire(key, 10)).toEqual(0);
+                expect(await client.pexpire(key, 10000)).toEqual(0);
+                expect(
+                    await client.expireAt(
+                        key,
+                        Math.floor(Date.now() / 1000) + 50 /// timeout in the past
+                    )
+                ).toEqual(0);
+                expect(
+                    await client.pexpireAt(
+                        key,
+                        Date.now() + 50000 /// timeout in the past
+                    )
+                ).toEqual(0);
+                expect(await client.ttl(key)).toEqual(-2);
             });
         },
         config.timeout

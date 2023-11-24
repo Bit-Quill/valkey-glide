@@ -1,5 +1,5 @@
 import * as net from "net";
-import { BaseClient, ConnectionOptions, ReturnType } from "./BaseClient";
+import { BaseClient, BaseClientConfiguration, ReturnType } from "./BaseClient";
 import {
     InfoOptions,
     createClientGetName,
@@ -16,7 +16,7 @@ import {
 import { connection_request } from "./ProtobufMessage";
 import { Transaction } from "./Transaction";
 
-export type StandaloneConnectionOptions = ConnectionOptions & {
+export type RedisClientConfiguration = BaseClientConfiguration & {
     /**
      * index of the logical database to connect to.
      */
@@ -50,7 +50,7 @@ export type StandaloneConnectionOptions = ConnectionOptions & {
 
 export class RedisClient extends BaseClient {
     protected createClientRequest(
-        options: StandaloneConnectionOptions
+        options: RedisClientConfiguration
     ): connection_request.IConnectionRequest {
         const configuration = super.createClientRequest(options);
         configuration.databaseId = options.databaseId;
@@ -59,7 +59,7 @@ export class RedisClient extends BaseClient {
     }
 
     public static createClient(
-        options: StandaloneConnectionOptions
+        options: RedisClientConfiguration
     ): Promise<RedisClient> {
         return super.createClientInternal<RedisClient>(
             options,
@@ -68,7 +68,7 @@ export class RedisClient extends BaseClient {
     }
 
     static async __createClient(
-        options: ConnectionOptions,
+        options: BaseClientConfiguration,
         connectedSocket: net.Socket
     ): Promise<RedisClient> {
         return this.__createClientInternal(
@@ -170,8 +170,6 @@ export class RedisClient extends BaseClient {
      *  See https://redis.io/commands/config-get/ for details.
      *
      * @param parameters - A list of configuration parameter names to retrieve values for.
-     * @param route - The command will be routed automatically, unless `route` is provided, in which
-     *  case the client will initially try to route the command to the nodes defined by `route`.
      *
      * @returns A list of values corresponding to the configuration parameters.
      *
@@ -184,8 +182,6 @@ export class RedisClient extends BaseClient {
      *   See https://redis.io/commands/config-set/ for details.
      *
      * @param parameters - A List of keyValuePairs consisting of configuration parameters and their respective values to set.
-     * @param route - The command will be routed automatically, unless `route` is provided, in which
-     *   case the client will initially try to route the command to the nodes defined by `route`.
      *
      * @returns "OK" when the configuration was set properly. Otherwise an error is raised.
      *

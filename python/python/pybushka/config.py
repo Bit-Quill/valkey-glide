@@ -1,14 +1,12 @@
 from enum import Enum
 from typing import List, Optional
 
-from pybushka.protobuf.connection_request_pb2 import (
-    ConnectionRequest,
-    ReadFromReplicaStrategy,
-    TlsMode,
-)
+from pybushka.protobuf.connection_request_pb2 import ConnectionRequest
+from pybushka.protobuf.connection_request_pb2 import ReadFrom as ProtobufReadFrom
+from pybushka.protobuf.connection_request_pb2 import TlsMode
 
 
-class AddressInfo:
+class NodeAddress:
     def __init__(self, host: str = "localhost", port: int = 6379):
         """
         Represents the address and port of a node in the cluster.
@@ -21,18 +19,19 @@ class AddressInfo:
         self.port = port
 
 
-class ReadFromReplica(Enum):
+class ReadFrom(Enum):
     """
-    Represents the client's read from replica strategy.
+    Represents the client's read from strategy.
     """
 
-    ALWAYS_FROM_MASTER = ReadFromReplicaStrategy.AlwaysFromPrimary
+    PRIMARY = ProtobufReadFrom.Primary
     """
     Always get from primary, in order to get the freshest data.
     """
-    ROUND_ROBIN = ReadFromReplicaStrategy.RoundRobin
+    PREFER_REPLICA = ProtobufReadFrom.PreferReplica
     """
-    Spread the requests between all replicas evenly.
+    Spread the requests between all replicas in a round robin manner.
+    If no replica is available, route the requests to the primary.
     """
 
 
@@ -42,8 +41,8 @@ class BackoffStrategy:
         Represents the strategy used to determine how and when to reconnect, in case of connection failures.
         The time between attempts grows exponentially, to the formula rand(0 .. factor * (exponentBase ^ N)), where N
         is the number of failed attempts.
-        The client will attempt to reconnect indefinitely. Once the maximum value is reached, that will remain the time
-        between retry attempts until a reconnect attempt is succesful.
+        Once the maximum value is reached, that will remain the time between retry attempts until a reconnect attempt is succesful.
+        The client will attempt to reconnect indefinitely.
 
         Args:
             num_of_retries (int): Number of retry attempts that the client should perform when disconnected from the server,
@@ -57,39 +56,38 @@ class BackoffStrategy:
         self.exponent_base = exponent_base
 
 
-class AuthenticationOptions:
+class RedisCredentials:
     def __init__(
         self,
         password: str,
         username: Optional[str] = None,
     ):
         """
-        Represents the authentication options for connecting to a Redis server.
+        Represents the credentials for connecting to a Redis server.
 
         Args:
-            password (str): The password that will be passed to the cluster's Access Control Layer.
-            username (Optional[str]): The username that will be passed to the cluster's Access Control Layer.
+            password (str): The password that will be used for authenticating connections to the Redis servers.
+            username (Optional[str]): The username that will be used for authenticating connections to the Redis servers.
                 If not supplied, "default" will be used.
         """
         self.password = password
         self.username = username
 
 
-class ClientConfiguration:
+class BaseClientConfiguration:
     def __init__(
         self,
-        addresses: Optional[List[AddressInfo]] = None,
+        addresses: Optional[List[NodeAddress]] = None,
         use_tls: bool = False,
-        credentials: Optional[AuthenticationOptions] = None,
-        read_from_replica: ReadFromReplica = ReadFromReplica.ALWAYS_FROM_MASTER,
-        client_creation_timeout: Optional[int] = None,
-        response_timeout: Optional[int] = None,
+        credentials: Optional[RedisCredentials] = None,
+        read_from: ReadFrom = ReadFrom.PRIMARY,
+        request_timeout: Optional[int] = None,
     ):
         """
         Represents the configuration settings for a Redis client.
 
         Args:
-            addresses (Optional[List[AddressInfo]]): DNS Addresses and ports of known nodes in the cluster.
+            addresses (Optional[List[NodeAddress]]): DNS Addresses and ports of known nodes in the cluster.
                     If the server is in cluster mode the list can be partial, as the client will attempt to map out
                     the cluster and find all nodes.
                     If the server is in standalone mode, only nodes whose addresses were provided will be used by the
@@ -101,21 +99,18 @@ class ClientConfiguration:
                     ].
                     If none are set, a default address localhost:6379 will be used.
             use_tls (bool): True if communication with the cluster should use Transport Level Security.
-            credentials (AuthenticationOptions): Credentials for authentication process.
+            credentials (RedisCredentials): Credentials for authentication process.
                     If none are set, the client will not authenticate itself with the server.
-            read_from_replica (ReadFromReplicaStrategy): If not set, `ALWAYS_FROM_MASTER` will be used.
-            client_creation_timeout (Optional[int]): Number of milliseconds that the client should wait for the
-                initial connection attempts before determining that the connection has been severed. If not set, a
-                default value will be used.
-            response_timeout (Optional[int]): Number of milliseconds that the client should wait for response before
-                determining that the connection has been severed. If not set, a default value will be used.
+            read_from (ReadFrom): If not set, `PRIMARY` will be used.
+            request_timeout (Optional[int]): The duration in milliseconds that the client should wait for a request to complete.
+                This duration encompasses sending the request, awaiting for a response from the server, and any required reconnections or retries.
+                If the specified timeout is exceeded for a pending request, it will result in a timeout error. If not set, a default value will be used.
         """
-        self.addresses = addresses or [AddressInfo()]
+        self.addresses = addresses or [NodeAddress()]
         self.use_tls = use_tls
         self.credentials = credentials
-        self.read_from_replica = read_from_replica
-        self.client_creation_timeout = client_creation_timeout
-        self.response_timeout = response_timeout
+        self.read_from = read_from
+        self.request_timeout = request_timeout
 
     def _create_a_protobuf_conn_request(
         self, cluster_mode: bool = False
@@ -135,11 +130,9 @@ class ClientConfiguration:
             address_info.host = address.host
             address_info.port = address.port
         request.tls_mode = TlsMode.SecureTls if self.use_tls else TlsMode.NoTls
-        request.read_from_replica_strategy = self.read_from_replica.value
-        if self.response_timeout:
-            request.response_timeout = self.response_timeout
-        if self.client_creation_timeout:
-            request.client_creation_timeout = self.client_creation_timeout
+        request.read_from = self.read_from.value
+        if self.request_timeout:
+            request.request_timeout = self.request_timeout
         request.cluster_mode_enabled = True if cluster_mode else False
         if self.credentials:
             if self.credentials.username:
@@ -149,16 +142,13 @@ class ClientConfiguration:
         return request
 
 
-class StandaloneClientConfiguration(ClientConfiguration):
+class RedisClientConfiguration(BaseClientConfiguration):
     """
-    Represents the configuration settings for a Redis client.
+    Represents the configuration settings for a Standalone Redis client.
 
     Args:
-        addresses (Optional[List[AddressInfo]]): DNS Addresses and ports of known nodes in the cluster.
-                If the server is in cluster mode the list can be partial, as the client will attempt to map out
-                the cluster and find all nodes.
-                If the server is in standalone mode, only nodes whose addresses were provided will be used by the
-                client.
+        addresses (Optional[List[NodeAddress]]): DNS Addresses and ports of known nodes in the cluster.
+                Only nodes whose addresses were provided will be used by the client.
                 For example:
                 [
                     {address:sample-address-0001.use1.cache.amazonaws.com, port:6379},
@@ -166,42 +156,37 @@ class StandaloneClientConfiguration(ClientConfiguration):
                 ].
                 If none are set, a default address localhost:6379 will be used.
         use_tls (bool): True if communication with the cluster should use Transport Level Security.
-        credentials (AuthenticationOptions): Credentials for authentication process.
+        credentials (RedisCredentials): Credentials for authentication process.
                 If none are set, the client will not authenticate itself with the server.
-        read_from_replica (ReadFromReplicaStrategy): If not set, `ALWAYS_FROM_MASTER` will be used.
-        client_creation_timeout (Optional[int]): Number of milliseconds that the client should wait for the
-            initial connection attempts before determining that the connection has been severed. If not set, a
-            default value will be used.
-        response_timeout (Optional[int]): Number of milliseconds that the client should wait for response before
-            determining that the connection has been severed. If not set, a default value will be used.
-        connection_backoff (Optional[BackoffStrategy]): Strategy used to determine how and when to reconnect, in case of
+        read_from (ReadFrom): If not set, `PRIMARY` will be used.
+        request_timeout (Optional[int]):  The duration in milliseconds that the client should wait for a request to complete.
+                This duration encompasses sending the request, awaiting for a response from the server, and any required reconnections or retries.
+                If the specified timeout is exceeded for a pending request, it will result in a timeout error.
+                If not set, a default value will be used.
+        reconnect_strategy (Optional[BackoffStrategy]): Strategy used to determine how and when to reconnect, in case of
             connection failures.
             If not set, a default backoff strategy will be used.
-            At the moment this setting isn't supported in cluster mode, only in standalone mode - a constant value is used
-            in cluster mode.
         database_id (Optional[Int]): index of the logical database to connect to.
     """
 
     def __init__(
         self,
-        addresses: Optional[List[AddressInfo]] = None,
+        addresses: Optional[List[NodeAddress]] = None,
         use_tls: bool = False,
-        credentials: Optional[AuthenticationOptions] = None,
-        read_from_replica: ReadFromReplica = ReadFromReplica.ALWAYS_FROM_MASTER,
-        client_creation_timeout: Optional[int] = None,
-        response_timeout: Optional[int] = None,
-        connection_backoff: Optional[BackoffStrategy] = None,
+        credentials: Optional[RedisCredentials] = None,
+        read_from: ReadFrom = ReadFrom.PRIMARY,
+        request_timeout: Optional[int] = None,
+        reconnect_strategy: Optional[BackoffStrategy] = None,
         database_id: Optional[int] = None,
     ):
         super().__init__(
             addresses=addresses,
             use_tls=use_tls,
             credentials=credentials,
-            read_from_replica=read_from_replica,
-            client_creation_timeout=client_creation_timeout,
-            response_timeout=response_timeout,
+            read_from=read_from,
+            request_timeout=request_timeout,
         )
-        self.connection_backoff = connection_backoff
+        self.reconnect_strategy = reconnect_strategy
         self.database_id = database_id
 
     def _create_a_protobuf_conn_request(
@@ -209,15 +194,57 @@ class StandaloneClientConfiguration(ClientConfiguration):
     ) -> ConnectionRequest:
         assert cluster_mode is False
         request = super()._create_a_protobuf_conn_request(False)
-        if self.connection_backoff:
+        if self.reconnect_strategy:
             request.connection_retry_strategy.number_of_retries = (
-                self.connection_backoff.num_of_retries
+                self.reconnect_strategy.num_of_retries
             )
-            request.connection_retry_strategy.factor = self.connection_backoff.factor
+            request.connection_retry_strategy.factor = self.reconnect_strategy.factor
             request.connection_retry_strategy.exponent_base = (
-                self.connection_backoff.exponent_base
+                self.reconnect_strategy.exponent_base
             )
         if self.database_id:
             request.database_id = self.database_id
 
         return request
+
+
+class ClusterClientConfiguration(BaseClientConfiguration):
+    """
+    Represents the configuration settings for a Cluster Redis client.
+
+    Args:
+        addresses (Optional[List[NodeAddress]]): DNS Addresses and ports of known nodes in the cluster.
+                The list can be partial, as the client will attempt to map out the cluster and find all nodes.
+                For example:
+                [
+                    {address:configuration-endpoint.use1.cache.amazonaws.com, port:6379}
+                ].
+                If none are set, a default address localhost:6379 will be used.
+        use_tls (bool): True if communication with the cluster should use Transport Level Security.
+        credentials (RedisCredentials): Credentials for authentication process.
+                If none are set, the client will not authenticate itself with the server.
+        read_from (ReadFrom): If not set, `PRIMARY` will be used.
+        request_timeout (Optional[int]):  The duration in milliseconds that the client should wait for a request to complete.
+            This duration encompasses sending the request, awaiting for a response from the server, and any required reconnections or retries.
+            If the specified timeout is exceeded for a pending request, it will result in a timeout error. If not set, a default value will be used.
+
+    Notes:
+        Currently, the reconnection strategy in cluster mode is not configurable, and exponential backoff
+        with fixed values is used.
+    """
+
+    def __init__(
+        self,
+        addresses: Optional[List[NodeAddress]] = None,
+        use_tls: bool = False,
+        credentials: Optional[RedisCredentials] = None,
+        read_from: ReadFrom = ReadFrom.PRIMARY,
+        request_timeout: Optional[int] = None,
+    ):
+        super().__init__(
+            addresses=addresses,
+            use_tls=use_tls,
+            credentials=credentials,
+            read_from=read_from,
+            request_timeout=request_timeout,
+        )

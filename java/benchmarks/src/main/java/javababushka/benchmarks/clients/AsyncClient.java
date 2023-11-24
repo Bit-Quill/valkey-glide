@@ -7,7 +7,7 @@ import javababushka.benchmarks.utils.ConnectionSettings;
 /** A Redis client with async capabilities */
 public interface AsyncClient<T> extends Client {
 
-  long DEFAULT_TIMEOUT = 1000;
+  long DEFAULT_TIMEOUT_MILLISECOND = 1000;
 
   Future<T> asyncConnectToRedis(ConnectionSettings connectionSettings);
 
@@ -16,7 +16,7 @@ public interface AsyncClient<T> extends Client {
   Future<String> asyncGet(String key);
 
   default <T> T waitForResult(Future<T> future) {
-    return waitForResult(future, DEFAULT_TIMEOUT);
+    return waitForResult(future, DEFAULT_TIMEOUT_MILLISECOND);
   }
 
   default <T> T waitForResult(Future<T> future, long timeout) {

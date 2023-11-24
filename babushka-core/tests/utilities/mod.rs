@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use babushka::{
     client::{Client, StandaloneClient},
-    connection_request::{self, AddressInfo, AuthenticationInfo},
+    connection_request::{self, AuthenticationInfo, NodeAddress},
 };
 use futures::Future;
 use once_cell::sync::Lazy;
@@ -436,8 +436,8 @@ where
     current_thread_runtime().block_on(f)
 }
 
-pub fn get_address_info(address: &ConnectionAddr) -> AddressInfo {
-    let mut address_info = AddressInfo::new();
+pub fn get_address_info(address: &ConnectionAddr) -> NodeAddress {
+    let mut address_info = NodeAddress::new();
     match address {
         ConnectionAddr::Tcp(host, port) => {
             address_info.host = host.to_string().into();
@@ -563,14 +563,11 @@ pub fn create_connection_request(
     }
     .into();
     connection_request.cluster_mode_enabled = ClusterMode::Enabled == configuration.cluster_mode;
-    if let Some(response_timeout) = configuration.response_timeout {
-        connection_request.response_timeout = response_timeout;
+    if let Some(request_timeout) = configuration.request_timeout {
+        connection_request.request_timeout = request_timeout;
     }
-    if let Some(connection_timeout) = configuration.connection_timeout {
-        connection_request.client_creation_timeout = connection_timeout;
-    }
-    if let Some(strategy) = configuration.read_from_replica_strategy {
-        connection_request.read_from_replica_strategy = strategy.into()
+    if let Some(strategy) = configuration.read_from {
+        connection_request.read_from = strategy.into()
     }
 
     connection_request.connection_retry_strategy =
@@ -588,10 +585,9 @@ pub struct TestConfiguration {
     pub connection_retry_strategy: Option<connection_request::ConnectionRetryStrategy>,
     pub connection_info: Option<RedisConnectionInfo>,
     pub cluster_mode: ClusterMode,
-    pub response_timeout: Option<u32>,
-    pub connection_timeout: Option<u32>,
+    pub request_timeout: Option<u32>,
     pub shared_server: bool,
-    pub read_from_replica_strategy: Option<connection_request::ReadFromReplicaStrategy>,
+    pub read_from: Option<connection_request::ReadFrom>,
     pub database_id: u32,
 }
 

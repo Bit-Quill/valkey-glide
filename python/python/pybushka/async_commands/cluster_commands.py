@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from typing import Dict, List, Mapping, Optional, TypeVar, Union, cast
 
 from pybushka.async_commands.core import CoreCommands, InfoSection
 from pybushka.async_commands.transaction import BaseTransaction, ClusterTransaction
-from pybushka.constants import TOK, TClusterResponse, TResult
+from pybushka.constants import TOK, TClusterResponse, TResult, TSingleNodeRoute
 from pybushka.protobuf.redis_request_pb2 import RequestType
 from pybushka.routes import Route
 
@@ -31,9 +33,9 @@ def is_single_response(response: T, single_res: T) -> bool:
         >>> is_single_response([["value"]], LIST_STR)
         False
     """
-    if type(single_res) == type(response) == list:
+    if isinstance(single_res, list) and isinstance(response, list):
         return is_single_response(response[0], single_res[0])
-    elif type(response) == type(single_res):
+    elif isinstance(response, type(single_res)):
         return True
     return False
 
@@ -59,7 +61,7 @@ def convert_multi_node_res_to_dict(
     dict_res: Dict[str, T] = {}
     while len(response) > 0:
         cur_res = response.pop()
-        if cur_res is not None and type(cur_res[0]) == str:
+        if cur_res is not None and isinstance(cur_res[0], str):
             dict_res[cur_res[0]] = cast(T, cur_res[1])
 
     return dict_res
@@ -76,8 +78,8 @@ class ClusterCommands(CoreCommands):
         Args:
             command_args (List[str]): List of strings of the command's arguments.
             Every part of the command, including the command name and subcommands, should be added as a separate value in args.
-            route (Optional[Route]): The command will be routed automatically, unless `route` is provided, in which
-            case the client will initially try to route the command to the nodes defined by `route`. Defaults to None.
+            route (Optional[Route]): The command will be routed automatically based on the passed command's default request policy, unless `route` is provided, in which
+            case the client will route the command to the nodes defined by `route`. Defaults to None.
 
         Returns:
             TResult: The returning value depends on the executed command and the route
@@ -97,8 +99,8 @@ class ClusterCommands(CoreCommands):
         Args:
             sections (Optional[List[InfoSection]]): A list of InfoSection values specifying which sections of
             information to retrieve. When no parameter is provided, the default option is assumed.
-            route (Optional[Route]): The command will be routed automatically, unless `route` is provided, in which
-            case the client will initially try to route the command to the nodes defined by `route`. Defaults to None.
+            route (Optional[Route]): The command will be routed to all primeries, unless `route` is provided, in which
+            case the client will route the command to the nodes defined by `route`. Defaults to None.
 
         Returns:
             TClusterResponse[str]: If a single node route is requested, returns a string containing the information for
@@ -120,15 +122,16 @@ class ClusterCommands(CoreCommands):
     async def exec(
         self,
         transaction: BaseTransaction | ClusterTransaction,
-        route: Optional[Route] = None,
+        route: Optional[TSingleNodeRoute] = None,
     ) -> List[TResult]:
         """Execute a transaction by processing the queued commands.
         See https://redis.io/topics/Transactions/ for details on Redis Transactions.
 
         Args:
             transaction (ClusterTransaction): A ClusterTransaction object containing a list of commands to be executed.
-            route (Optional[Route]): The command will be routed automatically, unless `route` is provided, in which
-            case the client will initially try to route the command to the nodes defined by `route`. Defaults to None.
+            route (Optional[TSingleNodeRoute]): If `route` is not provided, the transaction will be routed to the slot owner of the
+            first key found in the transaction. If no key is found, the command will be sent to a random node.
+            If `route` is provided, the client will route the command to the nodes defined by `route`.
 
         Returns:
             List[TResult]: A list of results corresponding to the execution of each command
@@ -145,8 +148,8 @@ class ClusterCommands(CoreCommands):
         """Reset the statistics reported by Redis.
         See https://redis.io/commands/config-resetstat/ for details.
         Args:
-            route (Optional[Route]): The command will be routed automatically, unless `route` is provided, in which
-            case the client will initially try to route the command to the nodes defined by `route`. Defaults to None.
+            route (Optional[Route]): The command will be routed automatically to all nodes, unless `route` is provided, in which
+            case the client will route the command to the nodes defined by `route`. Defaults to None.
         Returns:
             OK: Returns "OK" to confirm that the statistics were successfully reset.
         """
@@ -161,8 +164,8 @@ class ClusterCommands(CoreCommands):
         """Rewrite the configuration file with the current configuration.
         See https://redis.io/commands/config-rewrite/ for details.
         Args:
-            route (Optional[TRoute]): The command will be routed automatically, unless `route` is provided, in which
-            case the client will initially try to route the command to the nodes defined by `route`. Defaults to None.
+            route (Optional[TRoute]): The command will be routed automatically to all nodes, unless `route` is provided, in which
+            case the client will route the command to the nodes defined by `route`. Defaults to None.
         Returns:
             OK: OK is returned when the configuration was rewritten properly. Otherwise an error is returned.
         """
@@ -205,16 +208,16 @@ class ClusterCommands(CoreCommands):
            message (Optional[str]): An optional message to include in the PING command. If not provided,
             the server will respond with "PONG". If provided, the server will respond with a copy of the message.
 
-            route (Optional[Route]): : The command will be sent to all primaries, unless `route` is provided, in which
+            route (Optional[Route]): The command will be sent to all primaries, unless `route` is provided, in which
             case the client will route the command to the nodes defined by `route`
 
         Returns:
            str: "PONG" if 'message' is not provided, otherwise return a copy of 'message'.
 
         Examples:
-            >>> ping()
+            >>> await client.ping()
             "PONG"
-            >>> ping("Hello")
+            >>> await client.ping("Hello")
             "Hello"
         """
         argument = [] if message is None else [message]
@@ -229,8 +232,8 @@ class ClusterCommands(CoreCommands):
         Args:
             parameters (List[str]): A list of configuration parameter names to retrieve values for.
 
-            route (Optional[Route]): The command will be routed to all nodes, unless route is provided,
-            in which case the client will route the command to the nodes defined by route.
+            route (Optional[Route]): The command will be routed to all nodes, unless `route` is provided,
+            in which case the client will route the command to the nodes defined by `route`.
 
         Returns:
             TClusterResponse[List[str]]: A list of values corresponding to the
@@ -239,9 +242,9 @@ class ClusterCommands(CoreCommands):
             with type of Dict[str, List[str]].
 
         Examples:
-            >>> config_get(["timeout"] , RandomNode())
+            >>> await client.config_get(["timeout"] , RandomNode())
             ['timeout', '1000']
-            >>> config_get(["timeout" , "maxmemory"])
+            >>> await client.config_get(["timeout" , "maxmemory"])
             ['timeout', '1000', "maxmemory", "1GB"]
         """
         config_get_res = await self._execute_command(
@@ -266,14 +269,14 @@ class ClusterCommands(CoreCommands):
             parameters_map (Mapping[str, str]): A map consisting of configuration
             parameters and their respective values to set.
 
-            route (Optional[Route]): The command will be routed to all nodes, unless route is provided,
-            in which case the client will route the command to the nodes defined by route.
+            route (Optional[Route]): The command will be routed to all nodes, unless `route` is provided,
+            in which case the client will route the command to the nodes defined by `route`.
 
         Returns:
             OK: Returns OK if all configurations have been successfully set. Otherwise, raises an error.
 
         Examples:
-            >>> config_set([("timeout", "1000")], [("maxmemory", "1GB")])
+            >>> await client.config_set([("timeout", "1000")], [("maxmemory", "1GB")])
             OK
         """
         parameters: List[str] = []
@@ -282,4 +285,39 @@ class ClusterCommands(CoreCommands):
         return cast(
             TOK,
             await self._execute_command(RequestType.ConfigSet, parameters, route),
+        )
+
+    async def client_getname(
+        self, route: Optional[Route] = None
+    ) -> TClusterResponse[Optional[str]]:
+        """
+        Get the name of the connection to which the request is routed.
+        See https://redis.io/commands/client-getname/ for more details.
+        Args:
+            route (Optional[Route]): The command will be routed to a random node, unless `route` is provided,
+            in which case the client will route the command to the nodes defined by `route`.
+
+        Returns:
+            TClusterResponse[Optional[str]]: The name of the client connection as a string if a name is set,
+            or None if no name is assigned.
+            When specifying a route other than a single node, response will be:
+            {Address (str) : response (Optional[str]) , ... } with type of Dict[str, Optional[str]].
+
+        Examples:
+            >>> await client.client_getname()
+            'Connection Name'
+            >>> await client.client_getname(AllNodes())
+            {'addr': 'Connection Name'', 'addr2': 'Connection Name', 'addr3': 'Connection Name'}
+        """
+
+        client_get_name = await self._execute_command(
+            RequestType.ClientGetName, [], route
+        )
+
+        return (
+            cast(Optional[str], client_get_name)
+            if isinstance(client_get_name, str) or client_get_name is None
+            else convert_multi_node_res_to_dict(
+                cast(List[List[Union[str, Optional[str]]]], client_get_name)
+            )
         )

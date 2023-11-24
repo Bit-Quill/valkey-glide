@@ -6,20 +6,23 @@ import os from "os";
 import path from "path";
 import { Reader } from "protobufjs";
 import {
+    BaseClientConfiguration,
     ClosingError,
-    ConnectionOptions,
+    InfoOptions,
     Logger,
     RedisClient,
     RedisClusterClient,
     RequestError,
     TimeoutError,
+    Transaction
 } from "../build-ts";
-import { StandaloneConnectionOptions } from "../build-ts/src/RedisClient";
+import { RedisClientConfiguration } from "../build-ts/src/RedisClient";
 import {
     connection_request,
     redis_request,
     response,
 } from "../src/ProtobufMessage";
+import { ClusterClientConfiguration, SlotKeyTypes } from "../src/RedisClusterClient";
 
 const { RequestType, RedisRequest } = redis_request;
 
@@ -74,7 +77,7 @@ function sendResponse(
 
 function getConnectionAndSocket(
     checkRequest?: (request: connection_request.ConnectionRequest) => boolean,
-    connectionOptions?: ConnectionOptions | StandaloneConnectionOptions,
+    connectionOptions?: ClusterClientConfiguration | RedisClientConfiguration,
     isCluster?: boolean
 ): Promise<{
     socket: net.Socket;
@@ -146,7 +149,7 @@ async function testWithResources(
         connection: RedisClient | RedisClusterClient,
         socket: net.Socket
     ) => Promise<void>,
-    connectionOptions?: ConnectionOptions
+    connectionOptions?: BaseClientConfiguration
 ) {
     const { connection, server, socket } = await getConnectionAndSocket(
         undefined,
@@ -163,7 +166,7 @@ async function testWithClusterResources(
         connection: RedisClusterClient,
         socket: net.Socket
     ) => Promise<void>,
-    connectionOptions?: ConnectionOptions
+    connectionOptions?: BaseClientConfiguration
 ) {
     const { connection, server, socket } = await getConnectionAndSocket(
         undefined,
@@ -243,6 +246,57 @@ describe("SocketConnectionInternals", () => {
             });
             const result = await connection.get("foo");
             expect(result).toBeNull();
+        });
+    });
+
+    it("should pass transaction with SlotKeyType", async () => {
+        await testWithClusterResources(async (connection, socket) => {
+            socket.once("data", (data) => {
+                const reader = Reader.create(data);
+                const request = RedisRequest.decodeDelimited(reader);
+                
+                expect(request.transaction?.commands?.at(0)?.requestType).toEqual(
+                    RequestType.SetString
+                );
+                expect(request.transaction?.commands?.at(0)?.argsArray?.args?.length).toEqual(
+                    2
+                );
+                expect(request.route?.slotKeyRoute?.slotKey).toEqual("key");
+                expect(request.route?.slotKeyRoute?.slotType).toEqual(0); // Primary = 0
+
+                sendResponse(socket, ResponseType.OK, request.callbackIdx);
+            });
+            const transaction = new Transaction();
+            transaction.set("key" , "value");
+            const slotKey: SlotKeyTypes = {
+                type: "primarySlotKey",
+                key: "key"
+              };
+            const result = await connection.exec(transaction, slotKey);
+            expect(result).toBe("OK");
+        });
+    });
+
+    it("should pass transaction with random node", async () => {
+        await testWithClusterResources(async (connection, socket) => {
+            socket.once("data", (data) => {
+                const reader = Reader.create(data);
+                const request = RedisRequest.decodeDelimited(reader);
+                
+                expect(request.transaction?.commands?.at(0)?.requestType).toEqual(
+                    RequestType.Info
+                );
+                expect(request.transaction?.commands?.at(0)?.argsArray?.args?.length).toEqual(
+                    1
+                );
+                expect(request.route?.simpleRoutes).toEqual(redis_request.SimpleRoutes.Random);
+
+                sendResponse(socket, ResponseType.Value, request.callbackIdx , "# Server");
+            });
+            const transaction = new Transaction();
+            transaction.info([InfoOptions.Server]);
+            const result = await connection.exec(transaction, "randomNode");
+            expect(result).toEqual(expect.stringContaining("# Server"));
         });
     });
 
@@ -462,7 +516,7 @@ describe("SocketConnectionInternals", () => {
             },
             {
                 addresses: [{ host: "foo" }],
-                responseTimeout: 1,
+                requestTimeout: 1,
             }
         );
     });

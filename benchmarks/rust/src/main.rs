@@ -1,6 +1,6 @@
 use babushka::{
     client::Client,
-    connection_request::{AddressInfo, ConnectionRequest, TlsMode},
+    connection_request::{ConnectionRequest, NodeAddress, TlsMode},
 };
 use clap::Parser;
 use futures::{self, future::join_all, stream, StreamExt};
@@ -59,7 +59,7 @@ enum ChosenAction {
 }
 
 fn main() {
-    logger_core::init(Some(logger_core::Level::Debug), None);
+    logger_core::init(Some(logger_core::Level::Warn), None);
 
     let args = Args::parse();
 
@@ -130,7 +130,7 @@ async fn perform_benchmark(args: Args) {
             Value::Number((number_of_operations as i64 * 1000 / stopwatch.elapsed_ms()).into()),
         );
         results_json.insert(
-            "clientCount".to_string(),
+            "client_count".to_string(),
             Value::Number(args.client_count.into()),
         );
         results_json.insert(
@@ -204,11 +204,11 @@ async fn get_connection(args: &Args) -> Client {
         TlsMode::NoTls
     }
     .into();
-    let mut address_info: AddressInfo = AddressInfo::new();
+    let mut address_info: NodeAddress = NodeAddress::new();
     address_info.host = args.host.clone().into();
     address_info.port = args.port;
     connection_request.addresses.push(address_info);
-    connection_request.response_timeout = 2000;
+    connection_request.request_timeout = 2000;
     connection_request.cluster_mode_enabled = args.cluster_mode_enabled;
 
     babushka::client::Client::new(connection_request)

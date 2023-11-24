@@ -1,5 +1,5 @@
 use crate::connection_request::{
-    AddressInfo, AuthenticationInfo, ConnectionRequest, ReadFromReplicaStrategy, TlsMode,
+    AuthenticationInfo, ConnectionRequest, NodeAddress, ReadFrom, TlsMode,
 };
 use futures::FutureExt;
 use logger_core::log_info;
@@ -27,7 +27,7 @@ pub const DEFAULT_RESPONSE_TIMEOUT: Duration = Duration::from_millis(250);
 pub const DEFAULT_CONNECTION_ATTEMPT_TIMEOUT: Duration = Duration::from_millis(250);
 pub const INTERNAL_CONNECTION_TIMEOUT: Duration = Duration::from_millis(250);
 
-pub(super) fn get_port(address: &AddressInfo) -> u16 {
+pub(super) fn get_port(address: &NodeAddress) -> u16 {
     const DEFAULT_PORT: u16 = 6379;
     if address.port == 0 {
         DEFAULT_PORT
@@ -62,7 +62,7 @@ pub(super) fn get_redis_connection_info(
 }
 
 pub(super) fn get_connection_info(
-    address: &AddressInfo,
+    address: &NodeAddress,
     tls_mode: TlsMode,
     redis_connection_info: redis::RedisConnectionInfo,
 ) -> redis::ConnectionInfo {
@@ -90,7 +90,7 @@ pub enum ClientWrapper {
 #[derive(Clone)]
 pub struct Client {
     internal_client: ClientWrapper,
-    response_timeout: Duration,
+    request_timeout: Duration,
 }
 
 async fn run_with_timeout<T>(
@@ -109,13 +109,15 @@ impl Client {
         cmd: &'a redis::Cmd,
         routing: Option<RoutingInfo>,
     ) -> redis::RedisFuture<'a, redis::Value> {
-        run_with_timeout(self.response_timeout, async {
+        run_with_timeout(self.request_timeout, async {
             match self.internal_client {
                 ClientWrapper::Standalone(ref mut client) => client.send_packed_command(cmd).await,
 
                 ClientWrapper::Cluster { ref mut client } => {
-                    let routing = routing.or_else(|| RoutingInfo::for_routable(cmd));
-                    client.send_packed_command(cmd, routing).await
+                    let routing = routing
+                        .or_else(|| RoutingInfo::for_routable(cmd))
+                        .unwrap_or(RoutingInfo::SingleNode(SingleNodeRoutingInfo::Random));
+                    client.route_command(cmd, routing).await
                 }
             }
         })
@@ -137,14 +139,12 @@ impl Client {
 
                 ClientWrapper::Cluster { ref mut client } => {
                     let route = match routing {
-                        Some(RoutingInfo::SingleNode(SingleNodeRoutingInfo::SpecificNode(
-                            route,
-                        ))) => Some(route),
-                        _ => None,
+                        Some(RoutingInfo::SingleNode(route)) => route,
+                        _ => SingleNodeRoutingInfo::Random,
                     };
                     run_with_timeout(
-                        self.response_timeout,
-                        client.send_packed_commands(cmd, offset, count, route),
+                        self.request_timeout,
+                        client.route_pipeline(cmd, offset, count, route),
                     )
                     .await
                 }
@@ -173,14 +173,8 @@ async fn create_cluster_client(
         .into_iter()
         .map(|address| get_connection_info(&address, tls_mode, redis_connection_info.clone()))
         .collect();
-    let read_from_replica_strategy = request
-        .read_from_replica_strategy
-        .enum_value()
-        .unwrap_or(ReadFromReplicaStrategy::AlwaysFromPrimary);
-    let read_from_replicas = !matches!(
-        read_from_replica_strategy,
-        ReadFromReplicaStrategy::AlwaysFromPrimary,
-    ); // TODO - implement different read from replica strategies.
+    let read_from = request.read_from.enum_value().unwrap_or(ReadFrom::Primary);
+    let read_from_replicas = !matches!(read_from, ReadFrom::Primary,); // TODO - implement different read from replica strategies.
     let mut builder = redis::cluster::ClusterClientBuilder::new(initial_nodes)
         .connection_timeout(INTERNAL_CONNECTION_TIMEOUT);
     if read_from_replicas {
@@ -242,11 +236,9 @@ fn sanitized_request_string(request: &ConnectionRequest) -> String {
         .join(", ");
     let tls_mode = request.tls_mode.enum_value_or_default();
     let cluster_mode = request.cluster_mode_enabled;
-    let response_timeout = format_non_zero_value("response timeout", request.response_timeout);
-    let client_creation_timeout =
-        format_non_zero_value("client creation timeout", request.client_creation_timeout);
+    let request_timeout = format_non_zero_value("response timeout", request.request_timeout);
     let database_id = format_non_zero_value("database ID", request.database_id);
-    let rfr_strategy = request.read_from_replica_strategy.enum_value_or_default();
+    let rfr_strategy = request.read_from.enum_value_or_default();
     let connection_retry_strategy = match &request.connection_retry_strategy.0 {
         Some(strategy) => {
             format!("\nreconnect backoff strategy: number of increasing duration retries: {}, base: {}, factor: {}",
@@ -256,24 +248,20 @@ fn sanitized_request_string(request: &ConnectionRequest) -> String {
     };
 
     format!(
-        "\naddresses: {addresses}\nTLS mode: {tls_mode:?}\ncluster mode: {cluster_mode}{response_timeout}{client_creation_timeout}\nRead from replica strategy: {rfr_strategy:?}{database_id}{connection_retry_strategy}",
+        "\naddresses: {addresses}\nTLS mode: {tls_mode:?}\ncluster mode: {cluster_mode}{request_timeout}\nRead from replica strategy: {rfr_strategy:?}{database_id}{connection_retry_strategy}",
     )
 }
 
 impl Client {
     pub async fn new(request: ConnectionRequest) -> Result<Self, ConnectionError> {
-        const DEFAULT_CLIENT_CREATION_TIMEOUT: Duration = Duration::from_millis(2500);
+        const DEFAULT_CLIENT_CREATION_TIMEOUT: Duration = Duration::from_secs(10);
 
         log_info(
             "Connection configuration",
             sanitized_request_string(&request),
         );
-        let response_timeout = to_duration(request.response_timeout, DEFAULT_RESPONSE_TIMEOUT);
-        let total_connection_timeout = to_duration(
-            request.client_creation_timeout,
-            DEFAULT_CLIENT_CREATION_TIMEOUT,
-        );
-        tokio::time::timeout(total_connection_timeout, async move {
+        let request_timeout = to_duration(request.request_timeout, DEFAULT_RESPONSE_TIMEOUT);
+        tokio::time::timeout(DEFAULT_CLIENT_CREATION_TIMEOUT, async move {
             let internal_client = if request.cluster_mode_enabled {
                 let client = create_cluster_client(request)
                     .await
@@ -289,7 +277,7 @@ impl Client {
 
             Ok(Self {
                 internal_client,
-                response_timeout,
+                request_timeout,
             })
         })
         .await

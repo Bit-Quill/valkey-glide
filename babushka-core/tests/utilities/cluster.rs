@@ -1,6 +1,6 @@
 use super::{create_connection_request, ClusterMode, TestConfiguration};
 use babushka::client::Client;
-use babushka::connection_request::AddressInfo;
+use babushka::connection_request::NodeAddress;
 use futures::future::{join_all, BoxFuture};
 use futures::FutureExt;
 use once_cell::sync::Lazy;
@@ -36,7 +36,7 @@ impl ClusterType {
 
 pub struct RedisCluster {
     cluster_folder: String,
-    addresses: Vec<AddressInfo>,
+    addresses: Vec<NodeAddress>,
     use_tls: bool,
     password: Option<String>,
 }
@@ -101,7 +101,7 @@ impl RedisCluster {
         shards: Option<u16>,
         replicas: Option<u16>,
     ) -> RedisCluster {
-        let mut script_args = vec!["start"];
+        let mut script_args = vec!["start", "--cluster-mode"];
         let shards_num: String;
         let replicas_num: String;
         if let Some(shards) = shards {
@@ -128,7 +128,7 @@ impl RedisCluster {
         }
     }
 
-    fn parse_start_script_output(output: &str, errors: &str) -> (String, Vec<AddressInfo>) {
+    fn parse_start_script_output(output: &str, errors: &str) -> (String, Vec<NodeAddress>) {
         let cluster_folder = output.split("CLUSTER_FOLDER=").collect::<Vec<&str>>();
         assert!(
             !cluster_folder.is_empty() && cluster_folder.len() >= 2,
@@ -144,10 +144,10 @@ impl RedisCluster {
             "Received output: {output}, stderr: {errors}"
         );
         let nodes = output_parts.get(1).unwrap().split(',');
-        let mut address_vec: Vec<AddressInfo> = Vec::new();
+        let mut address_vec: Vec<NodeAddress> = Vec::new();
         for node in nodes {
             let node_parts = node.split(':').collect::<Vec<&str>>();
-            let mut address_info = AddressInfo::new();
+            let mut address_info = NodeAddress::new();
             address_info.host = node_parts.first().unwrap().to_string().into();
             address_info.port = node_parts.get(1).unwrap().parse::<u32>().unwrap();
             address_vec.push(address_info);
@@ -248,8 +248,7 @@ pub async fn setup_test_basics_internal(mut configuration: TestConfiguration) ->
         setup_acl_for_cluster(&addresses, redis_connection_info).await;
     }
     configuration.cluster_mode = ClusterMode::Enabled;
-    configuration.response_timeout = configuration.response_timeout.or(Some(10000));
-    configuration.connection_timeout = configuration.connection_timeout.or(Some(10000));
+    configuration.request_timeout = configuration.request_timeout.or(Some(10000));
     let connection_request = create_connection_request(&addresses, &configuration);
 
     let client = Client::new(connection_request).await.unwrap();
