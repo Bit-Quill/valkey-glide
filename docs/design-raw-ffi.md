@@ -82,6 +82,9 @@ ffi -->>- Wrapper: socket_path
 Wrapper ->> Socket: connect 
     Socket -->> Wrapper: 
 loop single_request
+    Wrapper ->> ffi: java_arg_to_redis
+    ffi -->> Wrapper: 
+    Wrapper -> Wrapper: pack protobuf.redis_request
     Wrapper ->> Socket: netty.writeandflush (protobuf.redis_request)
     Socket -->> Wrapper: 
     Wrapper ->> Wrapper: wait
@@ -94,7 +97,9 @@ loop single_request
             Socket -->> SocketListener: 
     Wrapper ->> Socket: netty.read (protobuf.response)
         Socket -->> Wrapper: 
-    Wrapper ->> Wrapper: Result 
+    Wrapper ->> ffi: redis_value_to_java
+    ffi -->> Wrapper: 
+    Wrapper ->> Wrapper: unpack protobuf.response 
 end
 Wrapper ->> Socket: close() 
 Wrapper ->> SocketListener: shutdown
@@ -107,6 +112,13 @@ Wrapper ->> SocketListener: shutdown
     deactivate Wrapper
     deactivate Client
 ```
+
+### Discussion
+* `redis_value_to_java`: This ffi call is necessary to evaluate the Redis::Value response that Redis returns to Rust-core, 
+and needs to be converted to a `JObject` before it can be evaluated by Java. We are looking for alternatives to this call
+to avoid an unnecessary ffi call. 
+* `java_arg_to_redis`: This ffi call is currently unnecessary, because all arguments sent are Strings. 
+
 
 ### Elements
 * **Wrapper**: Our Babushka wrapper that exposes a client API (java, python, node, etc)
@@ -200,9 +212,9 @@ Wrapper ->> channel: wait
         manager ->> worker: command: cmd(protobuf.redis_request)
             worker ->> Client: send(command, args)
             Client -->> worker: Result
-        worker -->> ffi: Ok(protobuf.response)
-    ffi -->> channel: Ok(protobuf.response)
-channel ->> Wrapper: protobuf.response
+        worker -->> ffi: Ok(protobuf.response<Redis::Value>)
+    ffi -->> channel: Ok(protobuf.response<Result>)
+channel ->> Wrapper: protobuf.response<Result>
 Wrapper ->> channel: close
     deactivate channel
 end
