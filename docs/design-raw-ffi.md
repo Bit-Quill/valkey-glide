@@ -56,7 +56,7 @@ The decision to use Unix Domain Sockets (UDS) to manage the Java-wrapper to Babu
 ```mermaid
 sequenceDiagram
 
-participant Wrapper as Client-Wrapper
+participant Wrapper as Java-Wrapper
 participant ffi as FFI
 participant manager as Rust-Core
 participant worker as Tokio Worker
@@ -121,7 +121,7 @@ to avoid an unnecessary ffi call.
 
 
 ### Elements
-* **Wrapper**: Our Babushka wrapper that exposes a client API (java, python, node, etc)
+* **Java-Wrapper**: Our Babushka wrapper that exposes a client API (java, python, node, etc)
 * **Babushka FFI**: Foreign Function Interface definitions from our wrapper to our Rust Babushka-Core
 * **Babushka impl**: public interface layer and thread manager
 * **Tokio Worker**: Tokio worker threads (number of CPUs)
@@ -182,11 +182,10 @@ pushing goroutines to the result channel once the Tokio threads send back a call
 
 ### Sequence Diagram
 
-
 ```mermaid
 sequenceDiagram
 
-participant Wrapper as Client-Wrapper
+participant Wrapper as Go-Wrapper
 participant channel as Result Channel 
 participant ffi as Babushka FFI
 participant manager as Babushka impl
@@ -226,8 +225,14 @@ Wrapper -) worker: close_connection
     deactivate Client
 ```
 
+### Discussion
+
+Message format interface: When passing messages between the Go-wrapper and Rust-core, we need to use a language-idiomatic 
+format. Protobuf, for example, passes messages in wire-frame.  We could also pass messages using a custom C datatype. 
+Protobuf is available, but the overhead to encode and decode messages may make a custom C datatype more worthwhile. 
+
 ### Elements
-* **Client-Wrapper**: Our Babushka wrapper that exposes a client API (Go, etc)
+* **Go-Wrapper**: Our Babushka wrapper that exposes a client API (Go, etc)
 * **Result Channel**: Goroutine channel on the Babushka Wrapper 
 * **Babushka FFI**: Foreign Function Interface definitions from our wrapper to our Rust Babushka-Core
 * **Babushka impl**: public interface layer and thread manager
