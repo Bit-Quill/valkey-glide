@@ -27,9 +27,12 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -54,6 +57,11 @@ class NettyWrapper {
   // request always).
   // Is it not a concurrent nor sync collection, but it is synced on adding. No removes.
   private final Map<Integer, CompletableFuture<Response>> responses = new ConcurrentHashMap<>();
+
+  private final Deque<CompletableFuture<Response>> connectionRequests =
+      new ConcurrentLinkedDeque<>();
+
+  private final AtomicInteger requestId = new AtomicInteger(0);
 
   // We support MacOS and Linux only, because Babushka does not support Windows, because tokio does
   // not support it.
@@ -111,8 +119,13 @@ class NettyWrapper {
                                   var response = Response.parseFrom(bytes);
                                   int callbackId = response.getCallbackIdx();
                                   // System.out.printf("== Received response with callback %d%n",
-                                  responses.get(callbackId).complete(response);
-                                  if (callbackId != 0) {
+                                  if (callbackId == 0) {
+                                    // can't distinguish connection requests since they have no
+                                    // callback ID
+                                    // https://github.com/aws/babushka/issues/600
+                                    connectionRequests.pop().complete(response);
+                                  } else {
+                                    responses.get(callbackId).complete(response);
                                     responses.remove(callbackId);
                                   }
                                   buf.release();
@@ -151,8 +164,14 @@ class NettyWrapper {
     }
   }
 
-  public void registerRequest(Integer callbackId, CompletableFuture<Response> future) {
+  public int registerRequest(CompletableFuture<Response> future) {
+    int callbackId = requestId.incrementAndGet();
     responses.put(callbackId, future);
+    return callbackId;
+  }
+
+  public void registerConnection(CompletableFuture<Response> future) {
+    connectionRequests.add(future);
   }
 
   public void close() {

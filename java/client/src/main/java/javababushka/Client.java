@@ -15,7 +15,6 @@ import static redis_request.RedisRequestOuterClass.SimpleRoutes;
 import static response.ResponseOuterClass.Response;
 
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -41,8 +40,7 @@ public class Client {
 
   private synchronized Pair<Integer, CompletableFuture<Response>> getNextCallback() {
     var future = new CompletableFuture<Response>();
-    var callbackId = new Random().nextInt();
-    NettyWrapper.INSTANCE.registerRequest(callbackId, future);
+    int callbackId = NettyWrapper.INSTANCE.registerRequest(future);
     return Pair.of(callbackId, future);
   }
 
@@ -72,7 +70,7 @@ public class Client {
     var future = new CompletableFuture<Response>();
     // connection request has hardcoded callback id = 0
     // https://github.com/aws/babushka/issues/600
-    NettyWrapper.INSTANCE.registerRequest(0, future);
+    NettyWrapper.INSTANCE.registerConnection(future);
     NettyWrapper.INSTANCE.getChannel().writeAndFlush(request.toByteArray());
     return future;
   }
