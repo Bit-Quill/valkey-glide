@@ -156,7 +156,6 @@ class NettyWrapper {
   }
 
   public void close() {
-    // channel.closeFuture().sync()
     channel.close();
     group.shutdownGracefully();
   }

@@ -24,7 +24,6 @@ use std::cell::Cell;
 use std::rc::Rc;
 use std::{env, str};
 use std::{io, thread};
-use std::fmt::format;
 use thiserror::Error;
 use tokio::io::ErrorKind::AddrInUse;
 use tokio::net::{UnixListener, UnixStream};

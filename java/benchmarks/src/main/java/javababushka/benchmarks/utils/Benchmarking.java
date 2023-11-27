@@ -126,6 +126,8 @@ public class Benchmarking {
     System.out.printf("Runtime s: %f%n", duration);
     System.out.printf("Iterations: %d%n", iterations);
     System.out.printf("TPS: %f%n", iterations / duration);
+    int totalHits = 0;
+
     for (Map.Entry<ChosenAction, LatencyResults> entry : resultsMap.entrySet()) {
       ChosenAction action = entry.getKey();
       LatencyResults results = entry.getValue();
@@ -137,7 +139,9 @@ public class Benchmarking {
       System.out.printf("p90 latency ms: %f%n", results.p90Latency);
       System.out.printf("p99 latency ms: %f%n", results.p99Latency);
       System.out.printf("Total hits: %d%n", results.totalHits);
+      totalHits += results.totalHits;
     }
+    System.out.printf("%nTotal hits: %d%n", totalHits);
   }
 
   public static void testClientSetGet(
