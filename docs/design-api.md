@@ -4,7 +4,7 @@ API Design
 
 ## API requirements:
 - The API will be thread-safe.
-- The API will accept as inputs all of [RESP3 types](https://redis.io/docs/reference/protocol-spec/). NOTE: Requires further discussion, since RESP3 isn't supported by redis-rs yet
+- The API will accept as inputs all of [RESP2 types](https://github.com/redis/redis-specifications/blob/master/protocol/RESP2.md).
 - The API will attempt authentication, topology refreshes, reconnections, etc., automatically. In case of failures concrete errors will be returned to the user.
 
 ## Command Interface
