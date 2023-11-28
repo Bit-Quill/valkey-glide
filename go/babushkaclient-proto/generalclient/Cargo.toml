@@ -1,0 +1,25 @@
+[package]
+name = "clientProto"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[build-dependencies]
+cbindgen = "0.20"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+redis = { path = "../../../submodules/redis-rs/redis", features = ["aio", "tokio-comp", "tls", "tokio-native-tls-comp", "tls-rustls-insecure"] }
+babushka = { path = "../../../babushka-core" }
+tokio = { version = "^1", features = ["rt", "macros", "rt-multi-thread", "time"] }
+num-derive = "0.4.0"
+num-traits = "0.2.15"
+tracing-subscriber = "0.3.16"
+protobuf = { version = "3.3.0", features = [] }
+
+[profile.release]
+lto = true
+debug = true
