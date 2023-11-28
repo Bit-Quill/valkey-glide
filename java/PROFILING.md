@@ -19,7 +19,8 @@ The second command prints output to the file and to console both (buffered, does
 # Analyze log
 
 ```
-dotnet run --project netty-log-parser/netty-log-parser.csproj jni-netty.log
+cd netty-log-parser
+dotnet run /path/to/jni-netty.log
 ```
 
 # Modify or create a test

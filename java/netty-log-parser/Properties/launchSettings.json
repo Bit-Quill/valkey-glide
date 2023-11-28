@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "netty-log-parser": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\GitHub\\babushka\\java\\jni-netty2.log",
+      "workingDirectory": "C:\\GitHub\\babushka\\java\\netty-log-parser"
+    }
+  }
+}

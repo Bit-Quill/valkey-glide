@@ -6,3 +6,7 @@ build
 
 # Ignore generated files (e.g. protobuf)
 generated
+
+# C# auxiliary project binary files
+obj
+bin

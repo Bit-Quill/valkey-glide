@@ -31,9 +31,6 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueue;
 import io.netty.channel.kqueue.KQueueDomainSocketChannel;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.channel.unix.UnixChannel;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
@@ -89,15 +86,23 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   public final AtomicLong WRITE_TIME = new AtomicLong(0);
   public final AtomicLong WRITE_TIME_INNER = new AtomicLong(0);
   public final AtomicLong WRITE_COUNT = new AtomicLong(0);
+  public final AtomicLong ERROR_COUNT = new AtomicLong(0);
 
   public final AtomicLong FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME = new AtomicLong(0);
   public final AtomicLong BUFFER_ON_WRITE_TIME = new AtomicLong(0);
   public final AtomicLong BUFFER_ON_READ_TIME = new AtomicLong(0);
   public final AtomicLong PARSING_ON_READ_TIME = new AtomicLong(0);
+  public final AtomicLong SET_FUTURE_TO_RESOLVE_TIME = new AtomicLong(0);
+  public final AtomicLong RESOLVE_ON_READ_TIME = new AtomicLong(0);
+  public final AtomicLong RESOLVE_TO_GET_TIME = new AtomicLong(0);
+
   public final AtomicLong SERIALIZATION_ON_WRITE_TIME = new AtomicLong(0);
-  public final AtomicLong SET_FUTURE_ON_READ_TIME1 = new AtomicLong(0);
+  public final AtomicLong SET_FUTURE_ON_READ_TIME = new AtomicLong(0);
   public final AtomicLong SET_FUTURE_ON_READ_TIME2 = new AtomicLong(0);
   public final AtomicLong GET_FUTURE_RESULT_AFTER_SET = new AtomicLong(0);
+
+  public final AtomicLong SUBMIT_COMMAND_ON_WRITE_TIME = new AtomicLong(0);
+  public final AtomicLong SUBMIT_TO_BUILD_ON_WRITE_TIME = new AtomicLong(0);
 
   public final AtomicLong BUILD_COMMAND_ON_WRITE_TIME = new AtomicLong(0);
   public final AtomicLong WRITE_ON_WRITE_TIME = new AtomicLong(0);
@@ -113,12 +118,18 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
     WRITE_TIME.set(0);
     WRITE_TIME_INNER.set(0);
     WRITE_COUNT.set(0);
+    ERROR_COUNT.set(0);
+    SUBMIT_COMMAND_ON_WRITE_TIME.set(0);
+    SUBMIT_TO_BUILD_ON_WRITE_TIME.set(0);
     FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.set(0);
     BUFFER_ON_WRITE_TIME.set(0);
     BUFFER_ON_READ_TIME.set(0);
     PARSING_ON_READ_TIME.set(0);
+    SET_FUTURE_TO_RESOLVE_TIME.set(0);
+    RESOLVE_ON_READ_TIME.set(0);
+    RESOLVE_TO_GET_TIME.set(0);
     SERIALIZATION_ON_WRITE_TIME.set(0);
-    SET_FUTURE_ON_READ_TIME1.set(0);
+    SET_FUTURE_ON_READ_TIME.set(0);
     SET_FUTURE_ON_READ_TIME2.set(0);
     BUILD_COMMAND_ON_WRITE_TIME.set(0);
     WRITE_ON_WRITE_TIME.set(0);
@@ -239,9 +250,10 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
                       //System.out.printf("== Received response with callback %d%n", response.getCallbackIdx());
             long futureBefore1 = System.nanoTime();
                       var future = responses.get(response.getCallbackIdx());
-            SET_FUTURE_ON_READ_TIME1.addAndGet(System.nanoTime() - futureBefore1);
+            SET_FUTURE_ON_READ_TIME.addAndGet(System.nanoTime() - futureBefore1);
             long futureBefore2 = System.nanoTime();
-                      future.complete(response);
+                      //future.complete(response);
+                      future.completeAsync(() -> response);
             long futureAfter2 = System.nanoTime();
             SET_FUTURE_ON_READ_TIME2.addAndGet(futureAfter2 - futureBefore2);
                       buf.release();
@@ -249,11 +261,13 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
             READ_COUNT.incrementAndGet();
             RESPONSE_TIMESTAMPS.add(readBefore);
             GET_FUTURE_RESULT_AFTER_SET.addAndGet(-futureAfter2);
+            SET_FUTURE_TO_RESOLVE_TIME.addAndGet(-futureAfter2);
                     }
 
                     @Override
                     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
                       System.out.printf("=== exceptionCaught %s %s %n", ctx, cause);
+            ERROR_COUNT.incrementAndGet();
                       cause.printStackTrace();
                       super.exceptionCaught(ctx, cause);
                     }
@@ -380,6 +394,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   @Override
   public void set(String key, String value) {
     waitForResult(asyncSet(key, value));
+    counter.decrementAndGet();
     // TODO parse response and rethrow an exception if there is an error
   }
 
@@ -402,16 +417,17 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response>, AutoCl
   }
 
   // don't delete it otherwise java compiler will optimize next func and GET_FUTURE_RESULT_AFTER_SET will be always negative o_O
-  private int counter = 0;
+  public AtomicInteger counter = new AtomicInteger(0);
 
-  @Override
+  //@Override
   public <T> T waitForResult(Future<T> future) {
 long before = System.nanoTime();
     var res = AsyncClient.super.waitForResult(future);
 long after = System.nanoTime();
 WAIT_FOR_RESULT.addAndGet(after - before);
-counter++;
+counter.incrementAndGet();
 GET_FUTURE_RESULT_AFTER_SET.addAndGet(after);
+RESOLVE_TO_GET_TIME.addAndGet(after);
     return res;
   }
 
@@ -427,19 +443,25 @@ GET_FUTURE_RESULT_AFTER_SET.addAndGet(after);
     System.out.printf("%n==== %s ====%n", operation);
     System.out.printf("-> total:                 %10d%n", total);
     System.out.printf("-> waiting:               %10d%n", client.WAIT_FOR_RESULT.get());
+    System.out.printf("-> error count:           %10d%n", client.ERROR_COUNT.get());
     System.out.printf("-> write: count writes    %10d%n", client.WRITE_COUNT.get());
+    System.out.printf("-> write: submit request  %10d%n", client.SUBMIT_COMMAND_ON_WRITE_TIME.get());
+    System.out.printf("-> write: submit 2 build  %10d%n", client.SUBMIT_TO_BUILD_ON_WRITE_TIME.get());
     System.out.printf("-> write: build command   %10d%n", client.BUILD_COMMAND_ON_WRITE_TIME.get());
     System.out.printf("-> write: submit command  %10d%n", client.WRITE_ON_WRITE_TIME.get());
     System.out.printf("-> write: handling        %10d%n", client.FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.get());
     System.out.printf("-> write: buffer          %10d%n", client.BUFFER_ON_WRITE_TIME.get());
     System.out.printf("-> write: serialize       %10d%n", client.SERIALIZATION_ON_WRITE_TIME.get());
     System.out.printf("-> write: submit          %10d%n", client.WRITE_TIME_INNER.get());
-    System.out.printf("-> write: total netty     %10d%n", client.WRITE_TIME.get());
+    System.out.printf("-> write: total outbound  %10d%n", client.WRITE_TIME.get());
     System.out.printf("-> read: count reads      %10d%n", client.READ_COUNT.get());
     System.out.printf("-> read: buffer           %10d%n", client.BUFFER_ON_READ_TIME.get());
     System.out.printf("-> read: parse            %10d%n", client.PARSING_ON_READ_TIME.get());
-    System.out.printf("-> read: set future res   %10d%n", client.SET_FUTURE_ON_READ_TIME1.get() + client.SET_FUTURE_ON_READ_TIME2.get());
-    System.out.printf("-> read: total netty      %10d%n", client.READ_TIME.get());
+    System.out.printf("-> read: set future res   %10d%n", client.SET_FUTURE_ON_READ_TIME.get() + client.SET_FUTURE_ON_READ_TIME2.get());
+    System.out.printf("-> read: total inbound    %10d%n", client.READ_TIME.get());
+    System.out.printf("-> read: set to resolve   %10d%n", client.SET_FUTURE_TO_RESOLVE_TIME.get());
+    System.out.printf("-> read: resolve ptr      %10d%n", client.RESOLVE_ON_READ_TIME.get());
+    System.out.printf("-> read: resolve to get   %10d%n", client.RESOLVE_TO_GET_TIME.get());
     System.out.printf("-> read: get future res   %10d%n", client.GET_FUTURE_RESULT_AFTER_SET.get());
 
     long prev = 0;
@@ -472,6 +494,7 @@ GET_FUTURE_RESULT_AFTER_SET.addAndGet(after);
   public static void main(String[] args) {
     JniNettyClient.ALWAYS_FLUSH_ON_WRITE = true;
     var key = String.valueOf(ProcessHandle.current().pid());
+    var value = "0".repeat(4000);
 
     var clientSet = new JniNettyClient();
     clientSet.connectToRedis();
@@ -496,7 +519,7 @@ GET_FUTURE_RESULT_AFTER_SET.addAndGet(after);
     System.out.printf("%n++++ START OF TEST ++++%n");
     long beforeSet = System.nanoTime();
     for (int i = 0; i < 100; i++) {
-      clientSet.set("name", "value");
+      clientSet.set(key, value);
     }
     long afterSet = System.nanoTime();
     clientSet.closeConnection();
@@ -530,6 +553,9 @@ GET_FUTURE_RESULT_AFTER_SET.addAndGet(after);
     dumpStats(clientGetE, "GET E", afterGetE - beforeGetE);
     System.out.printf("%n++++ END OF TEST ++++%n");
     System.out.printf("%n%n%n%n%n");
+    // don't delete this, otherwise compiler will optimize out waitForResult
+    if (clientSet.counter.get() == 42)
+      System.err.println("OOPS");
 
     dumpStats(clientSet, "SET", afterSet - beforeSet);
     dumpStats(clientGetE, "GET E", afterGetE - beforeGetE);
@@ -608,36 +634,49 @@ GET_FUTURE_RESULT_AFTER_SET.addAndGet(after);
   }
 
   private CompletableFuture<Response> submitNewCommand(RequestType command, List<String> args) {
-long beforeBuild = System.nanoTime();
-    int callbackId = getNextCallbackId();
-    //System.out.printf("== %s(%s), callback %d%n", command, String.join(", ", args), callbackId);
-    RedisRequest request =
-        RedisRequest.newBuilder()
-            .setCallbackIdx(callbackId)
-            .setSingleCommand(
-                Command.newBuilder()
-                    .setRequestType(command)
-                    .setArgsArray(ArgsArray.newBuilder().addAllArgs(args).build())
-                    .build())
-            .setRoute(
-                Routes.newBuilder()
-                    .setSimpleRoutes(SimpleRoutes.AllNodes)
-                    .build())
-            .build();
-BUILD_COMMAND_ON_WRITE_TIME.addAndGet(System.nanoTime() - beforeBuild);
-long beforeWrite = System.nanoTime();
-    if (ALWAYS_FLUSH_ON_WRITE) {
-      channel.writeAndFlush(request);
-long afterWrite = System.nanoTime();
-WRITE_ON_WRITE_TIME.addAndGet(afterWrite - beforeWrite);
-FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.addAndGet(-afterWrite);
-      return responses.get(callbackId);
-    }
-    channel.write(request);
-long afterWrite = System.nanoTime();
-WRITE_ON_WRITE_TIME.addAndGet(afterWrite - beforeWrite);
-FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.addAndGet(-afterWrite);
-    return autoFlushFutureWrapper(responses.get(callbackId));
+long beforeSupply = System.nanoTime();
+SUBMIT_TO_BUILD_ON_WRITE_TIME.getAndAdd(-beforeSupply);
+    var future = CompletableFuture.supplyAsync(() -> {
+  long beforeBuild = System.nanoTime();
+SUBMIT_TO_BUILD_ON_WRITE_TIME.getAndAdd(beforeBuild);
+      int callbackId = getNextCallbackId();
+      //System.out.printf("== %s(%s), callback %d%n", command, String.join(", ", args), callbackId);
+      var commandArgs = ArgsArray.newBuilder();
+      for (var arg : args) {
+        commandArgs.addArgs(arg);
+      }
+
+      RedisRequest request =
+          RedisRequest.newBuilder()
+              .setCallbackIdx(callbackId)
+              .setSingleCommand(
+                  Command.newBuilder()
+                      .setRequestType(command)
+                      .setArgsArray(commandArgs.build())
+                      .build())
+              .setRoute(
+                  Routes.newBuilder()
+                      .setSimpleRoutes(SimpleRoutes.AllNodes)
+                      .build())
+              .build();
+  BUILD_COMMAND_ON_WRITE_TIME.addAndGet(System.nanoTime() - beforeBuild);
+  long beforeWrite = System.nanoTime();
+      if (ALWAYS_FLUSH_ON_WRITE) {
+        channel.writeAndFlush(request);
+  long afterWrite = System.nanoTime();
+  WRITE_ON_WRITE_TIME.addAndGet(afterWrite - beforeWrite);
+  FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.addAndGet(-afterWrite);
+        return responses.get(callbackId);
+      }
+      channel.write(request);
+  long afterWrite = System.nanoTime();
+  WRITE_ON_WRITE_TIME.addAndGet(afterWrite - beforeWrite);
+  FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.addAndGet(-afterWrite);
+      return autoFlushFutureWrapper(responses.get(callbackId));
+    }).thenCompose(f -> f);
+long afterSupply = System.nanoTime();
+SUBMIT_COMMAND_ON_WRITE_TIME.getAndAdd(afterSupply - beforeSupply);
+    return future;
   }
 
   private <T> CompletableFuture<T> autoFlushFutureWrapper(Future<T> future) {
@@ -663,15 +702,41 @@ FROM_SUBMIT_WRITE_TO_HANDLER_WRITE_TIME.addAndGet(-afterWrite);
   @Override
   public Future<Response> asyncSet(String key, String value) {
     //System.out.printf("== set(%s, %s), callback %d%n", key, value, callbackId);
-    return submitNewCommand(RequestType.SetString, List.of(key, value));
+    return submitNewCommand(RequestType.SetString, List.of(key, value))
+        .thenApply(response -> {
+          responseErrorCheck(response);
+RESOLVE_TO_GET_TIME.addAndGet(-System.nanoTime());
+          return response;
+    });
+  }
+
+  private void responseErrorCheck(Response response) {
+SET_FUTURE_TO_RESOLVE_TIME.addAndGet(System.nanoTime());
+    if (response.hasClosingError()) {
+ERROR_COUNT.incrementAndGet();
+      System.err.printf("%n---> closing error: %s%n%n", response.getClosingError());
+    }
+    if (response.hasRequestError()) {
+ERROR_COUNT.incrementAndGet();
+      System.err.printf("%n---> request error: %s%n%n", response.getRequestError());
+    }
   }
 
   @Override
   public Future<String> asyncGet(String key) {
-    //System.out.printf("== get(%s), callback %d%n", key, callbackId);
     return submitNewCommand(RequestType.GetString, List.of(key))
-        .thenApply(response -> response.hasRespPointer()
-            ? RedisClient.valueFromPointer(response.getRespPointer()).toString()
-            : null);
+        .thenApply(response -> {
+          responseErrorCheck(response);
+          if (!response.hasRespPointer()) {
+RESOLVE_TO_GET_TIME.addAndGet(-System.nanoTime());
+            return null;
+          }
+long beforeResolve = System.nanoTime();
+          var value = RedisClient.valueFromPointer(response.getRespPointer());
+long afterResolve = System.nanoTime();
+RESOLVE_ON_READ_TIME.addAndGet(afterResolve - beforeResolve);
+RESOLVE_TO_GET_TIME.addAndGet(-afterResolve);
+          return value.toString();
+        });
   }
 }
