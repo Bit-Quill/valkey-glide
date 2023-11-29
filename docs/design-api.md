@@ -4,7 +4,7 @@ API Design
 
 ## API requirements:
 - The API will be thread-safe.
-- The API will accept as inputs all of [RESP2 types](https://github.com/redis/redis-specifications/blob/master/protocol/RESP2.md).
+- The API will accept as inputs all of [RESP2 types](https://github.com/redis/redis-specifications/blob/master/protocol/RESP2.md). We plan to add support for RESP3 types when they are available.
 - The API will attempt authentication, topology refreshes, reconnections, etc., automatically. In case of failures concrete errors will be returned to the user.
 
 ## Command Interface
@@ -17,7 +17,9 @@ Transactions will be handled by adding a list of `Command`s to the protobuf requ
 When running Redis in Cluster Mode, several routing options will be provided. These are all specified in the protobuf request. The various options are detaield below in the ["Routing Options" section](#routing-options). We will also provide a separate client for handling Cluster Mode responses, which will convert the list of values and nodes into a map, as is done in existing client wrappers.
 
 ### Raw FFI solution
-For clients using a raw FFI solution, in Rust, we will expose a general command that is able to take any command and arguments as strings. 
+For clients using a raw FFI solution, in Rust, we will expose a general command that is able to take any command and arguments as strings.
+
+Like in the UDS solution, we will support a separate client for Cluster Mode.
 
 We have 2 options for passing the command, arguments, and any additional configuration to the Rust core from the wrapper language:
 
@@ -70,11 +72,10 @@ We will be supporting routing Redis requests to all nodes, all primary nodes, or
 ## Supported Commands
 We will be supporting all Redis commands. Commands with higher usage will be prioritized, as determined by usage numbers from AWS ElastiCache usage logs.
 
-## Type Validation
-Two different methods of sending requests will be supported. 
+Two different methods of sending commands will be supported:
 
-### No Redis Type Validation
-We will expose an `executeRaw` method that does no validation of the input types or command on the client side, leaving it up to Redis to reject the request should it be malformed. This gives the user the flexibility to send any type of request they want, including ones not officially supported yet.
+### Custom Command
+We will expose an `executeRaw` method that does no validation of the input types or command on the client side, leaving it up to Redis to reject the command should it be malformed. This gives the user the flexibility to send any type of command they want, including ones not officially supported yet.
 
 For example, if a user wants to implement support for the Redis ZADD command in Java, their implementation might look something like this:
 ```java
@@ -89,8 +90,8 @@ where `executeRaw` has the following signature:
 public Object executeRaw(string[] args) throws RequestException
 ```
 
-### With Redis Type Validation
-We will expose separate methods for each supported command, and will attempt to validate the inputs for each of these methods. There will be a separate version of each method for transactions, as well as another version for Cluster Mode clients. We may leverage the compiler for the wrapper language to validate the types of the command arguments for statically typed languages. Since wrappers should be as lightweight as possible, we most likely will not be performing any checks for proper typing for non-statically typed languages.
+### Explicitly Supported Command
+We will expose separate methods for each supported command. There will be a separate version of each method for transactions, as well as another version for Cluster Mode clients. For statically typed languages, we will leverage the compiler of the wrapper language to validate the types of the command arguments as much as possible. Since wrappers should be as lightweight as possible, we will be performing very few to no checks for proper typing for non-statically typed languages.
 
 ## Errors
 ClosingError: Errors that report that the client has closed and is no longer usable.
