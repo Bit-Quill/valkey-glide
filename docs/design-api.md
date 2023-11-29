@@ -14,7 +14,7 @@ For clients based on Unix Domain Sockets (UDS), we will simply use the existing 
 
 Transactions will be handled by adding a list of `Command`s to the protobuf request. The response will be a `redis::Value::Bulk`, which should be handled in the same Rust function that marshals the data back into the wrapper language's native data types. This is handled by storing the results in a collection type native to the wrapper language.
 
-When running Redis in Cluster Mode, several routing options will be provided. These are all specified in the protobuf request. The various options are detaield below in the ["Routing Options" section](#routing-options). We will also provide a separate client for handling Cluster Mode responses, which will convert the list of values and nodes into a map, as is done in existing client wrappers.
+When running Redis in Cluster Mode, several routing options will be provided. These are all specified in the protobuf request. The various options are detailed below in the ["Routing Options" section](#routing-options). We will also provide a separate client for handling Cluster Mode responses, which will convert the list of values and nodes into a map, as is done in existing client wrappers.
 
 ### Raw FFI solution
 For clients using a raw FFI solution, in Rust, we will expose a general command that is able to take any command and arguments as strings.
