@@ -18,17 +18,6 @@ subprojects {
     plugins.withId('java') {
         sourceCompatibility = targetCompatibility = "11"
     }
-    tasks.withType(Test) {
-        useJUnitPlatform()
-
-        testLogging {
-            exceptionFormat "full"
-            events "started", "skipped", "passed", "failed"
-            showStandardStreams true
-        }
-        // TODO: add jacoco with code coverage
-        // finalizedBy jacocoTestReport, jacocoTestCoverageVerification
-    }
 }
 
 dependencies {

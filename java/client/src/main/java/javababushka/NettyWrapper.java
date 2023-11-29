@@ -2,6 +2,7 @@ package javababushka;
 
 import static response.ResponseOuterClass.Response;
 
+import com.google.protobuf.GeneratedMessageV3;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -34,7 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
 
 @AllArgsConstructor
@@ -49,9 +49,6 @@ class NettyWrapper {
       throw new RuntimeException(e);
     }
   }
-
-  @Getter private Channel channel = null;
-  private EventLoopGroup group = null;
 
   // Futures to handle responses. Index is callback id, starting from 1 (0 index is for connection
   // request always).
@@ -78,8 +75,26 @@ class NettyWrapper {
     }
   }
 
-  public static NettyWrapper INSTANCE = null;
+  private Channel channel = null;
+  private EventLoopGroup group = null;
 
+  /**
+   * Returns the singleton instance of the NettyWrapper
+   *
+   * @return NettyWrapper instance
+   */
+  public static NettyWrapper getInstance() {
+    if (INSTANCE == null) {
+      INSTANCE = new NettyWrapper();
+      Runtime.getRuntime()
+          .addShutdownHook(new Thread(new ShutdownHook(), "NettyWrapper-shutdown-hook"));
+    }
+    return INSTANCE;
+  }
+
+  private static NettyWrapper INSTANCE = null;
+
+  /** Constructor class for the single instance */
   private NettyWrapper() {
     try {
       int cpuCount = Runtime.getRuntime().availableProcessors();
@@ -164,6 +179,10 @@ class NettyWrapper {
     }
   }
 
+  public void writeAndFlush(GeneratedMessageV3 message) {
+    channel.writeAndFlush(message.toByteArray());
+  }
+
   public int registerRequest(CompletableFuture<Response> future) {
     int callbackId = requestId.incrementAndGet();
     responses.put(callbackId, future);
@@ -186,11 +205,5 @@ class NettyWrapper {
         INSTANCE.close();
       }
     }
-  }
-
-  static {
-    INSTANCE = new NettyWrapper();
-    Runtime.getRuntime()
-        .addShutdownHook(new Thread(new ShutdownHook(), "NettyWrapper-shutdown-hook"));
   }
 }

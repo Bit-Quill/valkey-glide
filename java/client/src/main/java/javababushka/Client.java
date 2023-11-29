@@ -1,11 +1,6 @@
 package javababushka;
 
-import static connection_request.ConnectionRequestOuterClass.AuthenticationInfo;
 import static connection_request.ConnectionRequestOuterClass.ConnectionRequest;
-import static connection_request.ConnectionRequestOuterClass.ConnectionRetryStrategy;
-import static connection_request.ConnectionRequestOuterClass.NodeAddress;
-import static connection_request.ConnectionRequestOuterClass.ReadFrom;
-import static connection_request.ConnectionRequestOuterClass.TlsMode;
 import static redis_request.RedisRequestOuterClass.Command;
 import static redis_request.RedisRequestOuterClass.Command.ArgsArray;
 import static redis_request.RedisRequestOuterClass.RedisRequest;
@@ -24,6 +19,16 @@ public class Client {
   private static final long DEFAULT_TIMEOUT_MILLISECONDS = 1000;
   private static final int REQUEST_TIMEOUT_MILLISECONDS = 250;
 
+  private NettyWrapper wrapper;
+
+  public Client() {
+    this(NettyWrapper.getInstance());
+  }
+
+  public Client(NettyWrapper nettyWrapper) {
+    wrapper = nettyWrapper;
+  }
+
   public void set(String key, String value) {
     waitForResult(asyncSet(key, value));
     // TODO parse response and rethrow an exception if there is an error
@@ -40,38 +45,50 @@ public class Client {
 
   private synchronized Pair<Integer, CompletableFuture<Response>> getNextCallback() {
     var future = new CompletableFuture<Response>();
-    int callbackId = NettyWrapper.INSTANCE.registerRequest(future);
+    int callbackId = wrapper.registerRequest(future);
     return Pair.of(callbackId, future);
   }
 
-  public Future<Response> asyncConnectToRedis(
+  public static ConnectionRequest.Builder getConnectionRequest(
       String host, int port, boolean useSsl, boolean clusterMode) {
-    var request =
-        ConnectionRequest.newBuilder()
-            .addAddresses(NodeAddress.newBuilder().setHost(host).setPort(port).build())
-            .setTlsMode(
-                useSsl // TODO: secure or insecure TLS?
-                    ? TlsMode.SecureTls
-                    : TlsMode.NoTls)
-            .setClusterModeEnabled(clusterMode)
-            .setRequestTimeout(REQUEST_TIMEOUT_MILLISECONDS)
-            .setReadFrom(ReadFrom.Primary)
-            .setConnectionRetryStrategy(
-                ConnectionRetryStrategy.newBuilder()
-                    .setNumberOfRetries(1)
-                    .setFactor(1)
-                    .setExponentBase(1)
-                    .build())
-            .setAuthenticationInfo(
-                AuthenticationInfo.newBuilder().setPassword("").setUsername("default").build())
-            .setDatabaseId(0)
-            .build();
+    ConnectionRequest.Builder connectionRequest = ConnectionRequest.newBuilder();
+    connectionRequest.addAddresses(
+        connection_request.ConnectionRequestOuterClass.NodeAddress.newBuilder()
+            .setHost(host)
+            .setPort(port)
+            .build());
+    connectionRequest.setTlsMode(
+        useSsl
+            ? connection_request.ConnectionRequestOuterClass.TlsMode.SecureTls
+            : connection_request.ConnectionRequestOuterClass.TlsMode.NoTls);
+    connectionRequest.setClusterModeEnabled(clusterMode);
+    connectionRequest
+        .setReadFrom(connection_request.ConnectionRequestOuterClass.ReadFrom.Primary)
+        .setConnectionRetryStrategy(
+            connection_request.ConnectionRequestOuterClass.ConnectionRetryStrategy.newBuilder()
+                .setNumberOfRetries(1)
+                .setFactor(1)
+                .setExponentBase(1)
+                .build())
+        .setAuthenticationInfo(
+            connection_request.ConnectionRequestOuterClass.AuthenticationInfo.newBuilder()
+                .setPassword("")
+                .setUsername("default")
+                .build())
+        .setDatabaseId(0);
 
-    var future = new CompletableFuture<Response>();
+    return connectionRequest;
+  }
+
+  public CompletableFuture<Response> asyncConnectToRedis(
+      String host, int port, boolean useSsl, boolean clusterMode) {
+    var request = getConnectionRequest(host, port, useSsl, clusterMode).build();
+
     // connection request has hardcoded callback id = 0
     // https://github.com/aws/babushka/issues/600
-    NettyWrapper.INSTANCE.registerConnection(future);
-    NettyWrapper.INSTANCE.getChannel().writeAndFlush(request.toByteArray());
+    var future = new CompletableFuture<Response>();
+    wrapper.registerConnection(future);
+    wrapper.writeAndFlush(request);
     return future;
   }
 
@@ -97,7 +114,7 @@ public class Client {
                               .build())
                       .setRoute(Routes.newBuilder().setSimpleRoutes(SimpleRoutes.AllNodes).build())
                       .build();
-              NettyWrapper.INSTANCE.getChannel().writeAndFlush(request.toByteArray());
+              wrapper.writeAndFlush(request);
               return commandId.getValue();
             })
         .thenCompose(f -> f);
