@@ -1,14 +1,13 @@
 use babushka::start_socket_listener;
 
-use jni::objects::{JClass, JObject, JThrowable};
+use jni::objects::{JClass, JObject, JThrowable, JObjectArray};
 use jni::JNIEnv;
 use jni::sys::jlong;
 use std::sync::mpsc;
 use log::error;
-use logger_core::Level;
 use redis::Value;
 
-fn redis_value_to_java(mut env: JNIEnv, val: Value) -> JObject {
+fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<'local> {
     match val {
         Value::Nil => JObject::null(),
         Value::Status(str) => JObject::from(env.new_string(str).unwrap()),
@@ -22,9 +21,19 @@ fn redis_value_to_java(mut env: JNIEnv, val: Value) -> JObject {
                 JObject::null()
             },
         },
-        Value::Bulk(_bulk) => {
-            let _ = env.throw("Not implemented");
-            JObject::null()
+        Value::Bulk(bulk) => {
+            // TODO: Consider caching the method ID here in a static variable (might need RwLock to mutate)
+            let items: JObjectArray = env
+                .new_object_array(bulk.len() as i32, "java/lang/Object", JObject::null())
+                .unwrap();
+
+            for (i, item) in bulk.into_iter().enumerate() {
+                let java_value = redis_value_to_java(env, item);
+                env.set_object_array_element(&items, i as i32, java_value)
+                    .unwrap();
+            }
+
+            items.into()
         }
     }
 }
@@ -36,12 +45,12 @@ pub extern "system" fn Java_javababushka_BabushkaCoreNativeDefinitions_valueFrom
     pointer: jlong
 ) -> JObject<'local> {
     let value = unsafe { Box::from_raw(pointer as *mut Value) };
-    redis_value_to_java(env, *value)
+    redis_value_to_java(&mut env, *value)
 }
 
 #[no_mangle]
 pub extern "system" fn Java_javababushka_BabushkaCoreNativeDefinitions_startSocketListenerExternal<'local>(
-    mut env: JNIEnv<'local>,
+    env: JNIEnv<'local>,
     _class: JClass<'local>
 ) -> JObject<'local> {
     let (tx, rx) = mpsc::channel::<Result<String, String>>();
