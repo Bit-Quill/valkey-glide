@@ -55,8 +55,6 @@ pub extern "system" fn Java_babushka_BabushkaCoreNativeDefinitions_startSocketLi
 ) -> JObject<'local> {
     let (tx, rx) = mpsc::channel::<Result<String, String>>();
 
-    //logger_core::init(Some(Level::Trace), None);
-
     start_socket_listener(move |socket_path : Result<String, String>| {
         // Signals that thread has started
         let _ = tx.send(socket_path);

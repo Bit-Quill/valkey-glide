@@ -27,15 +27,14 @@ public class SocketManager {
     try {
       return BabushkaCoreNativeDefinitions.startSocketListenerExternal();
     } catch (Exception | UnsatisfiedLinkError e) {
-      System.err.printf("Failed to get UDS from babushka and dedushka: %s%n%n", e);
+      System.err.printf("Failed to create a UDS connection: %s%n%n", e);
       throw new RuntimeException(e);
     }
   }
 
   private final AtomicInteger requestId = new AtomicInteger(0);
 
-  // We support MacOS and Linux only, because Babushka does not support Windows, because tokio does
-  // not support it.
+  // At the moment, Windows is not supported
   // Probably we should use NIO (NioEventLoopGroup) for Windows.
   private static final boolean isMacOs = isMacOs();
 

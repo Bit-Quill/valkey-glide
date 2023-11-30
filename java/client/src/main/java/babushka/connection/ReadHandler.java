@@ -10,15 +10,12 @@ public class ReadHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void channelRead(@NonNull ChannelHandlerContext ctx, @NonNull Object msg)
       throws Exception {
-    // System.out.printf("=== channelRead %s %s %n", ctx, msg);
     var buf = (ByteBuf) msg;
     var bytes = new byte[buf.readableBytes()];
     buf.readBytes(bytes);
-    // TODO surround parsing with try-catch, set error to future if
-    // parsing failed.
+    // TODO surround parsing with try-catch, set error to future if parsing failed.
     var response = ResponseOuterClass.Response.parseFrom(bytes);
     int callbackId = response.getCallbackIdx();
-    // System.out.printf("== Received response with callback %d%n",
     if (callbackId == 0) {
       // can't distinguish connection requests since they have no
       // callback ID
