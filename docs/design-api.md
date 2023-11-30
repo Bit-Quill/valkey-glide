@@ -10,7 +10,7 @@ API Design
 ## Command Interface
 
 ### Unix Domain Socket solution
-For clients based on Unix Domain Sockets (UDS), we will simply use the existing protobuf messages for creating a connection, sending requests, and receiving responses. Supported commands are enumerated in the [protobuf definition for requests](../babushka-core/src/protobuf/redis_request.proto) and we may add more in the future, although the `CustomCommand` request type is also adequate for all commands. As defined in the [protobuf definition for responses](../babushka-core/src/protobuf/response.proto), client wrappers will receive data as a pointer, which can be passed to Rust to marshal the data back into the wrapper language’s native data types.
+For clients based on Unix Domain Sockets (UDS), we will use the existing Rust-core protobuf messages for creating a connection, sending requests, and receiving responses. Supported commands are enumerated in the [protobuf definition for requests](../babushka-core/src/protobuf/redis_request.proto) and we will support them as they are added in the future. Note: the `CustomCommand` request type is also adequate for all commands. As defined in the [protobuf definition for responses](../babushka-core/src/protobuf/response.proto), client wrappers will receive data as a pointer, which can be passed to Rust to marshal the data back into the wrapper language’s native data types.
 
 Transactions will be handled by adding a list of `Command`s to the protobuf request. The response will be a `redis::Value::Bulk`, which should be handled in the same Rust function that marshals the data back into the wrapper language's native data types. This is handled by storing the results in a collection type native to the wrapper language.
 
