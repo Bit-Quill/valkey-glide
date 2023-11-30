@@ -10,7 +10,7 @@ API Design
 ## Command Interface
 
 ### Unix Domain Socket solution
-For clients based on Unix Domain Sockets (UDS), we will use the existing Rust-core protobuf messages for creating a connection, sending requests, and receiving responses. Supported commands are enumerated in the [protobuf definition for requests](../babushka-core/src/protobuf/redis_request.proto) and we will support them as they are added in the future. Note: the `CustomCommand` request type is also adequate for all commands. As defined in the [protobuf definition for responses](../babushka-core/src/protobuf/response.proto), client wrappers will receive data as a pointer, which can be passed to Rust to marshal the data back into the wrapper language’s native data types.
+For clients based on Unix Domain Sockets (UDS), we will use the existing Rust-core protobuf messages for creating a connection, sending requests, and receiving responses. Supported commands are enumerated in the [protobuf definition for requests](../babushka-core/src/protobuf/redis_request.proto) and we will support them as they are added in the future. Note: the `CustomCommand` request type is also adequate for all commands. As defined in the [protobuf definition for responses](../babushka-core/src/protobuf/response.proto), client wrappers will receive data as a pointer, which can be passed to Rust to marshal the data back into the wrapper language’s native data types. In the future, we plan on optimizing this approach such that small data is returned as an object and large data is returned as a pointer in order to reduce the overhead of FFI calls in the case of small data.
 
 Transactions will be handled by adding a list of `Command`s to the protobuf request. The response will be a `redis::Value::Bulk`, which should be handled in the same Rust function that marshals the data back into the wrapper language's native data types. This is handled by storing the results in a collection type native to the wrapper language.
 
@@ -112,4 +112,6 @@ We will be using the UDS solution for communication between the wrapper and the 
 Errors in Rust are represented as Algebraic Data Types, which are not supported in Java by default (at least not in the versions of Java we want to support). Instead, we utilise the [jni-rs library](https://github.com/jni-rs/jni-rs) to throw Java `Exception`s where we receive errors from Redis.
 
 ## Golang Specific Details
-We will be using a raw FFI solution for communication between the wrapper and the Rust core. TODO: Add more details here
+We will be using a raw FFI solution for communication between the wrapper and the Rust core. The FFI layer is implemented using `cgo`.
+
+Golang does not support Algebraic Data Types, so errors will need to be returned as struct values.
