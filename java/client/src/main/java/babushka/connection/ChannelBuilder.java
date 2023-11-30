@@ -6,9 +6,10 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import lombok.NonNull;
 
-public class ChannelHandler extends ChannelInitializer<UnixChannel> {
+/** Builder for the channel used by {@link SocketManager}. */
+public class ChannelBuilder extends ChannelInitializer<UnixChannel> {
   @Override
-  public void initChannel(@NonNull UnixChannel ch) throws Exception {
+  public void initChannel(@NonNull UnixChannel ch) {
     ch.pipeline()
         // https://netty.io/4.1/api/io/netty/handler/codec/protobuf/ProtobufEncoder.html
         .addLast("protobufDecoder", new ProtobufVarint32FrameDecoder())
