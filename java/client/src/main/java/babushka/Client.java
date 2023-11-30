@@ -1,6 +1,5 @@
 package babushka;
 
-import babushka.connection.ReadHandler;
 import babushka.connection.SocketManager;
 import com.google.common.annotations.VisibleForTesting;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
@@ -11,7 +10,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.tuple.Pair;
 import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
 import redis_request.RedisRequestOuterClass.RedisRequest;
@@ -71,20 +69,6 @@ public class Client {
     waitForResult(asyncConnectToRedis(host, port, useSsl, clusterMode));
   }
 
-  /**
-   * Create a unique callback ID (request ID) and a corresponding registered future for the
-   * response.<br>
-   * Should be used for every request submitted to ensure that it can be tracked by {@link
-   * SocketManager} and {@link ReadHandler}.
-   *
-   * @return New callback ID and new future to be returned to user.
-   */
-  private synchronized Pair<Integer, CompletableFuture<Response>> getNextCallback() {
-    var future = new CompletableFuture<Response>();
-    int callbackId = socketManager.registerRequest(future);
-    return Pair.of(callbackId, future);
-  }
-
   /** Build a protobuf connection request. See {@link #connectToRedis}. */
   // TODO support more parameters and/or configuration object
   @VisibleForTesting
@@ -112,14 +96,10 @@ public class Client {
   public CompletableFuture<Response> asyncConnectToRedis(
       String host, int port, boolean useSsl, boolean clusterMode) {
     var request = getConnectionRequest(host, port, useSsl, clusterMode);
-    var future = new CompletableFuture<Response>();
-    socketManager.registerConnection(future);
-    socketManager.writeAndFlush(request);
-    return future;
+    return socketManager.connect(request);
   }
 
   private CompletableFuture<Response> submitNewCommand(RequestType command, List<String> args) {
-    var commandId = getNextCallback();
     // TODO this explicitly uses ForkJoin thread pool. May be we should use another one.
     return CompletableFuture.supplyAsync(
             () -> {
@@ -128,18 +108,15 @@ public class Client {
                 commandArgs.addArgs(arg);
               }
 
-              RedisRequest request =
+              RedisRequest.Builder builder =
                   RedisRequest.newBuilder()
-                      .setCallbackIdx(commandId.getKey())
                       .setSingleCommand(
                           Command.newBuilder()
                               .setRequestType(command)
                               .setArgsArray(commandArgs.build())
                               .build())
-                      .setRoute(Routes.newBuilder().setSimpleRoutes(SimpleRoutes.AllNodes).build())
-                      .build();
-              socketManager.writeAndFlush(request);
-              return commandId.getValue();
+                      .setRoute(Routes.newBuilder().setSimpleRoutes(SimpleRoutes.AllNodes).build());
+              return socketManager.write(builder, true);
             })
         .thenCompose(f -> f);
   }

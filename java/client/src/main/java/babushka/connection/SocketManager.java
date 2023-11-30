@@ -4,7 +4,7 @@ import static response.ResponseOuterClass.Response;
 
 import babushka.BabushkaCoreNativeDefinitions;
 import babushka.Client;
-import com.google.protobuf.GeneratedMessageV3;
+import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
@@ -20,6 +20,7 @@ import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import redis_request.RedisRequestOuterClass.RedisRequest;
 
 /**
  * A UDS connection manager. This class is responsible for:
@@ -91,7 +92,7 @@ public class SocketManager {
   }
 
   /** The singleton instance. */
-  private static SocketManager INSTANCE = null;
+  private static SocketManager INSTANCE = new SocketManager();
 
   /** Constructor for the single instance. */
   private SocketManager() {
@@ -122,44 +123,23 @@ public class SocketManager {
     }
   }
 
-  /**
-   * Write a protobuf message to the socket.<br>
-   * Always {@link #registerRequest} before submitting!
-   */
-  public void write(GeneratedMessageV3 message) {
-    channel.write(message.toByteArray());
-  }
-
-  /**
-   * Write a protobuf message to the socket and flush it.<br>
-   * Always {@link #registerRequest} before submitting!
-   */
-  public void writeAndFlush(GeneratedMessageV3 message) {
-    channel.writeAndFlush(message.toByteArray());
-  }
-
-  /**
-   * Register a new request to be sent. Socket Manager takes responsibility for tracking the
-   * returned callback ID in all incoming responses. Once response received, the given future
-   * completes with it.
-   *
-   * @param future A client promise for response.
-   * @return Unique callback ID which should set into request.
-   */
-  public int registerRequest(CompletableFuture<Response> future) {
+  /** Write a protobuf message to the socket. */
+  public CompletableFuture<Response> write(RedisRequest.Builder request, boolean flush) {
+    var future = new CompletableFuture<Response>();
     int callbackId = requestId.incrementAndGet();
+    request.setCallbackIdx(callbackId);
     SocketManagerResources.responses.put(callbackId, future);
-    return callbackId;
+    if (flush) channel.writeAndFlush(request.build().toByteArray());
+    else channel.write(request.build().toByteArray());
+    return future;
   }
 
-  /**
-   * Register a new connection request similar to {@link #registerRequest}.<br>
-   * No callback ID returned, because connection request/response pair have no such field (subject
-   * to change). Track <a href="https://github.com/aws/babushka/issues/600">issue #600</a> for more
-   * details.
-   */
-  public void registerConnection(CompletableFuture<Response> future) {
+  /** Write a protobuf message to the socket. */
+  public CompletableFuture<Response> connect(ConnectionRequest request) {
+    var future = new CompletableFuture<Response>();
     SocketManagerResources.connectionRequests.add(future);
+    channel.writeAndFlush(request.toByteArray());
+    return future;
   }
 
   /**

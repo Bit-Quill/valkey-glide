@@ -2,14 +2,13 @@ package babushka;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import babushka.connection.SocketManager;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import response.ResponseOuterClass;
 
 public class ClientTest {
@@ -41,8 +40,7 @@ public class ClientTest {
 
     // verify
     //    assertTrue(connectionResponse instanceof CompletableFuture);
-    Mockito.verify(socketManager, times(1)).registerConnection(eq(connectionResponse));
-    Mockito.verify(socketManager, times(1)).writeAndFlush(eq(connectionRequest));
+    verify(socketManager).connect(eq(connectionRequest));
 
     // teardown
   }
