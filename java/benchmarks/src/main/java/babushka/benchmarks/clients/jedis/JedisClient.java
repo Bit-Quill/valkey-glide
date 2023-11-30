@@ -1,7 +1,7 @@
 package babushka.benchmarks.clients.jedis;
 
-import babushka.benchmarks.utils.ConnectionSettings;
 import babushka.benchmarks.clients.SyncClient;
+import babushka.benchmarks.utils.ConnectionSettings;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 

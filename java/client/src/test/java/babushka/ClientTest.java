@@ -33,7 +33,7 @@ public class ClientTest {
     boolean useSsl = false;
     boolean clusterMode = false;
     ConnectionRequest connectionRequest =
-        Client.getConnectionRequest(HOST, PORT, useSsl, clusterMode).build();
+        Client.getConnectionRequest(HOST, PORT, useSsl, clusterMode);
 
     // exercise
     CompletableFuture<ResponseOuterClass.Response> connectionResponse =

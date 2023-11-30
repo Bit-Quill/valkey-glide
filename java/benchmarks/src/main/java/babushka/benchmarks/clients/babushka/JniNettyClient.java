@@ -3,11 +3,10 @@ package babushka.benchmarks.clients.babushka;
 import static response.ResponseOuterClass.Response;
 
 import babushka.Client;
-import java.util.concurrent.Future;
-
 import babushka.benchmarks.clients.AsyncClient;
 import babushka.benchmarks.clients.SyncClient;
 import babushka.benchmarks.utils.ConnectionSettings;
+import java.util.concurrent.Future;
 
 public class JniNettyClient implements SyncClient, AsyncClient<Response> {
 

@@ -1,10 +1,9 @@
 package babushka.benchmarks.clients.jedis;
 
+import babushka.benchmarks.clients.AsyncClient;
+import babushka.benchmarks.utils.ConnectionSettings;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-
-import babushka.benchmarks.utils.ConnectionSettings;
-import babushka.benchmarks.clients.AsyncClient;
 
 /**
  * A Jedis client with pseudo-async capabilities. Jedis doesn't provide async API

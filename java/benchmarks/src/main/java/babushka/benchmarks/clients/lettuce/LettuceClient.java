@@ -1,10 +1,10 @@
 package babushka.benchmarks.clients.lettuce;
 
+import babushka.benchmarks.clients.SyncClient;
 import babushka.benchmarks.utils.ConnectionSettings;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisStringCommands;
-import babushka.benchmarks.clients.SyncClient;
 
 /** A Lettuce client with sync capabilities see: https://lettuce.io/ */
 public class LettuceClient implements SyncClient {

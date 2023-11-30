@@ -2,13 +2,13 @@ package babushka.benchmarks.jedis;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import babushka.benchmarks.clients.jedis.JedisClient;
+import babushka.benchmarks.utils.Benchmarking;
+import babushka.benchmarks.utils.ChosenAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import babushka.benchmarks.clients.jedis.JedisClient;
-import babushka.benchmarks.utils.Benchmarking;
-import babushka.benchmarks.utils.ChosenAction;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

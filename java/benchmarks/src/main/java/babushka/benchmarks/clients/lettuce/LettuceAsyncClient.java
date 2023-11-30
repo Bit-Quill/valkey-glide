@@ -1,5 +1,6 @@
 package babushka.benchmarks.clients.lettuce;
 
+import babushka.benchmarks.clients.AsyncClient;
 import babushka.benchmarks.utils.ConnectionSettings;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
@@ -8,7 +9,6 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.codec.StringCodec;
 import java.util.concurrent.Future;
-import babushka.benchmarks.clients.AsyncClient;
 
 /** A Lettuce client with async capabilities see: https://lettuce.io/ */
 public class LettuceAsyncClient implements AsyncClient<String> {

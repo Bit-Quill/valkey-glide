@@ -1,5 +1,9 @@
 package babushka.benchmarks.utils;
 
+import babushka.benchmarks.BenchmarkingApp;
+import babushka.benchmarks.clients.AsyncClient;
+import babushka.benchmarks.clients.Client;
+import babushka.benchmarks.clients.SyncClient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,10 +15,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
-import babushka.benchmarks.BenchmarkingApp;
-import babushka.benchmarks.clients.AsyncClient;
-import babushka.benchmarks.clients.Client;
-import babushka.benchmarks.clients.SyncClient;
 import org.apache.commons.lang3.tuple.Pair;
 
 /** Class to calculate latency on client-actions */

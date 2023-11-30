@@ -1,9 +1,9 @@
 package babushka.benchmarks.lettuce;
 
-import java.util.HashMap;
 import babushka.benchmarks.clients.lettuce.LettuceClient;
 import babushka.benchmarks.utils.Benchmarking;
 import babushka.benchmarks.utils.ChosenAction;
+import java.util.HashMap;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

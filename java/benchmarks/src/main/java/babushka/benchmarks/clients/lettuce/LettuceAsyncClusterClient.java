@@ -3,12 +3,12 @@
  */
 package babushka.benchmarks.clients.lettuce;
 
+import babushka.benchmarks.utils.ConnectionSettings;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.async.RedisAdvancedClusterAsyncCommands;
-import babushka.benchmarks.utils.ConnectionSettings;
 
 public class LettuceAsyncClusterClient extends LettuceAsyncClient {
 

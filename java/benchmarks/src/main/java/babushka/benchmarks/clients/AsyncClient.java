@@ -1,9 +1,8 @@
 package babushka.benchmarks.clients;
 
+import babushka.benchmarks.utils.ConnectionSettings;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
-import babushka.benchmarks.utils.ConnectionSettings;
 
 /** A Redis client with async capabilities */
 public interface AsyncClient<T> extends Client {

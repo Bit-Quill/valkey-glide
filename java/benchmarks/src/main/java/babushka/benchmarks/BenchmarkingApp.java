@@ -1,16 +1,15 @@
 package babushka.benchmarks;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Stream;
-
+import babushka.benchmarks.clients.babushka.JniNettyClient;
 import babushka.benchmarks.clients.jedis.JedisClient;
 import babushka.benchmarks.clients.jedis.JedisPseudoAsyncClient;
 import babushka.benchmarks.clients.lettuce.LettuceAsyncClient;
 import babushka.benchmarks.clients.lettuce.LettuceAsyncClusterClient;
 import babushka.benchmarks.clients.lettuce.LettuceClient;
 import babushka.benchmarks.utils.Benchmarking;
-import babushka.benchmarks.clients.babushka.JniNettyClient;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
