@@ -1,14 +1,12 @@
 package javababushka;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+import javababushka.connection.SocketManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,15 +16,15 @@ public class ClientTest {
 
   Client testClient;
 
-  NettyWrapper nettyWrapper;
+  SocketManager socketManager;
 
   private static String HOST = "host";
   private static int PORT = 9999;
 
   @BeforeEach
   public void setUp() {
-    nettyWrapper = mock(NettyWrapper.class);
-    testClient = new Client(nettyWrapper);
+    socketManager = mock(SocketManager.class);
+    testClient = new Client(socketManager);
   }
 
   @Test
@@ -42,10 +40,9 @@ public class ClientTest {
         testClient.asyncConnectToRedis(HOST, PORT, useSsl, clusterMode);
 
     // verify
-//    assertTrue(connectionResponse instanceof CompletableFuture);
-    Mockito.verify(nettyWrapper, times(1))
-        .registerConnection(eq(connectionResponse));
-    Mockito.verify(nettyWrapper, times(1)).writeAndFlush(eq(connectionRequest));
+    //    assertTrue(connectionResponse instanceof CompletableFuture);
+    Mockito.verify(socketManager, times(1)).registerConnection(eq(connectionResponse));
+    Mockito.verify(socketManager, times(1)).writeAndFlush(eq(connectionRequest));
 
     // teardown
   }
