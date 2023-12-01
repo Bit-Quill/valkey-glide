@@ -2,8 +2,9 @@ package babushka.connection;
 
 import static response.ResponseOuterClass.Response;
 
-import babushka.BabushkaCoreNativeDefinitions;
-import babushka.Client;
+import babushka.FFI.BabushkaCoreNativeDefinitions;
+import babushka.client.Commands;
+import babushka.client.Connection;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
@@ -19,7 +20,6 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 import redis_request.RedisRequestOuterClass.RedisRequest;
 
 /**
@@ -28,14 +28,14 @@ import redis_request.RedisRequestOuterClass.RedisRequest;
  * <ul>
  *   <li>opening a connection (channel) though the UDS;
  *   <li>allocating the corresponding resources, e.g. thread pools (see also {@link
- *       SocketManagerResources});
+ *       CallbackManager});
  *   <li>handling connection requests;
  *   <li>providing unique request ID (callback ID);
  *   <li>handling REDIS requests;
  *   <li>closing connection;
  * </ul>
  *
- * Note: should not be used outside of {@link Client}!
+ * Note: should not be used outside of {@link Commands} or {@link Connection}!
  */
 public class SocketManager {
 
@@ -52,9 +52,6 @@ public class SocketManager {
       throw new RuntimeException(e);
     }
   }
-
-  /** Unique request ID (callback ID). Thread-safe. */
-  private final AtomicInteger requestId = new AtomicInteger(0);
 
   // At the moment, Windows is not supported
   // Probably we should use NIO (NioEventLoopGroup) for Windows.
@@ -125,21 +122,21 @@ public class SocketManager {
 
   /** Write a protobuf message to the socket. */
   public CompletableFuture<Response> write(RedisRequest.Builder request, boolean flush) {
-    var future = new CompletableFuture<Response>();
-    int callbackId = requestId.incrementAndGet();
-    request.setCallbackIdx(callbackId);
-    SocketManagerResources.responses.put(callbackId, future);
-    if (flush) channel.writeAndFlush(request.build().toByteArray());
-    else channel.write(request.build().toByteArray());
-    return future;
+    var commandId = CallbackManager.registerRequest();
+    request.setCallbackIdx(commandId.getKey());
+
+    if (flush) {
+      channel.writeAndFlush(request.build().toByteArray());
+    } else {
+      channel.write(request.build().toByteArray());
+    }
+    return commandId.getValue();
   }
 
   /** Write a protobuf message to the socket. */
   public CompletableFuture<Response> connect(ConnectionRequest request) {
-    var future = new CompletableFuture<Response>();
-    SocketManagerResources.connectionRequests.add(future);
     channel.writeAndFlush(request.toByteArray());
-    return future;
+    return CallbackManager.registerConnection();
   }
 
   /**
@@ -150,9 +147,7 @@ public class SocketManager {
     channel.close();
     group.shutdownGracefully();
     INSTANCE = null;
-    // TODO should we reply in uncompleted futures?
-    SocketManagerResources.connectionRequests.clear();
-    SocketManagerResources.responses.clear();
+    CallbackManager.clean();
   }
 
   /**

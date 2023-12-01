@@ -25,16 +25,7 @@ public class ReadHandler extends ChannelInboundHandlerAdapter {
     buf.readBytes(bytes);
     // TODO surround parsing with try-catch, set error to future if parsing failed.
     var response = Response.parseFrom(bytes);
-    int callbackId = response.getCallbackIdx();
-    if (callbackId == 0) {
-      // can't distinguish connection requests since they have no
-      // callback ID
-      // https://github.com/aws/babushka/issues/600
-      SocketManagerResources.connectionRequests.pop().complete(response);
-    } else {
-      SocketManagerResources.responses.get(callbackId).complete(response);
-      SocketManagerResources.responses.remove(callbackId);
-    }
+    CallbackManager.completeRequest(response);
     buf.release();
   }
 

@@ -1,4 +1,4 @@
-package babushka;
+package babushka.FFI;
 
 public class BabushkaCoreNativeDefinitions {
   public static native String startSocketListenerExternal() throws Exception;
