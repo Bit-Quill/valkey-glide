@@ -32,9 +32,15 @@ public class CommandManager {
     this.socketConnection = socketConnection;
   }
 
-  //  public CompletableFuture<String> get(String arg) {
-  //    submitNewCommand()
-  //  }
+  public CompletableFuture<String> get(String key) {
+    return submitNewCommand(
+        redis_request.RedisRequestOuterClass.RequestType.GetString, List.of(key));
+  }
+
+  public CompletableFuture<String> set(String key, String value) {
+    return submitNewCommand(
+        redis_request.RedisRequestOuterClass.RequestType.SetString, List.of(key, value));
+  }
 
   /**
    * @param command

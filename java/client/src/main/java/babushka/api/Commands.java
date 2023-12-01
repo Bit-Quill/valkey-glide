@@ -1,7 +1,6 @@
 package babushka.api;
 
 import babushka.managers.CommandManager;
-import java.util.List;
 import java.util.concurrent.Future;
 
 public class Commands {
@@ -43,8 +42,7 @@ public class Commands {
    * @param value The value to set
    */
   public Future<String> asyncSet(String key, String value) {
-    return commandManager.submitNewCommand(
-        redis_request.RedisRequestOuterClass.RequestType.SetString, List.of(key, value));
+    return commandManager.set(key, value);
   }
 
   /**
@@ -54,7 +52,6 @@ public class Commands {
    * @param key The key name
    */
   public Future<String> asyncGet(String key) {
-    return commandManager.submitNewCommand(
-        redis_request.RedisRequestOuterClass.RequestType.GetString, List.of(key));
+    return commandManager.get(key);
   }
 }
