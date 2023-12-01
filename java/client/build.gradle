@@ -34,11 +34,11 @@ dependencies {
 
 tasks.register('protobuf', Exec) {
     doFirst {
-        project.mkdir(Paths.get(project.projectDir.path, 'src/main/java/babushka/protobuf').toString())
+        project.mkdir(Paths.get(project.projectDir.path, 'src/main/java/babushka/models/protobuf').toString())
     }
     commandLine 'protoc',
         '-Iprotobuf=babushka-core/src/protobuf/',
-        '--java_out=java/client/src/main/java/babushka/protobuf',
+        '--java_out=java/client/src/main/java/babushka/models/protobuf',
         'babushka-core/src/protobuf/connection_request.proto',
         'babushka-core/src/protobuf/redis_request.proto',
         'babushka-core/src/protobuf/response.proto'
@@ -47,7 +47,7 @@ tasks.register('protobuf', Exec) {
 
 tasks.register('cleanProtobuf') {
     doFirst {
-        project.delete(Paths.get(project.projectDir.path, 'src/main/java/babushka/protobuf').toString())
+        project.delete(Paths.get(project.projectDir.path, 'src/main/java/babushka/models/protobuf').toString())
     }
 }
 

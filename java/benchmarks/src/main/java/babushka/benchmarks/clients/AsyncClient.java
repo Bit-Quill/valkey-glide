@@ -13,7 +13,7 @@ public interface AsyncClient<T> extends Client {
 
   Future<T> asyncSet(String key, String value);
 
-  Future<String> asyncGet(String key);
+  Future<T> asyncGet(String key);
 
   default <T> T waitForResult(Future<T> future) {
     return waitForResult(future, DEFAULT_TIMEOUT_MILLISECOND);

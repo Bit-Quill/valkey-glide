@@ -1,10 +1,11 @@
-package babushka.connection;
+package babushka.connectors.handlers;
 
+import babushka.managers.CallbackManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.NonNull;
-import response.ResponseOuterClass.Response;
+import babushka.models.protobuf.response.ResponseOuterClass.Response;
 
 /** Handler for inbound traffic though UDS. Used by Netty. */
 public class ReadHandler extends ChannelInboundHandlerAdapter {
@@ -30,10 +31,10 @@ public class ReadHandler extends ChannelInboundHandlerAdapter {
       // can't distinguish connection requests since they have no
       // callback ID
       // https://github.com/aws/babushka/issues/600
-      SocketManagerResources.connectionRequests.pop().complete(response);
+      CallbackManager.connectionRequests.pop().complete(response);
     } else {
-      SocketManagerResources.responses.get(callbackId).complete(response);
-      SocketManagerResources.responses.remove(callbackId);
+      CallbackManager.responses.get(callbackId).complete(response);
+      CallbackManager.responses.remove(callbackId);
     }
     buf.release();
   }

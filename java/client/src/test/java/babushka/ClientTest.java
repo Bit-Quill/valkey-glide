@@ -1,29 +1,40 @@
 package babushka;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
-import babushka.connection.SocketManager;
-import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
+import babushka.api.Client;
+import babushka.managers.CommandManager;
+import babushka.managers.ConnectionManager;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import response.ResponseOuterClass;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import response.ResponseOuterClass.Response;
 
 public class ClientTest {
 
   Client testClient;
 
-  SocketManager socketManager;
+  @Mock
+  ConnectionManager connectionManager;
+
+  @Mock
+  CommandManager commandManager;
 
   private static String HOST = "host";
   private static int PORT = 9999;
 
   @BeforeEach
   public void setUp() {
-    socketManager = mock(SocketManager.class);
-    testClient = new Client(socketManager);
+    testClient = new Client(connectionManager, commandManager);
   }
 
   @Test
@@ -31,16 +42,76 @@ public class ClientTest {
     // setup
     boolean useSsl = false;
     boolean clusterMode = false;
-    ConnectionRequest connectionRequest =
-        Client.getConnectionRequest(HOST, PORT, useSsl, clusterMode);
+    CompletableFuture<Response> testResponse = mock(CompletableFuture.class);
+    when(connectionManager.connectToRedis(any(), anyInt(), anyBoolean(), anyBoolean()))
+        .thenReturn(testResponse);
 
     // exercise
-    CompletableFuture<ResponseOuterClass.Response> connectionResponse =
+    CompletableFuture<Response> connectionResponse =
         testClient.asyncConnectToRedis(HOST, PORT, useSsl, clusterMode);
 
     // verify
-    //    assertTrue(connectionResponse instanceof CompletableFuture);
-    verify(socketManager).connect(eq(connectionRequest));
+    Mockito.verify(connectionManager, times(1))
+        .connectToRedis(eq(HOST), eq(PORT), eq(useSsl), eq(clusterMode));
+    assertEquals(testResponse, connectionResponse);
+
+    // teardown
+  }
+
+  @Test
+  public void test_close_success() {
+    // setup
+
+    // exercise
+    testClient.closeConnection();
+
+    // verify
+    Mockito.verify(connectionManager, times(1)).closeConnection();
+
+    // teardown
+  }
+
+
+  @Test
+  public void test_get_success() {
+    // setup
+
+    // exercise
+
+    // verify
+
+    // teardown
+  }
+
+  @Test
+  public void test_set_success() {
+    // setup
+
+    // exercise
+
+    // verify
+
+    // teardown
+  }
+
+  @Test
+  public void test_ping_success() {
+    // setup
+
+    // exercise
+
+    // verify
+
+    // teardown
+  }
+
+  @Test
+  public void test_info_success() {
+    // setup
+
+    // exercise
+
+    // verify
 
     // teardown
   }
