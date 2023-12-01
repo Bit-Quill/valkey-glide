@@ -3,6 +3,7 @@ package babushka.benchmarks.lettuce;
 import babushka.benchmarks.clients.lettuce.LettuceClient;
 import babushka.benchmarks.utils.Benchmarking;
 import babushka.benchmarks.utils.ChosenAction;
+import babushka.benchmarks.utils.ConnectionSettings;
 import java.util.HashMap;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,7 +16,7 @@ public class LettuceClientIT {
   @BeforeAll
   static void initializeLettuceClient() {
     lettuceClient = new LettuceClient();
-    lettuceClient.connectToRedis();
+    lettuceClient.connectToRedis(new ConnectionSettings("localhost", 6379, false, false));
   }
 
   @AfterAll

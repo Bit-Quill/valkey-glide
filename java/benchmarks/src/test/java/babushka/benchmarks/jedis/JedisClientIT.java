@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import babushka.benchmarks.clients.jedis.JedisClient;
 import babushka.benchmarks.utils.Benchmarking;
 import babushka.benchmarks.utils.ChosenAction;
+import babushka.benchmarks.utils.ConnectionSettings;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,7 @@ public class JedisClientIT {
   @BeforeAll
   static void initializeJedisClient() {
     jedisClient = new JedisClient();
-    jedisClient.connectToRedis();
+    jedisClient.connectToRedis(new ConnectionSettings("localhost", 6379, false, false));
   }
 
   @Test

@@ -1,21 +1,21 @@
 package babushka.benchmarks.clients.babushka;
 
-import static response.ResponseOuterClass.Response;
-
-import babushka.Client;
 import babushka.benchmarks.clients.AsyncClient;
 import babushka.benchmarks.clients.SyncClient;
 import babushka.benchmarks.utils.ConnectionSettings;
+import babushka.client.Commands;
+import babushka.client.Connection;
 import java.util.concurrent.Future;
 
-public class JniNettyClient implements SyncClient, AsyncClient<Response> {
+public class JniNettyClient implements SyncClient, AsyncClient {
 
-  private final Client testClient;
+  private final Connection connection;
+  private Commands commands = null;
   private String name = "JNI Netty";
 
   public JniNettyClient(boolean async) {
     name += async ? " async" : " sync";
-    testClient = new Client();
+    connection = new Connection();
   }
 
   @Override
@@ -24,41 +24,32 @@ public class JniNettyClient implements SyncClient, AsyncClient<Response> {
   }
 
   @Override
-  public void connectToRedis() {
-    connectToRedis(new ConnectionSettings("localhost", 6379, false, false));
-  }
-
-  @Override
   public void connectToRedis(ConnectionSettings connectionSettings) {
-    waitForResult(asyncConnectToRedis(connectionSettings));
-  }
-
-  @Override
-  public Future<Response> asyncConnectToRedis(ConnectionSettings connectionSettings) {
-    return testClient.asyncConnectToRedis(
+    connection.connectToRedis(
         connectionSettings.host,
         connectionSettings.port,
         connectionSettings.useSsl,
         connectionSettings.clusterMode);
+    commands = connection.getCommands();
   }
 
   @Override
-  public Future<Response> asyncSet(String key, String value) {
-    return testClient.asyncSet(key, value);
+  public Future<Boolean> asyncSet(String key, String value) {
+    return commands.asyncSet(key, value);
   }
 
   @Override
   public Future<String> asyncGet(String key) {
-    return testClient.asyncGet(key);
+    return commands.asyncGet(key);
   }
 
   @Override
   public void set(String key, String value) {
-    testClient.set(key, value);
+    commands.set(key, value);
   }
 
   @Override
   public String get(String key) {
-    return testClient.get(key);
+    return commands.get(key);
   }
 }

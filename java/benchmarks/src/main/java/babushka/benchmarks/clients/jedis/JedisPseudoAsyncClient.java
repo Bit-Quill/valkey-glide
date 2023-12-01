@@ -1,7 +1,6 @@
 package babushka.benchmarks.clients.jedis;
 
 import babushka.benchmarks.clients.AsyncClient;
-import babushka.benchmarks.utils.ConnectionSettings;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
@@ -12,10 +11,6 @@ import java.util.concurrent.Future;
  * <p>See: https://github.com/redis/jedis
  */
 public class JedisPseudoAsyncClient extends JedisClient implements AsyncClient {
-  @Override
-  public Future<?> asyncConnectToRedis(ConnectionSettings connectionSettings) {
-    return CompletableFuture.runAsync(() -> super.connectToRedis(connectionSettings));
-  }
 
   @Override
   public Future<?> asyncSet(String key, String value) {

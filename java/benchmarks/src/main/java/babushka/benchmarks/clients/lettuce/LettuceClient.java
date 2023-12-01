@@ -14,11 +14,6 @@ public class LettuceClient implements SyncClient {
   StatefulRedisConnection<String, String> connection;
 
   @Override
-  public void connectToRedis() {
-    connectToRedis(new ConnectionSettings("localhost", 6379, false, false));
-  }
-
-  @Override
   public void connectToRedis(ConnectionSettings connectionSettings) {
     client =
         RedisClient.create(

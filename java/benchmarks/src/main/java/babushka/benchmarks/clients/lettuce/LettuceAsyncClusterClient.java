@@ -17,11 +17,6 @@ public class LettuceAsyncClusterClient extends LettuceAsyncClient {
   private StatefulRedisClusterConnection<String, String> clusterConnection;
 
   @Override
-  public void connectToRedis() {
-    connectToRedis(new ConnectionSettings("localhost", 6379, false, true));
-  }
-
-  @Override
   public void connectToRedis(ConnectionSettings connectionSettings) {
     RedisURI uri =
         RedisURI.builder()

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import babushka.benchmarks.clients.lettuce.LettuceAsyncClient;
+import babushka.benchmarks.utils.ConnectionSettings;
 import io.lettuce.core.RedisFuture;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,10 +19,10 @@ public class LettuceAsyncClientIT {
   @BeforeAll
   static void initializeLettuceClient() {
     lettuceClient = new LettuceAsyncClient();
-    lettuceClient.connectToRedis();
+    lettuceClient.connectToRedis(new ConnectionSettings("localhost", 6379, false, false));
 
     otherLettuceClient = new LettuceAsyncClient();
-    otherLettuceClient.connectToRedis();
+    otherLettuceClient.connectToRedis(new ConnectionSettings("localhost", 6379, false, false));
   }
 
   @AfterAll

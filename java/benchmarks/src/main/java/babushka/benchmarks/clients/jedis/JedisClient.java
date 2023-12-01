@@ -3,7 +3,6 @@ package babushka.benchmarks.clients.jedis;
 import babushka.benchmarks.clients.SyncClient;
 import babushka.benchmarks.utils.ConnectionSettings;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
 /** A Jedis client with sync capabilities. See: https://github.com/redis/jedis */
 public class JedisClient implements SyncClient {
@@ -12,12 +11,6 @@ public class JedisClient implements SyncClient {
   public static final int DEFAULT_PORT = 6379;
 
   protected Jedis jedisResource;
-
-  @Override
-  public void connectToRedis() {
-    JedisPool pool = new JedisPool(DEFAULT_HOST, DEFAULT_PORT);
-    jedisResource = pool.getResource();
-  }
 
   @Override
   public void closeConnection() {
