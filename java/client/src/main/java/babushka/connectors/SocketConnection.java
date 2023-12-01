@@ -26,19 +26,29 @@ public class SocketConnection {
   /** Thread pool supplied to <em>Netty</em> to perform all async IO. */
   private EventLoopGroup group;
 
-  private String socketPath;
-
   /** The singleton instance. */
   private static SocketConnection INSTANCE = null;
 
+  private static String socketPath;
+
+  public static void setSocketPath(String socketPath) {
+    if (SocketConnection.socketPath == null) {
+      SocketConnection.socketPath = socketPath;
+      return;
+    }
+    throw new RuntimeException("socket path can only be declared once");
+  }
+
   /**
-   * Creates (if not yet created) and returns the singleton instance of the {@link ConnectionManager}.
+   * Creates (if not yet created) and returns the singleton instance of the {@link
+   * ConnectionManager}.
    *
    * @return a {@link ConnectionManager} instance.
    */
-  public static synchronized SocketConnection getInstance(String socketPath) {
+  public static synchronized SocketConnection getInstance() {
     if (INSTANCE == null) {
-      INSTANCE = new SocketConnection(socketPath);
+      assert socketPath != null : "socket path must be defined";
+      INSTANCE = new SocketConnection();
     }
     return INSTANCE;
   }
@@ -61,16 +71,16 @@ public class SocketConnection {
   }
 
   /** Constructor for the single instance. */
-  private SocketConnection(String socketPath) {
+  private SocketConnection() {
     boolean isMacOs = isMacOs();
     try {
       int cpuCount = Runtime.getRuntime().availableProcessors();
       group =
           isMacOs
               ? new KQueueEventLoopGroup(
-              cpuCount, new DefaultThreadFactory("NettyWrapper-kqueue-elg", true))
+                  cpuCount, new DefaultThreadFactory("NettyWrapper-kqueue-elg", true))
               : new EpollEventLoopGroup(
-              cpuCount, new DefaultThreadFactory("NettyWrapper-epoll-elg", true));
+                  cpuCount, new DefaultThreadFactory("NettyWrapper-epoll-elg", true));
       channel =
           new Bootstrap()
               .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(1024, 4096))
@@ -89,16 +99,12 @@ public class SocketConnection {
     }
   }
 
-  /**
-   * Write a protobuf message to the socket.
-   */
+  /** Write a protobuf message to the socket. */
   public void write(GeneratedMessageV3 message) {
     channel.write(message.toByteArray());
   }
 
-  /**
-   * Write a protobuf message to the socket and flush it.
-   */
+  /** Write a protobuf message to the socket and flush it. */
   public void writeAndFlush(GeneratedMessageV3 message) {
     channel.writeAndFlush(message.toByteArray());
   }

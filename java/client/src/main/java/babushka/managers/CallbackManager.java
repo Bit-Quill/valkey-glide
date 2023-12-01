@@ -56,7 +56,6 @@ public class CallbackManager {
     CallbackManager.connectionRequests.add(future);
   }
 
-
   /**
    * Create a unique callback ID (request ID) and a corresponding registered future for the
    * response.<br>

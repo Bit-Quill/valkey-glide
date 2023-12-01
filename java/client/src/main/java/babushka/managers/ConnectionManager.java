@@ -1,12 +1,10 @@
 package babushka.managers;
 
+import static babushka.models.RequestBuilder.getConnectionRequest;
+
 import babushka.connectors.SocketConnection;
-import babushka.ffi.resolvers.BabushkaCoreNativeDefinitions;
-import com.google.common.annotations.VisibleForTesting;
-import connection_request.ConnectionRequestOuterClass;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import java.util.concurrent.CompletableFuture;
-import response.ResponseOuterClass;
 import response.ResponseOuterClass.Response;
 
 /**
@@ -25,19 +23,23 @@ import response.ResponseOuterClass.Response;
 public class ConnectionManager {
 
   private final SocketConnection socketConnection;
-  private final BabushkaCoreNativeDefinitions nativeDefinitions;
   private final CallbackManager callbackManager;
 
-  public ConnectionManager(CallbackManager callbackManager,
-                           BabushkaCoreNativeDefinitions nativeDefinitions,
-                           SocketConnection socketConnection) {
+  private final CommandManager commandManager;
+
+  public ConnectionManager(CallbackManager callbackManager, SocketConnection socketConnection) {
     this.socketConnection = socketConnection;
-    this.nativeDefinitions = nativeDefinitions;
     this.callbackManager = callbackManager;
+    this.commandManager = new CommandManager(callbackManager, socketConnection);
+  }
+
+  public CommandManager getCommandManager() {
+    return this.commandManager;
   }
 
   /**
    * Connect to Redis using a ProtoBuf connection request
+   *
    * @param host
    * @param port
    * @param useSsl
@@ -46,8 +48,7 @@ public class ConnectionManager {
    */
   public CompletableFuture<String> connectToRedis(
       String host, int port, boolean useSsl, boolean clusterMode) {
-    ConnectionRequest
-        request = getConnectionRequest(host, port, useSsl, clusterMode);
+    ConnectionRequest request = getConnectionRequest(host, port, useSsl, clusterMode);
     var future = new CompletableFuture<Response>();
     callbackManager.registerConnection(future);
     socketConnection.writeAndFlush(request);
@@ -55,25 +56,10 @@ public class ConnectionManager {
   }
 
   /**
-   * Close socket connection and drop all channels
-   * TODO: provide feedback that the connection was properly closed
+   * Close socket connection and drop all channels TODO: provide feedback that the connection was
+   * properly closed
    */
   public void closeConnection() {
     socketConnection.close();
-  }
-
-  /** Build a protobuf connection request object */
-  // TODO support more parameters and/or configuration object
-  @VisibleForTesting
-  private static ConnectionRequest getConnectionRequest(
-      String host, int port, boolean useSsl, boolean clusterMode) {
-    return ConnectionRequest.newBuilder()
-        .addAddresses(
-            ConnectionRequestOuterClass.NodeAddress.newBuilder().setHost(host).setPort(port).build())
-        .setTlsMode(useSsl ? ConnectionRequestOuterClass.TlsMode.SecureTls : ConnectionRequestOuterClass.TlsMode.NoTls)
-        .setClusterModeEnabled(clusterMode)
-        .setReadFrom(ConnectionRequestOuterClass.ReadFrom.Primary)
-        .setDatabaseId(0)
-        .build();
   }
 }
