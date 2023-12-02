@@ -1,5 +1,6 @@
 package babushka.benchmarks.clients.babushka;
 
+import babushka.api.Awaiter;
 import babushka.api.Client;
 import babushka.api.Commands;
 import babushka.api.Connection;
@@ -38,7 +39,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<String> {
 
   @Override
   public Future<String> asyncConnectToRedis(ConnectionSettings connectionSettings) {
-    return connection.asyncConnectToRedis(
+    return connection.connectToRedis(
         connectionSettings.host,
         connectionSettings.port,
         connectionSettings.useSsl,
@@ -47,21 +48,21 @@ public class JniNettyClient implements SyncClient, AsyncClient<String> {
 
   @Override
   public Future<String> asyncSet(String key, String value) {
-    return asyncCommands.asyncSet(key, value);
+    return asyncCommands.set(key, value);
   }
 
   @Override
   public Future<String> asyncGet(String key) {
-    return asyncCommands.asyncGet(key);
+    return asyncCommands.get(key);
   }
 
   @Override
   public void set(String key, String value) {
-    asyncCommands.set(key, value);
+    Awaiter.await(asyncCommands.set(key, value));
   }
 
   @Override
   public String get(String key) {
-    return asyncCommands.get(key);
+    return Awaiter.await(asyncCommands.get(key));
   }
 }

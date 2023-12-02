@@ -1,7 +1,7 @@
 package babushka.api;
 
 import babushka.managers.CommandManager;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 
 public class Commands {
 
@@ -12,36 +12,13 @@ public class Commands {
   }
 
   /**
-   * Sync (blocking) set. See async option in {@link #asyncSet}.<br>
-   * See <a href="https://redis.io/commands/set/">REDIS docs for SET</a>.
-   *
-   * @param key The key name
-   * @param value The value to set
-   */
-  public void set(String key, String value) {
-    Awaiter.await(asyncSet(key, value));
-    // TODO parse response and rethrow an exception if there is an error
-  }
-
-  /**
-   * Sync (blocking) get. See async option in {@link #asyncGet}.<br>
-   * See <a href="https://redis.io/commands/get/">REDIS docs for GET</a>.
-   *
-   * @param key The key name
-   */
-  public String get(String key) {
-    return Awaiter.await(asyncGet(key));
-    // TODO support non-strings
-  }
-
-  /**
    * Async (non-blocking) set. See sync option in {@link #set}.<br>
    * See <a href="https://redis.io/commands/set/">REDIS docs for SET</a>.
    *
    * @param key The key name
    * @param value The value to set
    */
-  public Future<String> asyncSet(String key, String value) {
+  public CompletableFuture<String> set(String key, String value) {
     return commandManager.set(key, value);
   }
 
@@ -51,7 +28,7 @@ public class Commands {
    *
    * @param key The key name
    */
-  public Future<String> asyncGet(String key) {
+  public CompletableFuture<String> get(String key) {
     return commandManager.get(key);
   }
 }

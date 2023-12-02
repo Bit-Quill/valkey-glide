@@ -31,7 +31,7 @@ public class ConnectionTest {
   }
 
   @Test
-  public void test_asyncConnectToRedis_success() {
+  public void asyncConnectToRedis_success() {
     // setup
     boolean useSsl = false;
     boolean clusterMode = false;
@@ -41,7 +41,7 @@ public class ConnectionTest {
 
     // exercise
     CompletableFuture<String> connectionResponse =
-        service.asyncConnectToRedis(HOST, PORT, useSsl, clusterMode);
+        service.connectToRedis(HOST, PORT, useSsl, clusterMode);
 
     // verify
     Mockito.verify(connectionManager, times(1))

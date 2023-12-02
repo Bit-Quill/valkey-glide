@@ -13,6 +13,8 @@ import response.ResponseOuterClass.Response;
 /** Holder for resources owned by {@link CommandManager} and used by {@link ReadHandler}. */
 public class CallbackManager {
 
+  // TODO: let's make these non-static class variables
+
   /**
    * Storage of Futures to handle responses. Map key is callback id, which starts from 1.<br>
    * Each future is a promise for every submitted by user request.
@@ -54,6 +56,17 @@ public class CallbackManager {
    */
   public void registerConnection(CompletableFuture<Response> future) {
     CallbackManager.connectionRequests.add(future);
+  }
+
+  public static void shutdownGracefully() {
+    connectionRequests.forEach(
+        future -> {
+          future.completeExceptionally(new InterruptedException());
+        });
+    responses.forEach(
+        (callbackId, future) -> {
+          future.completeExceptionally(new InterruptedException());
+        });
   }
 
   /**

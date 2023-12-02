@@ -59,7 +59,8 @@ public class ConnectionManager {
    * Close socket connection and drop all channels TODO: provide feedback that the connection was
    * properly closed
    */
-  public void closeConnection() {
+  public CompletableFuture<String> closeConnection() {
     socketConnection.close();
+    return new CompletableFuture<String>();
   }
 }

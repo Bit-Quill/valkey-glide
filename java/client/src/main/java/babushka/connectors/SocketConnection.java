@@ -118,6 +118,7 @@ public class SocketConnection {
     group.shutdownGracefully();
     INSTANCE = null;
     // TODO should we reply in uncompleted futures?
+    CallbackManager.shutdownGracefully();
     CallbackManager.connectionRequests.clear();
     CallbackManager.responses.clear();
   }
