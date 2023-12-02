@@ -50,7 +50,7 @@ public class Commands {
    */
   public Future<Boolean> asyncSet(String key, String value) {
     return submitRequest(RequestBuilder.prepareRequest(RequestType.SetString, List.of(key, value)))
-        .thenApply(response -> response.getConstantResponse() == ConstantResponse.OK);
+        .thenApplyAsync(response -> response.getConstantResponse() == ConstantResponse.OK);
   }
 
   /**
@@ -61,7 +61,7 @@ public class Commands {
    */
   public Future<String> asyncGet(String key) {
     return submitRequest(RequestBuilder.prepareRequest(RequestType.GetString, List.of(key)))
-        .thenApply(
+        .thenApplyAsync(
             response ->
                 response.getRespPointer() != 0
                     ? BabushkaCoreNativeDefinitions.valueFromPointer(response.getRespPointer())
@@ -72,6 +72,6 @@ public class Commands {
   private CompletableFuture<Response> submitRequest(RedisRequest.Builder builder) {
     // TODO this explicitly uses ForkJoin thread pool. May be we should use another one.
     return CompletableFuture.supplyAsync(() -> socketManager.write(builder, true))
-        .thenCompose(f -> f);
+        .thenComposeAsync(f -> f);
   }
 }

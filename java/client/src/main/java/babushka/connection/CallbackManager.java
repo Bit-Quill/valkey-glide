@@ -56,15 +56,19 @@ class CallbackManager {
     return future;
   }
 
+  /**
+   * Complete the corresponding client promise and free resources.
+   * @param response A response received
+   */
   public static void completeRequest(Response response) {
     int callbackId = response.getCallbackIdx();
     if (callbackId == 0) {
       // can't distinguish connection requests since they have no
       // callback ID
       // https://github.com/aws/babushka/issues/600
-      connectionRequests.pop().complete(response);
+      connectionRequests.pop().completeAsync(() -> response);
     } else {
-      responses.get(callbackId).complete(response);
+      responses.get(callbackId).completeAsync(() -> response);
       responses.remove(callbackId);
     }
   }

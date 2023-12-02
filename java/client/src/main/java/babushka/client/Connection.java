@@ -50,10 +50,10 @@ public class Connection {
     var request = RequestBuilder.createConnectionRequest(host, port, useSsl, clusterMode);
     return socketManager
         .connect(request)
-        .thenApply(
+        .thenApplyAsync(
             response ->
                 isConnected.compareAndSet(
-                    true, response.getConstantResponse() == ConstantResponse.OK));
+                    false, response.getConstantResponse() == ConstantResponse.OK));
   }
 
   /** Sync (blocking) disconnect. See async option in {@link #asyncCloseConnection}. */

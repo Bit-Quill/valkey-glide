@@ -24,6 +24,11 @@ public class JniNettyClient implements SyncClient, AsyncClient {
   }
 
   @Override
+  public void closeConnection() {
+    connection.closeConnection();
+  }
+
+  @Override
   public void connectToRedis(ConnectionSettings connectionSettings) {
     connection.connectToRedis(
         connectionSettings.host,
