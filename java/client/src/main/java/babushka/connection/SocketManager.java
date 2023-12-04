@@ -1,17 +1,11 @@
 package babushka.connection;
 
-import static response.ResponseOuterClass.Response;
-
 import babushka.FFI.BabushkaCoreNativeDefinitions;
 import babushka.client.Commands;
 import babushka.client.Connection;
-import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueue;
@@ -19,8 +13,6 @@ import io.netty.channel.kqueue.KQueueDomainSocketChannel;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import java.util.concurrent.CompletableFuture;
-import redis_request.RedisRequestOuterClass.RedisRequest;
 
 /**
  * A UDS connection manager. This class is responsible for:
@@ -39,6 +31,8 @@ import redis_request.RedisRequestOuterClass.RedisRequest;
  */
 public class SocketManager {
 
+  private static final String socketPath = getSocket();
+
   /**
    * Make an FFI call to obtain the socket path.
    *
@@ -55,6 +49,8 @@ public class SocketManager {
 
   // At the moment, Windows is not supported
   // Probably we should use NIO (NioEventLoopGroup) for Windows.
+  private static final boolean isMacOs = isMacOs();
+
   // TODO support IO-Uring and NIO
   /**
    * Detect platform to identify which native implementation to use for UDS interaction. Currently
@@ -69,9 +65,6 @@ public class SocketManager {
       return false;
     }
   }
-
-  /** A channel to make socket interactions with. */
-  private Channel channel = null;
 
   /** Thread pool supplied to <em>Netty</em> to perform all async IO. */
   private EventLoopGroup group = null;
@@ -93,26 +86,14 @@ public class SocketManager {
 
   /** Constructor for the single instance. */
   private SocketManager() {
-    boolean isMacOs = isMacOs();
     try {
       int cpuCount = Runtime.getRuntime().availableProcessors();
       group =
           isMacOs
               ? new KQueueEventLoopGroup(
-                  cpuCount, new DefaultThreadFactory("NettyWrapper-kqueue-elg", true))
+                  cpuCount, new DefaultThreadFactory("SocketManager-kqueue-elg", true))
               : new EpollEventLoopGroup(
-                  cpuCount, new DefaultThreadFactory("NettyWrapper-epoll-elg", true));
-      channel =
-          new Bootstrap()
-              .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(1024, 4096))
-              .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
-              .group(group)
-              .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
-              .handler(new ChannelBuilder())
-              .connect(new DomainSocketAddress(getSocket()))
-              .sync()
-              .channel();
-
+                  cpuCount, new DefaultThreadFactory("SocketManager-epoll-elg", true));
     } catch (Exception e) {
       System.err.printf(
           "Failed to create a channel %s: %s%n", e.getClass().getSimpleName(), e.getMessage());
@@ -120,23 +101,21 @@ public class SocketManager {
     }
   }
 
-  /** Write a protobuf message to the socket. */
-  public CompletableFuture<Response> write(RedisRequest.Builder request, boolean flush) {
-    var commandId = CallbackManager.registerRequest();
-    request.setCallbackIdx(commandId.getKey());
-
-    if (flush) {
-      channel.writeAndFlush(request.build().toByteArray());
-    } else {
-      channel.write(request.build().toByteArray());
+  public Channel openNewChannel(CallbackManager callbackManager) {
+    try {
+      return new Bootstrap()
+          .group(group)
+          .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
+          .handler(new ChannelBuilder(callbackManager))
+          .connect(new DomainSocketAddress(socketPath))
+          .sync()
+          .channel();
+    } catch (InterruptedException e) {
+      System.err.printf(
+          "Failed to create a channel %s: %s%n", e.getClass().getSimpleName(), e.getMessage());
+      e.printStackTrace(System.err);
+      throw new RuntimeException(e);
     }
-    return commandId.getValue();
-  }
-
-  /** Write a protobuf message to the socket. */
-  public CompletableFuture<Response> connect(ConnectionRequest request) {
-    channel.writeAndFlush(request.toByteArray());
-    return CallbackManager.registerConnection();
   }
 
   /**
@@ -144,10 +123,8 @@ public class SocketManager {
    * #getInstance()} will create a new connection with new resource pool.
    */
   public void close() {
-    channel.close();
     group.shutdownGracefully();
     INSTANCE = null;
-    CallbackManager.clean();
   }
 
   /**
@@ -168,6 +145,6 @@ public class SocketManager {
 
   static {
     Runtime.getRuntime()
-        .addShutdownHook(new Thread(new ShutdownHook(), "NettyWrapper-shutdown-hook"));
+        .addShutdownHook(new Thread(new ShutdownHook(), "SocketManager-shutdown-hook"));
   }
 }

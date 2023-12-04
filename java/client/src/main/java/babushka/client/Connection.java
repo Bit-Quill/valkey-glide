@@ -1,25 +1,17 @@
 package babushka.client;
 
-import babushka.connection.SocketManager;
 import babushka.tools.Awaiter;
-import java.nio.channels.NotYetConnectedException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.RequiredArgsConstructor;
 import response.ResponseOuterClass.ConstantResponse;
 
+@RequiredArgsConstructor
 public class Connection {
-
-  // TODO: not used yet, not implemented on rust side
-  // https://github.com/aws/babushka/issues/635
-  private final int connectionId = 0;
 
   private final AtomicBoolean isConnected = new AtomicBoolean(false);
 
-  private final SocketManager socketManager;
-
-  public Connection() {
-    socketManager = SocketManager.getInstance();
-  }
+  private final ChannelHolder channel;
 
   /**
    * Sync (blocking) connect to REDIS. See async option in {@link #asyncConnectToRedis}.
@@ -48,7 +40,7 @@ public class Connection {
   public CompletableFuture<Boolean> asyncConnectToRedis(
       String host, int port, boolean useSsl, boolean clusterMode) {
     var request = RequestBuilder.createConnectionRequest(host, port, useSsl, clusterMode);
-    return socketManager
+    return channel
         .connect(request)
         .thenApplyAsync(
             response ->
@@ -62,16 +54,13 @@ public class Connection {
   }
 
   /** Async (non-blocking) disconnect. See sync option in {@link #closeConnection}. */
-  // TODO Not implemented yet in rust core lib.
   public CompletableFuture<Void> asyncCloseConnection() {
     isConnected.setPlain(false);
-    return CompletableFuture.runAsync(() -> {});
+    return CompletableFuture.runAsync(channel::close);
   }
 
-  public Commands getCommands() {
-    if (!isConnected.get()) {
-      throw new NotYetConnectedException();
-    }
-    return new Commands(socketManager);
+  /** Check that connection established. This doesn't validate whether it is alive. */
+  public boolean isConnected() {
+    return isConnected.get();
   }
 }

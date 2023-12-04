@@ -1,22 +1,20 @@
 package babushka.client;
 
 import babushka.FFI.BabushkaCoreNativeDefinitions;
-import babushka.connection.SocketManager;
 import babushka.tools.Awaiter;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import lombok.RequiredArgsConstructor;
 import redis_request.RedisRequestOuterClass.RedisRequest;
 import redis_request.RedisRequestOuterClass.RequestType;
 import response.ResponseOuterClass.ConstantResponse;
 import response.ResponseOuterClass.Response;
 
+@RequiredArgsConstructor
 public class Commands {
-  private final SocketManager socketManager;
 
-  public Commands(SocketManager socketManager) {
-    this.socketManager = socketManager;
-  }
+  private final ChannelHolder channel;
 
   /**
    * Sync (blocking) set. See async option in {@link #asyncSet}.<br>
@@ -71,7 +69,7 @@ public class Commands {
 
   private CompletableFuture<Response> submitRequest(RedisRequest.Builder builder) {
     // TODO this explicitly uses ForkJoin thread pool. May be we should use another one.
-    return CompletableFuture.supplyAsync(() -> socketManager.write(builder, true))
+    return CompletableFuture.supplyAsync(() -> channel.write(builder, true))
         .thenComposeAsync(f -> f);
   }
 }

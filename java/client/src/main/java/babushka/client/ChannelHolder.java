@@ -1,0 +1,40 @@
+package babushka.client;
+
+import babushka.connection.CallbackManager;
+import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
+import io.netty.channel.Channel;
+import java.util.concurrent.CompletableFuture;
+import lombok.RequiredArgsConstructor;
+import redis_request.RedisRequestOuterClass.RedisRequest;
+import response.ResponseOuterClass.Response;
+
+@RequiredArgsConstructor
+public class ChannelHolder {
+  private final Channel channel;
+  private final CallbackManager callbackManager;
+
+  /** Write a protobuf message to the socket. */
+  public CompletableFuture<Response> write(RedisRequest.Builder request, boolean flush) {
+    var commandId = callbackManager.registerRequest();
+    request.setCallbackIdx(commandId.getKey());
+
+    if (flush) {
+      channel.writeAndFlush(request.build().toByteArray());
+    } else {
+      channel.write(request.build().toByteArray());
+    }
+    return commandId.getValue();
+  }
+
+  /** Write a protobuf message to the socket. */
+  public CompletableFuture<Response> connect(ConnectionRequest request) {
+    channel.writeAndFlush(request.toByteArray());
+    return callbackManager.getConnectionPromise();
+  }
+
+  /** Closes the UDS connection and frees corresponding resources. */
+  public void close() {
+    channel.close();
+    callbackManager.clean();
+  }
+}
