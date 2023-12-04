@@ -5,4 +5,4 @@
 build
 
 # Ignore protobuf generated files
-models/protobuf
+protobuf

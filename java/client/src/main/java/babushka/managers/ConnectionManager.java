@@ -52,7 +52,7 @@ public class ConnectionManager {
     var future = new CompletableFuture<Response>();
     callbackManager.registerConnection(future);
     socketConnection.writeAndFlush(request);
-    return future.thenApply(f -> f.getConstantResponse().toString());
+    return future.thenApplyAsync(f -> f.getConstantResponse().toString());
   }
 
   /**

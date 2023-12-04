@@ -50,14 +50,14 @@ public class CommandManager {
   public CompletableFuture<String> submitNewCommand(RequestType command, List<String> args) {
     // TODO this explicitly uses ForkJoin thread pool. May be we should use another one.
     CompletableFuture<Response> future = new CompletableFuture<>();
-    int callbackId = callbackManager.registerRequest(future);
 
     return CompletableFuture.supplyAsync(
             () -> {
               socketConnection.writeAndFlush(redisSingleCommand(command, args));
               return future;
             })
-        .thenCompose(f -> f)
-        .thenApply(RequestBuilder::resolveRedisResponseToString);
+        // TODO: is there a better way to execute this?
+        .thenComposeAsync(f -> f)
+        .thenApplyAsync(RequestBuilder::resolveRedisResponseToString);
   }
 }

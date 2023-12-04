@@ -58,15 +58,30 @@ public class CallbackManager {
     CallbackManager.connectionRequests.add(future);
   }
 
+  public static void completeAsync(Response response) {
+    int callbackId = response.getCallbackIdx();
+    if (callbackId == 0) {
+      // can't distinguish connection requests since they have no
+      // callback ID
+      // https://github.com/aws/babushka/issues/600
+      connectionRequests.pop().completeAsync(() -> response);
+    } else {
+      responses.get(callbackId).completeAsync(() -> response);
+      responses.remove(callbackId);
+    }
+  }
+
   public static void shutdownGracefully() {
     connectionRequests.forEach(
         future -> {
           future.completeExceptionally(new InterruptedException());
         });
+    connectionRequests.clear();
     responses.forEach(
         (callbackId, future) -> {
           future.completeExceptionally(new InterruptedException());
         });
+    responses.clear();
   }
 
   /**

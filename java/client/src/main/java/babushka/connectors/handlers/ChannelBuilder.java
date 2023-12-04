@@ -16,7 +16,7 @@ public class ChannelBuilder extends ChannelInitializer<UnixChannel> {
         // https://netty.io/4.1/api/io/netty/handler/codec/protobuf/ProtobufEncoder.html
         .addLast("protobufDecoder", new ProtobufVarint32FrameDecoder())
         .addLast("protobufEncoder", new ProtobufVarint32LengthFieldPrepender())
-        .addLast(new ChannelInboundHandlerAdapter())
-        .addLast(new ChannelOutboundHandlerAdapter());
+        .addLast(new ReadHandler())
+        .addLast(new WriteHandler());
   }
 }
