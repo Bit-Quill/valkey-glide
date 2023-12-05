@@ -1,5 +1,6 @@
 package babushka.client;
 
+import babushka.connection.CallbackManager;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import connection_request.ConnectionRequestOuterClass.NodeAddress;
 import connection_request.ConnectionRequestOuterClass.ReadFrom;
@@ -29,6 +30,12 @@ class RequestBuilder {
         .build();
   }
 
+  /**
+   * Build a protobuf command/transaction request draft.
+   *
+   * @return An uncompleted request. {@link CallbackManager} is responsible to complete it by adding
+   *     a callback id.
+   */
   public static RedisRequest.Builder prepareRequest(RequestType command, List<String> args) {
     var commandArgs = ArgsArray.newBuilder();
     for (var arg : args) {

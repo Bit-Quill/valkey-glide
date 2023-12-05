@@ -8,6 +8,10 @@ import lombok.RequiredArgsConstructor;
 import redis_request.RedisRequestOuterClass.RedisRequest;
 import response.ResponseOuterClass.Response;
 
+/**
+ * Class responsible for manipulations with Netty's {@link Channel}.<br>
+ * Uses a {@link CallbackManager} to record callbacks of every request sent.
+ */
 @RequiredArgsConstructor
 public class ChannelHolder {
   private final Channel channel;

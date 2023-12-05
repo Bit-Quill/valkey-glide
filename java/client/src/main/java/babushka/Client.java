@@ -16,9 +16,7 @@ public class Client {
 
   public Client() {
     var callBackManager = new CallbackManager();
-    channelHolder =
-        new ChannelHolder(
-            SocketManager.getInstance().openNewChannel(callBackManager), callBackManager);
+    channelHolder = SocketManager.getInstance().openNewChannel(callBackManager);
     connection = new Connection(channelHolder);
     commands = new Commands(channelHolder);
   }

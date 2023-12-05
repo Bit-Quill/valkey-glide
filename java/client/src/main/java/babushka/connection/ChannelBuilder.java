@@ -7,7 +7,7 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-/** Builder for the channel used by {@link SocketManager}. */
+/** Builder for the channel. */
 @RequiredArgsConstructor
 public class ChannelBuilder extends ChannelInitializer<UnixChannel> {
 

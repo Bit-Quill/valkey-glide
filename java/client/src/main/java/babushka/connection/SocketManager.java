@@ -1,6 +1,7 @@
 package babushka.connection;
 
 import babushka.FFI.BabushkaCoreNativeDefinitions;
+import babushka.client.ChannelHolder;
 import babushka.client.Commands;
 import babushka.client.Connection;
 import io.netty.bootstrap.Bootstrap;
@@ -21,10 +22,7 @@ import io.netty.util.concurrent.DefaultThreadFactory;
  *   <li>opening a connection (channel) though the UDS;
  *   <li>allocating the corresponding resources, e.g. thread pools (see also {@link
  *       CallbackManager});
- *   <li>handling connection requests;
- *   <li>providing unique request ID (callback ID);
- *   <li>handling REDIS requests;
- *   <li>closing connection;
+ *   <li>freeing shared resources;
  * </ul>
  *
  * Note: should not be used outside of {@link Commands} or {@link Connection}!
@@ -101,15 +99,18 @@ public class SocketManager {
     }
   }
 
-  public Channel openNewChannel(CallbackManager callbackManager) {
+  /** Open a new channel for a new client. */
+  public ChannelHolder openNewChannel(CallbackManager callbackManager) {
     try {
-      return new Bootstrap()
-          .group(group)
-          .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
-          .handler(new ChannelBuilder(callbackManager))
-          .connect(new DomainSocketAddress(socketPath))
-          .sync()
-          .channel();
+      Channel channel =
+          new Bootstrap()
+              .group(group)
+              .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
+              .handler(new ChannelBuilder(callbackManager))
+              .connect(new DomainSocketAddress(socketPath))
+              .sync()
+              .channel();
+      return new ChannelHolder(channel, callbackManager);
     } catch (InterruptedException e) {
       System.err.printf(
           "Failed to create a channel %s: %s%n", e.getClass().getSimpleName(), e.getMessage());
@@ -119,8 +120,8 @@ public class SocketManager {
   }
 
   /**
-   * Closes the UDS connection and frees corresponding resources. A consecutive call to {@link
-   * #getInstance()} will create a new connection with new resource pool.
+   * Close the UDS connection and frees corresponding resources. A consecutive call to {@link
+   * #getInstance()} will create a new resource pool.
    */
   public void close() {
     group.shutdownGracefully();
