@@ -1,11 +1,14 @@
 package babushka.managers;
 
-import static babushka.models.RequestBuilder.getConnectionRequest;
-
 import babushka.connectors.SocketConnection;
+import babushka.connectors.handlers.ChannelHandler;
+import babushka.models.RequestBuilder;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import java.util.concurrent.CompletableFuture;
-import response.ResponseOuterClass.Response;
+import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import response.ResponseOuterClass.ConstantResponse;
 
 /**
  * A UDS connection manager. This class is responsible for:
@@ -13,54 +16,53 @@ import response.ResponseOuterClass.Response;
  * <ul>
  *   <li>opening a connection (channel) though the UDS;
  *   <li>allocating the corresponding resources, e.g. thread pools (see also {@link
- *       CallbackManager});
+ *       SocketConnection});
  *   <li>handling connection requests;
- *   <li>providing unique request ID (callback ID);
  *   <li>handling REDIS requests;
  *   <li>closing connection;
  * </ul>
  */
+@RequiredArgsConstructor
 public class ConnectionManager {
 
-  private final SocketConnection socketConnection;
-  private final CallbackManager callbackManager;
+  private final ChannelHandler channel;
+  @Getter private final CommandManager commandManager;
 
-  private final CommandManager commandManager;
-
-  public ConnectionManager(CallbackManager callbackManager, SocketConnection socketConnection) {
-    this.socketConnection = socketConnection;
-    this.callbackManager = callbackManager;
-    this.commandManager = new CommandManager(callbackManager, socketConnection);
-  }
-
-  public CommandManager getCommandManager() {
-    return this.commandManager;
-  }
+  private final AtomicBoolean isConnected = new AtomicBoolean(false);
 
   /**
    * Connect to Redis using a ProtoBuf connection request
    *
-   * @param host
-   * @param port
-   * @param useSsl
-   * @param clusterMode
-   * @return
+   * @param host Server address
+   * @param port Server port
+   * @param useSsl true if communication with the server or cluster should use Transport Level
+   *     Security
+   * @param clusterMode true if REDIS instance runs in the cluster mode
    */
-  public CompletableFuture<String> connectToRedis(
+  public CompletableFuture<Boolean> connectToRedis(
       String host, int port, boolean useSsl, boolean clusterMode) {
-    ConnectionRequest request = getConnectionRequest(host, port, useSsl, clusterMode);
-    var future = new CompletableFuture<Response>();
-    callbackManager.registerConnection(future);
-    socketConnection.writeAndFlush(request);
-    return future.thenApplyAsync(f -> f.getConstantResponse().toString());
+    ConnectionRequest request =
+        RequestBuilder.createConnectionRequest(host, port, useSsl, clusterMode);
+    return channel
+        .connect(request)
+        .thenApplyAsync(
+            response ->
+                isConnected.compareAndSet(
+                    false, response.getConstantResponse() == ConstantResponse.OK));
   }
 
   /**
-   * Close socket connection and drop all channels TODO: provide feedback that the connection was
-   * properly closed
+   * Close socket connection and drop all channels.<br>
+   * TODO: provide feedback that the connection was properly closed
    */
   public CompletableFuture<String> closeConnection() {
-    socketConnection.close();
+    isConnected.setPlain(false);
+    channel.close();
     return new CompletableFuture<String>();
+  }
+
+  /** Check that connection established. This doesn't validate whether it is alive. */
+  public boolean isConnected() {
+    return isConnected.get();
   }
 }

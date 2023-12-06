@@ -5,10 +5,15 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import response.ResponseOuterClass;
 
 /** Handler for inbound traffic though UDS. Used by Netty. */
+@RequiredArgsConstructor
 public class ReadHandler extends ChannelInboundHandlerAdapter {
+
+  private final CallbackManager callbackManager;
+
   /**
    * Handles responses from babushka core:
    *
@@ -26,7 +31,7 @@ public class ReadHandler extends ChannelInboundHandlerAdapter {
     buf.readBytes(bytes);
     // TODO surround parsing with try-catch, set error to future if parsing failed.
     var response = ResponseOuterClass.Response.parseFrom(bytes);
-    CallbackManager.completeAsync(response);
+    callbackManager.completeRequest(response);
     buf.release();
   }
 

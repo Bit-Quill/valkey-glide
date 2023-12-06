@@ -1,54 +1,61 @@
 package babushka.models;
 
 import babushka.ffi.resolvers.BabushkaCoreNativeDefinitions;
-import connection_request.ConnectionRequestOuterClass;
+import babushka.managers.CallbackManager;
+import babushka.managers.ConnectionManager;
+import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
+import connection_request.ConnectionRequestOuterClass.NodeAddress;
+import connection_request.ConnectionRequestOuterClass.ReadFrom;
+import connection_request.ConnectionRequestOuterClass.TlsMode;
 import java.util.List;
-import redis_request.RedisRequestOuterClass;
-import response.ResponseOuterClass;
+import redis_request.RedisRequestOuterClass.Command;
+import redis_request.RedisRequestOuterClass.Command.ArgsArray;
+import redis_request.RedisRequestOuterClass.RedisRequest;
+import redis_request.RedisRequestOuterClass.RequestType;
+import redis_request.RedisRequestOuterClass.Routes;
+import redis_request.RedisRequestOuterClass.SimpleRoutes;
+import response.ResponseOuterClass.Response;
 
 public class RequestBuilder {
 
-  /** Build a protobuf connection request object */
+  /**
+   * Build a protobuf connection request.<br>
+   * Used by {@link ConnectionManager#connectToRedis}.
+   */
   // TODO support more parameters and/or configuration object
-  public static ConnectionRequestOuterClass.ConnectionRequest getConnectionRequest(
+  public static ConnectionRequest createConnectionRequest(
       String host, int port, boolean useSsl, boolean clusterMode) {
-    return ConnectionRequestOuterClass.ConnectionRequest.newBuilder()
-        .addAddresses(
-            ConnectionRequestOuterClass.NodeAddress.newBuilder()
-                .setHost(host)
-                .setPort(port)
-                .build())
-        .setTlsMode(
-            useSsl
-                ? ConnectionRequestOuterClass.TlsMode.SecureTls
-                : ConnectionRequestOuterClass.TlsMode.NoTls)
+    return ConnectionRequest.newBuilder()
+        .addAddresses(NodeAddress.newBuilder().setHost(host).setPort(port).build())
+        .setTlsMode(useSsl ? TlsMode.SecureTls : TlsMode.NoTls)
         .setClusterModeEnabled(clusterMode)
-        .setReadFrom(ConnectionRequestOuterClass.ReadFrom.Primary)
+        .setReadFrom(ReadFrom.Primary)
         .setDatabaseId(0)
         .build();
   }
 
-  public static RedisRequestOuterClass.RedisRequest redisSingleCommand(
-      RedisRequestOuterClass.RequestType command, List<String> args) {
-    var commandArgs = RedisRequestOuterClass.Command.ArgsArray.newBuilder();
+  /**
+   * Build a protobuf command/transaction request draft.
+   *
+   * @return An uncompleted request. {@link CallbackManager} is responsible to complete it by adding
+   *     a callback id.
+   */
+  public static RedisRequest.Builder prepareRequest(RequestType command, List<String> args) {
+    var commandArgs = ArgsArray.newBuilder();
     for (var arg : args) {
       commandArgs.addArgs(arg);
     }
 
-    RedisRequestOuterClass.RedisRequest.Builder builder =
-        RedisRequestOuterClass.RedisRequest.newBuilder()
-            .setSingleCommand(
-                RedisRequestOuterClass.Command.newBuilder()
-                    .setRequestType(command)
-                    .setArgsArray(commandArgs.build())
-                    .build())
-            .setRoute(
-                RedisRequestOuterClass.Routes.newBuilder()
-                    .setSimpleRoutes(RedisRequestOuterClass.SimpleRoutes.AllNodes)
-                    .build());
-    // TODO: set callback index?
-
-    return builder.build();
+    return RedisRequest.newBuilder()
+        .setSingleCommand( // set command
+            Command.newBuilder()
+                .setRequestType(command) // set command name
+                .setArgsArray(commandArgs.build()) // set arguments
+                .build())
+        .setRoute( // set route
+            Routes.newBuilder()
+                .setSimpleRoutes(SimpleRoutes.AllNodes) // set route type
+                .build());
   }
 
   /**
@@ -58,12 +65,9 @@ public class RequestBuilder {
    * @param response Redis Response
    * @return String or null
    */
-  public static String resolveRedisResponseToString(ResponseOuterClass.Response response) {
-    if (response.hasConstantResponse()) {
+  public static String resolveRedisResponseToString(Response response) {
+    if (response.getRespPointer() != 0) {
       return BabushkaCoreNativeDefinitions.valueFromPointer(response.getRespPointer()).toString();
-    }
-    if (response.hasRespPointer()) {
-      return response.getConstantResponse().toString();
     }
     return null;
   }

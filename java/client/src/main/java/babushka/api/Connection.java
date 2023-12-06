@@ -2,18 +2,13 @@ package babushka.api;
 
 import babushka.managers.ConnectionManager;
 import java.util.concurrent.CompletableFuture;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class Connection {
 
-  private final ConnectionManager connectionManager;
-
-  public Connection(ConnectionManager connectionManager) {
-    this.connectionManager = connectionManager;
-  }
-
-  public ConnectionManager getConnectionManager() {
-    return connectionManager;
-  }
+  @Getter private final ConnectionManager connectionManager;
 
   /**
    * Async (non-blocking) connect to REDIS. See sync option in {@link #connectToRedis}.
@@ -25,7 +20,7 @@ public class Connection {
    * @param clusterMode true if REDIS instance runs in the cluster mode
    */
   // TODO support configuration object which holds more parameters (e.g. multiple addresses, etc)
-  public CompletableFuture<String> connectToRedis(
+  public CompletableFuture<Boolean> connectToRedis(
       String host, int port, boolean useSsl, boolean clusterMode) {
     return connectionManager.connectToRedis(host, port, useSsl, clusterMode);
   }

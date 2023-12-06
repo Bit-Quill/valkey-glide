@@ -1,15 +1,12 @@
 package babushka.connectors;
 
 import babushka.connectors.handlers.ChannelBuilder;
+import babushka.connectors.handlers.ChannelHandler;
 import babushka.managers.CallbackManager;
 import babushka.managers.ConnectionManager;
-import com.google.protobuf.GeneratedMessageV3;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueue;
@@ -19,9 +16,6 @@ import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
 public class SocketConnection {
-
-  /** A channel to make socket interactions with. */
-  private Channel channel;
 
   /** Thread pool supplied to <em>Netty</em> to perform all async IO. */
   private EventLoopGroup group;
@@ -55,13 +49,15 @@ public class SocketConnection {
 
   // At the moment, Windows is not supported
   // Probably we should use NIO (NioEventLoopGroup) for Windows.
+  private static final boolean isMacOs = isKQueueAvailable();
+
   // TODO support IO-Uring and NIO
   /**
    * Detect platform to identify which native implementation to use for UDS interaction. Currently
    * supported platforms are: Linux and macOS.<br>
    * Subject to change in future to support more platforms and implementations.
    */
-  private static boolean isMacOs() {
+  private static boolean isKQueueAvailable() {
     try {
       Class.forName("io.netty.channel.kqueue.KQueue");
       return KQueue.isAvailable();
@@ -72,26 +68,14 @@ public class SocketConnection {
 
   /** Constructor for the single instance. */
   private SocketConnection() {
-    boolean isMacOs = isMacOs();
     try {
       int cpuCount = Runtime.getRuntime().availableProcessors();
       group =
           isMacOs
               ? new KQueueEventLoopGroup(
-                  cpuCount, new DefaultThreadFactory("NettyWrapper-kqueue-elg", true))
+                  cpuCount, new DefaultThreadFactory("SocketConnection-kqueue-elg", true))
               : new EpollEventLoopGroup(
-                  cpuCount, new DefaultThreadFactory("NettyWrapper-epoll-elg", true));
-      channel =
-          new Bootstrap()
-              .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(1024, 4096))
-              .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
-              .group(group)
-              .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
-              .handler(new ChannelBuilder())
-              .connect(new DomainSocketAddress(socketPath))
-              .sync()
-              .channel();
-
+                  cpuCount, new DefaultThreadFactory("SocketConnection-epoll-elg", true));
     } catch (Exception e) {
       System.err.printf(
           "Failed to create a channel %s: %s%n", e.getClass().getSimpleName(), e.getMessage());
@@ -99,14 +83,24 @@ public class SocketConnection {
     }
   }
 
-  /** Write a protobuf message to the socket. */
-  public void write(GeneratedMessageV3 message) {
-    channel.write(message.toByteArray());
-  }
-
-  /** Write a protobuf message to the socket and flush it. */
-  public void writeAndFlush(GeneratedMessageV3 message) {
-    channel.writeAndFlush(message.toByteArray());
+  /** Open a new channel for a new client. */
+  public ChannelHandler openNewChannel(CallbackManager callbackManager) {
+    try {
+      Channel channel =
+          new Bootstrap()
+              .group(group)
+              .channel(isMacOs ? KQueueDomainSocketChannel.class : EpollDomainSocketChannel.class)
+              .handler(new ChannelBuilder(callbackManager))
+              .connect(new DomainSocketAddress(socketPath))
+              .sync()
+              .channel();
+      return new ChannelHandler(channel, callbackManager);
+    } catch (InterruptedException e) {
+      System.err.printf(
+          "Failed to create a channel %s: %s%n", e.getClass().getSimpleName(), e.getMessage());
+      e.printStackTrace(System.err);
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -114,10 +108,8 @@ public class SocketConnection {
    * #getInstance()} will create a new connection with new resource pool.
    */
   public void close() {
-    channel.close();
     group.shutdownGracefully();
     INSTANCE = null;
-    CallbackManager.shutdownGracefully();
   }
 
   /**
@@ -138,6 +130,6 @@ public class SocketConnection {
 
   static {
     Runtime.getRuntime()
-        .addShutdownHook(new Thread(new ShutdownHook(), "NettyWrapper-shutdown-hook"));
+        .addShutdownHook(new Thread(new ShutdownHook(), "SocketConnection-shutdown-hook"));
   }
 }

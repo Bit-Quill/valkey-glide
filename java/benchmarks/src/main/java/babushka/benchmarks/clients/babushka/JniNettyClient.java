@@ -9,7 +9,7 @@ import babushka.benchmarks.clients.SyncClient;
 import babushka.benchmarks.utils.ConnectionSettings;
 import java.util.concurrent.Future;
 
-public class JniNettyClient implements SyncClient, AsyncClient<String> {
+public class JniNettyClient implements SyncClient, AsyncClient {
 
   private final Connection connection;
   private final Commands asyncCommands;
@@ -38,7 +38,7 @@ public class JniNettyClient implements SyncClient, AsyncClient<String> {
   }
 
   @Override
-  public Future<String> asyncConnectToRedis(ConnectionSettings connectionSettings) {
+  public Future<Boolean> asyncConnectToRedis(ConnectionSettings connectionSettings) {
     return connection.connectToRedis(
         connectionSettings.host,
         connectionSettings.port,
