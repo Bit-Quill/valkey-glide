@@ -8,6 +8,146 @@ This document is available to demonstrate the high-level and detailed design ele
 interface. Specifically, it demonstrates how requests are received from the user, and responses with typing are delivered
 back to the user. 
 
+# Use Cases
+
+### Case 1: Connect to RedisClient
+
+```java
+// create a client configuration for a standalone client and connect
+babushka.client.api.RedisClientConfiguration configuration =
+    babushka.client.api.RedisClientConfiguration.builder()
+    .address(babushka.client.api.Addresses.builder()
+        .host(host)
+        .port(port)
+        .build())
+    .useTls(true)
+    .build();
+
+// connect to Redis
+CompletableFuture<babushka.client.api.RedisClient> redisClientConnection =
+    babushka.client.api.RedisClient.CreateClient(configuration);
+
+// resolve the Future and get a RedisClient
+babushka.client.api.RedisClient redisClient = redisClientConnection.get();
+redisClient.isConnected(); // true
+```
+
+### Case 2: Connection to RedisClient fails
+```java
+// create a client configuration for a standalone client - check connection
+CompletableFuture<babushka.client.api.RedisClient> redisClientConnection =
+    babushka.client.api.RedisClient.CreateClient(configuration);
+
+// resolve the Future and get a RedisClient that is not connected
+babushka.client.api.RedisClient redisClient = redisClientConnection.get();
+if (!redisClient.isConnected()) {
+    throw new RuntimeException("Failed to connect to Redis: " + redisClient.getConnectionError().getMessage());
+}
+```
+
+### Case 3: Disconnect from RedisClient
+TODO: confirm that close should be an async call
+```java
+CompletableFuture<babushka.client.api.RedisClient> redisClientCloseConnection = redisClient.close();
+redisClient = redisClientCloseConnection.get();
+redisClient.isConnected(); // false
+```
+
+### Case 4: Connect to RedisClusterClient
+```java
+// create a client configuration for a standalone client and connect
+babushka.client.api.RedisClusterClientConfiguration configuration =
+    babushka.client.api.RedisClusterClientConfiguration.builder()
+    .address(babushka.client.api.Addresses.builder()
+        .host(address_one)
+        .port(port_one)
+        .build())
+    .address(babushka.client.api.Addresses.builder()
+        .host(address_two)
+        .port(port_two)
+        .build())
+    .useTls(true)
+    .build();
+
+// connect to Redis
+CompletableFuture<babushka.client.api.RedisClusterClient> redisClusterClientConnection =
+    babushka.client.api.RedisClusterClient.CreateClient(configuration);
+
+// resolve the Future and get a RedisClusterClient
+babushka.client.api.RedisClusterClient redisClusterClient = redisClusterClientConnection.get();
+redisClusterClient.isConnected(); // true
+```
+
+### Case 5: Connect to RedisClient and receive RESP2 responses
+To confirm: send `.resp2(true)` in the configuration
+
+### Case ___: Get(key) from connected RedisClient
+```java
+CompletableFuture<RedisStringResponse> getRequest = redisClient.get("apples");
+RedisStringResponse getResponse = getRequest.get();
+getResponse.isSuccessful(); // true
+String getValue = getResponse.getValue();
+```
+
+### Case ___: Set(key, value) from connected RedisClient
+```java
+CompletableFuture<RedisVoidResponse> setRequest = redisClient.set("apples", "oranges");
+RedisVoidResponse setResponse = setRequest.get();
+setResponse.isSuccessful(); // true
+getResponse.isOk(); // true
+getResponse.toString(); // "Ok"
+```
+
+### Case ___: Get(key) from a disconnected RedisClient
+Throw a babushka.api.models.exceptions.ConnectionException if the RedisClient is closed/disconnected
+
+### Case ___: Send customCommand to RedisClient
+```java
+
+CompletableFuture<RedisBaseResponse> customCommandRequest = redisClient.customCommand(StringCommands.GETSTRING, "apples");
+RedisBaseResponse<Object> customCommandResponse = customCommandRequest.get();
+if (customCommandResponse.isSuccessful()) {
+  switch(customCommandResponse.getValueType()) {
+    STRING:
+      String customCommandValue = (String) customCommandResponse.getValue();
+      break;
+    DEFAULT: 
+      throw new RuntimeException("Unexpected value type returned");
+  }  
+}
+```
+### Case ___: Send transaction to RedisClient
+TODO
+
+### Case ___: Send get request to a RedisClusterClient with one address
+TODO
+
+### Case ___: Send get request to a RedisClusterClient with multiple addresses
+TODO
+
+### Case ___: Request is interrupted
+```java
+CompletableFuture<RedisStringResponse> getRequest = redisClient.get("apples");
+try{
+    RedisStringResponse getResponse=getRequest.get(); // throws InterruptedException
+} catch (InterruptedException interruptedException) {
+    redisClient.isConnected(); // false  
+}
+```
+
+### Case ___: Request timesout
+```java
+CompletableFuture<RedisStringResponse> getRequest = redisClient.get("apples");
+RedisStringResponse getResponse = getRequest.get(); // times out
+if (getResponse.isError()) {
+    if (getResponse.getErrorType() == TIMEOUT_ERROR) {
+      babushka.client.api.exceptions.TimeoutException timeoutException = getResponse.getTimeoutException();
+      System.err.out("Timeout Exception: " + timeoutException.getMessage());
+      throw timeoutException;
+    }
+}
+```
+
 # High-Level Architecture
 
 ## Presentation
