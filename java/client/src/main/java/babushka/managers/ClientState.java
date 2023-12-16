@@ -11,6 +11,9 @@ public class ClientState {
   public static interface ReadOnlyClientState {
     /** Check that connection established. This doesn't validate whether it is alive. */
     boolean isConnected();
+
+    /** Check that connection is not yet established. */
+    boolean isInitializing();
   }
 
   /** A client state which accepts switching to <em>Connected</em> or <em>Closed</em> states. */
@@ -43,6 +46,11 @@ public class ClientState {
       @Override
       public boolean isConnected() {
         return state == InnerStates.CONNECTED;
+      }
+
+      @Override
+      public boolean isInitializing() {
+        return state == InnerStates.INITIALIZING;
       }
 
       @Override
