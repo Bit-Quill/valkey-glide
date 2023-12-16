@@ -27,7 +27,7 @@ public class CommandManager {
    * @param key The key name
    */
   public CompletableFuture<String> get(String key) {
-    return submitNewCommand(RequestType.GetString, List.of(key));
+    return submitNewRequest(RequestType.GetString, List.of(key));
   }
 
   /**
@@ -38,7 +38,7 @@ public class CommandManager {
    * @param value The value to set
    */
   public CompletableFuture<String> set(String key, String value) {
-    return submitNewCommand(RequestType.SetString, List.of(key, value));
+    return submitNewRequest(RequestType.SetString, List.of(key, value));
   }
 
   /**
@@ -48,7 +48,7 @@ public class CommandManager {
    * @param args Command arguments
    * @return A result promise
    */
-  private CompletableFuture<String> submitNewCommand(RequestType command, List<String> args) {
+  private CompletableFuture<String> submitNewRequest(RequestType command, List<String> args) {
     if (!clientState.isConnected()) {
       throw new IllegalStateException("Connection is not open");
     }
