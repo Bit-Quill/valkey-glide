@@ -33,6 +33,9 @@ public class ConnectionManager {
   // TODO support more parameters and/or configuration object
   public CompletableFuture<Boolean> connectToRedis(
       String host, int port, boolean useSsl, boolean clusterMode) {
+    if (clientState.isConnected()) {
+      throw new IllegalStateException("Client already connected");
+    }
     ConnectionRequest request =
         RequestBuilder.createConnectionRequest(host, port, useSsl, clusterMode);
     return channel.connect(request).thenApplyAsync(this::checkBabushkaResponse);
