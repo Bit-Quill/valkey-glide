@@ -14,6 +14,7 @@ import babushka.managers.CommandManager;
 import connection_request.ConnectionRequestOuterClass;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import response.ResponseOuterClass;
 
 /** Factory class for creating Babushka-Redis client connections */
 public class RedisClient extends BaseClient
@@ -56,8 +57,9 @@ public class RedisClient extends BaseClient
   }
 
   @Override
-  public CompletableFuture exec(Command command, Function responseHandler) {
-    return commandManager.submitNewCommand(command, responseHandler);
+  public <T> CompletableFuture exec(
+      Command command, Function<ResponseOuterClass.Response, T> responseHandler) {
+    return commandManager.<T>submitNewCommand(command, responseHandler);
   }
 
   // TODO: fix for transaction

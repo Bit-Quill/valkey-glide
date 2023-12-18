@@ -1,3 +1,3 @@
 package babushka.api.models.exceptions;
 
-public class RequestException {}
+public class RequestException extends RedisException {}

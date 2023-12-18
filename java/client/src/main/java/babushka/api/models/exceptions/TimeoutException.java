@@ -1,3 +1,3 @@
 package babushka.api.models.exceptions;
 
-public class TimeoutException {}
+public class TimeoutException extends RedisException {}

@@ -1,3 +1,3 @@
 package babushka.api.models.exceptions;
 
-public class ExecAbortException {}
+public class ExecAbortException extends RedisException {}

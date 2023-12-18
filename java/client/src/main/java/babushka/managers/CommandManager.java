@@ -3,6 +3,7 @@ package babushka.managers;
 import babushka.api.commands.Command;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import response.ResponseOuterClass.Response;
 
 public class CommandManager {
 
@@ -12,7 +13,7 @@ public class CommandManager {
    * @return
    */
   public <T> CompletableFuture<T> submitNewCommand(
-      Command command, Function<T, response.ResponseOuterClass> responseHandler) {
+      Command command, Function<Response, T> responseHandler) {
     // register callback
     // create protobuf message from command
     // submit async call
