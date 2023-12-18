@@ -37,6 +37,27 @@ public class RedisClientTest {
   }
 
   @Test
+  public void customCommand_success() throws ExecutionException, InterruptedException {
+    // setup
+    String key = "testKey";
+    Object value = "testValue";
+    String cmd = "GETSTRING";
+    CompletableFuture<Object> testResponse = mock(CompletableFuture.class);
+    when(testResponse.get()).thenReturn(value);
+    when(commandManager.submitNewCommand(any(), any())).thenReturn(testResponse);
+
+    // exercise
+    CompletableFuture<Object> response = service.customCommand(cmd, new String[] {key});
+    String payload = (String) response.get();
+
+    // verify
+    assertEquals(testResponse, response);
+    assertEquals(value, payload);
+
+    // teardown
+  }
+
+  @Test
   public void get_success() throws ExecutionException, InterruptedException {
     // setup
     // TODO: randomize keys
@@ -52,8 +73,8 @@ public class RedisClientTest {
     when(commandManager.<String>submitNewCommand(any(), any())).thenReturn(testResponse);
 
     // exercise
-    CompletableFuture<?> response = service.get(key);
-    String payload = (String) response.get();
+    CompletableFuture<String> response = service.get(key);
+    String payload = response.get();
 
     // verify
     assertEquals(testResponse, response);
