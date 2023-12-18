@@ -12,6 +12,7 @@ import babushka.api.commands.VoidCommands;
 import babushka.api.models.configuration.RedisClientConfiguration;
 import babushka.managers.CommandManager;
 import connection_request.ConnectionRequestOuterClass;
+import java.lang.reflect.Array;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import response.ResponseOuterClass;
@@ -68,11 +69,16 @@ public class RedisClient extends BaseClient
   }
 
   public CompletableFuture<Object> customCommand(String cmd, String[] args) {
-    Command command = Command.builder().requestType(CUSTOM_COMMAND).arguments(args).build();
+    String[] commandArguments = (String[]) Array.newInstance(String.class, args.length + 1);
+    commandArguments[0] = cmd;
+    System.arraycopy(args, 0, commandArguments, 1, args.length);
+
+    Command command =
+        Command.builder().requestType(CUSTOM_COMMAND).arguments(commandArguments).build();
     return exec(command, BaseCommands::handleResponse);
   }
 
-  public CompletableFuture<?> get(String key) {
+  public CompletableFuture<String> get(String key) {
     Command command =
         Command.builder().requestType(GETSTRING).arguments(new String[] {key}).build();
     return exec(command, StringCommands::handleStringResponse);

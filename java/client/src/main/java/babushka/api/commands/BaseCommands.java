@@ -25,7 +25,7 @@ public interface BaseCommands<T> {
    * @param args arguments for the command
    * @return a CompletableFuture with response result from Redis
    */
-  CompletableFuture<?> customCommand(String cmd, String[] args);
+  CompletableFuture<Object> customCommand(String cmd, String[] args);
 
   /**
    * Execute a @see{Command} by sending command via socket manager
