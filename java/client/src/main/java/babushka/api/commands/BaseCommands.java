@@ -9,13 +9,13 @@ import response.ResponseOuterClass.Response;
 public interface BaseCommands<T> {
 
   /**
+   * Extracts value from the RESP pointer TODO: handle object if the object is small TODO: handle
+   * RESP2 object if configuration is set
+   *
    * @return
    */
-  static Object handleResponse(Object response) {
-    // return function to convert protobuf.Response into the response object by
-    // calling valueFromPointer
-    Response respObject = (Response) response;
-    return valueFromPointer(respObject.getRespPointer());
+  static Object handleResponse(Response response) {
+    return valueFromPointer(response.getRespPointer());
   }
 
   /**

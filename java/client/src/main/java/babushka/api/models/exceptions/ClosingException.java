@@ -1,3 +1,3 @@
 package babushka.api.models.exceptions;
 
-public class ClosingException {}
+public class ClosingException extends RedisException {}
