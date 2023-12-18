@@ -1,6 +1,7 @@
 package babushka.connectors.handlers;
 
 import babushka.connectors.resources.Platform;
+import babushka.connectors.resources.ThreadPoolAllocator;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -11,13 +12,10 @@ import redis_request.RedisRequestOuterClass.RedisRequest;
 import response.ResponseOuterClass.Response;
 
 /**
- * Class responsible for handling calls to/from a netty.io {@link Channel}.<br>
+ * Class responsible for manipulations with Netty's {@link Channel}.<br>
  * Uses a {@link CallbackDispatcher} to record callbacks of every request sent.
  */
 public class ChannelHandler {
-
-  private static final String THREAD_POOL_NAME = "babushka-channel";
-
   private final Channel channel;
   private final CallbackDispatcher callbackDispatcher;
 
@@ -26,7 +24,7 @@ public class ChannelHandler {
     channel =
         new Bootstrap()
             // TODO let user specify the thread pool or pool size as an option
-            .group(Platform.createNettyThreadPool(THREAD_POOL_NAME, Optional.empty()))
+            .group(ThreadPoolAllocator.createNettyThreadPool("babushka-channel", Optional.empty()))
             .channel(Platform.getClientUdsNettyChannelType())
             .handler(new ProtobufSocketChannelInitializer(callbackDispatcher))
             .connect(new DomainSocketAddress(socketPath))
@@ -35,13 +33,7 @@ public class ChannelHandler {
     this.callbackDispatcher = callbackDispatcher;
   }
 
-  /**
-   * Complete a protobuf message and write it to the channel (to UDS).
-   *
-   * @param request Incomplete request, function completes it by setting callback ID
-   * @param flush True to flush immediately
-   * @return A response promise
-   */
+  /** Write a protobuf message to the socket. */
   public CompletableFuture<Response> write(RedisRequest.Builder request, boolean flush) {
     var commandId = callbackDispatcher.registerRequest();
     request.setCallbackIdx(commandId.getKey());
@@ -54,12 +46,7 @@ public class ChannelHandler {
     return commandId.getValue();
   }
 
-  /**
-   * Write a protobuf message to the channel (to UDS).
-   *
-   * @param request A connection request
-   * @return A connection promise
-   */
+  /** Write a protobuf message to the socket. */
   public CompletableFuture<Response> connect(ConnectionRequest request) {
     channel.writeAndFlush(request);
     return callbackDispatcher.registerConnection();

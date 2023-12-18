@@ -1,5 +1,6 @@
 package babushka.managers;
 
+import babushka.connectors.ClientState;
 import babushka.connectors.handlers.ChannelHandler;
 import babushka.ffi.resolvers.RedisValueResolver;
 import babushka.models.RequestBuilder;
