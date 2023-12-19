@@ -13,11 +13,18 @@ import response.ResponseOuterClass.Response;
 @RequiredArgsConstructor
 public class CallbackDispatcher {
 
+  /** Reserved callback ID for connection request. */
   private final int CONNECTION_PROMISE_ID = 0;
 
+  /** Client state reference. */
   private final ClientState.ReadOnlyClientState clientState;
 
-  /** Unique request ID (callback ID). Thread-safe and overflow-safe. */
+  /**
+   * Unique request ID (callback ID). Thread-safe and overflow-safe.<br>
+   * Note: Protobuf packet contains callback ID as uint32, but it stores data as a bit field.<br>
+   * Negative java values would be shown as positive on rust side. Meanwhile, no data loss happen,
+   * because callback ID remains unique.
+   */
   private final AtomicInteger requestId = new AtomicInteger(0);
 
   /**

@@ -20,7 +20,7 @@ public class ConnectionManager {
    * Client state, which {@link ConnectionManager} can flick to closed or to open, according to user
    * request or error received.
    */
-  private final ClientState.OpenableAndClosableClientState clientState;
+  private final ClientState.OpenableClientState clientState;
 
   /**
    * Connect to Redis using a ProtoBuf connection request.
@@ -34,9 +34,6 @@ public class ConnectionManager {
   // TODO support more parameters and/or configuration object
   public CompletableFuture<Boolean> connectToRedis(
       String host, int port, boolean useSsl, boolean clusterMode) {
-    if (clientState.isConnected()) {
-      throw new IllegalStateException("Client already connected");
-    }
     ConnectionRequest request =
         RequestBuilder.createConnectionRequest(host, port, useSsl, clusterMode);
     return channel.connect(request).thenApplyAsync(this::checkBabushkaResponse);
@@ -69,7 +66,6 @@ public class ConnectionManager {
    * TODO: provide feedback that the connection was properly closed
    */
   public CompletableFuture<Void> closeConnection() {
-    clientState.disconnect();
     return CompletableFuture.runAsync(channel::close);
   }
 }
