@@ -73,6 +73,6 @@ public class CommandManager {
     } else if (response.hasRespPointer()) {
       return RedisValueResolver.valueFromPointer(response.getRespPointer()).toString();
     }
-    return null;
+    throw new IllegalStateException("A malformed response received: " + response.toString());
   }
 }

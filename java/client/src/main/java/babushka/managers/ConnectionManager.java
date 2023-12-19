@@ -58,7 +58,7 @@ public class ConnectionManager {
           "Unexpected response data: "
               + RedisValueResolver.valueFromPointer(response.getRespPointer()));
     }
-    return false;
+    throw new IllegalStateException("A malformed response received: " + response.toString());
   }
 
   /**
