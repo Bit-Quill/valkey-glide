@@ -1,6 +1,5 @@
 package babushka.managers;
 
-import babushka.connectors.ClientState;
 import babushka.connectors.handlers.ChannelHandler;
 import babushka.ffi.resolvers.RedisValueResolver;
 import babushka.models.RequestBuilder;
@@ -15,11 +14,6 @@ public class CommandManager {
 
   /** UDS connection representation. */
   private final ChannelHandler channel;
-
-  /**
-   * Client state, which {@link CommandManager} can flick to closed if corresponding error received.
-   */
-  private final ClientState.ClosableClientState clientState;
 
   /**
    * Async (non-blocking) get.<br>
@@ -50,10 +44,6 @@ public class CommandManager {
    * @return A result promise
    */
   private CompletableFuture<String> submitNewRequest(RequestType command, List<String> args) {
-    if (!clientState.isConnected()) {
-      throw new IllegalStateException("Connection is not open");
-    }
-
     // TODO this explicitly uses ForkJoin thread pool. May be we should use another one.
     return CompletableFuture.supplyAsync(
             () -> channel.write(RequestBuilder.prepareRedisRequest(command, args), true))
@@ -77,7 +67,6 @@ public class CommandManager {
               response.getRequestError().getType(), response.getRequestError().getMessage()));
     } else if (response.hasClosingError()) {
       CompletableFuture.runAsync(channel::close);
-      clientState.disconnect();
       throw new RuntimeException("Connection closed: " + response.getClosingError());
     } else if (response.hasConstantResponse()) {
       return response.getConstantResponse().toString();
