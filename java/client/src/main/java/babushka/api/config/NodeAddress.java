@@ -1,11 +1,14 @@
 package babushka.api.config;
 
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NonNull;
 
 /** Represents the address and port of a node in the cluster. */
+@Getter
 @Builder
 public class NodeAddress {
-  @Builder.Default private String host = "localhost";
+  @NonNull @Builder.Default private final String host = "localhost";
 
-  @Builder.Default private int port = 6379;
+  @NonNull @Builder.Default private final Integer port = 6379;
 }

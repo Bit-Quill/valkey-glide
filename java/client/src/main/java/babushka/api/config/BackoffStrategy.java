@@ -1,6 +1,7 @@
 package babushka.api.config;
 
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -10,6 +11,7 @@ import lombok.NonNull;
  * that will remain the time between retry attempts until a reconnect attempt is successful. The
  * client will attempt to reconnect indefinitely.
  */
+@Getter
 @Builder
 public class BackoffStrategy {
   /**
@@ -17,11 +19,11 @@ public class BackoffStrategy {
    * where the time between retries increases. Once the retries have reached the maximum value, the
    * time between
    */
-  @NonNull public Integer numOfRetries;
+  @NonNull private final Integer numOfRetries;
 
   /** The multiplier that will be applied to the waiting time between each retry. */
-  @NonNull public Integer factor;
+  @NonNull private final Integer factor;
 
   /** The exponent base configured for the strategy. */
-  @NonNull public Integer exponentBase;
+  @NonNull private final Integer exponentBase;
 }
