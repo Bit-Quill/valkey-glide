@@ -16,15 +16,9 @@ public class ClientState {
     boolean isInitializing();
   }
 
-  /** A client state which accepts switching to <em>Connected</em> or <em>Closed</em> states. */
-  public static interface OpenableAndClosableClientState extends ClosableClientState {
+  /** A client state which accepts switching to <em>Connected</em> state. */
+  public static interface OpenableClientState extends ReadOnlyClientState {
     /** Report connection status. */
     void connect(boolean successful);
-  }
-
-  /** A client state which accepts only one way switching - to <em>Closed</em> state only. */
-  public static interface ClosableClientState extends ReadOnlyClientState {
-    /** Report disconnection. */
-    void disconnect();
   }
 }
