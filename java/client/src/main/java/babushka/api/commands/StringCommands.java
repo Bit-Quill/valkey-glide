@@ -8,7 +8,8 @@ public interface StringCommands {
   public static String handleStringResponse(Response response) {
     // return function to convert protobuf.Response into the response object by
     // calling valueFromPointer
-    return (String) BaseCommands.handleResponse(response);
+    Object value = BaseCommands.handleResponse(response);
+    return value == null ? null : (String) value;
   }
 
   CompletableFuture<?> get(String key);

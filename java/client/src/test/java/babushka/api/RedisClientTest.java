@@ -1,12 +1,20 @@
 package babushka.api;
 
+import static babushka.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST;
+import static babushka.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_EXISTS;
+import static babushka.api.models.commands.SetOptions.RETURN_OLD_VALUE;
+import static babushka.api.models.commands.SetOptions.TIME_TO_LIVE_KEEP_EXISTING;
+import static babushka.api.models.commands.SetOptions.TIME_TO_LIVE_UNIX_SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import babushka.api.commands.Command;
+import babushka.api.models.commands.SetOptions;
 import babushka.api.models.configuration.RedisClientConfiguration;
 import babushka.managers.CommandManager;
 import java.util.concurrent.CompletableFuture;
@@ -107,6 +115,80 @@ public class RedisClientTest {
     // verify
     assertEquals(testResponse, response);
     assertNull(nullResponse);
+
+    // teardown
+  }
+
+  @Test
+  public void set_withOptionsOnlyIfExists_success() throws ExecutionException, InterruptedException {
+    // setup
+    String key = "testKey";
+    String value = "testValue";
+    SetOptions setOptions = SetOptions.builder()
+        .conditionalSet(SetOptions.ConditionalSet.ONLY_IF_EXISTS)
+        .returnOldValue(false)
+        .expiry(SetOptions.TimeToLive.builder()
+            .type(SetOptions.TimeToLiveType.KEEP_EXISTING)
+            .build())
+        .build();
+    Command cmd =
+        Command.builder()
+            .requestType(Command.RequestType.SETSTRING)
+            .arguments(new String[] {
+                key,
+                value,
+                CONDITIONAL_SET_ONLY_IF_EXISTS,
+                TIME_TO_LIVE_KEEP_EXISTING
+            })
+            .build();
+    CompletableFuture<String> testResponse = mock(CompletableFuture.class);
+    when(testResponse.get()).thenReturn(null);
+    when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+
+    // exercise
+    CompletableFuture<String> response = service.set(key, value, setOptions);
+
+    // verify
+    assertNotNull(response);
+    assertNull(response.get());
+
+    // teardown
+  }
+
+  @Test
+  public void set_withOptionsOnlyIfDoesNotExist_success() throws ExecutionException, InterruptedException {
+    // setup
+    String key = "testKey";
+    String value = "testValue";
+    SetOptions setOptions = SetOptions.builder()
+        .conditionalSet(SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST)
+        .returnOldValue(true)
+        .expiry(SetOptions.TimeToLive.builder()
+            .type(SetOptions.TimeToLiveType.UNIX_SECONDS)
+            .count(60)
+            .build())
+        .build();
+    Command cmd =
+        Command.builder()
+            .requestType(Command.RequestType.SETSTRING)
+            .arguments(new String[] {
+                key,
+                value,
+                CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST,
+                RETURN_OLD_VALUE,
+                TIME_TO_LIVE_UNIX_SECONDS + " 60"
+            })
+            .build();
+    CompletableFuture<String> testResponse = mock(CompletableFuture.class);
+    when(testResponse.get()).thenReturn(value);
+    when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+
+    // exercise
+    CompletableFuture<String> response = service.set(key, value, setOptions);
+
+    // verify
+    assertNotNull(response);
+    assertEquals(value, response.get());
 
     // teardown
   }
