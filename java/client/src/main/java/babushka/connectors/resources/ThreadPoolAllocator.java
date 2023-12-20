@@ -27,12 +27,12 @@ public class ThreadPoolAllocator {
   public static EventLoopGroup createNettyThreadPool(String prefix, Optional<Integer> threadLimit) {
     int threadCount = threadLimit.orElse(Runtime.getRuntime().availableProcessors());
     if (Platform.getCapabilities().isKQueueAvailable()) {
-      String name = prefix + "-kqueue-elg";
+      var name = prefix + "-kqueue-elg";
       return getOrCreate(
           name + threadCount,
           () -> new KQueueEventLoopGroup(threadCount, new DefaultThreadFactory(name, true)));
     } else if (Platform.getCapabilities().isEPollAvailable()) {
-      String name = prefix + "-epoll-elg";
+      var name = prefix + "-epoll-elg";
       return getOrCreate(
           name + threadCount,
           () -> new EpollEventLoopGroup(threadCount, new DefaultThreadFactory(name, true)));
