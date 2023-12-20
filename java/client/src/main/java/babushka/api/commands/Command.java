@@ -19,11 +19,9 @@ public class Command {
   public boolean equals(Object o) {
     if (o instanceof Command) {
       Command otherCommand = (Command) o;
-      if (this.requestType != otherCommand.requestType)
-        return false;
+      if (this.requestType != otherCommand.requestType) return false;
 
-      if (!Arrays.equals(this.arguments, otherCommand.arguments))
-        return false;
+      if (!Arrays.equals(this.arguments, otherCommand.arguments)) return false;
 
       return true;
     }

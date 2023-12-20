@@ -10,22 +10,20 @@ import lombok.NonNull;
 public class SetOptions {
 
   /**
-   * `onlyIfDoesNotExist` - Only set the key if it does not already exist. Equivalent to `NX` in the Redis API.
-   * `onlyIfExists` - Only set the key if it already exist. Equivalent to `EX` in the Redis API.
-   * if `conditional` is not set the value will be set regardless of prior value existence.
-   * If value isn't set because of the condition, return null.
+   * `onlyIfDoesNotExist` - Only set the key if it does not already exist. Equivalent to `NX` in the
+   * Redis API. `onlyIfExists` - Only set the key if it already exist. Equivalent to `EX` in the
+   * Redis API. if `conditional` is not set the value will be set regardless of prior value
+   * existence. If value isn't set because of the condition, return null.
    */
   private ConditionalSet conditionalSet;
 
   /**
-   * Return the old string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value stored at key is not a string.
-   * Equivalent to `GET` in the Redis API.
+   * Return the old string stored at key, or nil if key did not exist. An error is returned and SET
+   * aborted if the value stored at key is not a string. Equivalent to `GET` in the Redis API.
    */
   private boolean returnOldValue;
 
-  /**
-   * If not set, no expiry time will be set for the value.
-   */
+  /** If not set, no expiry time will be set for the value. */
   private TimeToLive expiry;
 
   public enum ConditionalSet {
@@ -44,20 +42,18 @@ public class SetOptions {
      * Retain the time to live associated with the key. Equivalent to `KEEPTTL` in the Redis API.
      */
     KEEP_EXISTING,
-    /**
-     * Set the specified expire time, in seconds. Equivalent to `EX` in the Redis API.
-     */
+    /** Set the specified expire time, in seconds. Equivalent to `EX` in the Redis API. */
     SECONDS,
-    /**
-     * Set the specified expire time, in milliseconds. Equivalent to `PX` in the Redis API.
-     */
+    /** Set the specified expire time, in milliseconds. Equivalent to `PX` in the Redis API. */
     MILLISECONDS,
     /**
-     * Set the specified Unix time at which the key will expire, in seconds. Equivalent to `EXAT` in the Redis API.
+     * Set the specified Unix time at which the key will expire, in seconds. Equivalent to `EXAT` in
+     * the Redis API.
      */
     UNIX_SECONDS,
     /**
-     * Set the specified Unix time at which the key will expire, in milliseconds. Equivalent to `PXAT` in the Redis API.
+     * Set the specified Unix time at which the key will expire, in milliseconds. Equivalent to
+     * `PXAT` in the Redis API.
      */
     UNIX_MILLISECONDS
   }

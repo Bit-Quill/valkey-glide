@@ -16,10 +16,9 @@ import babushka.managers.CommandManager;
 import connection_request.ConnectionRequestOuterClass;
 import java.lang.reflect.Array;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import response.ResponseOuterClass;
+import response.ResponseOuterClass.Response;
 
 /** Factory class for creating Babushka-Redis client connections */
 public class RedisClient extends BaseClient
@@ -62,9 +61,8 @@ public class RedisClient extends BaseClient
   }
 
   @Override
-  public <T> CompletableFuture exec(
-      Command command, Function<ResponseOuterClass.Response, T> responseHandler) {
-    return commandManager.<T>submitNewCommand(command, responseHandler);
+  public <T> CompletableFuture exec(Command command, Function<Response, T> responseHandler) {
+    return commandManager.submitNewCommand(command, responseHandler);
   }
 
   // TODO: fix for transaction
@@ -73,8 +71,8 @@ public class RedisClient extends BaseClient
   }
 
   /**
-   * Executes a single custom command, without checking inputs. Every part of the command, including subcommands,
-   * should be added as a separate value in args.
+   * Executes a single custom command, without checking inputs. Every part of the command, including
+   * subcommands, should be added as a separate value in args.
    *
    * @param cmd to be executed
    * @param args arguments for the command
@@ -91,8 +89,8 @@ public class RedisClient extends BaseClient
   }
 
   /**
-   * Get the value associated with the given key, or null if no such value exists.
-   * See https://redis.io/commands/set/ for details.
+   * Get the value associated with the given key, or null if no such value exists. See
+   * https://redis.io/commands/set/ for details.
    *
    * @param key - The key to retrieve from the database.
    * @return If `key` exists, returns the value of `key` as a string. Otherwise, return null
@@ -104,8 +102,8 @@ public class RedisClient extends BaseClient
   }
 
   /**
-   * Set the given key with the given value. Return value is dependent on the passed options.
-   * See https://redis.io/commands/set/ for details.
+   * Set the given key with the given value. Return value is dependent on the passed options. See
+   * https://redis.io/commands/set/ for details.
    *
    * @param key - The key to store.
    * @param value - The value to store with the given key.
@@ -118,15 +116,14 @@ public class RedisClient extends BaseClient
   }
 
   /**
-   * Set the given key with the given value. Return value is dependent on the passed options.
-   * See https://redis.io/commands/set/ for details.
+   * Set the given key with the given value. Return value is dependent on the passed options. See
+   * https://redis.io/commands/set/ for details.
    *
    * @param key - The key to store.
    * @param value - The value to store with the given key.
    * @param options - The Set options
-   * @return string or null
-   * If value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist` conditions, return null.
-   * If `returnOldValue` is set, return the old value as a string.
+   * @return string or null If value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist`
+   *     conditions, return null. If `returnOldValue` is set, return the old value as a string.
    */
   public CompletableFuture<String> set(String key, String value, SetOptions options) {
     LinkedList<String> args = new LinkedList<>();
