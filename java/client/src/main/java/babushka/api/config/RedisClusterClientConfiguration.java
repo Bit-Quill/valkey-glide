@@ -1,0 +1,11 @@
+package babushka.api.config;
+
+import lombok.experimental.SuperBuilder;
+
+/**
+ * Represents the configuration settings for a Cluster Redis client. Notes: Currently, the
+ * reconnection strategy in cluster mode is not configurable, and exponential backoff with fixed
+ * values is used.
+ */
+@SuperBuilder
+public class RedisClusterClientConfiguration extends BaseClientConfiguration {}
