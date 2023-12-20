@@ -15,7 +15,7 @@ public class ClientStateImpl {
    * switch the state.
    */
   public static ClientState.ReadOnlyClientState create() {
-    return new ClientState.OpenableClientState() {
+    return new ClientState.OpenableAndClosableClientState() {
       private ClientStateImpl.InnerStates state = ClientStateImpl.InnerStates.INITIALIZING;
 
       @Override
@@ -35,6 +35,11 @@ public class ClientStateImpl {
         }
         state =
             successful ? ClientStateImpl.InnerStates.CONNECTED : ClientStateImpl.InnerStates.CLOSED;
+      }
+
+      @Override
+      public void disconnect() {
+        state = ClientStateImpl.InnerStates.CLOSED;
       }
     };
   }
