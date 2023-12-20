@@ -1,15 +1,15 @@
 package babushka.api.models.configuration;
 
-import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
-/** TODO: Describe client configuration */
-@Builder
+/** Represents the configuration settings for a Standalone Redis client. */
 @Getter
-public class RedisClientConfiguration {
+@SuperBuilder
+public class RedisClientConfiguration extends BaseClientConfiguration {
+  /** Strategy used to determine how and when to reconnect, in case of connection failures. */
+  private final BackoffStrategy reconnectStrategy;
 
-  String host;
-  int port;
-  boolean isTls;
-  boolean clusterMode;
+  /** Index of the logical database to connect to. */
+  private final Integer databaseId;
 }

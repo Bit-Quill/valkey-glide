@@ -1,12 +1,12 @@
 package babushka.managers;
 
+import babushka.api.commands.Command;
 import babushka.connectors.handlers.ChannelHandler;
 import babushka.ffi.resolvers.RedisValueResolver;
 import babushka.models.RequestBuilder;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
-import redis_request.RedisRequestOuterClass.RequestType;
 import response.ResponseOuterClass.Response;
 
 @RequiredArgsConstructor
@@ -16,40 +16,24 @@ public class CommandManager {
   private final ChannelHandler channel;
 
   /**
-   * Async (non-blocking) get.<br>
-   * See <a href="https://redis.io/commands/get/">REDIS docs for GET</a>.
-   *
-   * @param key The key name
-   */
-  public CompletableFuture<String> get(String key) {
-    return submitNewRequest(RequestType.GetString, List.of(key));
-  }
-
-  /**
-   * Async (non-blocking) set.<br>
-   * See <a href="https://redis.io/commands/set/">REDIS docs for SET</a>.
-   *
-   * @param key The key name
-   * @param value The value to set
-   */
-  public CompletableFuture<String> set(String key, String value) {
-    return submitNewRequest(RequestType.SetString, List.of(key, value));
-  }
-
-  /**
    * Build a command and submit it Netty to send.
    *
-   * @param command Command type
-   * @param args Command arguments
-   * @return A result promise
+   * @param command Command
+   * @param responseHandler to handle the response object
+   * @return A result promise of type T
    */
-  private CompletableFuture<String> submitNewRequest(RequestType command, List<String> args) {
+  public <T> CompletableFuture<T> submitNewRequest(
+      Command command, Function<Response, T> responseHandler) {
     // TODO this explicitly uses ForkJoin thread pool. May be we should use another one.
     return CompletableFuture.supplyAsync(
-            () -> channel.write(RequestBuilder.prepareRedisRequest(command, args), true))
+            () ->
+                channel.write(
+                    RequestBuilder.prepareRedisRequest(
+                        command.getRequestType(), command.getArguments()),
+                    true))
         // TODO: is there a better way to execute this?
         .thenComposeAsync(f -> f)
-        .thenApplyAsync(this::extractValueFromResponse);
+        .thenApplyAsync(responseHandler);
   }
 
   /**

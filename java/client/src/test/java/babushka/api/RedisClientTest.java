@@ -16,8 +16,10 @@ import static org.mockito.Mockito.when;
 
 import babushka.api.commands.Command;
 import babushka.api.models.commands.SetOptions;
+import babushka.api.models.configuration.NodeAddress;
 import babushka.api.models.configuration.RedisClientConfiguration;
 import babushka.managers.CommandManager;
+import babushka.managers.ConnectionManager;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +31,8 @@ public class RedisClientTest {
 
   CommandManager commandManager;
 
+  ConnectionManager connectionManager;
+
   private static String HOST = "host";
   private static int PORT = 9999;
 
@@ -36,13 +40,12 @@ public class RedisClientTest {
   public void setUp() {
     RedisClientConfiguration configuration =
         RedisClientConfiguration.builder()
-            .host(HOST)
-            .port(PORT)
-            .isTls(false)
-            .clusterMode(false)
+            .address(NodeAddress.builder().host(HOST).port(PORT).build())
+            .useTLS(false)
             .build();
     commandManager = mock(CommandManager.class);
-    service = new RedisClient(commandManager);
+    connectionManager = mock(ConnectionManager.class);
+    service = new RedisClient(commandManager, connectionManager);
   }
 
   @Test
@@ -53,7 +56,7 @@ public class RedisClientTest {
     String cmd = "GETSTRING";
     CompletableFuture<Object> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(value);
-    when(commandManager.submitNewCommand(any(), any())).thenReturn(testResponse);
+    when(commandManager.submitNewRequest(any(), any())).thenReturn(testResponse);
 
     // exercise
     CompletableFuture<Object> response = service.customCommand(cmd, new String[] {key});
@@ -74,7 +77,7 @@ public class RedisClientTest {
     String cmd = "GETSTRING";
     CompletableFuture<Object> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenThrow(new InterruptedException());
-    when(commandManager.submitNewCommand(any(), any())).thenReturn(testResponse);
+    when(commandManager.submitNewRequest(any(), any())).thenReturn(testResponse);
 
     // exercise
     InterruptedException exception =
@@ -103,7 +106,7 @@ public class RedisClientTest {
             .build();
     CompletableFuture<String> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(value);
-    when(commandManager.<String>submitNewCommand(any(), any())).thenReturn(testResponse);
+    when(commandManager.<String>submitNewRequest(any(), any())).thenReturn(testResponse);
 
     // exercise
     CompletableFuture<String> response = service.get(key);
@@ -131,7 +134,7 @@ public class RedisClientTest {
             .build();
     CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(null);
-    when(commandManager.<Void>submitNewCommand(any(), any())).thenReturn(testResponse);
+    when(commandManager.<Void>submitNewRequest(any(), any())).thenReturn(testResponse);
 
     // exercise
     CompletableFuture<Void> response = service.set(key, value);
@@ -169,7 +172,7 @@ public class RedisClientTest {
             .build();
     CompletableFuture<String> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(null);
-    when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+    when(commandManager.<String>submitNewRequest(eq(cmd), any())).thenReturn(testResponse);
 
     // exercise
     CompletableFuture<String> response = service.set(key, value, setOptions);
@@ -211,7 +214,7 @@ public class RedisClientTest {
             .build();
     CompletableFuture<String> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(value);
-    when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+    when(commandManager.<String>submitNewRequest(eq(cmd), any())).thenReturn(testResponse);
 
     // exercise
     CompletableFuture<String> response = service.set(key, value, setOptions);

@@ -2,8 +2,10 @@ package babushka.api.commands;
 
 import java.util.Arrays;
 import lombok.Builder;
+import lombok.Getter;
 
 @Builder
+@Getter
 public class Command {
 
   final RequestType requestType;

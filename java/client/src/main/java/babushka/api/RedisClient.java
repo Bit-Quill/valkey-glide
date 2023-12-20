@@ -12,11 +12,16 @@ import babushka.api.commands.Transaction;
 import babushka.api.commands.VoidCommands;
 import babushka.api.models.commands.SetOptions;
 import babushka.api.models.configuration.RedisClientConfiguration;
+import babushka.connectors.handlers.CallbackDispatcher;
+import babushka.connectors.handlers.ChannelHandler;
+import babushka.ffi.resolvers.SocketListenerResolver;
 import babushka.managers.CommandManager;
+import babushka.managers.ConnectionManager;
 import connection_request.ConnectionRequestOuterClass;
 import java.lang.reflect.Array;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import response.ResponseOuterClass.Response;
 
@@ -25,6 +30,8 @@ public class RedisClient extends BaseClient
     implements BaseCommands<Object>, StringCommands, VoidCommands {
 
   private CommandManager commandManager;
+
+  private ConnectionManager connectionManager;
 
   /**
    * Async (non-blocking) connection to Redis.
@@ -36,15 +43,31 @@ public class RedisClient extends BaseClient
     // convert configuration to protobuf connection request
     ConnectionRequestOuterClass.ConnectionRequest connectionRequest =
         RequestBuilder.createConnectionRequest(
-            config.getHost(), config.getPort(), config.isTls(), config.isClusterMode());
+            config.getAddresses().get(0).getHost(),
+            config.getAddresses().get(0).getPort(),
+            config.isUseTLS(),
+            false);
 
     // TODO: send request to connection manager
-    // return connectionManager.connectToRedis(connectionRequest);
-    return new CompletableFuture<>();
+    AtomicBoolean connectionStatus = new AtomicBoolean(false);
+
+    CallbackDispatcher callbackDispatcher = new CallbackDispatcher(connectionStatus);
+    ChannelHandler channelHandler =
+        new ChannelHandler(callbackDispatcher, SocketListenerResolver.getSocket());
+    var connectionManager = new ConnectionManager(channelHandler, connectionStatus);
+    var commandManager = new CommandManager(channelHandler);
+    return connectionManager
+        .connectToRedis(
+            config.getAddresses().get(0).getHost(),
+            config.getAddresses().get(0).getPort(),
+            config.isUseTLS(),
+            false)
+        .thenApplyAsync(b -> new RedisClient(commandManager, connectionManager));
   }
 
-  public RedisClient(CommandManager commandManager) {
+  public RedisClient(CommandManager commandManager, ConnectionManager connectionManager) {
     this.commandManager = commandManager;
+    this.connectionManager = connectionManager;
   }
 
   /**
@@ -62,7 +85,7 @@ public class RedisClient extends BaseClient
 
   @Override
   public <T> CompletableFuture exec(Command command, Function<Response, T> responseHandler) {
-    return commandManager.submitNewCommand(command, responseHandler);
+    return commandManager.submitNewRequest(command, responseHandler);
   }
 
   // TODO: fix for transaction

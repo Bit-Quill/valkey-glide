@@ -1,4 +1,4 @@
-package babushka.api.config;
+package babushka.api.models.configuration;
 
 import lombok.experimental.SuperBuilder;
 

@@ -7,7 +7,6 @@ import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import connection_request.ConnectionRequestOuterClass.NodeAddress;
 import connection_request.ConnectionRequestOuterClass.ReadFrom;
 import connection_request.ConnectionRequestOuterClass.TlsMode;
-import java.util.List;
 import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
 import redis_request.RedisRequestOuterClass.RedisRequest;
@@ -40,8 +39,9 @@ public class RequestBuilder {
    * @return An uncompleted request. {@link CallbackDispatcher} is responsible to complete it by
    *     adding a callback id.
    */
-  public static RedisRequest.Builder prepareRedisRequest(RequestType command, List<String> args) {
-    var commandArgs = ArgsArray.newBuilder();
+  public static RedisRequest.Builder prepareRedisRequest(
+      babushka.api.commands.Command.RequestType command, String[] args) {
+    ArgsArray.Builder commandArgs = ArgsArray.newBuilder();
     for (var arg : args) {
       commandArgs.addArgs(arg);
     }
@@ -49,12 +49,24 @@ public class RequestBuilder {
     return RedisRequest.newBuilder()
         .setSingleCommand( // set command
             Command.newBuilder()
-                .setRequestType(command) // set command name
+                .setRequestType(mapRequestTypes(command)) // set command name
                 .setArgsArray(commandArgs.build()) // set arguments
                 .build())
         .setRoute( // set route
             Routes.newBuilder()
                 .setSimpleRoutes(SimpleRoutes.AllNodes) // set route type
                 .build());
+  }
+
+  private static RequestType mapRequestTypes(babushka.api.commands.Command.RequestType inType) {
+    switch (inType) {
+      case CUSTOM_COMMAND:
+        return RequestType.CustomCommand;
+      case GETSTRING:
+        return RequestType.GetString;
+      case SETSTRING:
+        return RequestType.SetString;
+    }
+    throw new RuntimeException("Invalid request type");
   }
 }

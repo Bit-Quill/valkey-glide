@@ -1,4 +1,4 @@
-package babushka.api.config;
+package babushka.api.models.configuration;
 
 /** Represents the client's read from strategy. */
 public enum ReadFrom {

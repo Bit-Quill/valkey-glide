@@ -2,6 +2,7 @@ package babushka.benchmarks;
 
 import static babushka.benchmarks.utils.Benchmarking.testClientSetGet;
 
+import babushka.benchmarks.clients.babushka.BabushkaAsyncClient;
 import babushka.benchmarks.clients.jedis.JedisClient;
 import babushka.benchmarks.clients.lettuce.LettuceAsyncClient;
 import java.util.Arrays;
@@ -55,7 +56,8 @@ public class BenchmarkingApp {
           testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
           break;
         case BABUSHKA:
-          System.out.println("Babushka async not yet configured");
+          System.out.println("Run BABUSHKA async client");
+          testClientSetGet(BabushkaAsyncClient::new, runConfiguration, true);
           break;
       }
     }
@@ -213,7 +215,7 @@ public class BenchmarkingApp {
     public int[] clientCount;
     public boolean tls;
     public boolean clusterModeEnabled;
-    public boolean debugLogging = false;
+    public boolean debugLogging = true;
     public boolean minimal = false;
 
     public RunConfiguration() {
