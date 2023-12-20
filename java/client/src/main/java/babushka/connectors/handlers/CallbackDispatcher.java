@@ -1,23 +1,15 @@
 package babushka.connectors.handlers;
 
-import babushka.managers.ClientState;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import response.ResponseOuterClass.Response;
 
 /** Holder for resources required to dispatch responses and used by {@link ReadHandler}. */
-@RequiredArgsConstructor
 public class CallbackDispatcher {
-
-  private final int CONNECTION_PROMISE_ID = 0;
-
-  private final ClientState.ReadOnlyClientState clientState;
-
-  /** Unique request ID (callback ID). Thread-safe and overflow-safe. */
+  /** Unique request ID (callback ID). Thread-safe. */
   private final AtomicInteger requestId = new AtomicInteger(0);
 
   /**
@@ -27,24 +19,27 @@ public class CallbackDispatcher {
   private final Map<Integer, CompletableFuture<Response>> responses = new ConcurrentHashMap<>();
 
   /**
+   * Storage for connection request similar to {@link #responses}. Unfortunately, connection
+   * requests can't be stored in the same storage, because callback ID = 0 is hardcoded for
+   * connection requests.
+   */
+  private final CompletableFuture<Response> connectionPromise = new CompletableFuture<>();
+
+  /**
    * Register a new request to be sent. Once response received, the given future completes with it.
    *
    * @return A pair of unique callback ID which should set into request and a client promise for
    *     response.
    */
   public Pair<Integer, CompletableFuture<Response>> registerRequest() {
-    int callbackId = requestId.getAndIncrement();
+    int callbackId = requestId.incrementAndGet();
     var future = new CompletableFuture<Response>();
     responses.put(callbackId, future);
     return Pair.of(callbackId, future);
   }
 
   public CompletableFuture<Response> registerConnection() {
-    var res = registerRequest();
-    if (res.getKey() != CONNECTION_PROMISE_ID) {
-      throw new IllegalStateException();
-    }
-    return res.getValue();
+    return connectionPromise;
   }
 
   /**
@@ -53,19 +48,17 @@ public class CallbackDispatcher {
    * @param response A response received
    */
   public void completeRequest(Response response) {
-    int callbackId =
-        clientState.isInitializing() ? response.getCallbackIdx() : CONNECTION_PROMISE_ID;
-    var future = responses.get(callbackId);
-    if (future != null) {
-      future.completeAsync(() -> response);
+    int callbackId = response.getCallbackIdx();
+    if (callbackId == 0) {
+      connectionPromise.completeAsync(() -> response);
     } else {
-      // TODO: log an error.
-      // probably a response was received after shutdown or `registerRequest` call was missing
+      responses.get(callbackId).completeAsync(() -> response);
+      responses.remove(callbackId);
     }
-    responses.remove(callbackId);
   }
 
   public void shutdownGracefully() {
+    connectionPromise.cancel(false);
     responses.values().forEach(future -> future.cancel(false));
     responses.clear();
   }
