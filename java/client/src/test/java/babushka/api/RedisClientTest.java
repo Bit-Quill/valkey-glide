@@ -120,26 +120,27 @@ public class RedisClientTest {
   }
 
   @Test
-  public void set_withOptionsOnlyIfExists_success() throws ExecutionException, InterruptedException {
+  public void set_withOptionsOnlyIfExists_success()
+      throws ExecutionException, InterruptedException {
     // setup
     String key = "testKey";
     String value = "testValue";
-    SetOptions setOptions = SetOptions.builder()
-        .conditionalSet(SetOptions.ConditionalSet.ONLY_IF_EXISTS)
-        .returnOldValue(false)
-        .expiry(SetOptions.TimeToLive.builder()
-            .type(SetOptions.TimeToLiveType.KEEP_EXISTING)
-            .build())
-        .build();
+    SetOptions setOptions =
+        SetOptions.builder()
+            .conditionalSet(SetOptions.ConditionalSet.ONLY_IF_EXISTS)
+            .returnOldValue(false)
+            .expiry(
+                SetOptions.TimeToLive.builder()
+                    .type(SetOptions.TimeToLiveType.KEEP_EXISTING)
+                    .build())
+            .build();
     Command cmd =
         Command.builder()
             .requestType(Command.RequestType.SETSTRING)
-            .arguments(new String[] {
-                key,
-                value,
-                CONDITIONAL_SET_ONLY_IF_EXISTS,
-                TIME_TO_LIVE_KEEP_EXISTING
-            })
+            .arguments(
+                new String[] {
+                  key, value, CONDITIONAL_SET_ONLY_IF_EXISTS, TIME_TO_LIVE_KEEP_EXISTING
+                })
             .build();
     CompletableFuture<String> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(null);
@@ -156,28 +157,32 @@ public class RedisClientTest {
   }
 
   @Test
-  public void set_withOptionsOnlyIfDoesNotExist_success() throws ExecutionException, InterruptedException {
+  public void set_withOptionsOnlyIfDoesNotExist_success()
+      throws ExecutionException, InterruptedException {
     // setup
     String key = "testKey";
     String value = "testValue";
-    SetOptions setOptions = SetOptions.builder()
-        .conditionalSet(SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST)
-        .returnOldValue(true)
-        .expiry(SetOptions.TimeToLive.builder()
-            .type(SetOptions.TimeToLiveType.UNIX_SECONDS)
-            .count(60)
-            .build())
-        .build();
+    SetOptions setOptions =
+        SetOptions.builder()
+            .conditionalSet(SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST)
+            .returnOldValue(true)
+            .expiry(
+                SetOptions.TimeToLive.builder()
+                    .type(SetOptions.TimeToLiveType.UNIX_SECONDS)
+                    .count(60)
+                    .build())
+            .build();
     Command cmd =
         Command.builder()
             .requestType(Command.RequestType.SETSTRING)
-            .arguments(new String[] {
-                key,
-                value,
-                CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST,
-                RETURN_OLD_VALUE,
-                TIME_TO_LIVE_UNIX_SECONDS + " 60"
-            })
+            .arguments(
+                new String[] {
+                  key,
+                  value,
+                  CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST,
+                  RETURN_OLD_VALUE,
+                  TIME_TO_LIVE_UNIX_SECONDS + " 60"
+                })
             .build();
     CompletableFuture<String> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(value);
@@ -218,20 +223,10 @@ public class RedisClientTest {
   @Test
   public void asyncConnectToRedis_success() {
     // setup
-    //    boolean useSsl = false;
-    //    boolean clusterMode = false;
-    //    CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-    //    when(connectionManager.connectToRedis(anyString(), anyInt(), anyBoolean(), anyBoolean()))
-    //        .thenReturn(testResponse);
-    //
-    //    // exercise
-    //    CompletableFuture<String> connectionResponse =
-    //        service.connectToRedis(HOST, PORT, useSsl, clusterMode);
-    //
-    //    // verify
-    //    Mockito.verify(connectionManager, times(1))
-    //        .connectToRedis(eq(HOST), eq(PORT), eq(useSsl), eq(clusterMode));
-    //    assertEquals(testResponse, connectionResponse);
+
+    // exercise
+
+    // verify
 
     // teardown
   }
