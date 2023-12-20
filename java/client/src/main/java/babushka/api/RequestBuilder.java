@@ -1,7 +1,6 @@
 package babushka.api;
 
 import babushka.api.models.configuration.BaseClientConfiguration;
-import babushka.ffi.resolvers.BabushkaCoreNativeDefinitions;
 import babushka.managers.CallbackManager;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import connection_request.ConnectionRequestOuterClass.NodeAddress;
@@ -14,7 +13,6 @@ import redis_request.RedisRequestOuterClass.RedisRequest;
 import redis_request.RedisRequestOuterClass.RequestType;
 import redis_request.RedisRequestOuterClass.Routes;
 import redis_request.RedisRequestOuterClass.SimpleRoutes;
-import response.ResponseOuterClass.Response;
 
 public class RequestBuilder {
 
@@ -59,19 +57,5 @@ public class RequestBuilder {
             Routes.newBuilder()
                 .setSimpleRoutes(SimpleRoutes.AllNodes) // set route type
                 .build());
-  }
-
-  /**
-   * Returns a String from the redis response if a resp2 response exists, or Ok. Otherwise, returns
-   * null
-   *
-   * @param response Redis Response
-   * @return String or null
-   */
-  public static String resolveRedisResponseToString(Response response) {
-    if (response.getRespPointer() != 0) {
-      return BabushkaCoreNativeDefinitions.valueFromPointer(response.getRespPointer()).toString();
-    }
-    return null;
   }
 }
