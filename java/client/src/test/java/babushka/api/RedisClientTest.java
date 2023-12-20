@@ -8,6 +8,7 @@ import static babushka.api.models.commands.SetOptions.TIME_TO_LIVE_UNIX_SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -61,6 +62,30 @@ public class RedisClientTest {
     // verify
     assertEquals(testResponse, response);
     assertEquals(value, payload);
+
+    // teardown
+  }
+
+  @Test
+  public void customCommand_interruptedException() throws ExecutionException, InterruptedException {
+    // setup
+    String key = "testKey";
+    Object value = "testValue";
+    String cmd = "GETSTRING";
+    CompletableFuture<Object> testResponse = mock(CompletableFuture.class);
+    when(testResponse.get()).thenThrow(new InterruptedException());
+    when(commandManager.submitNewCommand(any(), any())).thenReturn(testResponse);
+
+    // exercise
+    InterruptedException exception =
+        assertThrows(
+            InterruptedException.class,
+            () -> {
+              CompletableFuture<String> response = service.get(key);
+              response.get();
+            });
+
+    // verify
 
     // teardown
   }
@@ -194,39 +219,6 @@ public class RedisClientTest {
     // verify
     assertNotNull(response);
     assertEquals(value, response.get());
-
-    // teardown
-  }
-
-  @Test
-  public void test_ping_success() {
-    // setup
-
-    // exercise
-
-    // verify
-
-    // teardown
-  }
-
-  @Test
-  public void test_info_success() {
-    // setup
-
-    // exercise
-
-    // verify
-
-    // teardown
-  }
-
-  @Test
-  public void asyncConnectToRedis_success() {
-    // setup
-
-    // exercise
-
-    // verify
 
     // teardown
   }
