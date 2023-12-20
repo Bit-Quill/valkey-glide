@@ -1,6 +1,6 @@
 package glide.connectors.handlers;
 
-import babushka.connectors.ClientState;
+import babushka.managers.ClientState;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
