@@ -3,6 +3,11 @@ package babushka.ffi.resolvers;
 import response.ResponseOuterClass.Response;
 
 public class RedisValueResolver {
+
+  static {
+    System.loadLibrary("javababushka");
+  }
+
   /**
    * Resolve a value received from Redis using given C-style pointer.
    *

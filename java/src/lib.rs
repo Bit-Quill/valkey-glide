@@ -1,11 +1,12 @@
 use babushka::start_socket_listener;
 
 use jni::objects::{JClass, JObject, JThrowable};
-use jni::sys::jlong;
+use jni::sys::{jlong, jint};
 use jni::JNIEnv;
 use log::error;
 use redis::Value;
 use std::sync::mpsc;
+use logger_core::{init, Level};
 
 fn redis_value_to_java(mut env: JNIEnv, val: Value) -> JObject {
     match val {
@@ -100,4 +101,21 @@ fn throw_java_exception(mut env: JNIEnv, message: String) {
             );
         }
     };
+}
+
+#[no_mangle]
+pub extern "system" fn Java_babushka_ffi_resolvers_LogLevelResolver_setLogLevel<'local>(
+    mut env: JNIEnv<'local>,
+    _class: JClass<'local>,
+    value: jint
+) {
+    let level : Level = match value {
+        0 => Level::Error,
+        1 => Level::Warn,
+        2 => Level::Info,
+        3 => Level::Debug,
+        4 => Level::Trace,
+        _ => panic!()
+    };
+    init(Some(level), None);
 }

@@ -14,6 +14,7 @@ import babushka.api.models.commands.SetOptions;
 import babushka.api.models.configuration.RedisClientConfiguration;
 import babushka.connectors.handlers.CallbackDispatcher;
 import babushka.connectors.handlers.ChannelHandler;
+import babushka.ffi.resolvers.LogLevelResolver;
 import babushka.ffi.resolvers.SocketListenerResolver;
 import babushka.managers.CommandManager;
 import babushka.managers.ConnectionManager;
@@ -40,6 +41,9 @@ public class RedisClient extends BaseClient
    * @return a promise to connect and return a RedisClient
    */
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
+
+    LogLevelResolver.setLogLevel(4);
+
     // convert configuration to protobuf connection request
     ConnectionRequestOuterClass.ConnectionRequest connectionRequest =
         RequestBuilder.createConnectionRequest(
