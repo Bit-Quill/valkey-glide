@@ -1,11 +1,11 @@
 package babushka.managers;
 
-import babushka.connectors.ClientState;
 import babushka.connectors.handlers.ChannelHandler;
 import babushka.ffi.resolvers.RedisValueResolver;
 import babushka.models.RequestBuilder;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import response.ResponseOuterClass.ConstantResponse;
 import response.ResponseOuterClass.Response;
@@ -16,11 +16,7 @@ public class ConnectionManager {
   /** UDS connection representation. */
   private final ChannelHandler channel;
 
-  /**
-   * Client state, which {@link ConnectionManager} can flick to closed or to open, according to user
-   * request or error received.
-   */
-  private final ClientState.OpenableClientState clientState;
+  private final AtomicBoolean connectionStatus;
 
   /**
    * Connect to Redis using a ProtoBuf connection request.
@@ -51,20 +47,20 @@ public class ConnectionManager {
     } else if (response.hasClosingError()) {
       throw new RuntimeException("Connection closed: " + response.getClosingError());
     } else if (response.hasConstantResponse()) {
-      clientState.connect(response.getConstantResponse() == ConstantResponse.OK);
-      return clientState.isConnected();
+      return connectionStatus.compareAndSet(
+          false, response.getConstantResponse() == ConstantResponse.OK);
     } else if (response.hasRespPointer()) {
       throw new RuntimeException(
           "Unexpected response data: "
               + RedisValueResolver.valueFromPointer(response.getRespPointer()));
     }
-    throw new IllegalStateException("A malformed response received: " + response.toString());
+    // TODO commented out due to #710 https://github.com/aws/babushka/issues/710
+    //      empty response means a successful connection
+    // throw new IllegalStateException("A malformed response received: " + response.toString());
+    return connectionStatus.compareAndSet(false, true);
   }
 
-  /**
-   * Close the connection and the corresponding channel.<br>
-   * TODO: provide feedback that the connection was properly closed
-   */
+  /** Close the connection and the corresponding channel. */
   public CompletableFuture<Void> closeConnection() {
     return CompletableFuture.runAsync(channel::close);
   }
