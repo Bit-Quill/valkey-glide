@@ -134,12 +134,16 @@ try {
 ### Case 9: Send customCommand to RedisClient and receive a RedisFuture (CompleteableFuture wrapper)
 ```java
 // returns an Object: custom command requests don't have an associated return type
-RedisFuture<Object> customCommandRequest = redisClient.customCommand(StringCommands.GETSTRING, "apples");
+CompletableFuture<Object> customCommandRequest = redisClient.customCommand(StringCommands.GETSTRING, new String[]{"apples"});
 Object objectResponse = customCommandRequest.get();
-if (customCommandRequest.isDone()) {
-  switch(customCommandRequest.getValueType()) {
+String stringResponse = (String) objectResponse;
+
+// We can use the RedisFuture wrapper to determine the typing instead
+RedisFuture<Object> customCommandRedisFuture = redisClient.customCommand(StringCommands.GETSTRING, new String[]{"apples"});
+if (customCommandRedisFuture.get()) {
+  switch(customCommandRedisFuture.getValueType()) {
     STRING:
-      String stringResponse = customCommandRequest.getString();
+      String stringResponse = customCommandRedisFuture.getString();
       break;
     DEFAULT: 
       throw new RuntimeException("Unexpected value type returned");
