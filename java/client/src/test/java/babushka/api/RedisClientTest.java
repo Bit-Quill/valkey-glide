@@ -1,7 +1,5 @@
 package babushka.api;
 
-import static babushka.api.commands.BaseCommands.RequestType.GETSTRING;
-import static babushka.api.commands.BaseCommands.RequestType.SETSTRING;
 import static babushka.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST;
 import static babushka.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_EXISTS;
 import static babushka.api.models.commands.SetOptions.RETURN_OLD_VALUE;
@@ -55,7 +53,7 @@ public class RedisClientTest {
     String cmd = "GETSTRING";
     CompletableFuture<Object> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(value);
-    when(commandManager.submitNewRequest(any(), any())).thenReturn(testResponse);
+    when(commandManager.submitNewCommand(any(), any())).thenReturn(testResponse);
 
     // exercise
     CompletableFuture<Object> response = service.customCommand(cmd, new String[] {key});
@@ -76,7 +74,7 @@ public class RedisClientTest {
     String cmd = "GETSTRING";
     CompletableFuture<Object> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenThrow(new InterruptedException());
-    when(commandManager.submitNewRequest(any(), any())).thenReturn(testResponse);
+    when(commandManager.submitNewCommand(any(), any())).thenReturn(testResponse);
 
     // exercise
     InterruptedException exception =
@@ -98,10 +96,14 @@ public class RedisClientTest {
     // TODO: randomize keys
     String key = "testKey";
     String value = "testValue";
-    Command cmd = Command.builder().requestType(GETSTRING).arguments(new String[] {key}).build();
+    Command cmd =
+        Command.builder()
+            .requestType(Command.RequestType.GETSTRING)
+            .arguments(new String[] {key})
+            .build();
     CompletableFuture<String> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(value);
-    when(commandManager.<String>submitNewRequest(any(), any())).thenReturn(testResponse);
+    when(commandManager.<String>submitNewCommand(any(), any())).thenReturn(testResponse);
 
     // exercise
     CompletableFuture<String> response = service.get(key);
@@ -123,10 +125,13 @@ public class RedisClientTest {
     String key = "testKey";
     String value = "testValue";
     Command cmd =
-        Command.builder().requestType(SETSTRING).arguments(new String[] {key, value}).build();
+        Command.builder()
+            .requestType(Command.RequestType.SETSTRING)
+            .arguments(new String[] {key, value})
+            .build();
     CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(null);
-    when(commandManager.<Void>submitNewRequest(any(), any())).thenReturn(testResponse);
+    when(commandManager.<Void>submitNewCommand(any(), any())).thenReturn(testResponse);
 
     // exercise
     CompletableFuture<Void> response = service.set(key, value);
@@ -156,7 +161,7 @@ public class RedisClientTest {
             .build();
     Command cmd =
         Command.builder()
-            .requestType(SETSTRING)
+            .requestType(Command.RequestType.SETSTRING)
             .arguments(
                 new String[] {
                   key, value, CONDITIONAL_SET_ONLY_IF_EXISTS, TIME_TO_LIVE_KEEP_EXISTING
@@ -164,7 +169,7 @@ public class RedisClientTest {
             .build();
     CompletableFuture<String> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(null);
-    when(commandManager.<String>submitNewRequest(eq(cmd), any())).thenReturn(testResponse);
+    when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
 
     // exercise
     CompletableFuture<String> response = service.set(key, value, setOptions);
@@ -194,7 +199,7 @@ public class RedisClientTest {
             .build();
     Command cmd =
         Command.builder()
-            .requestType(SETSTRING)
+            .requestType(Command.RequestType.SETSTRING)
             .arguments(
                 new String[] {
                   key,
@@ -206,7 +211,7 @@ public class RedisClientTest {
             .build();
     CompletableFuture<String> testResponse = mock(CompletableFuture.class);
     when(testResponse.get()).thenReturn(value);
-    when(commandManager.<String>submitNewRequest(eq(cmd), any())).thenReturn(testResponse);
+    when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
 
     // exercise
     CompletableFuture<String> response = service.set(key, value, setOptions);

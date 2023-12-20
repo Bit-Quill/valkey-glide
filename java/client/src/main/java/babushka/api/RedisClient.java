@@ -1,8 +1,8 @@
 package babushka.api;
 
-import static babushka.api.commands.BaseCommands.RequestType.CUSTOMCOMMAND;
-import static babushka.api.commands.BaseCommands.RequestType.GETSTRING;
-import static babushka.api.commands.BaseCommands.RequestType.SETSTRING;
+import static babushka.api.commands.Command.RequestType.CUSTOM_COMMAND;
+import static babushka.api.commands.Command.RequestType.GETSTRING;
+import static babushka.api.commands.Command.RequestType.SETSTRING;
 import static babushka.api.models.commands.SetOptions.createSetOptions;
 
 import babushka.api.commands.BaseCommands;
@@ -62,7 +62,7 @@ public class RedisClient extends BaseClient
 
   @Override
   public <T> CompletableFuture exec(Command command, Function<Response, T> responseHandler) {
-    return commandManager.submitNewRequest(command, responseHandler);
+    return commandManager.submitNewCommand(command, responseHandler);
   }
 
   // TODO: fix for transaction
@@ -84,7 +84,7 @@ public class RedisClient extends BaseClient
     System.arraycopy(args, 0, commandArguments, 1, args.length);
 
     Command command =
-        Command.builder().requestType(CUSTOMCOMMAND).arguments(commandArguments).build();
+        Command.builder().requestType(CUSTOM_COMMAND).arguments(commandArguments).build();
     return exec(command, BaseCommands::handleResponse);
   }
 
