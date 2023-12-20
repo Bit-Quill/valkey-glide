@@ -140,15 +140,17 @@ String stringResponse = (String) objectResponse;
 
 // We can use the RedisFuture wrapper to determine the typing instead
 RedisFuture<Object> customCommandRedisFuture = redisClient.customCommand(StringCommands.GETSTRING, new String[]{"apples"});
-if (customCommandRedisFuture.get()) {
-  switch(customCommandRedisFuture.getValueType()) {
-    STRING:
-      String stringResponse = customCommandRedisFuture.getString();
+RedisResponse redisResponseObject = customCommandRedisFuture.getRedisResponse();
+// same as .get()
+// Object objectResponse = redisResponseObject.getValue();
+switch(redisResponseObject.getValueType()) {
+  STRING:
+      String stringResponse = redisResponseObject.getString();
       break;
-    DEFAULT: 
+  DEFAULT: 
       throw new RuntimeException("Unexpected value type returned");
-  }  
 }
+
 ```
 
 ### Case 10: Send transaction to RedisClient
@@ -174,9 +176,26 @@ Transaction transaction = Transaction.builder()
     .build();
 
 CompletableFuture<List<Object>> transactionRequest = redisClient.exec(transaction);
-List<Object> transactionResponse = transactionRequest.get();
+List<Object> genericResponse = transactionRequest.get();
+String firstResponse = (String) genericResponse.get(0);
+String secondResponse = (String) genericResponse.get(1);
+genericResponse.get(2); // returns null
 
-// TODO: verify that if we use the RedisFuture wrapper, can we receive the typing for each object 
+// calls .get() and returns a list of RedisResponse objects that can be type-checked
+List<RedisResponse> transactionResponse = transactionRequest.getRedisResponseList();
+
+// We can use the RedisFuture wrapper to determine the typing of each object in the list
+transactionResponse.foreach(
+    r -> { switch(r.getValue()) {
+      VOID:
+          break;
+      STRING:
+          String stringResponse = r.getString();
+          break;
+      DEFAULT: 
+          throw new RuntimeException("Unexpected value type returned");
+    }
+});
 ```
 
 ### Case 11: Send get request to a RedisClusterClient with one address
