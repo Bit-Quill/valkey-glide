@@ -60,10 +60,9 @@ public class CallbackDispatcher {
    * @param response A response received
    */
   public void completeRequest(Response response) {
-    // A connection response doesn't contain a callback id
     int callbackId =
         clientState.isInitializing() ? response.getCallbackIdx() : CONNECTION_PROMISE_ID;
-    CompletableFuture<Response> future = responses.get(callbackId);
+    var future = responses.get(callbackId);
     if (future != null) {
       future.completeAsync(() -> response);
     } else {
