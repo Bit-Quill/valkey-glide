@@ -2,18 +2,14 @@ package babushka.api.commands;
 
 import java.util.Arrays;
 import lombok.Builder;
+import lombok.Getter;
 
 @Builder
+@Getter
 public class Command {
 
-  final RequestType requestType;
+  final BaseCommands.RequestType requestType;
   final String[] arguments;
-
-  public enum RequestType {
-    CUSTOM_COMMAND,
-    GETSTRING,
-    SETSTRING
-  }
 
   @Override
   public boolean equals(Object o) {
