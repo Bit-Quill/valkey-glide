@@ -11,14 +11,16 @@ public class SetOptions {
 
   /**
    * `onlyIfDoesNotExist` - Only set the key if it does not already exist. Equivalent to `NX` in the
-   * Redis API. `onlyIfExists` - Only set the key if it already exist. Equivalent to `EX` in the
-   * Redis API. if `conditional` is not set the value will be set regardless of prior value
-   * existence. If value isn't set because of the condition, return null.
+   * Redis API. <br>
+   * `onlyIfExists` - Only set the key if it already exist. Equivalent to `EX` in the Redis API.
+   * <br>
+   * if `conditional` is not set the value will be set regardless of prior value existence. <br>
+   * If value isn't set because of the condition, return null.
    */
   private ConditionalSet conditionalSet;
 
   /**
-   * Return the old string stored at key, or nil if key did not exist. An error is returned and SET
+   * Return the old string stored at key, or null if key did not exist. An error is returned and SET
    * aborted if the value stored at key is not a string. Equivalent to `GET` in the Redis API.
    */
   private boolean returnOldValue;
