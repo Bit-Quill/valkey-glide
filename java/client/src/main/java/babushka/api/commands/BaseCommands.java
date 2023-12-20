@@ -1,6 +1,6 @@
 package babushka.api.commands;
 
-import static babushka.ffi.resolvers.RedisValueResolver.valueFromPointer;
+import static babushka.ffi.resolvers.BabushkaCoreNativeDefinitions.valueFromPointer;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -45,7 +45,6 @@ public interface BaseCommands<T> {
   CompletableFuture<?> exec(Transaction transaction);
 
   public enum RequestType {
-    CUSTOMCOMMAND,
     GETSTRING,
     SETSTRING
   }
