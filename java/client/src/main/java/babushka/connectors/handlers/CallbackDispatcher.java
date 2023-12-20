@@ -40,10 +40,7 @@ public class CallbackDispatcher {
    *     response.
    */
   public Pair<Integer, CompletableFuture<Response>> registerRequest() {
-    int callbackId = 0;
-    do {
-      callbackId = requestId.getAndIncrement();
-    } while (responses.containsKey(callbackId));
+    int callbackId = requestId.getAndIncrement();
     var future = new CompletableFuture<Response>();
     responses.put(callbackId, future);
     return Pair.of(callbackId, future);
