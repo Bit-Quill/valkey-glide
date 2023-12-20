@@ -42,7 +42,9 @@ fn redis_value_to_java(mut env: JNIEnv, val: Value) -> JObject {
 }
 
 #[no_mangle]
-pub extern "system" fn Java_babushka_ffi_resolvers_RedisValueResolver_valueFromPointer<'local>(
+pub extern "system" fn Java_babushka_ffi_resolvers_BabushkaCoreNativeDefinitions_valueFromPointer<
+    'local,
+>(
     env: JNIEnv<'local>,
     _class: JClass<'local>,
     pointer: jlong,
@@ -52,7 +54,7 @@ pub extern "system" fn Java_babushka_ffi_resolvers_RedisValueResolver_valueFromP
 }
 
 #[no_mangle]
-pub extern "system" fn Java_babushka_ffi_resolvers_SocketListenerResolver_startSocketListener<
+pub extern "system" fn Java_babushka_ffi_resolvers_BabushkaCoreNativeDefinitions_startSocketListenerExternal<
     'local,
 >(
     env: JNIEnv<'local>,

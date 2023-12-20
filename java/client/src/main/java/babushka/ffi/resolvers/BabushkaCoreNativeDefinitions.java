@@ -1,9 +1,9 @@
 package babushka.ffi.resolvers;
 
-public class SocketListenerResolver {
+public class BabushkaCoreNativeDefinitions {
+  public static native String startSocketListenerExternal() throws Exception;
 
-  /** Make an FFI call to Babushka to open a UDS socket to connect to. */
-  private static native String startSocketListener() throws Exception;
+  public static native Object valueFromPointer(long pointer);
 
   static {
     System.loadLibrary("javababushka");
@@ -16,7 +16,7 @@ public class SocketListenerResolver {
    */
   public static String getSocket() {
     try {
-      return startSocketListener();
+      return startSocketListenerExternal();
     } catch (Exception | UnsatisfiedLinkError e) {
       System.err.printf("Failed to create a UDS connection: %s%n%n", e);
       throw new RuntimeException(e);
