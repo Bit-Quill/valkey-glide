@@ -73,6 +73,9 @@ public class CommandManager {
     } else if (response.hasRespPointer()) {
       return RedisValueResolver.valueFromPointer(response.getRespPointer()).toString();
     }
-    throw new IllegalStateException("A malformed response received: " + response.toString());
+    // TODO commented out due to #710 https://github.com/aws/babushka/issues/710
+    //      empty response means a successful command
+    // throw new IllegalStateException("A malformed response received: " + response.toString());
+    return "OK";
   }
 }

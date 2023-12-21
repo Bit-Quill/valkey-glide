@@ -12,10 +12,11 @@ import response.ResponseOuterClass.Response;
 @RequiredArgsConstructor
 public class CallbackDispatcher {
 
+  /** Client connection status needed to distinguish connection request. */
   private final AtomicBoolean connectionStatus;
 
   /** Reserved callback ID for connection request. */
-  private final int CONNECTION_PROMISE_ID = 0;
+  private final Integer CONNECTION_PROMISE_ID = 0;
 
   /**
    * Storage of Futures to handle responses. Map key is callback id, which starts from 1.<br>
@@ -42,12 +43,11 @@ public class CallbackDispatcher {
    */
   public Pair<Integer, CompletableFuture<Response>> registerRequest() {
     var future = new CompletableFuture<Response>();
-    Integer callbackId =
-        connectionStatus.get() ? freeRequestIds.poll() : Integer.valueOf(CONNECTION_PROMISE_ID);
+    Integer callbackId = connectionStatus.get() ? freeRequestIds.poll() : CONNECTION_PROMISE_ID;
     synchronized (responses) {
       if (callbackId == null) {
-        long value = responses.mappingCount();
-        callbackId = (int) (value < Integer.MAX_VALUE ? value : -(value - Integer.MAX_VALUE));
+        long size = responses.mappingCount();
+        callbackId = (int) (size < Integer.MAX_VALUE ? size : -(size - Integer.MAX_VALUE));
       }
       responses.put(callbackId, future);
     }

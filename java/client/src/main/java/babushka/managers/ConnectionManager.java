@@ -16,6 +16,7 @@ public class ConnectionManager {
   /** UDS connection representation. */
   private final ChannelHandler channel;
 
+  /** Client connection status to update when connection established. */
   private final AtomicBoolean connectionStatus;
 
   /**
