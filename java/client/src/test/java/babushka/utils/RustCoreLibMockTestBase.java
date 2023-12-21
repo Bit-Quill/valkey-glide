@@ -18,7 +18,7 @@ public class RustCoreLibMockTestBase {
   @SneakyThrows
   public static void startRustCoreLibMock(RustCoreMock.BabushkaMock rustCoreLibMock) {
     assert socketPath == null
-        : "Previous `RustCoreMock` wasn't stopped, probably your test class does not inherit"
+        : "Previous `RustCoreMock` wasn't stopped. Ensure that your test class inherits"
             + " `RustCoreLibMockTestBase`.";
 
     socketPath = RustCoreMock.start(rustCoreLibMock);

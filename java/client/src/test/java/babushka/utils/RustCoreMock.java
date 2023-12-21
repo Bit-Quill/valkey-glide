@@ -74,10 +74,10 @@ public class RustCoreMock {
 
   private RustCoreMock() {
     try {
-      socketPath = Files.createTempFile("RustCoreMock", null).toString();
+      socketPath = Files.createTempFile("BabushkaCoreMock", null).toString();
       channel =
           new ServerBootstrap()
-              .group(group = Platform.createNettyThreadPool("RustCoreMock", OptionalInt.empty()))
+              .group(group = Platform.createNettyThreadPool("BabushkaCoreMock", OptionalInt.empty()))
               .channel(Platform.getServerUdsNettyChannelType())
               .childHandler(
                   new ChannelInitializer<DomainSocketChannel>() {

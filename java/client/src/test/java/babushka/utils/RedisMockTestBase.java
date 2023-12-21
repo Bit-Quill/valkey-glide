@@ -12,7 +12,7 @@ public class RedisMockTestBase {
   @SneakyThrows
   public static void startRedisMock(RedisServerMock.ServerMock serverMock) {
     assert !started
-        : "Previous `RedisMock` wasn't stopped, probably your test class does not inherit"
+        : "Previous `RedisMock` wasn't stopped. Ensure that your test class inherits"
             + " `RedisMockTestBase`.";
     RedisServerMock.start(serverMock);
     started = true;
