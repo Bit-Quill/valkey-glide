@@ -1,6 +1,5 @@
 package glide.api;
 
-
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 
 import glide.api.commands.BaseCommands;
@@ -12,10 +11,10 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.exceptions.ConnectionException;
-import glide.managers.CommandManager;
-import glide.managers.ConnectionManager;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
+import glide.managers.CommandManager;
+import glide.managers.ConnectionManager;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -115,7 +114,8 @@ public class RedisClient extends BaseClient
    * @param responseHandler handler responsible for assigning type to the list of response objects
    * @return A CompletableFuture completed with the results from Redis
    */
-  public CompletableFuture<List<Object>> exec(Transaction transaction, Function<Response, List<Object>> responseHandler) {
+  public CompletableFuture<List<Object>> exec(
+      Transaction transaction, Function<Response, List<Object>> responseHandler) {
     // TODO: call commandManager.submitNewTransaction()
     return new CompletableFuture<>();
   }
@@ -142,7 +142,10 @@ public class RedisClient extends BaseClient
    */
   public CompletableFuture<String> get(String key) {
     Command command =
-        Command.builder().requestType(Command.RequestType.GETSTRING).arguments(new String[] {key}).build();
+        Command.builder()
+            .requestType(Command.RequestType.GETSTRING)
+            .arguments(new String[] {key})
+            .build();
     return exec(command, StringCommands::handleStringResponse);
   }
 
@@ -156,7 +159,10 @@ public class RedisClient extends BaseClient
    */
   public CompletableFuture<Void> set(String key, String value) {
     Command command =
-        Command.builder().requestType(Command.RequestType.SETSTRING).arguments(new String[] {key, value}).build();
+        Command.builder()
+            .requestType(Command.RequestType.SETSTRING)
+            .arguments(new String[] {key, value})
+            .build();
     return exec(command, VoidCommands::handleVoidResponse);
   }
 
@@ -176,7 +182,10 @@ public class RedisClient extends BaseClient
     args.add(value);
     args.addAll(SetOptions.createSetOptions(options));
     Command command =
-        Command.builder().requestType(Command.RequestType.SETSTRING).arguments(args.toArray(new String[0])).build();
+        Command.builder()
+            .requestType(Command.RequestType.SETSTRING)
+            .arguments(args.toArray(new String[0]))
+            .build();
     return exec(command, StringCommands::handleStringResponse);
   }
 }

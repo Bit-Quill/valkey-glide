@@ -1,11 +1,11 @@
 package glide.api;
 
-import glide.api.models.configuration.BaseClientConfiguration;
-import glide.managers.CallbackManager;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import connection_request.ConnectionRequestOuterClass.NodeAddress;
 import connection_request.ConnectionRequestOuterClass.ReadFrom;
 import connection_request.ConnectionRequestOuterClass.TlsMode;
+import glide.api.models.configuration.BaseClientConfiguration;
+import glide.managers.CallbackManager;
 import java.util.List;
 import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;

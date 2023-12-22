@@ -1,4 +1,4 @@
-package babushka.api;
+package glide.api;
 
 import static glide.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_EXISTS;
@@ -17,7 +17,6 @@ import static org.mockito.Mockito.when;
 import glide.api.RedisClient;
 import glide.api.commands.Command;
 import glide.api.models.commands.SetOptions;
-import glide.api.models.configuration.RedisClientConfiguration;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.concurrent.CompletableFuture;

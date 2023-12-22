@@ -76,7 +76,8 @@ public interface BaseCommands<T> {
    * @param responseHandler handler responsible for assigning type to the list of response objects
    * @return A CompletableFuture completed with the results from Redis
    */
-  CompletableFuture<List<Object>> exec(Transaction transaction, Function<Response, List<Object>> responseHandler);
+  CompletableFuture<List<Object>> exec(
+      Transaction transaction, Function<Response, List<Object>> responseHandler);
 
   public enum RequestType {
     GETSTRING,

@@ -1,4 +1,4 @@
-package babushka.api;
+package glide.api;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;

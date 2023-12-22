@@ -7,14 +7,14 @@ import glide.api.models.exceptions.RedisException;
 import glide.api.models.exceptions.RequestException;
 import glide.api.models.exceptions.TimeoutException;
 import java.util.concurrent.CompletableFuture;
-import response.ResponseOuterClass.Response;
 import response.ResponseOuterClass.RequestError;
+import response.ResponseOuterClass.Response;
 
 public interface VoidCommands {
 
   /**
-   * Check for errors in the Response and return null
-   * Throws an error if an unexpected value is returned
+   * Check for errors in the Response and return null Throws an error if an unexpected value is
+   * returned
    *
    * @return null if the response is empty
    */
