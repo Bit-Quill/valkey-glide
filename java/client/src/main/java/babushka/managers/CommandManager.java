@@ -50,7 +50,7 @@ public class CommandManager {
               "%s: %s",
               response.getRequestError().getType(), response.getRequestError().getMessage()));
     } else if (response.hasClosingError()) {
-      CompletableFuture.runAsync(channel::close);
+      closeConnection();
       throw new RuntimeException("Connection closed: " + response.getClosingError());
     } else if (response.hasConstantResponse()) {
       return response.getConstantResponse().toString();
@@ -58,5 +58,10 @@ public class CommandManager {
       return RedisValueResolver.valueFromPointer(response.getRespPointer()).toString();
     }
     throw new IllegalStateException("A malformed response received: " + response.toString());
+  }
+
+  /** Close the connection and the corresponding channel. */
+  public CompletableFuture<Void> closeConnection() {
+    return CompletableFuture.runAsync(channel::close);
   }
 }

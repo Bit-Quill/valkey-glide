@@ -1,7 +1,6 @@
 package babushka.benchmarks.clients.babushka;
 
 import babushka.api.RedisClient;
-import babushka.api.models.commands.SetOptions;
 import babushka.api.models.configuration.NodeAddress;
 import babushka.api.models.configuration.RedisClientConfiguration;
 import babushka.benchmarks.clients.AsyncClient;
@@ -26,8 +25,8 @@ public class BabushkaAsyncClient implements AsyncClient<String> {
             .useTLS(connectionSettings.useSsl)
             .build();
     if (!connectionSettings.clusterMode) {
-      CompletableFuture<RedisClient> clientResponse = RedisClient.CreateClient(config);
       try {
+        CompletableFuture<RedisClient> clientResponse = RedisClient.CreateClient(config);
         client = clientResponse.get();
       } catch (InterruptedException | ExecutionException e) {
         throw new RuntimeException(e);
@@ -39,8 +38,7 @@ public class BabushkaAsyncClient implements AsyncClient<String> {
 
   @Override
   public CompletableFuture<String> asyncSet(String key, String value) {
-    SetOptions options = SetOptions.builder().returnOldValue(true).build();
-    return client.set(key, value, options);
+    return client.set(key, value).thenApply(v -> "Ok");
   }
 
   @Override

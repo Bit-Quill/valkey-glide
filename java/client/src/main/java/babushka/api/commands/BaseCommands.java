@@ -2,8 +2,15 @@ package babushka.api.commands;
 
 import static babushka.ffi.resolvers.RedisValueResolver.valueFromPointer;
 
+import babushka.api.models.exceptions.ClosingException;
+import babushka.api.models.exceptions.ConnectionException;
+import babushka.api.models.exceptions.ExecAbortException;
+import babushka.api.models.exceptions.RedisException;
+import babushka.api.models.exceptions.RequestException;
+import babushka.api.models.exceptions.TimeoutException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import response.ResponseOuterClass.RequestError;
 import response.ResponseOuterClass.Response;
 
 public interface BaseCommands<T> {
@@ -15,7 +22,31 @@ public interface BaseCommands<T> {
    * @return
    */
   static Object handleResponse(Response response) {
-    return valueFromPointer(response.getRespPointer());
+    if (response.hasRequestError()) {
+      RequestError error = response.getRequestError();
+      String msg = error.getMessage();
+      switch (error.getType()) {
+        case Unspecified:
+          throw new RedisException("Unexpected result: " + msg);
+        case ExecAbort:
+          throw new ExecAbortException("ExecAbortException: " + msg);
+        case Timeout:
+          throw new TimeoutException("TimeoutException: " + msg);
+        case Disconnect:
+          throw new ConnectionException("Disconnection: " + msg);
+      }
+      throw new RequestException(response.getRequestError().getMessage());
+    }
+    if (response.hasClosingError()) {
+      throw new ClosingException(response.getClosingError());
+    }
+    if (response.hasRespPointer()) {
+      return valueFromPointer(response.getRespPointer());
+    }
+    if (response.hasConstantResponse()) {
+      return "Ok";
+    }
+    return null;
   }
 
   /**

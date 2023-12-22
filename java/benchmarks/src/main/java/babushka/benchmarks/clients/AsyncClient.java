@@ -10,7 +10,7 @@ public interface AsyncClient<T> extends Client {
 
   long DEFAULT_TIMEOUT_MILLISECOND = 1000;
 
-  Future<T> asyncSet(String key, String value);
+  Future<String> asyncSet(String key, String value);
 
   Future<String> asyncGet(String key);
 
@@ -24,7 +24,7 @@ public interface AsyncClient<T> extends Client {
     } catch (TimeoutException e) {
       throw new RuntimeException("A task timed out", e);
     } catch (ExecutionException e) {
-      throw new RuntimeException("Client error", e);
+      throw new RuntimeException("Client execution error", e);
     } catch (InterruptedException e) {
       if (Thread.currentThread().isInterrupted()) {
         // restore interrupt

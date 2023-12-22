@@ -46,7 +46,7 @@ public class CallbackDispatcher {
         connectionStatus.get() ? freeRequestIds.poll() : Integer.valueOf(CONNECTION_PROMISE_ID);
     synchronized (responses) {
       if (callbackId == null) {
-        long value = responses.mappingCount();
+        long value = responses.mappingCount() + 1;
         callbackId = (int) (value < Integer.MAX_VALUE ? value : -(value - Integer.MAX_VALUE));
       }
       responses.put(callbackId, future);

@@ -29,6 +29,7 @@ public class ChannelHandler {
             .handler(new ProtobufSocketChannelInitializer(callbackDispatcher))
             .connect(new DomainSocketAddress(socketPath))
             // TODO call here .sync() if needed or remove this comment
+            .syncUninterruptibly()
             .channel();
     this.callbackDispatcher = callbackDispatcher;
   }

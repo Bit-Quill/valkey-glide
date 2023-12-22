@@ -105,7 +105,7 @@ fn throw_java_exception(mut env: JNIEnv, message: String) {
 
 #[no_mangle]
 pub extern "system" fn Java_babushka_ffi_resolvers_LogLevelResolver_setLogLevel<'local>(
-    mut env: JNIEnv<'local>,
+    mut _env: JNIEnv<'local>,
     _class: JClass<'local>,
     value: jint
 ) {

@@ -147,21 +147,23 @@ public class Benchmarking {
           if (config.debugLogging) {
             System.out.printf("%s client Benchmarking: %n", clientName);
             System.out.printf(
-                "===> concurrentNum = %d, clientNum = %d, tasks = %d%n",
+                "%n===> concurrentNum = %d, clientNum = %d, tasks = %d",
                 concurrentNum, clientCount, asyncTasks.size());
           }
 
           // This will start execution of all the concurrent tasks asynchronously
           CompletableFuture<Map<ChosenAction, ArrayList<Long>>>[] completableAsyncTaskArray =
-              asyncTasks.toArray(new CompletableFuture[asyncTasks.size()]);
+              asyncTasks.toArray(new CompletableFuture[0]);
           try {
             // wait for all futures to complete
             CompletableFuture.allOf(completableAsyncTaskArray).get();
           } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
+            clients.forEach(Client::closeConnection);
             throw new RuntimeException(e);
           }
           long after = System.nanoTime();
+          clients.forEach(Client::closeConnection);
 
           // Map to save latency results separately for each action
           Map<ChosenAction, List<Long>> actionResults =
@@ -182,8 +184,6 @@ public class Benchmarking {
                 }
               });
           var calculatedResults = calculateResults(actionResults);
-
-          clients.forEach(Client::closeConnection);
 
           if (config.resultsFile.isPresent()) {
             double tps = iterationCounter.get() * NANO_TO_SECONDS / (after - started);
@@ -225,7 +225,8 @@ public class Benchmarking {
           var actions = getActionMap(dataSize, async);
 
           if (debugLogging) {
-            System.out.printf("%n concurrent = %d/%d%n", taskNumDebugging, concurrentNum);
+            System.out.printf(
+                "%n> [%d] starting = %d/%d", taskNumDebugging, taskNumDebugging, concurrentNum);
           }
           while (iterationCounter.get() < iterations) {
             int iterationIncrement = iterationCounter.getAndIncrement();
@@ -233,8 +234,12 @@ public class Benchmarking {
 
             if (debugLogging) {
               System.out.printf(
-                  "> iteration = %d/%d, client# = %d/%d%n",
-                  iterationIncrement + 1, iterations, clientIndex + 1, clientCount);
+                  "%n> [%d] starting iteration = %d/%d, client# = %d/%d",
+                  taskNumDebugging,
+                  iterationIncrement + 1,
+                  iterations,
+                  clientIndex + 1,
+                  clientCount);
             }
 
             // operate and calculate tik-tok

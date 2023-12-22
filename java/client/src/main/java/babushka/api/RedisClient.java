@@ -4,6 +4,7 @@ import static babushka.api.commands.Command.RequestType.CUSTOM_COMMAND;
 import static babushka.api.commands.Command.RequestType.GETSTRING;
 import static babushka.api.commands.Command.RequestType.SETSTRING;
 import static babushka.api.models.commands.SetOptions.createSetOptions;
+import static babushka.ffi.resolvers.SocketListenerResolver.getSocket;
 
 import babushka.api.commands.BaseCommands;
 import babushka.api.commands.Command;
@@ -11,14 +12,13 @@ import babushka.api.commands.StringCommands;
 import babushka.api.commands.Transaction;
 import babushka.api.commands.VoidCommands;
 import babushka.api.models.commands.SetOptions;
+import babushka.api.models.configuration.NodeAddress;
 import babushka.api.models.configuration.RedisClientConfiguration;
+import babushka.api.models.exceptions.ConnectionException;
 import babushka.connectors.handlers.CallbackDispatcher;
 import babushka.connectors.handlers.ChannelHandler;
-import babushka.ffi.resolvers.LogLevelResolver;
-import babushka.ffi.resolvers.SocketListenerResolver;
 import babushka.managers.CommandManager;
 import babushka.managers.ConnectionManager;
-import connection_request.ConnectionRequestOuterClass;
 import java.lang.reflect.Array;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
@@ -30,9 +30,28 @@ import response.ResponseOuterClass.Response;
 public class RedisClient extends BaseClient
     implements BaseCommands<Object>, StringCommands, VoidCommands {
 
+  private ConnectionManager connectionManager;
   private CommandManager commandManager;
 
-  private ConnectionManager connectionManager;
+  public static CompletableFuture<RedisClient> CreateClient() {
+    RedisClientConfiguration config =
+        RedisClientConfiguration.builder()
+            .address(NodeAddress.builder().build())
+            .useTLS(false)
+            .build();
+
+    return CreateClient(config);
+  }
+
+  public static CompletableFuture<RedisClient> CreateClient(String host, Integer port) {
+    RedisClientConfiguration config =
+        RedisClientConfiguration.builder()
+            .address(NodeAddress.builder().host(host).port(port).build())
+            .useTLS(false)
+            .build();
+
+    return CreateClient(config);
+  }
 
   /**
    * Async (non-blocking) connection to Redis.
@@ -42,22 +61,11 @@ public class RedisClient extends BaseClient
    */
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
 
-    LogLevelResolver.setLogLevel(4);
-
-    // convert configuration to protobuf connection request
-    ConnectionRequestOuterClass.ConnectionRequest connectionRequest =
-        RequestBuilder.createConnectionRequest(
-            config.getAddresses().get(0).getHost(),
-            config.getAddresses().get(0).getPort(),
-            config.isUseTLS(),
-            false);
-
     // TODO: send request to connection manager
     AtomicBoolean connectionStatus = new AtomicBoolean(false);
 
     CallbackDispatcher callbackDispatcher = new CallbackDispatcher(connectionStatus);
-    ChannelHandler channelHandler =
-        new ChannelHandler(callbackDispatcher, SocketListenerResolver.getSocket());
+    ChannelHandler channelHandler = new ChannelHandler(callbackDispatcher, getSocket());
     var connectionManager = new ConnectionManager(channelHandler, connectionStatus);
     var commandManager = new CommandManager(channelHandler);
     return connectionManager
@@ -66,12 +74,18 @@ public class RedisClient extends BaseClient
             config.getAddresses().get(0).getPort(),
             config.isUseTLS(),
             false)
-        .thenApplyAsync(b -> new RedisClient(commandManager, connectionManager));
+        .thenApplyAsync(
+            b -> {
+              if (b) {
+                return new RedisClient(connectionManager, commandManager);
+              }
+              throw new ConnectionException("Unable to connect to Redis");
+            });
   }
 
-  public RedisClient(CommandManager commandManager, ConnectionManager connectionManager) {
-    this.commandManager = commandManager;
+  public RedisClient(ConnectionManager connectionManager, CommandManager commandManager) {
     this.connectionManager = connectionManager;
+    this.commandManager = commandManager;
   }
 
   /**
@@ -81,10 +95,10 @@ public class RedisClient extends BaseClient
    */
   @Override
   public CompletableFuture<RedisClient> close() {
-    CompletableFuture<RedisClient> result;
-    result = new CompletableFuture<>();
-    result.complete(this);
-    return result;
+    return connectionManager
+        .closeConnection()
+        .thenComposeAsync(ignore -> commandManager.closeConnection())
+        .thenApplyAsync(ignore -> this);
   }
 
   @Override

@@ -45,7 +45,7 @@ public class RedisClientTest {
             .build();
     commandManager = mock(CommandManager.class);
     connectionManager = mock(ConnectionManager.class);
-    service = new RedisClient(commandManager, connectionManager);
+    service = new RedisClient(connectionManager, commandManager);
   }
 
   @Test
