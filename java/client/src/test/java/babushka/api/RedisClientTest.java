@@ -1,10 +1,10 @@
 package babushka.api;
 
-import static babushka.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST;
-import static babushka.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_EXISTS;
-import static babushka.api.models.commands.SetOptions.RETURN_OLD_VALUE;
-import static babushka.api.models.commands.SetOptions.TIME_TO_LIVE_KEEP_EXISTING;
-import static babushka.api.models.commands.SetOptions.TIME_TO_LIVE_UNIX_SECONDS;
+import static glide.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST;
+import static glide.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_EXISTS;
+import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
+import static glide.api.models.commands.SetOptions.TIME_TO_LIVE_KEEP_EXISTING;
+import static glide.api.models.commands.SetOptions.TIME_TO_LIVE_UNIX_SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -14,10 +14,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import babushka.api.commands.Command;
-import babushka.api.models.commands.SetOptions;
-import babushka.api.models.configuration.RedisClientConfiguration;
-import babushka.managers.CommandManager;
+import glide.api.RedisClient;
+import glide.api.commands.Command;
+import glide.api.models.commands.SetOptions;
+import glide.api.models.configuration.RedisClientConfiguration;
+import glide.managers.CommandManager;
+import glide.managers.ConnectionManager;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,22 +29,16 @@ public class RedisClientTest {
 
   RedisClient service;
 
+  ConnectionManager connectionManager;
   CommandManager commandManager;
-
   private static String HOST = "host";
   private static int PORT = 9999;
 
   @BeforeEach
   public void setUp() {
-    RedisClientConfiguration configuration =
-        RedisClientConfiguration.builder()
-            .host(HOST)
-            .port(PORT)
-            .isTls(false)
-            .clusterMode(false)
-            .build();
+    connectionManager = mock(ConnectionManager.class);
     commandManager = mock(CommandManager.class);
-    service = new RedisClient(commandManager);
+    service = new RedisClient(connectionManager, commandManager);
   }
 
   @Test
@@ -56,7 +52,7 @@ public class RedisClientTest {
     when(commandManager.submitNewCommand(any(), any())).thenReturn(testResponse);
 
     // exercise
-    CompletableFuture<Object> response = service.customCommand(cmd, new String[] {key});
+    CompletableFuture<Object> response = service.customCommand(new String[] {cmd, key});
     String payload = (String) response.get();
 
     // verify
