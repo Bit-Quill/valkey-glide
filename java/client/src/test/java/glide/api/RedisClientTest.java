@@ -14,7 +14,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import glide.api.RedisClient;
 import glide.api.commands.Command;
 import glide.api.models.commands.SetOptions;
 import glide.managers.CommandManager;
@@ -30,8 +29,6 @@ public class RedisClientTest {
 
   ConnectionManager connectionManager;
   CommandManager commandManager;
-  private static String HOST = "host";
-  private static int PORT = 9999;
 
   @BeforeEach
   public void setUp() {
