@@ -18,6 +18,7 @@ import glide.managers.ConnectionManager;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import response.ResponseOuterClass.Response;
@@ -60,7 +61,7 @@ public class RedisClient extends BaseClient
     CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
     ChannelHandler channelHandler = new ChannelHandler(callbackDispatcher, getSocket());
     var connectionManager = new ConnectionManager();
-    var commandManager = new CommandManager();
+    var commandManager = new CommandManager(new CompletableFuture<>());
     return connectionManager
         .connectToRedis(
             config.getAddresses().get(0).getHost(),
@@ -86,11 +87,16 @@ public class RedisClient extends BaseClient
    * @return
    */
   @Override
-  public CompletableFuture<RedisClient> close() {
-    return connectionManager
-        .closeConnection()
-        .thenComposeAsync(ignore -> commandManager.closeConnection())
-        .thenApplyAsync(ignore -> this);
+  public void close() {
+    try {
+      connectionManager
+          .closeConnection()
+          .thenComposeAsync(ignore -> commandManager.closeConnection())
+          .thenApplyAsync(ignore -> this)
+          .get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -130,7 +136,7 @@ public class RedisClient extends BaseClient
   public CompletableFuture<Object> customCommand(String[] args) {
     Command command =
         Command.builder().requestType(Command.RequestType.CUSTOM_COMMAND).arguments(args).build();
-    return exec(command, BaseCommands::handleResponse);
+    return exec(command, BaseCommands::handleObjectResponse);
   }
 
   /**

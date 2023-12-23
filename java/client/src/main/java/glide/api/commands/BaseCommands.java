@@ -1,55 +1,71 @@
 package glide.api.commands;
 
-import static glide.ffi.resolvers.RedisValueResolver.valueFromPointer;
-
 import glide.api.models.exceptions.ClosingException;
 import glide.api.models.exceptions.ConnectionException;
 import glide.api.models.exceptions.ExecAbortException;
 import glide.api.models.exceptions.RedisException;
 import glide.api.models.exceptions.RequestException;
 import glide.api.models.exceptions.TimeoutException;
+import glide.ffi.resolvers.RedisValueResolver;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import lombok.AllArgsConstructor;
 import response.ResponseOuterClass.RequestError;
 import response.ResponseOuterClass.Response;
 
 public interface BaseCommands<T> {
 
-  /**
-   * Extracts value from the RESP pointer
-   *
-   * @return A generic Object with the Response | null if the response is empty
-   */
-  static Object handleResponse(Response response) {
-    // TODO: handle object if the object is small
-    // TODO: handle RESP2 object if configuration is set
-    if (response.hasRequestError()) {
-      RequestError error = response.getRequestError();
-      String msg = error.getMessage();
-      switch (error.getType()) {
-        case Unspecified:
-          throw new RedisException("Unexpected result: " + msg);
-        case ExecAbort:
-          throw new ExecAbortException("ExecAbortException: " + msg);
-        case Timeout:
-          throw new TimeoutException("TimeoutException: " + msg);
-        case Disconnect:
-          throw new ConnectionException("Disconnection: " + msg);
+  public static Object handleObjectResponse(Response response) {
+    // return function to convert protobuf.Response into the response object by
+    // calling valueFromPointer
+    return BaseCommands.applyBaseCommandResponseResolver().apply(response);
+  }
+
+  static BaseCommandResponseResolver applyBaseCommandResponseResolver() {
+    return new BaseCommandResponseResolver(RedisValueResolver::valueFromPointer);
+  }
+
+  @AllArgsConstructor
+  class BaseCommandResponseResolver implements Function<Response, Object> {
+
+    private Function<Long, Object> respPointerResolver;
+
+    /**
+     * Extracts value from the RESP pointer
+     *
+     * @return A generic Object with the Response | null if the response is empty
+     */
+    public Object apply(Response response) {
+      // TODO: handle object if the object is small
+      // TODO: handle RESP2 object if configuration is set
+      if (response.hasRequestError()) {
+        RequestError error = response.getRequestError();
+        String msg = error.getMessage();
+        switch (error.getType()) {
+          case Unspecified:
+            throw new RedisException(msg);
+          case ExecAbort:
+            throw new ExecAbortException(msg);
+          case Timeout:
+            throw new TimeoutException(msg);
+          case Disconnect:
+            throw new ConnectionException(msg);
+        }
+        throw new RequestException(response.getRequestError().getMessage());
       }
-      throw new RequestException(response.getRequestError().getMessage());
+      if (response.hasClosingError()) {
+        throw new ClosingException(response.getClosingError());
+      }
+      if (response.hasRespPointer()) {
+        return respPointerResolver.apply(response.getRespPointer());
+      }
+      if (response.hasConstantResponse()) {
+        // TODO: confirm
+        return "Ok";
+      }
+      return null;
     }
-    if (response.hasClosingError()) {
-      throw new ClosingException(response.getClosingError());
-    }
-    if (response.hasRespPointer()) {
-      return valueFromPointer(response.getRespPointer());
-    }
-    if (response.hasConstantResponse()) {
-      // TODO: confirm
-      return "Ok";
-    }
-    return null;
   }
 
   /**
@@ -78,9 +94,4 @@ public interface BaseCommands<T> {
    */
   CompletableFuture<List<Object>> exec(
       Transaction transaction, Function<Response, List<Object>> responseHandler);
-
-  public enum RequestType {
-    GETSTRING,
-    SETSTRING
-  }
 }

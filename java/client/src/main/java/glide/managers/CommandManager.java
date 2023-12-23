@@ -3,9 +3,13 @@ package glide.managers;
 import glide.api.commands.Command;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import lombok.AllArgsConstructor;
 import response.ResponseOuterClass.Response;
 
+@AllArgsConstructor
 public class CommandManager {
+
+  CompletableFuture<Response> channel;
 
   /**
    * @param command
@@ -17,8 +21,7 @@ public class CommandManager {
     // register callback
     // create protobuf message from command
     // submit async call
-    // handle return type in the thenApplyAsync
-    return new CompletableFuture<>();
+    return channel.thenApplyAsync(response -> responseHandler.apply(response));
   }
 
   public CompletableFuture<Void> closeConnection() {

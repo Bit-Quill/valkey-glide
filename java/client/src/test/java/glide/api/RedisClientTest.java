@@ -28,6 +28,7 @@ public class RedisClientTest {
   RedisClient service;
 
   ConnectionManager connectionManager;
+
   CommandManager commandManager;
 
   @BeforeEach
