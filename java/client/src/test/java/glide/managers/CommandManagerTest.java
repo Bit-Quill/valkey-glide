@@ -16,7 +16,8 @@ import glide.api.models.exceptions.TimeoutException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.Test;
-import response.ResponseOuterClass;
+import response.ResponseOuterClass.RequestError;
+import response.ResponseOuterClass.Response;
 
 public class CommandManagerTest {
 
@@ -29,12 +30,11 @@ public class CommandManagerTest {
   public void submitNewCommand_returnObjectResult()
       throws ExecutionException, InterruptedException {
 
-    CompletableFuture<ResponseOuterClass.Response> channel = new CompletableFuture<>();
+    CompletableFuture<Response> channel = new CompletableFuture<>();
     CommandManager service = new CommandManager(channel);
 
     long pointer = -1;
-    ResponseOuterClass.Response respPointerResponse =
-        ResponseOuterClass.Response.newBuilder().setRespPointer(pointer).build();
+    Response respPointerResponse = Response.newBuilder().setRespPointer(pointer).build();
     Object respObject = mock(Object.class);
 
     CompletableFuture result =
@@ -51,11 +51,10 @@ public class CommandManagerTest {
   @Test
   public void submitNewCommand_returnNullResult() throws ExecutionException, InterruptedException {
 
-    CompletableFuture<ResponseOuterClass.Response> channel = new CompletableFuture<>();
+    CompletableFuture<Response> channel = new CompletableFuture<>();
     CommandManager service = new CommandManager(channel);
 
-    ResponseOuterClass.Response respPointerResponse =
-        ResponseOuterClass.Response.newBuilder().build();
+    Response respPointerResponse = Response.newBuilder().build();
 
     CompletableFuture result =
         service.submitNewCommand(
@@ -73,11 +72,10 @@ public class CommandManagerTest {
     long pointer = 123;
     String testString = "TEST STRING";
 
-    CompletableFuture<ResponseOuterClass.Response> channel = new CompletableFuture<>();
+    CompletableFuture<Response> channel = new CompletableFuture<>();
     CommandManager service = new CommandManager(channel);
 
-    ResponseOuterClass.Response respPointerResponse =
-        ResponseOuterClass.Response.newBuilder().setRespPointer(pointer).build();
+    Response respPointerResponse = Response.newBuilder().setRespPointer(pointer).build();
 
     CompletableFuture result =
         service.submitNewCommand(
@@ -99,11 +97,11 @@ public class CommandManagerTest {
         assertThrows(
             ExecutionException.class,
             () -> {
-              CompletableFuture<ResponseOuterClass.Response> channel = new CompletableFuture<>();
+              CompletableFuture<Response> channel = new CompletableFuture<>();
               CommandManager service = new CommandManager(channel);
 
-              ResponseOuterClass.Response closingErrorResponse =
-                  ResponseOuterClass.Response.newBuilder().setClosingError(errorMsg).build();
+              Response closingErrorResponse =
+                  Response.newBuilder().setClosingError(errorMsg).build();
 
               CompletableFuture result =
                   service.submitNewCommand(
@@ -126,13 +124,13 @@ public class CommandManagerTest {
         assertThrows(
             ExecutionException.class,
             () -> {
-              CompletableFuture<ResponseOuterClass.Response> channel = new CompletableFuture<>();
+              CompletableFuture<Response> channel = new CompletableFuture<>();
               CommandManager service = new CommandManager(channel);
 
-              ResponseOuterClass.Response respPointerResponse =
-                  ResponseOuterClass.Response.newBuilder()
+              Response respPointerResponse =
+                  Response.newBuilder()
                       .setRequestError(
-                          ResponseOuterClass.RequestError.newBuilder()
+                          RequestError.newBuilder()
                               .setTypeValue(disconnectedType)
                               .setMessage(errorMsg)
                               .build())
@@ -159,13 +157,13 @@ public class CommandManagerTest {
         assertThrows(
             ExecutionException.class,
             () -> {
-              CompletableFuture<ResponseOuterClass.Response> channel = new CompletableFuture<>();
+              CompletableFuture<Response> channel = new CompletableFuture<>();
               CommandManager service = new CommandManager(channel);
 
-              ResponseOuterClass.Response timeoutErrorResponse =
-                  ResponseOuterClass.Response.newBuilder()
+              Response timeoutErrorResponse =
+                  Response.newBuilder()
                       .setRequestError(
-                          ResponseOuterClass.RequestError.newBuilder()
+                          RequestError.newBuilder()
                               .setTypeValue(timeoutType)
                               .setMessage(errorMsg)
                               .build())
@@ -192,13 +190,13 @@ public class CommandManagerTest {
         assertThrows(
             ExecutionException.class,
             () -> {
-              CompletableFuture<ResponseOuterClass.Response> channel = new CompletableFuture<>();
+              CompletableFuture<Response> channel = new CompletableFuture<>();
               CommandManager service = new CommandManager(channel);
 
-              ResponseOuterClass.Response execAbortErrorResponse =
-                  ResponseOuterClass.Response.newBuilder()
+              Response execAbortErrorResponse =
+                  Response.newBuilder()
                       .setRequestError(
-                          ResponseOuterClass.RequestError.newBuilder()
+                          RequestError.newBuilder()
                               .setTypeValue(execAbortType)
                               .setMessage(errorMsg)
                               .build())
@@ -216,22 +214,21 @@ public class CommandManagerTest {
   }
 
   @Test
-  public void submitNewCommand_handleUnspecifiedError() {
-
+  public void submitNewCommand_handledUnspecifiedError() {
     int unspecifiedType = 0;
     String errorMsg = "Unspecified";
 
-    ExecutionException e =
+    ExecutionException executionException =
         assertThrows(
             ExecutionException.class,
             () -> {
-              CompletableFuture<ResponseOuterClass.Response> channel = new CompletableFuture<>();
+              CompletableFuture<Response> channel = new CompletableFuture<>();
               CommandManager service = new CommandManager(channel);
 
-              ResponseOuterClass.Response unspecifiedErrorResponse =
-                  ResponseOuterClass.Response.newBuilder()
+              Response unspecifiedErrorResponse =
+                  Response.newBuilder()
                       .setRequestError(
-                          ResponseOuterClass.RequestError.newBuilder()
+                          RequestError.newBuilder()
                               .setTypeValue(unspecifiedType)
                               .setMessage(errorMsg)
                               .build())
@@ -244,7 +241,7 @@ public class CommandManagerTest {
               result.get();
             });
 
-    assertTrue(e.getCause() instanceof RedisException);
-    assertEquals(errorMsg, e.getCause().getMessage());
+    assertTrue(executionException.getCause() instanceof RedisException);
+    assertEquals(errorMsg, executionException.getCause().getMessage());
   }
 }

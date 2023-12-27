@@ -22,6 +22,15 @@ public interface BaseCommands<T> {
     return BaseCommands.applyBaseCommandResponseResolver().apply(response);
   }
 
+  public static List<Object> handleTransactionResponse(Response response) {
+    // return function to convert protobuf.Response into the response object by
+    // calling valueFromPointer
+
+    List<Object> transactionResponse =
+        (List<Object>) BaseCommands.applyBaseCommandResponseResolver().apply(response);
+    return transactionResponse;
+  }
+
   static BaseCommandResponseResolver applyBaseCommandResponseResolver() {
     return new BaseCommandResponseResolver(RedisValueResolver::valueFromPointer);
   }
@@ -77,21 +86,11 @@ public interface BaseCommands<T> {
   CompletableFuture<Object> customCommand(String[] args);
 
   /**
-   * Execute a @see{Command} by sending command via socket manager
-   *
-   * @param command to be executed
-   * @return a CompletableFuture with response result from Redis
-   */
-  <T> CompletableFuture<T> exec(Command command, Function<Response, T> responseHandler);
-
-  /**
    * Execute a transaction by processing the queued commands. <br>
    * See https://redis.io/topics/Transactions/ for details on Redis Transactions. <br>
    *
    * @param transaction with commands to be executed
-   * @param responseHandler handler responsible for assigning type to the list of response objects
    * @return A CompletableFuture completed with the results from Redis
    */
-  CompletableFuture<List<Object>> exec(
-      Transaction transaction, Function<Response, List<Object>> responseHandler);
+  CompletableFuture<List<Object>> exec(Transaction transaction);
 }

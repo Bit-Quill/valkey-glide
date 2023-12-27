@@ -62,6 +62,7 @@ public class RedisClient extends BaseClient
     ChannelHandler channelHandler = new ChannelHandler(callbackDispatcher, getSocket());
     var connectionManager = new ConnectionManager();
     var commandManager = new CommandManager(new CompletableFuture<>());
+    // TODO: send request with configuration to connection Manager as part of a follow-up PR
     return connectionManager
         .connectToRedis(
             config.getAddresses().get(0).getHost(),
@@ -77,7 +78,7 @@ public class RedisClient extends BaseClient
             });
   }
 
-  public RedisClient(ConnectionManager connectionManager, CommandManager commandManager) {
+  protected RedisClient(ConnectionManager connectionManager, CommandManager commandManager) {
     super(connectionManager, commandManager);
   }
 
@@ -107,9 +108,21 @@ public class RedisClient extends BaseClient
    * @return A CompletableFuture completed with the result from Redis
    * @param <T> Response value type
    */
-  @Override
-  public <T> CompletableFuture exec(Command command, Function<Response, T> responseHandler) {
+  protected <T> CompletableFuture exec(Command command, Function<Response, T> responseHandler) {
     return commandManager.submitNewCommand(command, responseHandler);
+  }
+
+  /**
+   * Execute a transaction by processing the queued commands. <br>
+   * See https://redis.io/topics/Transactions/ for details on Redis Transactions. <br>
+   *
+   * @param transaction with commands to be executed
+   * @return A CompletableFuture completed with the results from Redis
+   */
+  @Override
+  public CompletableFuture<List<Object>> exec(Transaction transaction) {
+    // TODO: call commandManager.submitNewTransaction()
+    return exec(transaction, BaseCommands::handleTransactionResponse);
   }
 
   /**
@@ -120,7 +133,7 @@ public class RedisClient extends BaseClient
    * @param responseHandler handler responsible for assigning type to the list of response objects
    * @return A CompletableFuture completed with the results from Redis
    */
-  public CompletableFuture<List<Object>> exec(
+  protected CompletableFuture<List<Object>> exec(
       Transaction transaction, Function<Response, List<Object>> responseHandler) {
     // TODO: call commandManager.submitNewTransaction()
     return new CompletableFuture<>();
