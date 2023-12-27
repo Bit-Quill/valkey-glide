@@ -17,9 +17,10 @@ import redis_request.RedisRequestOuterClass.SimpleRoutes;
 public class RequestBuilder {
 
   /** Build a protobuf connection request.<br> */
-  // TODO: remove
   public static ConnectionRequest createConnectionRequest(
       String host, int port, boolean useSsl, boolean clusterMode) {
+    // TODO: temporary placeholder until
+    // https://github.com/orgs/Bit-Quill/projects/4?pane=issue&itemId=48028158
     return ConnectionRequest.newBuilder()
         .addAddresses(NodeAddress.newBuilder().setHost(host).setPort(port).build())
         .setTlsMode(useSsl ? TlsMode.SecureTls : TlsMode.NoTls)
@@ -31,7 +32,8 @@ public class RequestBuilder {
 
   /** Build a protobuf connection request.<br> */
   public static ConnectionRequest createConnectionRequest(BaseClientConfiguration configuration) {
-    // TODO: fill out connection request from configuration
+    // TODO: temporary placeholder until
+    // https://github.com/orgs/Bit-Quill/projects/4?pane=issue&itemId=48028158
     return ConnectionRequest.newBuilder().build();
   }
 

@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import response.ResponseOuterClass.RequestError;
 import response.ResponseOuterClass.Response;
 
+/** String Commands interface to handle single commands that have no payload. */
 public interface VoidCommands {
 
   /**

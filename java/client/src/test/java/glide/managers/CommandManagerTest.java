@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import glide.api.commands.BaseCommands;
+import glide.api.commands.BaseCommandResponseResolver;
 import glide.api.commands.Command;
 import glide.api.models.exceptions.ClosingException;
 import glide.api.models.exceptions.ConnectionException;
@@ -39,9 +39,7 @@ public class CommandManagerTest {
 
     CompletableFuture result =
         service.submitNewCommand(
-            command,
-            new BaseCommands.BaseCommandResponseResolver(
-                (ptr) -> ptr == pointer ? respObject : null));
+            command, new BaseCommandResponseResolver((ptr) -> ptr == pointer ? respObject : null));
     channel.complete(respPointerResponse);
     Object respPointer = result.get();
 
@@ -58,7 +56,7 @@ public class CommandManagerTest {
 
     CompletableFuture result =
         service.submitNewCommand(
-            command, new BaseCommands.BaseCommandResponseResolver((p) -> new RuntimeException("")));
+            command, new BaseCommandResponseResolver((p) -> new RuntimeException("")));
     channel.complete(respPointerResponse);
     Object respPointer = result.get();
 
@@ -79,8 +77,7 @@ public class CommandManagerTest {
 
     CompletableFuture result =
         service.submitNewCommand(
-            command,
-            new BaseCommands.BaseCommandResponseResolver((p) -> p == pointer ? testString : null));
+            command, new BaseCommandResponseResolver((p) -> p == pointer ? testString : null));
     channel.complete(respPointerResponse);
     Object respPointer = result.get();
 
@@ -105,7 +102,7 @@ public class CommandManagerTest {
 
               CompletableFuture result =
                   service.submitNewCommand(
-                      command, new BaseCommands.BaseCommandResponseResolver((ptr) -> new Object()));
+                      command, new BaseCommandResponseResolver((ptr) -> new Object()));
               channel.complete(closingErrorResponse);
               result.get();
             });
@@ -138,7 +135,7 @@ public class CommandManagerTest {
 
               CompletableFuture result =
                   service.submitNewCommand(
-                      command, new BaseCommands.BaseCommandResponseResolver((ptr) -> new Object()));
+                      command, new BaseCommandResponseResolver((ptr) -> new Object()));
               channel.complete(respPointerResponse);
               result.get();
             });
@@ -171,7 +168,7 @@ public class CommandManagerTest {
 
               CompletableFuture result =
                   service.submitNewCommand(
-                      command, new BaseCommands.BaseCommandResponseResolver((ptr) -> new Object()));
+                      command, new BaseCommandResponseResolver((ptr) -> new Object()));
               channel.complete(timeoutErrorResponse);
               result.get();
             });
@@ -204,7 +201,7 @@ public class CommandManagerTest {
 
               CompletableFuture result =
                   service.submitNewCommand(
-                      command, new BaseCommands.BaseCommandResponseResolver((ptr) -> new Object()));
+                      command, new BaseCommandResponseResolver((ptr) -> new Object()));
               channel.complete(execAbortErrorResponse);
               result.get();
             });
@@ -236,7 +233,7 @@ public class CommandManagerTest {
 
               CompletableFuture result =
                   service.submitNewCommand(
-                      command, new BaseCommands.BaseCommandResponseResolver((ptr) -> new Object()));
+                      command, new BaseCommandResponseResolver((ptr) -> new Object()));
               channel.complete(unspecifiedErrorResponse);
               result.get();
             });

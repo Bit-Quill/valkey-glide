@@ -1,6 +1,5 @@
 package glide.api.models.exceptions;
 
-/** TODO: does this extend RuntimeException? */
 public class RedisException extends RuntimeException {
 
   public RedisException() {

@@ -91,7 +91,7 @@ public class RedisClientTest {
     String value = "testValue";
     Command cmd =
         Command.builder()
-            .requestType(Command.RequestType.GETSTRING)
+            .requestType(Command.RequestType.GET_STRING)
             .arguments(new String[] {key})
             .build();
     CompletableFuture<String> testResponse = mock(CompletableFuture.class);
@@ -109,8 +109,6 @@ public class RedisClientTest {
     // teardown
   }
 
-  // TODO: test_get_InterruptedException and ExecutionException
-
   @Test
   public void set_success() throws ExecutionException, InterruptedException {
     // setup
@@ -119,7 +117,7 @@ public class RedisClientTest {
     String value = "testValue";
     Command cmd =
         Command.builder()
-            .requestType(Command.RequestType.SETSTRING)
+            .requestType(Command.RequestType.SET_STRING)
             .arguments(new String[] {key, value})
             .build();
     CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
@@ -154,7 +152,7 @@ public class RedisClientTest {
             .build();
     Command cmd =
         Command.builder()
-            .requestType(Command.RequestType.SETSTRING)
+            .requestType(Command.RequestType.SET_STRING)
             .arguments(
                 new String[] {
                   key, value, CONDITIONAL_SET_ONLY_IF_EXISTS, TIME_TO_LIVE_KEEP_EXISTING
@@ -192,7 +190,7 @@ public class RedisClientTest {
             .build();
     Command cmd =
         Command.builder()
-            .requestType(Command.RequestType.SETSTRING)
+            .requestType(Command.RequestType.SET_STRING)
             .arguments(
                 new String[] {
                   key,

@@ -4,9 +4,17 @@ import glide.api.models.exceptions.RedisException;
 import java.util.concurrent.CompletableFuture;
 import response.ResponseOuterClass.Response;
 
+/** String Commands interface to handle single commands that return Strings. */
 public interface StringCommands {
 
-  public static String handleStringResponse(Response response) {
+  /**
+   * Extracts the response from the Protobuf response and either throws an exception or returns the
+   * appropriate response has a String
+   *
+   * @param response Redis protobuf message
+   * @return Response as a String
+   */
+  static String handleStringResponse(Response response) {
     // return function to convert protobuf.Response into the response object by
     // calling valueFromPointer
     Object value = BaseCommands.applyBaseCommandResponseResolver().apply(response);

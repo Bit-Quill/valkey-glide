@@ -1,22 +1,30 @@
 package glide.api.commands;
 
-import glide.api.models.exceptions.ClosingException;
-import glide.api.models.exceptions.ConnectionException;
-import glide.api.models.exceptions.ExecAbortException;
-import glide.api.models.exceptions.RedisException;
-import glide.api.models.exceptions.RequestException;
-import glide.api.models.exceptions.TimeoutException;
 import glide.ffi.resolvers.RedisValueResolver;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import lombok.AllArgsConstructor;
-import response.ResponseOuterClass.RequestError;
 import response.ResponseOuterClass.Response;
 
-public interface BaseCommands<T> {
+/** Base Commands interface to handle generic command and transaction requests. */
+public interface BaseCommands {
 
-  public static Object handleObjectResponse(Response response) {
+  /**
+   * default Object handler from response
+   *
+   * @return BaseCommandResponseResolver to deliver the response
+   */
+  static BaseCommandResponseResolver applyBaseCommandResponseResolver() {
+    return new BaseCommandResponseResolver(RedisValueResolver::valueFromPointer);
+  }
+
+  /**
+   * Extracts the response from the Protobuf response and either throws an exception or returns the
+   * appropriate response has an Object
+   *
+   * @param response Redis protobuf message
+   * @return Response Object
+   */
+  static Object handleObjectResponse(Response response) {
     // return function to convert protobuf.Response into the response object by
     // calling valueFromPointer
     return BaseCommands.applyBaseCommandResponseResolver().apply(response);
@@ -29,52 +37,6 @@ public interface BaseCommands<T> {
     List<Object> transactionResponse =
         (List<Object>) BaseCommands.applyBaseCommandResponseResolver().apply(response);
     return transactionResponse;
-  }
-
-  static BaseCommandResponseResolver applyBaseCommandResponseResolver() {
-    return new BaseCommandResponseResolver(RedisValueResolver::valueFromPointer);
-  }
-
-  @AllArgsConstructor
-  class BaseCommandResponseResolver implements Function<Response, Object> {
-
-    private Function<Long, Object> respPointerResolver;
-
-    /**
-     * Extracts value from the RESP pointer
-     *
-     * @return A generic Object with the Response | null if the response is empty
-     */
-    public Object apply(Response response) {
-      // TODO: handle object if the object is small
-      // TODO: handle RESP2 object if configuration is set
-      if (response.hasRequestError()) {
-        RequestError error = response.getRequestError();
-        String msg = error.getMessage();
-        switch (error.getType()) {
-          case Unspecified:
-            throw new RedisException(msg);
-          case ExecAbort:
-            throw new ExecAbortException(msg);
-          case Timeout:
-            throw new TimeoutException(msg);
-          case Disconnect:
-            throw new ConnectionException(msg);
-        }
-        throw new RequestException(response.getRequestError().getMessage());
-      }
-      if (response.hasClosingError()) {
-        throw new ClosingException(response.getClosingError());
-      }
-      if (response.hasRespPointer()) {
-        return respPointerResolver.apply(response.getRespPointer());
-      }
-      if (response.hasConstantResponse()) {
-        // TODO: confirm
-        return "Ok";
-      }
-      return null;
-    }
   }
 
   /**

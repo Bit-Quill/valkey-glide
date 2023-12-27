@@ -4,13 +4,14 @@ import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 
 import glide.api.commands.BaseCommands;
 import glide.api.commands.Command;
+import glide.api.commands.RedisExceptionCheckedFunction;
 import glide.api.commands.StringCommands;
 import glide.api.commands.Transaction;
 import glide.api.commands.VoidCommands;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
-import glide.api.models.exceptions.ConnectionException;
+import glide.api.models.exceptions.RedisException;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
@@ -23,9 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import response.ResponseOuterClass.Response;
 
-/** Factory class for creating Babushka-Redis client connections */
-public class RedisClient extends BaseClient
-    implements BaseCommands<Object>, StringCommands, VoidCommands {
+/** Factory class for creating Glide/Redis-client connections */
+public class RedisClient extends BaseClient implements BaseCommands, StringCommands, VoidCommands {
 
   public static CompletableFuture<RedisClient> CreateClient() {
     RedisClientConfiguration config =
@@ -74,7 +74,7 @@ public class RedisClient extends BaseClient
               if (b) {
                 return new RedisClient(connectionManager, commandManager);
               }
-              throw new ConnectionException("Unable to connect to Redis");
+              throw new RedisException("Unable to connect to Redis");
             });
   }
 
@@ -83,20 +83,23 @@ public class RedisClient extends BaseClient
   }
 
   /**
-   * Close the Redis client
-   *
-   * @return
+   * Closes this resource, relinquishing any underlying resources. This method is invoked
+   * automatically on objects managed by the try-with-resources statement. see: <a
+   * href="https://docs.oracle.com/javase/8/docs/api/java/lang/AutoCloseable.html#close--">AutoCloseable::close()</a>
    */
   @Override
-  public void close() {
+  public void close() throws ExecutionException {
     try {
       connectionManager
           .closeConnection()
           .thenComposeAsync(ignore -> commandManager.closeConnection())
           .thenApplyAsync(ignore -> this)
           .get();
-    } catch (InterruptedException | ExecutionException e) {
-      throw new RuntimeException(e);
+    } catch (InterruptedException interruptedException) {
+      // AutoCloseable functions are strongly advised to avoid throwing InterruptedExceptions
+      // TODO: marking resources as closed:
+      // https://github.com/orgs/Bit-Quill/projects/4/views/6?pane=issue&itemId=48063887
+      throw new RuntimeException(interruptedException);
     }
   }
 
@@ -108,7 +111,8 @@ public class RedisClient extends BaseClient
    * @return A CompletableFuture completed with the result from Redis
    * @param <T> Response value type
    */
-  protected <T> CompletableFuture exec(Command command, Function<Response, T> responseHandler) {
+  protected <T> CompletableFuture exec(
+      Command command, RedisExceptionCheckedFunction<Response, T> responseHandler) {
     return commandManager.submitNewCommand(command, responseHandler);
   }
 
@@ -162,7 +166,7 @@ public class RedisClient extends BaseClient
   public CompletableFuture<String> get(String key) {
     Command command =
         Command.builder()
-            .requestType(Command.RequestType.GETSTRING)
+            .requestType(Command.RequestType.GET_STRING)
             .arguments(new String[] {key})
             .build();
     return exec(command, StringCommands::handleStringResponse);
@@ -179,7 +183,7 @@ public class RedisClient extends BaseClient
   public CompletableFuture<Void> set(String key, String value) {
     Command command =
         Command.builder()
-            .requestType(Command.RequestType.SETSTRING)
+            .requestType(Command.RequestType.SET_STRING)
             .arguments(new String[] {key, value})
             .build();
     return exec(command, VoidCommands::handleVoidResponse);
@@ -202,7 +206,7 @@ public class RedisClient extends BaseClient
     args.addAll(SetOptions.createSetOptions(options));
     Command command =
         Command.builder()
-            .requestType(Command.RequestType.SETSTRING)
+            .requestType(Command.RequestType.SET_STRING)
             .arguments(args.toArray(new String[0]))
             .build();
     return exec(command, StringCommands::handleStringResponse);
