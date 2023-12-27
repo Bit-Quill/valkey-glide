@@ -69,11 +69,7 @@ public class RedisClient extends BaseClient
     var connectionManager = new ConnectionManager(channelHandler, connectionStatus);
     var commandManager = new CommandManager(channelHandler);
     return connectionManager
-        .connectToRedis(
-            config.getAddresses().get(0).getHost(),
-            config.getAddresses().get(0).getPort(),
-            config.isUseTLS(),
-            false)
+        .connectToRedis(config)
         .thenApplyAsync(
             b -> {
               if (b) {
