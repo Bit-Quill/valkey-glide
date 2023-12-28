@@ -77,4 +77,8 @@ public class CommandManager {
     }
     return null;
   }
+
+  public CompletableFuture<Void> closeConnection() {
+    return new CompletableFuture<>();
+  }
 }
