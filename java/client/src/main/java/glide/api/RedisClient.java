@@ -9,7 +9,9 @@ import glide.api.commands.StringCommands;
 import glide.api.commands.Transaction;
 import glide.api.commands.VoidCommands;
 import glide.api.models.commands.SetOptions;
+import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
+import glide.api.models.exceptions.RedisException;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
@@ -17,46 +19,88 @@ import glide.managers.ConnectionManager;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import response.ResponseOuterClass;
+import response.ResponseOuterClass.Response;
 
-/**
- * Async (non-blocking) client for Redis in Standalone mode. Use {@link
- * #CreateClient(RedisClientConfiguration)} to request a client to Redis.
- */
-public class RedisClient extends BaseClient implements BaseCommands, VoidCommands, StringCommands {
+/** Factory class for creating Glide/Redis-client connections */
+public class RedisClient extends BaseClient implements BaseCommands, StringCommands, VoidCommands {
+
+  public static CompletableFuture<RedisClient> CreateClient() {
+    RedisClientConfiguration config =
+        RedisClientConfiguration.builder()
+            .address(NodeAddress.builder().build())
+            .useTLS(false)
+            .build();
+
+    return CreateClient(config);
+  }
+
+  public static CompletableFuture<RedisClient> CreateClient(String host, Integer port) {
+    RedisClientConfiguration config =
+        RedisClientConfiguration.builder()
+            .address(NodeAddress.builder().host(host).port(port).build())
+            .useTLS(false)
+            .build();
+
+    return CreateClient(config);
+  }
 
   /**
-   * Request an async (non-blocking) Redis client in Standalone mode.
+   * Async (non-blocking) connection to Redis.
    *
    * @param config - Redis Client Configuration
-   * @return a Future to connect and return a RedisClient
+   * @return a promise to connect and return a RedisClient
    */
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
-    ChannelHandler channelHandler = buildChannelHandler();
-    ConnectionManager connectionManager = buildConnectionManager(channelHandler);
-    CommandManager commandManager = buildCommandManager(channelHandler);
-    // TODO: Support exception throwing, including interrupted exceptions
-    return connectionManager
-        .connectToRedis(config)
-        .thenApply(ignore -> new RedisClient(connectionManager, commandManager));
-  }
 
-  protected static ChannelHandler buildChannelHandler() {
+    // TODO: send request to connection manager
+    AtomicBoolean connectionStatus = new AtomicBoolean(false);
+
     CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
-    return new ChannelHandler(callbackDispatcher, getSocket());
-  }
-
-  protected static ConnectionManager buildConnectionManager(ChannelHandler channelHandler) {
-    return new ConnectionManager(channelHandler);
-  }
-
-  protected static CommandManager buildCommandManager(ChannelHandler channelHandler) {
-    return new CommandManager(channelHandler);
+    ChannelHandler channelHandler = new ChannelHandler(callbackDispatcher, getSocket());
+    var connectionManager = new ConnectionManager();
+    var commandManager = new CommandManager(new CompletableFuture<>());
+    // TODO: send request with configuration to connection Manager as part of a follow-up PR
+    return connectionManager
+        .connectToRedis(
+            config.getAddresses().get(0).getHost(),
+            config.getAddresses().get(0).getPort(),
+            config.isUseTLS(),
+            false)
+        .thenApplyAsync(
+            b -> {
+              if (b) {
+                return new RedisClient(connectionManager, commandManager);
+              }
+              throw new RedisException("Unable to connect to Redis");
+            });
   }
 
   protected RedisClient(ConnectionManager connectionManager, CommandManager commandManager) {
     super(connectionManager, commandManager);
+  }
+
+  /**
+   * Closes this resource, relinquishing any underlying resources. This method is invoked
+   * automatically on objects managed by the try-with-resources statement. see: <a
+   * href="https://docs.oracle.com/javase/8/docs/api/java/lang/AutoCloseable.html#close--">AutoCloseable::close()</a>
+   */
+  @Override
+  public void close() throws ExecutionException {
+    try {
+      connectionManager
+          .closeConnection()
+          .thenComposeAsync(ignore -> commandManager.closeConnection())
+          .thenApplyAsync(ignore -> this)
+          .get();
+    } catch (InterruptedException interruptedException) {
+      // AutoCloseable functions are strongly advised to avoid throwing InterruptedExceptions
+      // TODO: marking resources as closed:
+      // https://github.com/orgs/Bit-Quill/projects/4/views/6?pane=issue&itemId=48063887
+      throw new RuntimeException(interruptedException);
+    }
   }
 
   /**
@@ -68,8 +112,7 @@ public class RedisClient extends BaseClient implements BaseCommands, VoidCommand
    * @param <T> Response value type
    */
   protected <T> CompletableFuture exec(
-      Command command,
-      RedisExceptionCheckedFunction<ResponseOuterClass.Response, T> responseHandler) {
+      Command command, RedisExceptionCheckedFunction<Response, T> responseHandler) {
     return commandManager.submitNewCommand(command, responseHandler);
   }
 
@@ -80,6 +123,7 @@ public class RedisClient extends BaseClient implements BaseCommands, VoidCommand
    * @param transaction with commands to be executed
    * @return A CompletableFuture completed with the results from Redis
    */
+  @Override
   public CompletableFuture<List<Object>> exec(Transaction transaction) {
     // TODO: call commandManager.submitNewTransaction()
     return exec(transaction, BaseCommands::handleTransactionResponse);
@@ -94,8 +138,7 @@ public class RedisClient extends BaseClient implements BaseCommands, VoidCommand
    * @return A CompletableFuture completed with the results from Redis
    */
   protected CompletableFuture<List<Object>> exec(
-      Transaction transaction,
-      Function<ResponseOuterClass.Response, List<Object>> responseHandler) {
+      Transaction transaction, Function<Response, List<Object>> responseHandler) {
     // TODO: call commandManager.submitNewTransaction()
     return new CompletableFuture<>();
   }
