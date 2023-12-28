@@ -34,11 +34,7 @@ public class RedisClient extends BaseClient
   private CommandManager commandManager;
 
   public static CompletableFuture<RedisClient> CreateClient() {
-    RedisClientConfiguration config =
-        RedisClientConfiguration.builder()
-            .address(NodeAddress.builder().build())
-            .useTLS(false)
-            .build();
+    RedisClientConfiguration config = RedisClientConfiguration.builder().build();
 
     return CreateClient(config);
   }
@@ -47,7 +43,6 @@ public class RedisClient extends BaseClient
     RedisClientConfiguration config =
         RedisClientConfiguration.builder()
             .address(NodeAddress.builder().host(host).port(port).build())
-            .useTLS(false)
             .build();
 
     return CreateClient(config);
@@ -60,8 +55,6 @@ public class RedisClient extends BaseClient
    * @return a promise to connect and return a RedisClient
    */
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
-
-    // TODO: send request to connection manager
     AtomicBoolean connectionStatus = new AtomicBoolean(false);
 
     CallbackDispatcher callbackDispatcher = new CallbackDispatcher(connectionStatus);

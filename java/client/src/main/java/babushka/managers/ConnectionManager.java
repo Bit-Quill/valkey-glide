@@ -4,6 +4,7 @@ import static babushka.api.models.configuration.NodeAddress.DEFAULT_HOST;
 import static babushka.api.models.configuration.NodeAddress.DEFAULT_PORT;
 
 import babushka.api.models.configuration.BaseClientConfiguration;
+import babushka.api.models.configuration.ReadFrom;
 import babushka.api.models.configuration.RedisClientConfiguration;
 import babushka.api.models.configuration.RedisClusterClientConfiguration;
 import babushka.connectors.handlers.ChannelHandler;
@@ -41,16 +42,14 @@ public class ConnectionManager {
    * @return ConnectionRequest protobuf message
    */
   private ConnectionRequest createConnectionRequest(BaseClientConfiguration configuration) {
-    if (configuration instanceof RedisClientConfiguration) {
-      return setupConnectionRequestBuilderRedisClient((RedisClientConfiguration) configuration)
-          .build();
-    } else if (configuration instanceof RedisClusterClientConfiguration) {
+    if (configuration instanceof RedisClusterClientConfiguration) {
       return setupConnectionRequestBuilderRedisClusterClient(
               (RedisClusterClientConfiguration) configuration)
           .build();
     }
 
-    throw new RuntimeException("Could not create Connection Request protobuf message");
+    return setupConnectionRequestBuilderRedisClient((RedisClientConfiguration) configuration)
+        .build();
   }
 
   /**
@@ -153,14 +152,11 @@ public class ConnectionManager {
    */
   private ConnectionRequestOuterClass.ReadFrom mapReadFromEnum(
       babushka.api.models.configuration.ReadFrom readFrom) {
-    switch (readFrom) {
-      case PRIMARY:
-        return ConnectionRequestOuterClass.ReadFrom.Primary;
-      case PREFER_REPLICA:
-        return ConnectionRequestOuterClass.ReadFrom.PreferReplica;
-      default:
-        throw new RuntimeException("Invalid read from enum");
+    if (readFrom == ReadFrom.PREFER_REPLICA) {
+      return ConnectionRequestOuterClass.ReadFrom.PreferReplica;
     }
+
+    return ConnectionRequestOuterClass.ReadFrom.Primary;
   }
 
   /** Check a response received from Babushka. */
