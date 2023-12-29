@@ -161,6 +161,7 @@ public class ConnectionManager {
 
   /** Check a response received from Glide. */
   private Void checkGlideRsResponse(Response response) {
+    // TODO do we need to check callback value? It could be -1 or 0
     if (response.hasRequestError()) {
       // TODO support different types of exceptions and distinguish them by type:
       throw new RuntimeException(
