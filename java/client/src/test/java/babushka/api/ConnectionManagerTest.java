@@ -49,8 +49,9 @@ public class ConnectionManagerTest {
   }
 
   @Test
-  public void DefaultRedisClientConfiguration_True()
+  public void ConnectionRequestProtobufGeneration_DefaultRedisClientConfiguration_returnsTrue()
       throws ExecutionException, InterruptedException {
+    //setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     ConnectionRequest expectedProtobufConnectionRequest =
         ConnectionRequest.newBuilder()
@@ -68,32 +69,19 @@ public class ConnectionManagerTest {
         Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
     completedFuture.complete(response);
     connectionStatus.set(false);
+
+    //execute
     when(channel.connect(eq(expectedProtobufConnectionRequest))).thenReturn(completedFuture);
     CompletableFuture<Boolean> result = connectionManager.connectToRedis(redisClientConfiguration);
-    assertTrue(result.get());
 
-    connectionManager.closeConnection();
+    //verify
+    assertTrue(result.get());
   }
 
   @Test
-  public void CloseConnection() throws ExecutionException, InterruptedException {
-    RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
-    CompletableFuture<Response> completedFuture = new CompletableFuture<>();
-    Response response =
-        Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
-    completedFuture.complete(response);
-    connectionStatus.set(false);
-    when(channel.connect(any())).thenReturn(completedFuture);
-    CompletableFuture<Boolean> result = connectionManager.connectToRedis(redisClientConfiguration);
-    assertTrue(result.get());
-
-    connectionManager.closeConnection();
-    verify(channel).close();
-  }
-
-  @Test
-  public void DefaultRedisClusterClientConfiguration_True()
+  public void ConnectionRequestProtobufGeneration_DefaultRedisClusterClientConfiguration_returnsTrue()
       throws ExecutionException, InterruptedException {
+    //setup
     RedisClusterClientConfiguration redisClusterClientConfiguration =
         RedisClusterClientConfiguration.builder().build();
     ConnectionRequest expectedProtobufConnectionRequest =
@@ -112,14 +100,19 @@ public class ConnectionManagerTest {
         Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
     completedFuture.complete(response);
     connectionStatus.set(false);
+
+    //execute
     when(channel.connect(eq(expectedProtobufConnectionRequest))).thenReturn(completedFuture);
     CompletableFuture<Boolean> result =
         connectionManager.connectToRedis(redisClusterClientConfiguration);
+
+    //verify
     assertTrue(result.get());
   }
 
   @Test
-  public void RedisClientAllFieldsSet_True() throws ExecutionException, InterruptedException {
+  public void ConnectionRequestProtobufGeneration_RedisClientAllFieldsSet_returnsTrue() throws ExecutionException, InterruptedException {
+    //setup
     RedisClientConfiguration redisClientConfiguration =
         RedisClientConfiguration.builder()
             .address(NodeAddress.builder().host(HOST).port(PORT).build())
@@ -167,58 +160,102 @@ public class ConnectionManagerTest {
         Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
     completedFuture.complete(response);
     connectionStatus.set(false);
+
+    //execute
     when(channel.connect(eq(expectedProtobufConnectionRequest))).thenReturn(completedFuture);
     CompletableFuture<Boolean> result = connectionManager.connectToRedis(redisClientConfiguration);
+
+    //verify
     assertTrue(result.get());
   }
 
   @Test
-  public void DoubleConnection_False() throws ExecutionException, InterruptedException {
+  public void DoubleConnection_returnsFalse() throws ExecutionException, InterruptedException {
+    //setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
     Response response = Response.newBuilder().build();
     completedFuture.complete(response);
     connectionStatus.set(false);
-    when(channel.connect(any())).thenReturn(completedFuture);
-    CompletableFuture<Boolean> resultNotConnected =
-        connectionManager.connectToRedis(redisClientConfiguration);
-    assertTrue(resultNotConnected.get());
 
-    CompletableFuture<Boolean> resultConnected =
+    //execute
+    when(channel.connect(any())).thenReturn(completedFuture);
+    CompletableFuture<Boolean> result1 =
         connectionManager.connectToRedis(redisClientConfiguration);
-    assertFalse(resultConnected.get());
+
+    //verify
+    assertTrue(result1.get());
+
+    //execute
+    CompletableFuture<Boolean> result2 =
+        connectionManager.connectToRedis(redisClientConfiguration);
+
+    //verify
+    assertFalse(result2.get());
   }
 
   @Test
-  public void ResponseConstantResponseNotConnected_True()
+  public void CloseConnection() throws ExecutionException, InterruptedException {
+    //setup
+    RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
+    CompletableFuture<Response> completedFuture = new CompletableFuture<>();
+    Response response =
+            Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
+    completedFuture.complete(response);
+    connectionStatus.set(false);
+
+    //execute
+    when(channel.connect(any())).thenReturn(completedFuture);
+    CompletableFuture<Boolean> resultConnect = connectionManager.connectToRedis(redisClientConfiguration);
+    assertTrue(resultConnect.get());
+    CompletableFuture<Void> resultClose = connectionManager.closeConnection();
+    resultClose.get();
+
+    //verify
+    verify(channel).close();
+  }
+
+  @Test
+  public void CheckBabushkaResponse_ConstantResponseNotConnected_returnsTrue()
       throws ExecutionException, InterruptedException {
+    //setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
     Response response =
         Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
     completedFuture.complete(response);
     connectionStatus.set(false);
+
+    //execute
     when(channel.connect(any())).thenReturn(completedFuture);
     CompletableFuture<Boolean> result = connectionManager.connectToRedis(redisClientConfiguration);
+
+    //verify
     assertTrue(result.get());
   }
 
   @Test
-  public void ResponseConstantResponseConnected_False()
+  public void CheckBabushkaResponse_ConstantResponseConnected_returnsFalse()
       throws ExecutionException, InterruptedException {
+    //setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
     Response response =
         Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
     completedFuture.complete(response);
     connectionStatus.set(true);
+
+    //execute
     when(channel.connect(any())).thenReturn(completedFuture);
     CompletableFuture<Boolean> result = connectionManager.connectToRedis(redisClientConfiguration);
+
+    //verify
     assertFalse(result.get());
   }
 
   @Test
-  public void ResponseRequestError_RuntimeException() {
+  public void CheckBabushkaResponse_RequestError_throwsRuntimeException() {
+    //setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
     Response response =
@@ -231,8 +268,12 @@ public class ConnectionManagerTest {
             .build();
     completedFuture.complete(response);
     connectionStatus.set(false);
+
+    //execute
     when(channel.connect(any())).thenReturn(completedFuture);
     CompletableFuture<Boolean> result = connectionManager.connectToRedis(redisClientConfiguration);
+
+    //verify
     ExecutionException exception =
         assertThrows(
             ExecutionException.class,
@@ -240,17 +281,21 @@ public class ConnectionManagerTest {
     assertTrue(exception.getCause() instanceof RuntimeException);
   }
 
-  // TODO currently getting linker error
   @Test
-  public void ResponseRespPointer_RuntimeException()
+  public void CheckBabushkaResponse_RespPointer_throwsRuntimeException()
       throws ExecutionException, InterruptedException {
+    //setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
     Response response = Response.newBuilder().setRespPointer(1).build();
     completedFuture.complete(response);
     connectionStatus.set(false);
+
+    //execute
     when(channel.connect(any())).thenReturn(completedFuture);
     CompletableFuture<Boolean> result = connectionManager.connectToRedis(redisClientConfiguration);
+
+    //verify
     ExecutionException exception =
         assertThrows(
             ExecutionException.class,
@@ -259,15 +304,20 @@ public class ConnectionManagerTest {
   }
 
   @Test
-  public void ResponseClosingError_RuntimeException()
+  public void CheckBabushkaResponse_ClosingError_throwsRuntimeException()
       throws ExecutionException, InterruptedException {
+    //setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
     Response response = Response.newBuilder().setClosingError("Closing Error Occurred").build();
     completedFuture.complete(response);
     connectionStatus.set(false);
+
+    //execute
     when(channel.connect(any())).thenReturn(completedFuture);
     CompletableFuture<Boolean> result = connectionManager.connectToRedis(redisClientConfiguration);
+
+    //verify
     ExecutionException exception =
         assertThrows(
             ExecutionException.class,
