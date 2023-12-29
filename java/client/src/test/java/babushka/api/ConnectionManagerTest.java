@@ -5,8 +5,7 @@ import static babushka.api.models.configuration.NodeAddress.DEFAULT_PORT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import babushka.api.models.configuration.*;
 import babushka.connectors.handlers.ChannelHandler;
@@ -26,7 +25,7 @@ import response.ResponseOuterClass.Response;
 public class ConnectionManagerTest {
   ConnectionManager connectionManager;
   AtomicBoolean connectionStatus = new AtomicBoolean();
-  ;
+
   ChannelHandler channel;
 
   private static String HOST = "aws.com";
@@ -72,6 +71,24 @@ public class ConnectionManagerTest {
     when(channel.connect(eq(expectedProtobufConnectionRequest))).thenReturn(completedFuture);
     CompletableFuture<Boolean> result = connectionManager.connectToRedis(redisClientConfiguration);
     assertTrue(result.get());
+
+    connectionManager.closeConnection();
+  }
+
+  @Test
+  public void CloseConnection() throws ExecutionException, InterruptedException {
+    RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
+    CompletableFuture<Response> completedFuture = new CompletableFuture<>();
+    Response response =
+        Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
+    completedFuture.complete(response);
+    connectionStatus.set(false);
+    when(channel.connect(any())).thenReturn(completedFuture);
+    CompletableFuture<Boolean> result = connectionManager.connectToRedis(redisClientConfiguration);
+    assertTrue(result.get());
+
+    connectionManager.closeConnection();
+    verify(channel).close();
   }
 
   @Test
@@ -201,8 +218,7 @@ public class ConnectionManagerTest {
   }
 
   @Test
-  public void ResponseRequestError_RuntimeException()
-      throws ExecutionException, InterruptedException {
+  public void ResponseRequestError_RuntimeException() {
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
     Response response =
@@ -220,9 +236,7 @@ public class ConnectionManagerTest {
     ExecutionException exception =
         assertThrows(
             ExecutionException.class,
-            () -> {
-              result.get();
-            });
+                result::get);
     assertTrue(exception.getCause() instanceof RuntimeException);
   }
 
@@ -240,10 +254,7 @@ public class ConnectionManagerTest {
     ExecutionException exception =
         assertThrows(
             ExecutionException.class,
-            () -> {
-              result.get();
-            });
-    System.out.println(exception.getCause());
+                result::get);
     assertTrue(exception.getCause() instanceof RuntimeException);
   }
 
@@ -260,9 +271,7 @@ public class ConnectionManagerTest {
     ExecutionException exception =
         assertThrows(
             ExecutionException.class,
-            () -> {
-              result.get();
-            });
+                result::get);
     assertTrue(exception.getCause() instanceof RuntimeException);
   }
 }
