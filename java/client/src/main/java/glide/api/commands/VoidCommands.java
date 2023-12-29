@@ -1,13 +1,7 @@
 package glide.api.commands;
 
-import glide.api.models.exceptions.ClosingException;
-import glide.api.models.exceptions.ConnectionException;
-import glide.api.models.exceptions.ExecAbortException;
 import glide.api.models.exceptions.RedisException;
-import glide.api.models.exceptions.RequestException;
-import glide.api.models.exceptions.TimeoutException;
 import java.util.concurrent.CompletableFuture;
-import response.ResponseOuterClass.RequestError;
 import response.ResponseOuterClass.Response;
 
 /** String Commands interface to handle single commands that have no payload. */
