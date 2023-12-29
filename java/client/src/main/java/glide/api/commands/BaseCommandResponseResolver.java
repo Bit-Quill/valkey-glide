@@ -49,8 +49,7 @@ public class BaseCommandResponseResolver
       return respPointerResolver.apply(response.getRespPointer());
     }
     if (response.hasConstantResponse()) {
-      // TODO: confirm
-      return "Ok";
+      return null;
     }
     return null;
   }

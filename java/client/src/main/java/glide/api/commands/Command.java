@@ -15,7 +15,7 @@ public class Command {
   final String[] arguments;
 
   public enum RequestType {
-    /** */
+    /** Call a custom command with list of string arguments */
     CUSTOM_COMMAND,
     /**
      * Get the value of key.

@@ -1,5 +1,6 @@
 package glide.api.commands;
 
+import glide.api.models.commands.SetOptions;
 import glide.api.models.exceptions.RedisException;
 import java.util.concurrent.CompletableFuture;
 import response.ResponseOuterClass.Response;
@@ -25,5 +26,7 @@ public interface StringCommands {
         "Unexpected return type from Redis: got " + value.getClass() + " expected String");
   }
 
-  CompletableFuture<?> get(String key);
+  CompletableFuture<String> get(String key);
+
+  CompletableFuture<String> set(String key, String value, SetOptions options);
 }
