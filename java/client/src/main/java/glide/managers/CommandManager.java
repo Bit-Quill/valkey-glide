@@ -1,5 +1,7 @@
 package glide.managers;
 
+import glide.api.commands.Command;
+import glide.api.commands.RedisExceptionCheckedFunction;
 import glide.connectors.handlers.ChannelHandler;
 import glide.ffi.resolvers.RedisValueResolver;
 import glide.models.RequestBuilder;
@@ -20,64 +22,62 @@ public class CommandManager {
   private final ChannelHandler channel;
 
   /**
-   * Async (non-blocking) get.<br>
-   * See <a href="https://redis.io/commands/get/">REDIS docs for GET</a>.
-   *
-   * @param key The key name
-   */
-  public CompletableFuture<String> get(String key) {
-    return submitNewRequest(RequestType.GetString, List.of(key));
-  }
-
-  /**
-   * Async (non-blocking) set.<br>
-   * See <a href="https://redis.io/commands/set/">REDIS docs for SET</a>.
-   *
-   * @param key The key name
-   * @param value The value to set
-   */
-  public CompletableFuture<String> set(String key, String value) {
-    return submitNewRequest(RequestType.SetString, List.of(key, value));
-  }
-
-  /**
    * Build a command and submit it Netty to send.
    *
-   * @param command Command type
-   * @param args Command arguments
-   * @return A result promise
+   * @param command
+   * @param responseHandler - to handle the response object
+   * @return A result promise of type T
    */
-  private CompletableFuture<String> submitNewRequest(RequestType command, List<String> args) {
+  public <T> CompletableFuture<T> submitNewCommand(
+      Command command, RedisExceptionCheckedFunction<Response, T> responseHandler) {
+    // register callback
+    // create protobuf message from command
+    // submit async call
     return channel
-        .write(RequestBuilder.prepareRedisRequest(command, args), true)
-        .thenApplyAsync(this::extractValueFromGlideRsResponse);
+        .write(prepareRedisRequest(command.getRequestType(), command.getArguments()), true)
+        .thenApplyAsync(response -> responseHandler.apply(response));
   }
 
   /**
-   * Check response and extract data from it.
+   * Build a protobuf command/transaction request object.<br>
+   * Used by {@link CommandManager}.
    *
-   * @param response A response received from rust core lib
-   * @return A String from the Redis response, or Ok. Otherwise, returns null
+   * @return An uncompleted request. CallbackDispatcher is responsible to complete it by adding a
+   *     callback id.
    */
-  private String extractValueFromGlideRsResponse(Response response) {
-    if (response.hasRequestError()) {
-      // TODO we need to support different types of exceptions and distinguish them by type
-      throw new RuntimeException(
-          String.format(
-              "%s: %s",
-              response.getRequestError().getType(), response.getRequestError().getMessage()));
-    } else if (response.hasClosingError()) {
-      // TODO: close the channel on closingError
-      CompletableFuture.runAsync(channel::close);
-      throw new RuntimeException("Connection closed: " + response.getClosingError());
-    } else if (response.hasConstantResponse()) {
-      return response.getConstantResponse().toString();
-    } else if (response.hasRespPointer()) {
-      return RedisValueResolver.valueFromPointer(response.getRespPointer()).toString();
+  private redis_request.RedisRequestOuterClass.RedisRequest.Builder prepareRedisRequest(
+      Command.RequestType command, String[] args) {
+    redis_request.RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
+        redis_request.RedisRequestOuterClass.Command.ArgsArray.newBuilder();
+    for (var arg : args) {
+      commandArgs.addArgs(arg);
     }
-    return null;
+
+    return redis_request.RedisRequestOuterClass.RedisRequest.newBuilder()
+        .setSingleCommand( // set command
+            redis_request.RedisRequestOuterClass.Command.newBuilder()
+                .setRequestType(mapRequestTypes(command)) // set command name
+                .setArgsArray(commandArgs.build()) // set arguments
+                .build())
+        .setRoute( // set route
+            redis_request.RedisRequestOuterClass.Routes.newBuilder()
+                .setSimpleRoutes(redis_request.RedisRequestOuterClass.SimpleRoutes.AllNodes) // set route type
+                .build());
   }
 
+  private redis_request.RedisRequestOuterClass.RequestType mapRequestTypes(Command.RequestType inType) {
+    switch (inType) {
+      case CUSTOM_COMMAND:
+        return redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
+      case GET_STRING:
+        return redis_request.RedisRequestOuterClass.RequestType.GetString;
+      case SET_STRING:
+        return redis_request.RedisRequestOuterClass.RequestType.SetString;
+    }
+    throw new RuntimeException("Unsupported request type");
+  }
+
+  /** Close the connection and the corresponding channel. */
   public CompletableFuture<Void> closeConnection() {
     return new CompletableFuture<>();
   }
