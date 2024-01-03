@@ -3,12 +3,8 @@ package glide.managers;
 import glide.api.commands.Command;
 import glide.api.commands.RedisExceptionCheckedFunction;
 import glide.connectors.handlers.ChannelHandler;
-import glide.ffi.resolvers.RedisValueResolver;
-import glide.models.RequestBuilder;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
-import redis_request.RedisRequestOuterClass.RequestType;
 import response.ResponseOuterClass.Response;
 
 /**
@@ -61,11 +57,13 @@ public class CommandManager {
                 .build())
         .setRoute( // set route
             redis_request.RedisRequestOuterClass.Routes.newBuilder()
-                .setSimpleRoutes(redis_request.RedisRequestOuterClass.SimpleRoutes.AllNodes) // set route type
+                .setSimpleRoutes(
+                    redis_request.RedisRequestOuterClass.SimpleRoutes.AllNodes) // set route type
                 .build());
   }
 
-  private redis_request.RedisRequestOuterClass.RequestType mapRequestTypes(Command.RequestType inType) {
+  private redis_request.RedisRequestOuterClass.RequestType mapRequestTypes(
+      Command.RequestType inType) {
     switch (inType) {
       case CUSTOM_COMMAND:
         return redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
