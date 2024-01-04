@@ -18,7 +18,8 @@ import java.util.concurrent.ExecutionException;
 public class RedisClient extends BaseClient {
 
   /**
-   * Request an async (non-blocking) Redis client in Standalone mode to a Redis service on localhost.
+   * Request an async (non-blocking) Redis client in Standalone mode to a Redis service on
+   * localhost.
    *
    * @return a promise to connect and return a RedisClient
    */
@@ -49,7 +50,14 @@ public class RedisClient extends BaseClient {
    */
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
     CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
-    ChannelHandler channelHandler = new ChannelHandler(callbackDispatcher, getSocket());
+    ChannelHandler channelHandler;
+    if (config.getEventLoopGroup() != null) {
+      channelHandler =
+          new ChannelHandler(callbackDispatcher, getSocket(), config.getEventLoopGroup());
+    } else {
+      channelHandler =
+          new ChannelHandler(callbackDispatcher, getSocket(), config.getThreadPoolSize());
+    }
     var connectionManager = new ConnectionManager(channelHandler);
     var commandManager = new CommandManager(channelHandler);
     return CreateClient(config, connectionManager, commandManager);
