@@ -4,7 +4,7 @@ import glide.api.models.exceptions.RedisException;
 import java.util.concurrent.CompletableFuture;
 import response.ResponseOuterClass.Response;
 
-/** String Commands interface to handle single commands that have no payload. */
+/** Void Commands interface to handle commands that have no payload. */
 public interface VoidCommands {
 
   /**

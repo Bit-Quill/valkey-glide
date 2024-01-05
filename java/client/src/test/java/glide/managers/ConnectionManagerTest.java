@@ -184,8 +184,8 @@ public class ConnectionManagerTest {
     // setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
-    Response response = Response.newBuilder()
-        .setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
+    Response response =
+        Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
     completedFuture.complete(response);
 
     // execute
