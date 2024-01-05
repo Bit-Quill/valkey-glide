@@ -1,7 +1,8 @@
-package babushka.utils;
+package glide.utils;
 
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import glide.connectors.resources.Platform;
+import glide.connectors.resources.ThreadPoolAllocator;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -76,9 +77,10 @@ public class RustCoreMock {
   @SneakyThrows
   private RustCoreMock() {
     socketPath = Files.createTempFile("GlideCoreMock", null).toString();
+    group = ThreadPoolAllocator.createOrGetNettyThreadPool("GlideCoreMock", Optional.empty());
     channel =
         new ServerBootstrap()
-            .group(group = Platform.createNettyThreadPool("GlideCoreMock", Optional.empty()))
+            .group(group)
             .channel(Platform.getServerUdsNettyChannelType())
             .childHandler(
                 new ChannelInitializer<DomainSocketChannel>() {

@@ -1,7 +1,7 @@
-package babushka.utils;
+package glide.utils;
 
 import glide.connectors.handlers.ChannelHandler;
-import glide.ffi.resolvers.GlideCoreNativeDefinitions;
+import glide.ffi.resolvers.SocketListenerResolver;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -11,7 +11,7 @@ public class RustCoreLibMockTestBase {
 
   /**
    * Pass this socket path to {@link ChannelHandler} or mock {@link
-   * GlideCoreNativeDefinitions#getSocket()} to return it.
+   * SocketListenerResolver#getSocket()} to return it.
    */
   protected static String socketPath = null;
 
