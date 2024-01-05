@@ -184,8 +184,7 @@ public class ConnectionManagerTest {
     // setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
-    Response response =
-        Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
+    Response response = Response.newBuilder().build();
     completedFuture.complete(response);
 
     // execute
@@ -198,30 +197,6 @@ public class ConnectionManagerTest {
     assertTrue(executionException.getCause() instanceof RuntimeException);
     assertEquals(
         "Connection response expects an OK response", executionException.getCause().getMessage());
-  }
-
-  @SneakyThrows
-  @Test
-  public void CloseConnection_closesChannels() {
-    // setup
-    RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
-    CompletableFuture<Response> completedFuture = new CompletableFuture<>();
-    Response response =
-        Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
-    completedFuture.complete(response);
-
-    // execute
-    when(channel.connect(any())).thenReturn(completedFuture);
-    CompletableFuture<Void> resultConnect =
-        connectionManager.connectToRedis(redisClientConfiguration);
-    assertNull(resultConnect.get());
-    verify(channel).connect(any());
-
-    CompletableFuture<Void> resultClose = connectionManager.closeConnection();
-    assertNull(resultClose.get());
-
-    // verify
-    verify(channel).close();
   }
 
   @SneakyThrows
@@ -282,5 +257,30 @@ public class ConnectionManagerTest {
     // verify
     ExecutionException exception = assertThrows(ExecutionException.class, result::get);
     assertTrue(exception.getCause() instanceof RuntimeException);
+  }
+
+
+  @SneakyThrows
+  @Test
+  public void CloseConnection_closesChannels() {
+    // setup
+    RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
+    CompletableFuture<Response> completedFuture = new CompletableFuture<>();
+    Response response =
+        Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
+    completedFuture.complete(response);
+
+    // execute
+    when(channel.connect(any())).thenReturn(completedFuture);
+    CompletableFuture<Void> resultConnect =
+        connectionManager.connectToRedis(redisClientConfiguration);
+    assertNull(resultConnect.get());
+    verify(channel).connect(any());
+
+    CompletableFuture<Void> resultClose = connectionManager.closeConnection();
+    assertNull(resultClose.get());
+
+    // verify
+    verify(channel).close();
   }
 }
