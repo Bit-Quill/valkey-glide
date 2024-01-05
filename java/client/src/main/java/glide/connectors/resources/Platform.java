@@ -92,4 +92,20 @@ public class Platform {
     throw new RuntimeException(
         "Current platform does not have a supported Domain Server Socket Channel class");
   }
+
+  /**
+   * Get a channel class required by Netty to open a server TCP channel.
+   *
+   * @return Return a class, supported by the current native platform.
+   */
+  public static Class<? extends ServerSocketChannel> getServerTcpNettyChannelType() {
+    if (capabilities.isKQueueAvailable()) {
+      return KQueueServerSocketChannel.class;
+    }
+    if (capabilities.isEPollAvailable()) {
+      return EpollServerSocketChannel.class;
+    }
+    throw new RuntimeException(
+        "Current platform does not have a supported TCP Server Socket Channel class");
+  }
 }
