@@ -1,18 +1,13 @@
 package glide.connectors.handlers;
 
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
-import glide.connectors.resources.Platform;
 import glide.connectors.resources.ThreadPoolAllocator;
+import glide.connectors.resources.ThreadPoolResource;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollDomainSocketChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.kqueue.KQueueDomainSocketChannel;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.channel.unix.DomainSocketChannel;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import redis_request.RedisRequestOuterClass.RedisRequest;
 import response.ResponseOuterClass.Response;
@@ -30,13 +25,17 @@ public class ChannelHandler {
 
   /** Open a new channel for a new client. */
   public ChannelHandler(
-      CallbackDispatcher callbackDispatcher, String socketPath, Integer configThreadPoolSize) {
+      CallbackDispatcher callbackDispatcher,
+      String socketPath,
+      ThreadPoolResource customThreadPoolResource) {
+    EventLoopGroup eventLoopGroup = customThreadPoolResource.getEventLoopGroup();
+    Class<? extends DomainSocketChannel> channelClass =
+        customThreadPoolResource.getDomainSocketChannelClass();
+
     channel =
         new Bootstrap()
-            .group(
-                ThreadPoolAllocator.createOrGetNettyThreadPool(
-                    THREAD_POOL_NAME, Optional.ofNullable(configThreadPoolSize)))
-            .channel(Platform.getClientUdsNettyChannelType())
+            .group(eventLoopGroup)
+            .channel(channelClass)
             .handler(new ProtobufSocketChannelInitializer(callbackDispatcher))
             .connect(new DomainSocketAddress(socketPath))
             // TODO call here .sync() if needed or remove this comment
@@ -44,17 +43,11 @@ public class ChannelHandler {
     this.callbackDispatcher = callbackDispatcher;
   }
 
-  public ChannelHandler(
-      CallbackDispatcher callbackDispatcher, String socketPath, EventLoopGroup eventLoopGroup) {
-    Class<? extends DomainSocketChannel> channelClass;
-    if (eventLoopGroup instanceof KQueueEventLoopGroup) {
-      channelClass = KQueueDomainSocketChannel.class;
-    } else if (eventLoopGroup instanceof EpollEventLoopGroup) {
-      channelClass = EpollDomainSocketChannel.class;
-    } else {
-      throw new RuntimeException(
-          "Current platform supports no known socket types for the event loop group");
-    }
+  public ChannelHandler(CallbackDispatcher callbackDispatcher, String socketPath) {
+    ThreadPoolResource threadPoolResource = ThreadPoolAllocator.createOrGetNettyThreadPool();
+    EventLoopGroup eventLoopGroup = threadPoolResource.getEventLoopGroup();
+    Class<? extends DomainSocketChannel> channelClass =
+        threadPoolResource.getDomainSocketChannelClass();
 
     channel =
         new Bootstrap()

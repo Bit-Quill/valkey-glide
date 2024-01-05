@@ -1,6 +1,6 @@
 package glide.api.models.configuration;
 
-import io.netty.channel.EventLoopGroup;
+import glide.connectors.resources.ThreadPoolResource;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,21 +45,5 @@ public abstract class BaseClientConfiguration {
    */
   private final Integer requestTimeout;
 
-  /**
-   * Allows specifying the thread pool size for the default Event Loop Group. If a custom Event Loop
-   * Group is provided, this field will be disregarded.
-   */
-  private final Integer threadPoolSize;
-
-  /**
-   * By default, set to true, enabling automatic flushing of data, but setting it to false can
-   * optimize performance under high loads with batched writes.
-   */
-  @Builder.Default private final boolean autoFlush = true;
-
-  /**
-   * The eventLoopGroup field currently supports either KQueueEventLoopGroup or EpollEventLoopGroup,
-   * overriding the default event loop group.
-   */
-  private final EventLoopGroup eventLoopGroup;
+  private final ThreadPoolResource threadPoolResource;
 }
