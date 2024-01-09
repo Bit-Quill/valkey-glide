@@ -7,6 +7,7 @@ import glide.api.models.configuration.RedisClientConfiguration;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
 import glide.connectors.resources.ThreadPoolResource;
+import glide.connectors.resources.ThreadPoolResourceAllocator;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.concurrent.CompletableFuture;
@@ -50,13 +51,14 @@ public class RedisClient extends BaseClient {
    */
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
     CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
-    ChannelHandler channelHandler;
     ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
-    if (threadPoolResource != null) {
-      channelHandler = new ChannelHandler(callbackDispatcher, getSocket(), threadPoolResource);
-    } else {
-      channelHandler = new ChannelHandler(callbackDispatcher, getSocket());
-    }
+    ChannelHandler channelHandler =
+        threadPoolResource == null
+            ? new ChannelHandler(
+                callbackDispatcher,
+                getSocket(),
+                ThreadPoolResourceAllocator.createOrGetThreadPoolResource())
+            : new ChannelHandler(callbackDispatcher, getSocket(), threadPoolResource);
     var connectionManager = new ConnectionManager(channelHandler);
     var commandManager = new CommandManager(channelHandler);
     return CreateClient(config, connectionManager, commandManager);

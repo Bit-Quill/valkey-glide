@@ -10,7 +10,9 @@ public class ThreadPoolResourceAllocator {
   public static ThreadPoolResource createOrGetThreadPoolResource() {
     if (Platform.getCapabilities().isKQueueAvailable()) {
       return getOrCreate(KQueuePoolResource::new);
-    } else if (Platform.getCapabilities().isEPollAvailable()) {
+    }
+
+    if (Platform.getCapabilities().isEPollAvailable()) {
       return getOrCreate(EpollResource::new);
     }
     // TODO support IO-Uring and NIO
@@ -18,11 +20,16 @@ public class ThreadPoolResourceAllocator {
   }
 
   private static ThreadPoolResource getOrCreate(Supplier<ThreadPoolResource> supplier) {
+    if (defaultThreadPoolResource != null) {
+      return defaultThreadPoolResource;
+    }
+
     synchronized (lock) {
       if (defaultThreadPoolResource == null) {
         defaultThreadPoolResource = supplier.get();
       }
     }
+
     return defaultThreadPoolResource;
   }
 
@@ -34,7 +41,9 @@ public class ThreadPoolResourceAllocator {
   private static class ShutdownHook implements Runnable {
     @Override
     public void run() {
-      defaultThreadPoolResource.getEventLoopGroup().shutdownGracefully();
+      if (defaultThreadPoolResource != null) {
+        defaultThreadPoolResource.getEventLoopGroup().shutdownGracefully();
+      }
     }
   }
 
