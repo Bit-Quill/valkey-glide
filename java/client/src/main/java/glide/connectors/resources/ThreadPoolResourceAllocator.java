@@ -1,25 +1,26 @@
 package glide.connectors.resources;
 
-/** A class responsible to allocating and deallocating shared thread pools. */
-public class ThreadPoolAllocator {
+import java.util.function.Supplier;
+
+/** A class responsible to allocating and deallocating the default Thread Pool Resource. */
+public class ThreadPoolResourceAllocator {
   private static final Object lock = new Object();
   private static ThreadPoolResource defaultThreadPoolResource = null;
 
-  public static ThreadPoolResource createOrGetNettyThreadPool() {
+  public static ThreadPoolResource createOrGetThreadPoolResource() {
     if (Platform.getCapabilities().isKQueueAvailable()) {
-      return getOrCreate(new KQueuePoolResource());
+      return getOrCreate(KQueuePoolResource::new);
     } else if (Platform.getCapabilities().isEPollAvailable()) {
-      return getOrCreate(new EpollResource());
+      return getOrCreate(EpollResource::new);
     }
     // TODO support IO-Uring and NIO
-
     throw new RuntimeException("Current platform supports no known thread pool resources");
   }
 
-  private static ThreadPoolResource getOrCreate(ThreadPoolResource threadPoolResource) {
+  private static ThreadPoolResource getOrCreate(Supplier<ThreadPoolResource> supplier) {
     synchronized (lock) {
       if (defaultThreadPoolResource == null) {
-        defaultThreadPoolResource = threadPoolResource;
+        defaultThreadPoolResource = supplier.get();
       }
     }
     return defaultThreadPoolResource;

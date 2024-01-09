@@ -6,6 +6,7 @@ import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
+import glide.connectors.resources.ThreadPoolResource;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.concurrent.CompletableFuture;
@@ -18,8 +19,7 @@ import java.util.concurrent.ExecutionException;
 public class RedisClient extends BaseClient {
 
   /**
-   * Request an async (non-blocking) Redis client in Standalone mode to a Redis service on
-   * localhost.
+   * Request an async (non-blocking) Redis client in Standalone mode to a Redis service.
    *
    * @return a promise to connect and return a RedisClient
    */
@@ -51,9 +51,9 @@ public class RedisClient extends BaseClient {
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
     CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
     ChannelHandler channelHandler;
-    if (config.getThreadPoolResource() != null) {
-      channelHandler =
-          new ChannelHandler(callbackDispatcher, getSocket(), config.getThreadPoolResource());
+    ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
+    if (threadPoolResource != null) {
+      channelHandler = new ChannelHandler(callbackDispatcher, getSocket(), threadPoolResource);
     } else {
       channelHandler = new ChannelHandler(callbackDispatcher, getSocket());
     }

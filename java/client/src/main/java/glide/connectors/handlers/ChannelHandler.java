@@ -1,8 +1,8 @@
 package glide.connectors.handlers;
 
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
-import glide.connectors.resources.ThreadPoolAllocator;
 import glide.connectors.resources.ThreadPoolResource;
+import glide.connectors.resources.ThreadPoolResourceAllocator;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -44,20 +44,10 @@ public class ChannelHandler {
   }
 
   public ChannelHandler(CallbackDispatcher callbackDispatcher, String socketPath) {
-    ThreadPoolResource threadPoolResource = ThreadPoolAllocator.createOrGetNettyThreadPool();
-    EventLoopGroup eventLoopGroup = threadPoolResource.getEventLoopGroup();
-    Class<? extends DomainSocketChannel> channelClass =
-        threadPoolResource.getDomainSocketChannelClass();
-
-    channel =
-        new Bootstrap()
-            .group(eventLoopGroup)
-            .channel(channelClass)
-            .handler(new ProtobufSocketChannelInitializer(callbackDispatcher))
-            .connect(new DomainSocketAddress(socketPath))
-            // TODO call here .sync() if needed or remove this comment
-            .channel();
-    this.callbackDispatcher = callbackDispatcher;
+    this(
+        callbackDispatcher,
+        socketPath,
+        ThreadPoolResourceAllocator.createOrGetThreadPoolResource());
   }
 
   /**
