@@ -43,7 +43,7 @@ jobs:
             - name: benchmark
               uses: ./.github/workflows/test-benchmark
               #   TODO - enable once benchmark works
-              if: {{ !always() }}
+              if: ${{ false }}
               with:
                   language-flag: -java
 
