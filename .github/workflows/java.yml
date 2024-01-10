@@ -37,7 +37,7 @@ jobs:
                     - ubuntu-latest
                     - macos-latest
 
-        runs-on: ${{ matrix.entry.os }}
+        runs-on: ${{ matrix.os }}
 
         steps:
             - uses: actions/checkout@v4
