@@ -55,6 +55,7 @@ jobs:
               with:
                   os: ${{ matrix.os }}
                   target: ${{ matrix.os == 'ubuntu-latest' && 'x86_64-unknown-linux-gnu' || 'x86_64-apple-darwin' }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Install redis
               # TODO: make this step macos compatible
