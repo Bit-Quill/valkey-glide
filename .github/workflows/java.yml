@@ -80,6 +80,7 @@ jobs:
                       java/integTest/build/reports/**
 
     build-amazonlinux-latest:
+        if: github.repository_owner == 'aws'
         strategy:
             # Run all jobs
             fail-fast: false
