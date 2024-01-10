@@ -52,13 +52,11 @@ public class RedisClient extends BaseClient {
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
     CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
     ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
+    if (threadPoolResource == null) {
+      threadPoolResource = ThreadPoolResourceAllocator.createOrGetThreadPoolResource();
+    }
     ChannelHandler channelHandler =
-        threadPoolResource == null
-            ? new ChannelHandler(
-                callbackDispatcher,
-                getSocket(),
-                ThreadPoolResourceAllocator.createOrGetThreadPoolResource())
-            : new ChannelHandler(callbackDispatcher, getSocket(), threadPoolResource);
+        new ChannelHandler(callbackDispatcher, getSocket(), threadPoolResource);
     var connectionManager = new ConnectionManager(channelHandler);
     var commandManager = new CommandManager(channelHandler);
     return CreateClient(config, connectionManager, commandManager);

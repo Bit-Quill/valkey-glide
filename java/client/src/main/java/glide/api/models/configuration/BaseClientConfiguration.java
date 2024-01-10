@@ -47,9 +47,10 @@ public abstract class BaseClientConfiguration {
 
   /**
    * Field for customizing the Event Loop Group and Channel Configuration in Netty applications.
-   * Advanced users can utilize KQueueResource/EpollResource to set their custom event loop group.
-   * If not explicitly set, the system selects a default based on available resources. Recommended
-   * for advanced users.
+   * Advanced users can utilize {@link glide.connectors.resources.KQueuePoolResource}/{@link
+   * glide.connectors.resources.EpollResource} to set their custom event loop group. If not
+   * explicitly set, the system selects a default based on available resources. Recommended for
+   * advanced users.
    */
   private final ThreadPoolResource threadPoolResource;
 }

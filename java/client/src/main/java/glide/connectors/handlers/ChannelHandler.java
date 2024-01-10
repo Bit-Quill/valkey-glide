@@ -4,9 +4,7 @@ import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import glide.connectors.resources.ThreadPoolResource;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.unix.DomainSocketAddress;
-import io.netty.channel.unix.DomainSocketChannel;
 import java.util.concurrent.CompletableFuture;
 import redis_request.RedisRequestOuterClass.RedisRequest;
 import response.ResponseOuterClass.Response;
@@ -27,14 +25,11 @@ public class ChannelHandler {
       CallbackDispatcher callbackDispatcher,
       String socketPath,
       ThreadPoolResource threadPoolResource) {
-    EventLoopGroup eventLoopGroup = threadPoolResource.getEventLoopGroup();
-    Class<? extends DomainSocketChannel> channelClass =
-        threadPoolResource.getDomainSocketChannelClass();
 
     channel =
         new Bootstrap()
-            .group(eventLoopGroup)
-            .channel(channelClass)
+            .group(threadPoolResource.getEventLoopGroup())
+            .channel(threadPoolResource.getDomainSocketChannelClass())
             .handler(new ProtobufSocketChannelInitializer(callbackDispatcher))
             .connect(new DomainSocketAddress(socketPath))
             // TODO call here .sync() if needed or remove this comment
