@@ -22,6 +22,7 @@ import glide.api.models.configuration.ReadFrom;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RedisCredentials;
+import glide.api.models.exceptions.ClosingException;
 import glide.connectors.handlers.ChannelHandler;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -179,50 +180,6 @@ public class ConnectionManagerTest {
     verify(channel).connect(eq(expectedProtobufConnectionRequest));
   }
 
-  @Test
-  public void onConnection_emptyResponse_throwsRuntimeException() {
-    // setup
-    RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
-    CompletableFuture<Response> completedFuture = new CompletableFuture<>();
-    Response response = Response.newBuilder().build();
-    completedFuture.complete(response);
-
-    // execute
-    when(channel.connect(any())).thenReturn(completedFuture);
-    ExecutionException executionException =
-        assertThrows(
-            ExecutionException.class,
-            () -> connectionManager.connectToRedis(redisClientConfiguration).get());
-
-    assertTrue(executionException.getCause() instanceof RuntimeException);
-    assertEquals(
-        "Connection response expects an OK response", executionException.getCause().getMessage());
-  }
-
-  @SneakyThrows
-  @Test
-  public void CloseConnection_closesChannels() {
-    // setup
-    RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
-    CompletableFuture<Response> completedFuture = new CompletableFuture<>();
-    Response response =
-        Response.newBuilder().setConstantResponse(ResponseOuterClass.ConstantResponse.OK).build();
-    completedFuture.complete(response);
-
-    // execute
-    when(channel.connect(any())).thenReturn(completedFuture);
-    CompletableFuture<Void> resultConnect =
-        connectionManager.connectToRedis(redisClientConfiguration);
-    assertNull(resultConnect.get());
-    verify(channel).connect(any());
-
-    CompletableFuture<Void> resultClose = connectionManager.closeConnection();
-    assertNull(resultClose.get());
-
-    // verify
-    verify(channel).close();
-  }
-
   @SneakyThrows
   @Test
   public void CheckRedisResponse_ConstantResponse_returnsSuccessfully() {
@@ -243,7 +200,27 @@ public class ConnectionManagerTest {
   }
 
   @Test
-  public void CheckRedisResponse_RequestError_throwsRuntimeException() {
+  public void onConnection_emptyResponse_throwsClosingException() {
+    // setup
+    RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
+    CompletableFuture<Response> completedFuture = new CompletableFuture<>();
+    Response response = Response.newBuilder().build();
+    completedFuture.complete(response);
+
+    // execute
+    when(channel.connect(any())).thenReturn(completedFuture);
+    ExecutionException executionException =
+        assertThrows(
+            ExecutionException.class,
+            () -> connectionManager.connectToRedis(redisClientConfiguration).get());
+
+    assertTrue(executionException.getCause() instanceof ClosingException);
+    assertEquals("Unexpected empty data in response", executionException.getCause().getMessage());
+    verify(channel).close();
+  }
+
+  @Test
+  public void CheckRedisResponse_RequestError_throwsClosingException() {
     // setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
@@ -263,11 +240,12 @@ public class ConnectionManagerTest {
 
     // verify
     ExecutionException exception = assertThrows(ExecutionException.class, result::get);
-    assertTrue(exception.getCause() instanceof RuntimeException);
+    assertTrue(exception.getCause() instanceof ClosingException);
+    verify(channel).close();
   }
 
   @Test
-  public void CheckRedisResponse_ClosingError_throwsRuntimeException() {
+  public void CheckRedisResponse_ClosingError_throwsClosingException() {
     // setup
     RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
     CompletableFuture<Response> completedFuture = new CompletableFuture<>();
@@ -280,6 +258,6 @@ public class ConnectionManagerTest {
 
     // verify
     ExecutionException exception = assertThrows(ExecutionException.class, result::get);
-    assertTrue(exception.getCause() instanceof RuntimeException);
+    assertTrue(exception.getCause() instanceof ClosingException);
   }
 }
