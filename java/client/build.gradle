@@ -2,6 +2,7 @@ import java.nio.file.Paths
 
 plugins {
     id 'java-library'
+    id 'jacoco'
 }
 
 repositories {
@@ -103,4 +104,15 @@ tasks.withType(Test) {
         showStandardStreams true
     }
     jvmArgs "-Djava.library.path=${projectDir}/../target/release:${projectDir}/../target/debug"
+    finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
+
+jacocoTestReport {
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: ['**/connection_request/**', '**/response/**', '**/redis_request/**'])
+        }))
+    }
+}
+
+
