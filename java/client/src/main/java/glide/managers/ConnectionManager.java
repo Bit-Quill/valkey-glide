@@ -188,6 +188,7 @@ public class ConnectionManager {
 
   /** Close the connection and the corresponding channel. */
   public CompletableFuture<Void> closeConnection() {
+    // TODO: return the channel close future
     return CompletableFuture.runAsync(channel::close);
   }
 }
