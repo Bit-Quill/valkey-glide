@@ -12,15 +12,19 @@ import glide.managers.models.Command;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Async (non-blocking) client for Redis in Standalone mode. Use {@link
- * #CreateClient(RedisClientConfiguration)} to request a client to Redis.
+ * Async (non-blocking) client for Redis in Standalone mode. Use {@link #CreateClient} to request a
+ * client to Redis.
  */
-public class RedisClient extends BaseClient implements BaseCommands {
+public class RedisClient extends BaseClient implements BaseCommands<Object> {
+
+    protected RedisClient(ConnectionManager connectionManager, CommandManager commandManager) {
+        super(connectionManager, commandManager);
+    }
 
     /**
-     * Request an async (non-blocking) Redis client in Standalone mode.
+     * Async request for an async (non-blocking) Redis client in Standalone mode.
      *
-     * @param config - Redis Client Configuration
+     * @param config Redis client Configuration
      * @return a Future to connect and return a RedisClient
      */
     public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
@@ -53,10 +57,6 @@ public class RedisClient extends BaseClient implements BaseCommands {
         return new CommandManager(channelHandler);
     }
 
-    protected RedisClient(ConnectionManager connectionManager, CommandManager commandManager) {
-        super(connectionManager, commandManager);
-    }
-
     /**
      * Executes a single command, without checking inputs. Every part of the command, including
      * subcommands, should be added as a separate value in args.
@@ -73,9 +73,10 @@ public class RedisClient extends BaseClient implements BaseCommands {
      * @param args arguments for the custom command
      * @return a CompletableFuture with response result from Redis
      */
+    @Override
     public CompletableFuture<Object> customCommand(String[] args) {
-        Command command =
-                Command.builder().requestType(Command.RequestType.CUSTOM_COMMAND).arguments(args).build();
-        return commandManager.submitNewCommand(command, BaseClient::handleObjectResponse);
+      Command command =
+          Command.builder().requestType(Command.RequestType.CUSTOM_COMMAND).arguments(args).build();
+      return commandManager.submitNewCommand(command, BaseClient::handleObjectResponse);
     }
 }
