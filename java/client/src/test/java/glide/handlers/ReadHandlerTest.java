@@ -36,9 +36,10 @@ public class ReadHandlerTest {
 
   @Test
   public void readHandlerRead_testInboundProtobufMessages() {
-    ResponseOuterClass.Response msg = ResponseOuterClass.Response.newBuilder()
-        .setConstantResponse(ResponseOuterClass.ConstantResponse.OK)
-        .build();
+    ResponseOuterClass.Response msg =
+        ResponseOuterClass.Response.newBuilder()
+            .setConstantResponse(ResponseOuterClass.ConstantResponse.OK)
+            .build();
 
     assertTrue(embeddedChannel.writeInbound(msg, msg, msg));
     assertTrue(embeddedChannel.finish());
@@ -51,19 +52,21 @@ public class ReadHandlerTest {
 
     String invalidMsg = "Invalid";
 
-    Exception e = assertThrows(Exception.class, () -> embeddedChannel.writeInbound(invalidMsg, invalidMsg, invalidMsg));
+    Exception e =
+        assertThrows(
+            Exception.class,
+            () -> embeddedChannel.writeInbound(invalidMsg, invalidMsg, invalidMsg));
     assertEquals("Unexpected message in socket", e.getMessage());
 
     verify(dispatcher, times(0)).completeRequest(any());
 
-    ResponseOuterClass.Response msg = ResponseOuterClass.Response.newBuilder()
-        .setConstantResponse(ResponseOuterClass.ConstantResponse.OK)
-        .build();
+    ResponseOuterClass.Response msg =
+        ResponseOuterClass.Response.newBuilder()
+            .setConstantResponse(ResponseOuterClass.ConstantResponse.OK)
+            .build();
     assertTrue(embeddedChannel.writeInbound(msg));
     assertTrue(embeddedChannel.finish());
 
     verify(dispatcher, times(1)).completeRequest(msg);
   }
-
-
 }

@@ -259,7 +259,6 @@ public class ConnectionManagerTest {
     assertTrue(exception.getCause() instanceof RuntimeException);
   }
 
-
   @SneakyThrows
   @Test
   public void CloseConnection_closesChannels() {
