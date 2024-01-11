@@ -2,8 +2,12 @@ package glide.api.commands;
 
 import java.util.concurrent.CompletableFuture;
 
-/** Base Commands interface to handle generic command and transaction requests. */
-public interface BaseCommands {
+/**
+ * Base Commands interface to handle generic command and transaction requests.
+ *
+ * @param <T> The data return type.
+ */
+public interface BaseCommands<T> {
 
     /**
      * Executes a single command, without checking inputs. Every part of the command, including
@@ -21,5 +25,5 @@ public interface BaseCommands {
      * @param args Arguments for the custom command including the command name
      * @return A <em>CompletableFuture</em> with response result from Redis
      */
-    CompletableFuture<Object> customCommand(String[] args);
+    CompletableFuture<T> customCommand(String[] args);
 }
