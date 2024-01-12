@@ -192,20 +192,25 @@ public class ConnectionManager {
 
   /**
    * Close the connection to the channel.
+   *
    * @return a CompletableFuture to indicate the channel is closed
    */
   public CompletableFuture<Void> closeConnection() {
     CompletableFuture<Void> completableFuture = new CompletableFuture<>();
-    channel.close().syncUninterruptibly().addListener((GenericFutureListener<ChannelFuture>) future -> {
-      if (future.isCancelled()) {
-        completableFuture.cancel(false);
-      }
-      else if (future.isDone()) {
-        completableFuture.complete(null);
-      }
-      completableFuture.completeExceptionally(new RuntimeException("Channel failed to close"));
-    }
-    );
+    channel
+        .close()
+        .syncUninterruptibly()
+        .addListener(
+            (GenericFutureListener<ChannelFuture>)
+                future -> {
+                  if (future.isCancelled()) {
+                    completableFuture.cancel(false);
+                  } else if (future.isDone()) {
+                    completableFuture.complete(null);
+                  }
+                  completableFuture.completeExceptionally(
+                      new RuntimeException("Channel failed to close"));
+                });
     return completableFuture;
   }
 }
