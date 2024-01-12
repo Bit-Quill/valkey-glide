@@ -61,8 +61,6 @@ public class ConnectionManagerTest {
     connectionManager = new ConnectionManager(channel);
   }
 
-  public void teardown() {}
-
   @SneakyThrows
   @Test
   public void ConnectionRequestProtobufGeneration_DefaultRedisClientConfiguration_returns() {
