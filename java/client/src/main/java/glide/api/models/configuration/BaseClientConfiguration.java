@@ -1,5 +1,6 @@
 package glide.api.models.configuration;
 
+import glide.connectors.resources.ThreadPoolResource;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,4 +51,13 @@ public abstract class BaseClientConfiguration {
    * it will result in a timeout error. If not set, a default value will be used.
    */
   private final Integer requestTimeout;
+
+  /**
+   * Field for customizing the Event Loop Group and Channel Configuration in Netty applications.
+   * Advanced users can utilize {@link glide.connectors.resources.KQueuePoolResource}/{@link
+   * glide.connectors.resources.EpollResource} to set their custom event loop group. If not
+   * explicitly set, the system selects a default based on available resources. Recommended for
+   * advanced users.
+   */
+  private final ThreadPoolResource threadPoolResource;
 }

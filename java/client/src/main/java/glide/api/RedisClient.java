@@ -7,6 +7,8 @@ import glide.api.commands.Command;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
+import glide.connectors.resources.ThreadPoolResource;
+import glide.connectors.resources.ThreadPoolResourceAllocator;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.concurrent.CompletableFuture;
@@ -21,21 +23,25 @@ public class RedisClient extends BaseClient implements BaseCommands {
    * Request an async (non-blocking) Redis client in Standalone mode.
    *
    * @param config - Redis Client Configuration
-   * @return a Future to connect and return a RedisClient
+   * @return a promise to connect and return a RedisClient
    */
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
-    ChannelHandler channelHandler = buildChannelHandler();
-    ConnectionManager connectionManager = buildConnectionManager(channelHandler);
-    CommandManager commandManager = buildCommandManager(channelHandler);
+    ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
+    if (threadPoolResource == null) {
+      threadPoolResource = ThreadPoolResourceAllocator.createOrGetThreadPoolResource();
+    }
+    ChannelHandler channelHandler = buildChannelHandler(threadPoolResource);
+    var connectionManager = buildConnectionManager(channelHandler);
+    var commandManager = buildCommandManager(channelHandler);
     // TODO: Support exception throwing, including interrupted exceptions
     return connectionManager
         .connectToRedis(config)
         .thenApply(ignore -> new RedisClient(connectionManager, commandManager));
   }
 
-  protected static ChannelHandler buildChannelHandler() {
+  protected static ChannelHandler buildChannelHandler(ThreadPoolResource threadPoolResource) {
     CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
-    return new ChannelHandler(callbackDispatcher, getSocket());
+    return new ChannelHandler(callbackDispatcher, getSocket(), threadPoolResource);
   }
 
   protected static ConnectionManager buildConnectionManager(ChannelHandler channelHandler) {

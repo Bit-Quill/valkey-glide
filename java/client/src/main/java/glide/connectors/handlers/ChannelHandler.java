@@ -1,17 +1,11 @@
 package glide.connectors.handlers;
 
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
-import glide.connectors.resources.Platform;
-import glide.connectors.resources.ThreadPoolAllocator;
+import glide.connectors.resources.ThreadPoolResource;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.unix.DomainSocketAddress;
-import io.netty.channel.unix.DomainSocketChannel;
-import io.netty.channel.unix.UnixChannel;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import redis_request.RedisRequestOuterClass.RedisRequest;
 import response.ResponseOuterClass.Response;
@@ -28,36 +22,17 @@ public class ChannelHandler {
   private final CallbackDispatcher callbackDispatcher;
 
   /** Open a new channel for a new client. */
-  public ChannelHandler(CallbackDispatcher callbackDispatcher, String socketPath) {
-    this(
-        ThreadPoolAllocator.createOrGetNettyThreadPool(THREAD_POOL_NAME, Optional.empty()),
-        Platform.getClientUdsNettyChannelType(),
-        new ProtobufSocketChannelInitializer(callbackDispatcher),
-        new DomainSocketAddress(socketPath),
-        callbackDispatcher);
-  }
-
-  /**
-   * Open a new channel for a new client and running it on the provided EventLoopGroup
-   *
-   * @param eventLoopGroup - ELG to run handler on
-   * @param domainSocketChannelClass - socket channel class for Handler
-   * @param channelInitializer - UnixChannel initializer
-   * @param domainSocketAddress - address to connect
-   * @param callbackDispatcher - dispatcher to handle callbacks
-   */
   public ChannelHandler(
-      EventLoopGroup eventLoopGroup,
-      Class<? extends DomainSocketChannel> domainSocketChannelClass,
-      ChannelInitializer<UnixChannel> channelInitializer,
-      DomainSocketAddress domainSocketAddress,
-      CallbackDispatcher callbackDispatcher) {
+      CallbackDispatcher callbackDispatcher,
+      String socketPath,
+      ThreadPoolResource threadPoolResource) {
+
     channel =
         new Bootstrap()
-            .group(eventLoopGroup)
-            .channel(domainSocketChannelClass)
-            .handler(channelInitializer)
-            .connect(domainSocketAddress)
+            .group(threadPoolResource.getEventLoopGroup())
+            .channel(threadPoolResource.getDomainSocketChannelClass())
+            .handler(new ProtobufSocketChannelInitializer(callbackDispatcher))
+            .connect(new DomainSocketAddress(socketPath))
             // TODO call here .sync() if needed or remove this comment
             .channel();
     this.callbackDispatcher = callbackDispatcher;
