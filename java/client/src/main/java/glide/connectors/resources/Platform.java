@@ -5,6 +5,7 @@ import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.kqueue.KQueue;
 import io.netty.channel.kqueue.KQueueDomainSocketChannel;
 import io.netty.channel.unix.DomainSocketChannel;
+import java.util.function.Supplier;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -54,6 +55,18 @@ public class Platform {
     } catch (ClassNotFoundException e) {
       return false;
     }
+  }
+
+  public static Supplier<ThreadPoolResource> getThreadPoolResourceSupplier() {
+    if (Platform.getCapabilities().isKQueueAvailable()) {
+      return KQueuePoolResource::new;
+    }
+
+    if (Platform.getCapabilities().isEPollAvailable()) {
+      return EpollResource::new;
+    }
+    // TODO support IO-Uring and NIO
+    throw new RuntimeException("Current platform supports no known thread pool resources");
   }
 
   /**
