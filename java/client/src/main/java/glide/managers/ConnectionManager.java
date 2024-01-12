@@ -14,6 +14,8 @@ import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.exceptions.ClosingException;
 import glide.connectors.handlers.ChannelHandler;
+import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.GenericFutureListener;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import response.ResponseOuterClass.RequestError;
@@ -186,9 +188,24 @@ public class ConnectionManager {
     return null;
   }
 
-  /** Close the connection and the corresponding channel. */
+  /** Close the connection to the channel. */
+
+  /**
+   * Close the connection to the channel.
+   * @return a CompletableFuture to indicate the channel is closed
+   */
   public CompletableFuture<Void> closeConnection() {
-    // TODO: return the channel close future
-    return CompletableFuture.runAsync(channel::close);
+    CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+    channel.close().syncUninterruptibly().addListener((GenericFutureListener<ChannelFuture>) future -> {
+      if (future.isCancelled()) {
+        completableFuture.cancel(false);
+      }
+      else if (future.isDone()) {
+        completableFuture.complete(null);
+      }
+      completableFuture.completeExceptionally(new RuntimeException("Channel failed to close"));
+    }
+    );
+    return completableFuture;
   }
 }

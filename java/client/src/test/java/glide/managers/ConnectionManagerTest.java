@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +25,7 @@ import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RedisCredentials;
 import glide.api.models.exceptions.ClosingException;
 import glide.connectors.handlers.ChannelHandler;
+import io.netty.channel.ChannelFuture;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
@@ -52,9 +54,15 @@ public class ConnectionManagerTest {
   private static int REQUEST_TIMEOUT = 3;
 
   @BeforeEach
-  public void setUp() {
+  public void setUp() throws ExecutionException, InterruptedException {
     channel = mock(ChannelHandler.class);
+    ChannelFuture closeFuture = mock(ChannelFuture.class);
+    when(closeFuture.syncUninterruptibly()).thenReturn(closeFuture);
+    when(channel.close()).thenReturn(closeFuture);
     connectionManager = new ConnectionManager(channel);
+  }
+
+  public void teardown() {
   }
 
   @SneakyThrows
@@ -85,9 +93,6 @@ public class ConnectionManagerTest {
     // verify
     // no exception
     assertNull(result.get());
-
-    // TODO: channel may not be completed since we don't wait for the close() to complete
-    // verify(channel).close();
   }
 
   @SneakyThrows
@@ -218,8 +223,7 @@ public class ConnectionManagerTest {
 
     assertTrue(executionException.getCause() instanceof ClosingException);
     assertEquals("Unexpected empty data in response", executionException.getCause().getMessage());
-    // TODO: channel may not be completed since we don't wait for the close to complete
-    // verify(channel).close();
+    verify(channel).close();
   }
 
   @Test
@@ -244,9 +248,8 @@ public class ConnectionManagerTest {
     // verify
     ExecutionException exception = assertThrows(ExecutionException.class, result::get);
     assertTrue(exception.getCause() instanceof ClosingException);
-
-    // TODO: channel may not be completed since we don't wait for the close() to complete
-    // verify(channel).close();
+    
+    verify(channel).close();
   }
 
   @Test
