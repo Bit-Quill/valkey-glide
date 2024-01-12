@@ -57,8 +57,7 @@ public class CommandManager {
                 .build())
         .setRoute(
             redis_request.RedisRequestOuterClass.Routes.newBuilder()
-                .setSimpleRoutes(
-                    redis_request.RedisRequestOuterClass.SimpleRoutes.AllNodes)
+                .setSimpleRoutes(redis_request.RedisRequestOuterClass.SimpleRoutes.AllNodes)
                 .build());
   }
 
