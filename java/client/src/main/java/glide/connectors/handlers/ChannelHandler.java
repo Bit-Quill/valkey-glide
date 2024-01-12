@@ -1,17 +1,11 @@
 package glide.connectors.handlers;
 
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
-import glide.connectors.resources.Platform;
-import glide.connectors.resources.ThreadPoolAllocator;
+import glide.connectors.resources.ThreadPoolResource;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.unix.DomainSocketAddress;
-import io.netty.channel.unix.DomainSocketChannel;
-import io.netty.channel.unix.UnixChannel;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import redis_request.RedisRequestOuterClass.RedisRequest;
 import response.ResponseOuterClass.Response;
@@ -27,43 +21,27 @@ public class ChannelHandler {
     private final Channel channel;
     private final CallbackDispatcher callbackDispatcher;
 
-    /** Open a new channel for a new client. */
-    public ChannelHandler(CallbackDispatcher callbackDispatcher, String socketPath)
-            throws InterruptedException {
-        this(
-                ThreadPoolAllocator.createOrGetNettyThreadPool(THREAD_POOL_NAME, Optional.empty()),
-                Platform.getClientUdsNettyChannelType(),
-                new ProtobufSocketChannelInitializer(callbackDispatcher),
-                new DomainSocketAddress(socketPath),
-                callbackDispatcher);
-    }
-
     /**
-     * Open a new channel for a new client and running it on the provided EventLoopGroup
-     *
-     * @param eventLoopGroup - ELG to run handler on
-     * @param domainSocketChannelClass - socket channel class for Handler
-     * @param channelInitializer - UnixChannel initializer
-     * @param domainSocketAddress - address to connect
+     * Open a new channel for a new client and running it on the provided EventLoopGroup.
      * @param callbackDispatcher - dispatcher to handle callbacks
+     * @param socketPath - address to connect
+     * @param threadPoolResource - resource to choose ELG and domainSocketChannelClass
      */
-    public ChannelHandler(
-            EventLoopGroup eventLoopGroup,
-            Class<? extends DomainSocketChannel> domainSocketChannelClass,
-            ChannelInitializer<UnixChannel> channelInitializer,
-            DomainSocketAddress domainSocketAddress,
-            CallbackDispatcher callbackDispatcher)
-            throws InterruptedException {
-        channel =
-                new Bootstrap()
-                        .group(eventLoopGroup)
-                        .channel(domainSocketChannelClass)
-                        .handler(channelInitializer)
-                        .connect(domainSocketAddress)
-                        .sync()
-                        .channel();
-        this.callbackDispatcher = callbackDispatcher;
-    }
+  public ChannelHandler(
+      CallbackDispatcher callbackDispatcher,
+      String socketPath,
+      ThreadPoolResource threadPoolResource) throws InterruptedException {
+
+    channel =
+        new Bootstrap()
+            .group(threadPoolResource.getEventLoopGroup())
+            .channel(threadPoolResource.getDomainSocketChannelClass())
+            .handler(new ProtobufSocketChannelInitializer(callbackDispatcher))
+            .connect(new DomainSocketAddress(socketPath))
+                .sync()
+            .channel();
+    this.callbackDispatcher = callbackDispatcher;
+  }
 
     /**
      * Complete a protobuf message and write it to the channel (to UDS).
