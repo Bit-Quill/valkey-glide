@@ -5,6 +5,7 @@ import glide.api.commands.RedisExceptionCheckedFunction;
 import glide.connectors.handlers.ChannelHandler;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
+import redis_request.RedisRequestOuterClass;
 import response.ResponseOuterClass.Response;
 
 /**
@@ -18,7 +19,7 @@ public class CommandManager {
   private final ChannelHandler channel;
 
   /**
-   * /** Build a command and submit it Netty to send.
+   * Build a command and send.
    *
    * @param command
    * @param responseHandler - to handle the response object
@@ -41,31 +42,30 @@ public class CommandManager {
    * @return An uncompleted request. CallbackDispatcher is responsible to complete it by adding a
    *     callback id.
    */
-  private redis_request.RedisRequestOuterClass.RedisRequest.Builder prepareRedisRequest(
+  private RedisRequestOuterClass.RedisRequest.Builder prepareRedisRequest(
       Command.RequestType command, String[] args) {
-    redis_request.RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
-        redis_request.RedisRequestOuterClass.Command.ArgsArray.newBuilder();
+    RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
+        RedisRequestOuterClass.Command.ArgsArray.newBuilder();
     for (var arg : args) {
       commandArgs.addArgs(arg);
     }
 
-    return redis_request.RedisRequestOuterClass.RedisRequest.newBuilder()
+    return RedisRequestOuterClass.RedisRequest.newBuilder()
         .setSingleCommand(
-            redis_request.RedisRequestOuterClass.Command.newBuilder()
+            RedisRequestOuterClass.Command.newBuilder()
                 .setRequestType(mapRequestTypes(command))
                 .setArgsArray(commandArgs.build())
                 .build())
         .setRoute(
-            redis_request.RedisRequestOuterClass.Routes.newBuilder()
-                .setSimpleRoutes(redis_request.RedisRequestOuterClass.SimpleRoutes.AllNodes)
+            RedisRequestOuterClass.Routes.newBuilder()
+                .setSimpleRoutes(RedisRequestOuterClass.SimpleRoutes.AllNodes)
                 .build());
   }
 
-  private redis_request.RedisRequestOuterClass.RequestType mapRequestTypes(
-      Command.RequestType inType) {
+  private RedisRequestOuterClass.RequestType mapRequestTypes(Command.RequestType inType) {
     switch (inType) {
       case CUSTOM_COMMAND:
-        return redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
+        return RedisRequestOuterClass.RequestType.CustomCommand;
     }
     throw new RuntimeException("Unsupported request type");
   }
