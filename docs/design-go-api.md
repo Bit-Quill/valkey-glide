@@ -10,7 +10,7 @@ This document presents the high-level user API for the Go-Wrapper client library
 
 ```go
 config := glide.config.NewClientConfiguration().
-		WithAddresses([]glide.config.AddressInfo{{Host: host, Port: port}}).
+		WithAddress(glide.config.AddressInfo{Host: host, Port: port}).
 		WithUseTLS(true)
 
 // Create a client and connect
@@ -42,22 +42,22 @@ defer client.Close()
 ### Case 4: Connect to RedisClusterClient
 ```go
 // TODO: the Python client auto-discovers all addresses, do we need to do the same?
-config := glide.config.NewClientConfiguration().
+config := glide.config.NewClusterClientConfiguration().
 		WithAddresses([]AddressInfo{
 			{Host: host1, Port: port1},
 			{Host: host2, Port: port2},
 		}).
 		WithUseTLS(true)
 
-client, err := glide.client.CreateRedisClient(config)
+client, err := glide.client.CreateRedisClusterClient(config)
 ```
 
-### Case 5: Connect to RedisClient and receive RESP2 responses (Future)
+### Case 5: Connect to RedisClient and receive RESP2 responses
 ```go
 config := glide.config.NewClientConfiguration().
 		WithAddresses([]glide.config.AddressInfo{{Host: host, Port: port}}).
 		WithUseTLS(true).
-        WithUseRESP2(true)
+		WithUseRESP2(true)  // TODO: this field does not exist in the Python client, do we need it?
 
 // Create a client and connect
 client, err := glide.client.CreateRedisClient(config)
@@ -119,12 +119,12 @@ thirdResponse := result[2]  // evaluates to nil
 
 ### Case 11: Send get request to a RedisClusterClient with one address
 ```go
-config := glide.config.NewClientConfiguration().
+config := glide.config.NewClusterClientConfiguration().
 		WithAddresses([]glide.config.AddressInfo{{Host: host, Port: port}}).
 		WithUseTLS(true)
 
 // Create a client and connect
-client, err := glide.client.CreateRedisClient(config)
+client, err := glide.client.CreateRedisCluserClient(config)
 if err != nil {
     log.Fatal("Redis client failed with: " + err.Error())
 }
@@ -134,7 +134,7 @@ result, err := client.Get("apples")
 
 ### Case 12: Send get request to a RedisClusterClient with multiple addresses
 ```go
-config := glide.config.NewClientConfiguration().
+config := glide.config.NewClusterClientConfiguration().
 		WithAddresses([]AddressInfo{
 			{Host: host1, Port: port1},
 			{Host: host2, Port: port2},
@@ -142,7 +142,7 @@ config := glide.config.NewClientConfiguration().
 		WithUseTLS(true)
 
 // Create a client and connect
-client, err := glide.client.CreateRedisClient(config)
+client, err := glide.client.CreateRedisClusterClient(config)
 if err != nil {
     log.Fatal("Redis client failed with: " + err.Error())
 }
