@@ -20,10 +20,17 @@ client, err := glide.client.CreateRedisClient(config)
 ### Case 2: Connection to RedisClient fails with ConnectionError
 ```go
 client, err := glide.client.CreateRedisClient(config)
+
+// User can check specifically for a ConnectionError:
 if err != nil {
     if connErr, ok := err.(glide.errors.ConnectionError); ok {  
         log.Fatal("Failed to connect to Redis: " + connErr.Error())
     }
+}
+
+// Or user can simply log the error message:
+if err != nil {
+	log.Fatal("Redis client failed with: " + err.Error())
 }
 ```
 
