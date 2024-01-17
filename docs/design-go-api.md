@@ -6,20 +6,24 @@ This document presents the high-level user API for the Go-Wrapper client library
 
 # Use Cases
 
-### Case 1: Connect to RedisClient
+### Case 1: Create Redis client and connect
 
 ```go
-config := glide.config.NewClientConfiguration().
+var config *StandaloneClientConfiguration = glide.config.standalone.NewClientConfiguration().
 		WithAddress(glide.config.AddressInfo{Host: host, Port: port}).
 		WithUseTLS(true)
 
 // Create a client and connect
-client, err := glide.client.CreateRedisClient(config)
+var client *RedisClient
+var err error
+client, err = glide.client.standalone.CreateClient(config)
 ```
 
-### Case 2: Connection to RedisClient fails with ConnectionError
+### Case 2: Connection to Redis fails with ConnectionError
 ```go
-client, err := glide.client.CreateRedisClient(config)
+var client *RedisClient
+var err error
+client, err := glide.client.standalone.CreateClient(config)
 
 // User can check specifically for a ConnectionError:
 if err != nil {
@@ -34,9 +38,11 @@ if err != nil {
 }
 ```
 
-### Case 3: Connect to RedisClient with deferred cleanup
+### Case 3: Connect to Redis with deferred cleanup
 ```go
-client, err := glide.client.CreateRedisClient(config)
+var client *RedisClient
+var err error
+client, err := glide.client.standalone.CreateClient(config)
 if err != nil {
     log.Fatal("Redis client failed with: " + err.Error())
 }
@@ -46,52 +52,39 @@ defer client.Close()
 // continue using client...
 ```
 
-### Case 4: Connect to RedisClusterClient
+### Case 4: Connect to Redis cluster
 ```go
-// TODO: the Python client auto-discovers all addresses, do we need to do the same?
-config := glide.config.NewClusterClientConfiguration().
+var config *StandaloneClientConfiguration
+config = glide.config.cluster.NewClientConfiguration().
 		WithAddresses([]AddressInfo{
 			{Host: host1, Port: port1},
 			{Host: host2, Port: port2},
 		}).
 		WithUseTLS(true)
 
-client, err := glide.client.CreateRedisClusterClient(config)
+var client *RedisClusterClient
+var err error
+client, err := glide.client.cluster.CreateClient(config)
 ```
 
-### Case 5: Connect to RedisClient and receive RESP2 responses
-```go
-config := glide.config.NewClientConfiguration().
-		WithAddresses([]glide.config.AddressInfo{{Host: host, Port: port}}).
-		WithUseTLS(true).
-		WithUseRESP2(true)  // TODO: this field does not exist in the Python client, do we need it?
-
-// Create a client and connect
-client, err := glide.client.CreateRedisClient(config)
-if err != nil {
-    log.Fatal("Redis client failed with: " + err.Error())
-}
-
-result, err := client.Get("apples")
-```
-
-### Case 6: Get(key) from connected RedisClient
+### Case 5: Get(key) from connected RedisClient
 ```go
 result, err := client.Get("apples")
 ```
 
-### Case 7: Set(key, value) from connected RedisClient
+### Case 6: Set(key, value) from connected RedisClient
 ```go
 // Without setOptions
 err = client.Set("apples", "oranges")
 
 // With setOptions
-setOptions := glide.commands.options.NewSetOptions().
+var setOptions *SetOptions
+setOptions = glide.commands.options.NewSetOptions().
     WithReturnOldValue(true)
 oldValue, err := client.SetWithOptions("apples", "oranges", setOptions)
 ```
 
-### Case 8: Get(key) from a disconnected RedisClient
+### Case 7: Get(key) from a disconnected RedisClient
 Return a glide.errors.ConnectionError if the RedisClient is closed/disconnected
 ```go
 result, err := client.Get("apples")
@@ -102,19 +95,33 @@ if err != nil {
 }
 ```
 
-### Case 9: Send customCommand to RedisClient
+### Case 8: Send customCommand to RedisClient
 ```go
-result, err := client.CustomCommand([]{"GET", "apples"})
+var result interface{}
+var err error
+
+result, err = client.CustomCommand([]{"GET", "apples"})
+if err != nil {
+	log.Fatal("RedisClient failed to execute custom command with: " + err.Error())
+}
+
+var strResult string
+var ok bool
+if strResult, ok = result.(string); !ok {
+	log.Fatal("Expected result to be of type string but the actual type was: " + reflect.TypeOf(result))
+}
 ```
 
-### Case 10: Send transaction to RedisClient
+### Case 9: Send transaction to RedisClient
 ```go
 transaction := glide.commands.NewTransaction()
 transaction.Get("apples")
 transaction.Get("pears")
 transaction.Set("cherries", "Bing")
 
-result, err := client.Exec(transaction)
+var result []interface{}
+var err error
+result, err = client.Exec(transaction)
 if err != nil {
     log.Fatal("Redis client transaction failed with: " + err.Error())
 }
@@ -124,14 +131,17 @@ secondResponse := result[1]
 thirdResponse := result[2]  // evaluates to nil
 ```
 
-### Case 11: Send get request to a RedisClusterClient with one address
+### Case 10: Send get request to a RedisClusterClient with one address
 ```go
-config := glide.config.NewClusterClientConfiguration().
+var config *ClusterClientConfiguration
+config = glide.config.cluster.NewClientConfiguration().
 		WithAddresses([]glide.config.AddressInfo{{Host: host, Port: port}}).
 		WithUseTLS(true)
 
 // Create a client and connect
-client, err := glide.client.CreateRedisCluserClient(config)
+var client *RedisClusterClient
+var err error
+client, err := glide.client.cluster.CreateClient(config)
 if err != nil {
     log.Fatal("Redis client failed with: " + err.Error())
 }
@@ -139,9 +149,10 @@ if err != nil {
 result, err := client.Get("apples")
 ```
 
-### Case 12: Send get request to a RedisClusterClient with multiple addresses
+### Case 11: Send get request to a RedisClusterClient with multiple addresses
 ```go
-config := glide.config.NewClusterClientConfiguration().
+var config *ClusterClientConfiguration
+config := glide.config.cluster.NewClientConfiguration().
 		WithAddresses([]AddressInfo{
 			{Host: host1, Port: port1},
 			{Host: host2, Port: port2},
@@ -149,7 +160,9 @@ config := glide.config.NewClusterClientConfiguration().
 		WithUseTLS(true)
 
 // Create a client and connect
-client, err := glide.client.CreateRedisClusterClient(config)
+var client *RedisClusterClient
+var err error
+client, err := glide.client.cluster.CreateClient(config)
 if err != nil {
     log.Fatal("Redis client failed with: " + err.Error())
 }
@@ -157,20 +170,8 @@ if err != nil {
 result, err := client.Get("apples")
 ```
 
-### Case 13: Request is interrupted
+### Case 12: Request times out
 ```go
-// TODO: is this case still applicable in Go?
-result, err := client.Get("apples")
-if err != nil {
-    if connErr, ok := err.(glide.errors.InterruptedError); ok {  
-        log.Fatal("RedisClient get failed with: " + connErr.Error())
-    }
-}
-```
-
-### Case 14: Request timesout
-```go
-// TODO: is this case still applicable in Go?
 result, err := client.Get("apples")
 if err != nil {
     if connErr, ok := err.(glide.errors.TimeoutError); ok {  
