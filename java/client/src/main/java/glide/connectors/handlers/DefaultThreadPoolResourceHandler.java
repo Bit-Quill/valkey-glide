@@ -1,9 +1,10 @@
-package glide.connectors.resources;
+package glide.connectors.handlers;
 
+import glide.connectors.resources.ThreadPoolResource;
 import java.util.function.Supplier;
 
 /** A class responsible to allocating and deallocating the default Thread Pool Resource. */
-public class ThreadPoolResourceAllocator {
+public class DefaultThreadPoolResourceHandler {
   private static final Object lock = new Object();
   private static ThreadPoolResource defaultThreadPoolResource = null;
 

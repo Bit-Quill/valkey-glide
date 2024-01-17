@@ -110,7 +110,7 @@ tasks.withType(Test) {
 jacocoTestReport {
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['**/connection_request/**', '**/response/**', '**/redis_request/**'])
+            fileTree(dir: it, exclude: ['**/connection_request/**', '**/response/**', '**/redis_request/**', '**/connectors/resources/**'])
         }))
     }
 }

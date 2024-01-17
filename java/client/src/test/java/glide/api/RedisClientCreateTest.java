@@ -6,10 +6,13 @@ import static glide.api.RedisClient.buildCommandManager;
 import static glide.api.RedisClient.buildConnectionManager;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.exceptions.ClosingException;
@@ -17,6 +20,7 @@ import glide.connectors.handlers.ChannelHandler;
 import glide.connectors.resources.ThreadPoolResource;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
@@ -66,13 +70,18 @@ public class RedisClientCreateTest {
     when(connectionManager.connectToRedis(eq(config))).thenReturn(connectToRedisFuture);
     mockedClient.when(() -> CreateClient(config)).thenCallRealMethod();
 
-    // exercise
-    CompletableFuture<RedisClient> result = CreateClient(config);
-    RedisClient client = result.get();
+    CompletableFuture<Void> closeRedisFuture = new CompletableFuture<>();
+    closeRedisFuture.complete(null);
+    when(connectionManager.closeConnection()).thenReturn(closeRedisFuture);
 
-    // verify
-    assertEquals(connectionManager, client.connectionManager);
-    assertEquals(commandManager, client.commandManager);
+    // exercise
+    try (RedisClient client = CreateClient(config).get()) {
+      // verify
+      assertEquals(connectionManager, client.connectionManager);
+      assertEquals(commandManager, client.commandManager);
+    }
+
+    verify(connectionManager, times(1)).closeConnection();
   }
 
   @SneakyThrows
@@ -95,5 +104,66 @@ public class RedisClientCreateTest {
 
     // verify
     assertEquals(exception, executionException.getCause());
+  }
+
+  @SneakyThrows
+  @Test
+  public void redisClientClose_throwsCancellationException() {
+
+    // setup
+    CompletableFuture<Void> connectToRedisFuture = new CompletableFuture<>();
+    connectToRedisFuture.complete(null);
+    RedisClientConfiguration config =
+        RedisClientConfiguration.builder().threadPoolResource(threadPoolResource).build();
+
+    when(connectionManager.connectToRedis(eq(config))).thenReturn(connectToRedisFuture);
+    mockedClient.when(() -> CreateClient(config)).thenCallRealMethod();
+
+    CompletableFuture<Void> closeRedisFuture = new CompletableFuture<>();
+    InterruptedException interruptedException = new InterruptedException("Interrupted");
+    closeRedisFuture.cancel(true);
+    when(connectionManager.closeConnection()).thenReturn(closeRedisFuture);
+
+    // exercise
+    try (RedisClient client = CreateClient(config).get()) {
+      // verify
+      assertEquals(connectionManager, client.connectionManager);
+      assertEquals(commandManager, client.commandManager);
+    } catch (Exception cancellationException) {
+      assertTrue(cancellationException instanceof CancellationException);
+    }
+
+    verify(connectionManager, times(1)).closeConnection();
+  }
+
+  @SneakyThrows
+  @Test
+  public void redisClientClose_throwsInterruptedException() {
+
+    // setup
+    CompletableFuture<Void> connectToRedisFuture = new CompletableFuture<>();
+    connectToRedisFuture.complete(null);
+    RedisClientConfiguration config =
+        RedisClientConfiguration.builder().threadPoolResource(threadPoolResource).build();
+
+    when(connectionManager.connectToRedis(eq(config))).thenReturn(connectToRedisFuture);
+    mockedClient.when(() -> CreateClient(config)).thenCallRealMethod();
+
+    CompletableFuture<Void> closeRedisFuture = mock(CompletableFuture.class);
+    InterruptedException interruptedException = new InterruptedException("Interrupted");
+    when(closeRedisFuture.get()).thenThrow(interruptedException);
+
+    when(connectionManager.closeConnection()).thenReturn(closeRedisFuture);
+
+    // exercise
+    try (RedisClient client = CreateClient(config).get()) {
+      // verify
+      assertEquals(connectionManager, client.connectionManager);
+      assertEquals(commandManager, client.commandManager);
+    } catch (Exception exception) {
+      assertEquals(interruptedException, exception.getCause());
+    }
+
+    verify(connectionManager, times(1)).closeConnection();
   }
 }

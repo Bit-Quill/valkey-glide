@@ -1,4 +1,4 @@
-package glide.connectors.resources;
+package glide.connectors.handlers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -6,17 +6,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import glide.connectors.resources.ThreadPoolResource;
 import io.netty.channel.EventLoopGroup;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
-public class ThreadPoolResourceAllocatorTest {
+public class DefaultThreadPoolResourceHandlerTest {
 
-  ThreadPoolResourceAllocator service;
+  DefaultThreadPoolResourceHandler service;
 
   @Test
   public void getOrCreateReturnsDefault() {
-    (new ThreadPoolResourceAllocator.ShutdownHook()).run();
+    (new DefaultThreadPoolResourceHandler.ShutdownHook()).run();
 
     ThreadPoolResource mockedThreadPool = mock(ThreadPoolResource.class);
     Supplier<ThreadPoolResource> threadPoolSupplier = mock(Supplier.class);
@@ -38,6 +39,6 @@ public class ThreadPoolResourceAllocatorTest {
     // remove the mocked resource
     EventLoopGroup mockedELG = mock(EventLoopGroup.class);
     when(mockedThreadPool.getEventLoopGroup()).thenReturn(mockedELG);
-    (new ThreadPoolResourceAllocator.ShutdownHook()).run();
+    (new DefaultThreadPoolResourceHandler.ShutdownHook()).run();
   }
 }
