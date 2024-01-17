@@ -1,10 +1,7 @@
 package glide.connectors.resources;
 
 import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueDomainSocketChannel;
-import io.netty.channel.unix.DomainSocketChannel;
 import java.util.function.Supplier;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
