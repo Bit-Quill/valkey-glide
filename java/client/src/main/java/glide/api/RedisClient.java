@@ -6,6 +6,7 @@ import glide.api.commands.BaseCommands;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
+import glide.connectors.resources.Platform;
 import glide.connectors.resources.ThreadPoolResource;
 import glide.connectors.resources.ThreadPoolResourceAllocator;
 import glide.managers.CommandManager;
@@ -28,7 +29,7 @@ public class RedisClient extends BaseClient implements BaseCommands {
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
     ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
     if (threadPoolResource == null) {
-      threadPoolResource = ThreadPoolResourceAllocator.createOrGetThreadPoolResource();
+      threadPoolResource = ThreadPoolResourceAllocator.getOrCreate(Platform.getThreadPoolResourceSupplier());
     }
     ChannelHandler channelHandler = buildChannelHandler(threadPoolResource);
     var connectionManager = buildConnectionManager(channelHandler);

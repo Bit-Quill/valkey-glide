@@ -68,19 +68,4 @@ public class Platform {
     // TODO support IO-Uring and NIO
     throw new RuntimeException("Current platform supports no known thread pool resources");
   }
-
-  /**
-   * Get a channel class required by Netty to open a client UDS channel.
-   *
-   * @return Return a class supported by the current platform.
-   */
-  public static Class<? extends DomainSocketChannel> getClientUdsNettyChannelType() {
-    if (capabilities.isKQueueAvailable()) {
-      return KQueueDomainSocketChannel.class;
-    }
-    if (capabilities.isEPollAvailable()) {
-      return EpollDomainSocketChannel.class;
-    }
-    throw new RuntimeException("Current platform supports no known socket types");
-  }
 }
