@@ -63,24 +63,30 @@ jobs:
               uses: ./.github/workflows/install-redis
               with:
                   redis-version: ${{ matrix.redis }}
+                  
+            - name: Install tree
+              if: ${{ matrix.os == 'macos-latest' }}
+              run: brew install tree
 
-            - name: Build rust part
-              working-directory: java
-              run: cargo build --release
-
-            - name: Build java part
+            - name: Build java client
               working-directory: java
               run: ./gradlew --continue build
+              
+            - name: test
+              run: |
+                pwd
+                tree utils/clusters/
 
             - name: Upload test reports
               if: always()
               continue-on-error: true
               uses: actions/upload-artifact@v4
               with:
-                  name: test-reports-${{ matrix.java }}
+                  name: test-reports-java-${{ matrix.java }}-redis-${{ matrix.redis }}-${{ matrix.os }}
                   path: |
                       java/client/build/reports/**
                       java/integTest/build/reports/**
+                      utils/clusters/**
 
     build-amazonlinux-latest:
         if: github.repository_owner == 'aws'
