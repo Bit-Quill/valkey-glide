@@ -23,7 +23,7 @@ public class RedisClient extends BaseClient implements BaseCommands {
    * Request an async (non-blocking) Redis client in Standalone mode.
    *
    * @param config - Redis Client Configuration
-   * @return a promise to connect and return a RedisClient
+   * @return a future to connect and return a RedisClient
    */
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
     ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
