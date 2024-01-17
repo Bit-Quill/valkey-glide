@@ -29,7 +29,8 @@ public class RedisClient extends BaseClient implements BaseCommands {
   public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
     ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
     if (threadPoolResource == null) {
-      threadPoolResource = ThreadPoolResourceAllocator.getOrCreate(Platform.getThreadPoolResourceSupplier());
+      threadPoolResource =
+          ThreadPoolResourceAllocator.getOrCreate(Platform.getThreadPoolResourceSupplier());
     }
     ChannelHandler channelHandler = buildChannelHandler(threadPoolResource);
     var connectionManager = buildConnectionManager(channelHandler);

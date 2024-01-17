@@ -15,8 +15,7 @@ public class KQueuePoolResource extends ThreadPoolResource {
     this(
         new KQueueEventLoopGroup(
             Runtime.getRuntime().availableProcessors(),
-            new DefaultThreadFactory(KQUEUE_EVENT_LOOP_IDENTIFIER, true))
-    );
+            new DefaultThreadFactory(KQUEUE_EVENT_LOOP_IDENTIFIER, true)));
   }
 
   public KQueuePoolResource(KQueueEventLoopGroup eventLoopGroup) {

@@ -15,8 +15,7 @@ public class EpollResource extends ThreadPoolResource {
     this(
         new EpollEventLoopGroup(
             Runtime.getRuntime().availableProcessors(),
-            new DefaultThreadFactory(EPOLL_EVENT_LOOP_IDENTIFIER, true))
-    );
+            new DefaultThreadFactory(EPOLL_EVENT_LOOP_IDENTIFIER, true)));
   }
 
   public EpollResource(EpollEventLoopGroup epollEventLoopGroup) {
