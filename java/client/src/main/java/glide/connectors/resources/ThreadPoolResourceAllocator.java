@@ -7,11 +7,8 @@ public class ThreadPoolResourceAllocator {
   private static final Object lock = new Object();
   private static ThreadPoolResource defaultThreadPoolResource = null;
 
-  public static ThreadPoolResource createOrGetThreadPoolResource() {
-    return getOrCreate(Platform.getThreadPoolResourceSupplier());
-  }
-
-  private static ThreadPoolResource getOrCreate(Supplier<ThreadPoolResource> supplier) {
+  public static ThreadPoolResource getOrCreate(Supplier<ThreadPoolResource> supplier) {
+    // once the default is set, we want to avoid hitting the lock
     if (defaultThreadPoolResource != null) {
       return defaultThreadPoolResource;
     }
@@ -30,11 +27,12 @@ public class ThreadPoolResourceAllocator {
    * resources. It is recommended to use a class instead of lambda to ensure that it is called.<br>
    * See {@link Runtime#addShutdownHook}.
    */
-  private static class ShutdownHook implements Runnable {
+  protected static class ShutdownHook implements Runnable {
     @Override
     public void run() {
       if (defaultThreadPoolResource != null) {
         defaultThreadPoolResource.getEventLoopGroup().shutdownGracefully();
+        defaultThreadPoolResource = null;
       }
     }
   }

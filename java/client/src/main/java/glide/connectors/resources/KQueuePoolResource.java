@@ -12,11 +12,11 @@ public class KQueuePoolResource extends ThreadPoolResource {
   private static final String KQUEUE_EVENT_LOOP_IDENTIFIER = "glide-channel-kqueue-elg";
 
   public KQueuePoolResource() {
-    super(
+    this(
         new KQueueEventLoopGroup(
             Runtime.getRuntime().availableProcessors(),
-            new DefaultThreadFactory(KQUEUE_EVENT_LOOP_IDENTIFIER, true)),
-        KQueueDomainSocketChannel.class);
+            new DefaultThreadFactory(KQUEUE_EVENT_LOOP_IDENTIFIER, true))
+    );
   }
 
   public KQueuePoolResource(KQueueEventLoopGroup eventLoopGroup) {

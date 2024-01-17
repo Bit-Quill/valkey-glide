@@ -12,11 +12,11 @@ public class EpollResource extends ThreadPoolResource {
   private static final String EPOLL_EVENT_LOOP_IDENTIFIER = "glide-channel-epoll-elg";
 
   public EpollResource() {
-    super(
+    this(
         new EpollEventLoopGroup(
             Runtime.getRuntime().availableProcessors(),
-            new DefaultThreadFactory(EPOLL_EVENT_LOOP_IDENTIFIER, true)),
-        EpollDomainSocketChannel.class);
+            new DefaultThreadFactory(EPOLL_EVENT_LOOP_IDENTIFIER, true))
+    );
   }
 
   public EpollResource(EpollEventLoopGroup epollEventLoopGroup) {
