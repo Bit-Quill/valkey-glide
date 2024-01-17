@@ -1,6 +1,9 @@
 package glide.api;
 
-import static glide.api.RedisClient.*;
+import static glide.api.RedisClient.CreateClient;
+import static glide.api.RedisClient.buildChannelHandler;
+import static glide.api.RedisClient.buildCommandManager;
+import static glide.api.RedisClient.buildConnectionManager;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
