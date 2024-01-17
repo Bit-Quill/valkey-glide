@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class ConfigurationTest {
+public class RedisClientConfigurationTest {
   private static String HOST = "aws.com";
   private static int PORT = 9999;
 
