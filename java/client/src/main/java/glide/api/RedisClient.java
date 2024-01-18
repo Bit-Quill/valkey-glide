@@ -9,6 +9,8 @@ import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -30,7 +32,7 @@ public class RedisClient extends BaseClient implements BaseCommands {
     // TODO: Support exception throwing, including interrupted exceptions
     return connectionManager
         .connectToRedis(config)
-        .thenApply(ignore -> new RedisClient(connectionManager, commandManager));
+        .thenApplyAsync(ignore -> new RedisClient(connectionManager, commandManager));
   }
 
   protected static ChannelHandler buildChannelHandler() {
@@ -61,5 +63,18 @@ public class RedisClient extends BaseClient implements BaseCommands {
     Command command =
         Command.builder().requestType(Command.RequestType.CUSTOM_COMMAND).arguments(args).build();
     return commandManager.submitNewCommand(command, BaseCommands::handleObjectResponse);
+  }
+
+  @Override
+  public CompletableFuture<Object[]> customTransaction(String[][] args) {
+    List<Command> commands = new ArrayList<>();
+    for (var command : args) {
+      commands.add(
+          Command.builder()
+              .requestType(Command.RequestType.CUSTOM_COMMAND)
+              .arguments(command)
+              .build());
+    }
+    return commandManager.submitNewTransaction(commands, BaseCommands::handleTransactionResponse);
   }
 }

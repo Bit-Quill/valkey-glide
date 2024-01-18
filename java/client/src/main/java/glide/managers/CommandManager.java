@@ -3,9 +3,14 @@ package glide.managers;
 import glide.api.commands.Command;
 import glide.api.commands.RedisExceptionCheckedFunction;
 import glide.connectors.handlers.ChannelHandler;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import redis_request.RedisRequestOuterClass;
+import redis_request.RedisRequestOuterClass.Command.ArgsArray;
+import redis_request.RedisRequestOuterClass.RedisRequest;
+import redis_request.RedisRequestOuterClass.RequestType;
+import redis_request.RedisRequestOuterClass.Transaction;
 import response.ResponseOuterClass.Response;
 
 /**
@@ -21,8 +26,8 @@ public class CommandManager {
   /**
    * Build a command and send.
    *
-   * @param command
-   * @param responseHandler - to handle the response object
+   * @param command The command to execute
+   * @param responseHandler The handler of the response object
    * @return A result promise of type T
    */
   public <T> CompletableFuture<T> submitNewCommand(
@@ -31,8 +36,35 @@ public class CommandManager {
     // create protobuf message from command
     // submit async call
     return channel
-        .write(prepareRedisRequest(command.getRequestType(), command.getArguments()), true)
-        .thenApplyAsync(response -> responseHandler.apply(response));
+        .write(
+            RedisRequest.newBuilder()
+                .setSingleCommand(
+                    prepareRedisCommand(command.getRequestType(), command.getArguments())),
+            true)
+        .thenApplyAsync(responseHandler::apply);
+  }
+
+  /**
+   * Build a transaction and send.
+   *
+   * @param transaction The command to execute
+   * @param responseHandler The handler of the response object
+   * @return A result promise of type T
+   */
+  public <T> CompletableFuture<T> submitNewTransaction(
+      List<Command> transaction, RedisExceptionCheckedFunction<Response, T> responseHandler) {
+    // register callback
+    // create protobuf message from command
+    // submit async call
+    var transactionBuilder = Transaction.newBuilder();
+    for (var command : transaction) {
+      transactionBuilder.addCommands(
+          prepareRedisCommand(command.getRequestType(), command.getArguments()));
+    }
+
+    return channel
+        .write(RedisRequest.newBuilder().setTransaction(transactionBuilder.build()), true)
+        .thenApplyAsync(responseHandler::apply);
   }
 
   /**
@@ -42,30 +74,23 @@ public class CommandManager {
    * @return An uncompleted request. CallbackDispatcher is responsible to complete it by adding a
    *     callback id.
    */
-  private RedisRequestOuterClass.RedisRequest.Builder prepareRedisRequest(
+  private RedisRequestOuterClass.Command prepareRedisCommand(
       Command.RequestType command, String[] args) {
-    RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
-        RedisRequestOuterClass.Command.ArgsArray.newBuilder();
+    ArgsArray.Builder commandArgs = ArgsArray.newBuilder();
     for (var arg : args) {
       commandArgs.addArgs(arg);
     }
 
-    return RedisRequestOuterClass.RedisRequest.newBuilder()
-        .setSingleCommand(
-            RedisRequestOuterClass.Command.newBuilder()
-                .setRequestType(mapRequestTypes(command))
-                .setArgsArray(commandArgs.build())
-                .build())
-        .setRoute(
-            RedisRequestOuterClass.Routes.newBuilder()
-                .setSimpleRoutes(RedisRequestOuterClass.SimpleRoutes.AllNodes)
-                .build());
+    return RedisRequestOuterClass.Command.newBuilder()
+        .setRequestType(mapRequestTypes(command))
+        .setArgsArray(commandArgs.build())
+        .build();
   }
 
-  private RedisRequestOuterClass.RequestType mapRequestTypes(Command.RequestType inType) {
+  private RequestType mapRequestTypes(Command.RequestType inType) {
     switch (inType) {
       case CUSTOM_COMMAND:
-        return RedisRequestOuterClass.RequestType.CustomCommand;
+        return RequestType.CustomCommand;
     }
     throw new RuntimeException("Unsupported request type");
   }

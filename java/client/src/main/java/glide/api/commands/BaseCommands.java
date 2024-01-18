@@ -1,7 +1,6 @@
 package glide.api.commands;
 
 import glide.ffi.resolvers.RedisValueResolver;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import response.ResponseOuterClass.Response;
 
@@ -9,7 +8,7 @@ import response.ResponseOuterClass.Response;
 public interface BaseCommands {
 
   /**
-   * default Object handler from response
+   * The default Object handler from response
    *
    * @return BaseCommandResponseResolver to deliver the response
    */
@@ -19,7 +18,7 @@ public interface BaseCommands {
 
   /**
    * Extracts the response from the Protobuf response and either throws an exception or returns the
-   * appropriate response has an Object
+   * appropriate response as an Object
    *
    * @param response Redis protobuf message
    * @return Response Object
@@ -27,23 +26,29 @@ public interface BaseCommands {
   static Object handleObjectResponse(Response response) {
     // return function to convert protobuf.Response into the response object by
     // calling valueFromPointer
-    return BaseCommands.applyBaseCommandResponseResolver().apply(response);
+    return applyBaseCommandResponseResolver().apply(response);
   }
 
-  public static List<Object> handleTransactionResponse(Response response) {
+  static Object[] handleTransactionResponse(Response response) {
     // return function to convert protobuf.Response into the response object by
     // calling valueFromPointer
 
-    List<Object> transactionResponse =
-        (List<Object>) BaseCommands.applyBaseCommandResponseResolver().apply(response);
-    return transactionResponse;
+    return (Object[]) applyBaseCommandResponseResolver().apply(response);
   }
 
   /**
-   * Execute a @see{Command} by sending command via socket manager
+   * Execute a custom {@link Command}.
    *
    * @param args arguments for the custom command
    * @return a CompletableFuture with response result from Redis
    */
   CompletableFuture<Object> customCommand(String[] args);
+
+  /**
+   * Execute a transaction of custom {@link Command}s.
+   *
+   * @param args arguments for the custom command
+   * @return a CompletableFuture with response result from Redis
+   */
+  CompletableFuture<Object[]> customTransaction(String[][] args);
 }
