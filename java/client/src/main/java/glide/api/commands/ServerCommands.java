@@ -1,6 +1,6 @@
 package glide.api.commands;
 
-import java.util.List;
+import glide.api.models.commands.InfoOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface ServerCommands {
 
-  CompletableFuture<Map> info();
+    CompletableFuture<Map> info();
 
-  CompletableFuture<Map> info(String[] options);
+    CompletableFuture<Map> info(InfoOptions options);
 }
