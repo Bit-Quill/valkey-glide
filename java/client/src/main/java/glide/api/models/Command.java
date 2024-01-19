@@ -1,4 +1,4 @@
-package glide.api.commands;
+package glide.api.models;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -20,5 +20,28 @@ public class Command {
     public enum RequestType {
         /** Call a custom command with list of string arguments */
         CUSTOM_COMMAND,
+
+        /** SERVER MANAGEMENT COMMANDS **/
+
+        /**
+         *
+         */
+        INFO,
+
+
+        /** STRING COMMANDS **/
+
+        /**
+         * Get the value of key.
+         *
+         * @see: <href=https://redis.io/commands/get/>command reference</a>
+         */
+        GET_STRING,
+        /**
+         * Set key to hold the string value.
+         *
+         * @see: <href=https://redis.io/commands/set/>command reference</a>
+         */
+        SET_STRING,
     }
 }
