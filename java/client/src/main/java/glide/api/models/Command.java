@@ -21,15 +21,17 @@ public class Command {
         /** Call a custom command with list of string arguments */
         CUSTOM_COMMAND,
 
-        /** SERVER MANAGEMENT COMMANDS **/
+        /** CONNECTION MANAGEMENT COMMANDS * */
 
-        /**
-         *
-         */
+        /** */
+        PING,
+
+        /** SERVER MANAGEMENT COMMANDS * */
+
+        /** */
         INFO,
 
-
-        /** STRING COMMANDS **/
+        /** STRING COMMANDS * */
 
         /**
          * Get the value of key.
