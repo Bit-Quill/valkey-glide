@@ -3,7 +3,8 @@ package glide.api.models.commands;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Options {
+/** Options base object to Options to a {@link glide.api.models.Command} */
+public abstract class Options {
 
     protected List optionArgs;
 

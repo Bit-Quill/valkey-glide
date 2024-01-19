@@ -78,4 +78,118 @@ public class RedisClient extends BaseClient implements BaseCommands {
                 Command.builder().requestType(Command.RequestType.CUSTOM_COMMAND).arguments(args).build();
         return commandManager.submitNewCommand(command, BaseClient::handleObjectResponse);
     }
+
+    /**
+     * Ping the Redis server.
+     *
+     * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
+     * @returns the String "PONG"
+     */
+    @Override
+    public CompletableFuture<String> ping() {
+        Command command = Command.builder().requestType(Command.RequestType.PING).build();
+        return commandManager.submitNewCommand(command, ResponseHandlers::handleStringResponse);
+    }
+
+    /**
+     * Ping the Redis server.
+     *
+     * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
+     * @param msg - the ping argument that will be returned.
+     * @returns return a copy of the argument.
+     */
+    @Override
+    public CompletableFuture<String> ping(String msg) {
+        Command command =
+                Command.builder()
+                        .requestType(Command.RequestType.PING)
+                        .arguments(new String[] {msg})
+                        .build();
+        return commandManager.submitNewCommand(command, ResponseHandlers::handleStringResponse);
+    }
+
+    /**
+     * Get information and statistics about the Redis server. DEFAULT option is assumed
+     *
+     * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
+     * @return CompletableFuture with the response
+     */
+    @Override
+    public CompletableFuture<Map> info() {
+        Command command = Command.builder().requestType(Command.RequestType.INFO).build();
+        return commandManager.submitNewCommand(command, ResponseHandlers::handleMapResponse);
+    }
+
+    /**
+     * Get information and statistics about the Redis server.
+     *
+     * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
+     * @param options - A list of InfoSection values specifying which sections of information to
+     *     retrieve. When no parameter is provided, the default option is assumed.
+     * @return CompletableFuture with the response
+     */
+    @Override
+    public CompletableFuture<Map> info(InfoOptions options) {
+        Command command =
+                Command.builder()
+                        .requestType(Command.RequestType.INFO)
+                        .arguments(options.toInfoOptions())
+                        .build();
+        return commandManager.submitNewCommand(command, ResponseHandlers::handleMapResponse);
+    }
+
+    /**
+     * Get the value associated with the given key, or null if no such value exists.
+     *
+     * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
+     * @param key - The key to retrieve from the database.
+     * @return If `key` exists, returns the value of `key` as a string. Otherwise, return null
+     */
+    @Override
+    public CompletableFuture<String> get(String key) {
+        Command command =
+                Command.builder()
+                        .requestType(Command.RequestType.GET_STRING)
+                        .arguments(new String[] {key})
+                        .build();
+        return commandManager.submitNewCommand(command, ResponseHandlers::handleStringResponse);
+    }
+
+    /**
+     * Set the given key with the given value.
+     *
+     * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
+     * @param key - The key to store.
+     * @param value - The value to store with the given key.
+     * @return null
+     */
+    @Override
+    public CompletableFuture<Void> set(String key, String value) {
+        Command command =
+                Command.builder()
+                        .requestType(Command.RequestType.SET_STRING)
+                        .arguments(new String[] {key, value})
+                        .build();
+        return commandManager.submitNewCommand(command, ResponseHandlers::handleVoidResponse);
+    }
+
+    /**
+     * Set the given key with the given value. Return value is dependent on the passed options.
+     *
+     * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
+     * @param key - The key to store.
+     * @param value - The value to store with the given key.
+     * @param options - The Set options
+     * @return string or null If value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist`
+     *     conditions, return null. If `returnOldValue` is set, return the old value as a string.
+     */
+    @Override
+    public CompletableFuture<String> set(String key, String value, SetOptions options) {
+        Command command =
+                Command.builder()
+                        .requestType(Command.RequestType.SET_STRING)
+                        .arguments(options.toSetOptions(List.of(key, value)))
+                        .build();
+        return commandManager.submitNewCommand(command, ResponseHandlers::handleStringResponse);
+    }
 }

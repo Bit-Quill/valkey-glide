@@ -6,8 +6,11 @@ import java.util.List;
 import lombok.Builder;
 import lombok.NonNull;
 
+/**
+ * Object builder to add optional arguments to {@link glide.api.commands.StringCommands#set(String,
+ * String, SetOptions)}
+ */
 @Builder
-@NonNull
 public class SetOptions extends Options {
 
     /**
@@ -86,6 +89,11 @@ public class SetOptions extends Options {
     public static String TIME_TO_LIVE_UNIX_SECONDS = "EXAT";
     public static String TIME_TO_LIVE_UNIX_MILLISECONDS = "PXAT";
 
+    /**
+     * Converts SetOptions into a String[] to add to a {@link glide.api.models.Command}
+     * @param arguments
+     * @return
+     */
     public String[] toSetOptions(List<String> arguments) {
         optionArgs = new LinkedList();
         if (conditionalSet != null) {

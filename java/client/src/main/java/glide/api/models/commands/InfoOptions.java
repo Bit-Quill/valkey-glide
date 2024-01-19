@@ -1,14 +1,14 @@
 package glide.api.models.commands;
 
+import glide.api.commands.ServerCommands;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.Builder;
-import lombok.NonNull;
 import lombok.Singular;
 
+/** Object builder to add optional arguments to {@link ServerCommands#info(InfoOptions)} */
 @Builder
-@NonNull
 public class InfoOptions extends Options {
 
     @Singular private final List<Section> sections;
@@ -51,7 +51,7 @@ public class InfoOptions extends Options {
     }
 
     /**
-     * Converts options enum into a String[]
+     * Converts options enum into a String[] to add to a {@link glide.api.models.Command}
      *
      * @return String[]
      */
