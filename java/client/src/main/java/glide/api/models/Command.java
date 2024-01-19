@@ -23,26 +23,34 @@ public class Command {
 
         /** CONNECTION MANAGEMENT COMMANDS * */
 
-        /** */
+        /**
+         * Ping the Redis server.
+         *
+         * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
+         */
         PING,
 
         /** SERVER MANAGEMENT COMMANDS * */
 
-        /** */
+        /**
+         * Get information and statistics about the Redis server
+         *
+         * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
+         */
         INFO,
 
         /** STRING COMMANDS * */
 
         /**
-         * Get the value of key.
+         * Get the value associated with the given key, or null if no such value exists.
          *
-         * @see: <href=https://redis.io/commands/get/>command reference</a>
+         * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
          */
         GET_STRING,
         /**
-         * Set key to hold the string value.
+         * Set the given key with the given value.
          *
-         * @see: <href=https://redis.io/commands/set/>command reference</a>
+         * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
          */
         SET_STRING,
     }
