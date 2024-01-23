@@ -6,7 +6,7 @@ This document presents the high-level user API for the Go-Wrapper client library
 
 ## Requirements
 
-- The minimum supported Go version will be 1.18. This version was chosen because it added support for generics, including type constraints and type sets
+- The minimum supported Go version will be 1.18. This version was chosen because it added support for generics, including type constraints and type sets.
 - The API will be thread-safe.
 - The API will accept as inputs all of [RESP2 types](https://github.com/redis/redis-specifications/blob/master/protocol/RESP2.md). We plan to add support for RESP3 types when they are available.
 - The API will attempt authentication, topology refreshes, reconnections, etc., automatically. In case of failures concrete errors will be returned to the user.
