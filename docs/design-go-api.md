@@ -8,7 +8,7 @@ This document presents the high-level user API for the Go-Wrapper client library
 
 - The minimum supported Go version will be 1.18. This version was chosen because it added support for generics, including type constraints and type sets.
 - The API will be thread-safe.
-- The API will accept as inputs all of [RESP2 types](https://github.com/redis/redis-specifications/blob/master/protocol/RESP2.md). We plan to add support for RESP3 types when they are available.
+- The API will accept as inputs all [RESP3 types](https://github.com/redis/redis-specifications/blob/master/protocol/RESP3.md).
 - The API will attempt authentication, topology refreshes, reconnections, etc., automatically. In case of failures concrete errors will be returned to the user.
 
 # Use Cases
@@ -26,17 +26,17 @@ var err error
 client, err = glide.CreateClient(config)
 ```
 
-### Case 2: Connection to Redis fails with ConnectionError
+### Case 2: Connection to Redis fails with ClosingError
 ```go
 var client *glide.RedisClient
 var err error
 client, err := glide.CreateClient(config)
 
-// User can check specifically for a ConnectionError:
+// User can check specifically for a ClosingError:
 if err != nil {
-    connErr, isConnError := err.(glide.ConnectionError)
-    if isConnError {  
-        log.Fatal("Failed to connect to Redis: " + connErr.Error())
+    closingErr, isClosingErr := err.(glide.ClosingError)
+    if isClosingErr {  
+        log.Fatal("Failed to connect to Redis: " + closingErr.Error())
     }
 }
 
@@ -155,7 +155,7 @@ if err != nil {
 result, err := client.Get("apples")
 ```
 
-### Case 11: Send Get request to a RedisClusterClient with multiple addresses
+### Case 11: Send Ping request to a RedisClusterClient with multiple addresses
 ```go
 var config *glide.ClusterClientConfiguration
 config = glide.NewClusterClientConfiguration().
@@ -171,42 +171,37 @@ if err != nil {
     log.Fatal("Redis client failed with: " + err.Error())
 }
 
-result, err := client.GetWithRoutes("apples", glide.NewRoute(glide.AllNodes))
+// Without message or route
+result, err := client.Ping()
+
+// With message
+result, err := client.PingWithMessage("Ping received")
+
+// With route
+result, err := client.PingWithRoute(glide.NewRoute(glide.AllNodes))
+
+// With message and route
+result, err := client.PingWithMessageAndRoute("Ping received", glide.NewRoute(glide.AllNodes))
 ```
 
-### Case 12: Request times out, user retries up to a predetermined limit
+### Case 12: Get(key) encounters a TimeoutError
 ```go
-numRetries := 3
-
-for {
-    attempts := 0
-    result, err := client.Get("apples")
-
-    if err == nil {
-        break
-    }
-
+result, err := client.Get("apples")
+if err != nil {
     timeoutErr, isTimeoutErr := err.(glide.TimeoutError)
-    if isTimeoutErr {
-        fmt.Println("RedisClient Get encountered a TimeoutError")
-    } else {
-        log.Fatal("RedisClient Get failed with: " + err.Error())
-    } 
-
-    attempts += 1
-    if attempts == numRetries {
-        log.Fatal("RedisClient Get request hit the retry limit")
+    if isTimeoutErr {  
+        // Handle error as desired
     }
 }
 ```
 
-### Case 13: Get(key) encounters a ClosingError
+### Case 13: Get(key) encounters a ConnectionError
 ```go
-result, err := client.Get("apples")  // ClosingError is detected internally, client will internally close and perform any necessary cleanup steps
+result, err := client.Get("apples")
 if err != nil {
-    closingErr, isClosingErr := err.(glide.ClosingError)
-    if isClosingErr {  
-        log.Fatal("RedisClient get failed with: " + closingErr.Error())
+    connErr, isConnErr := err.(glide.ConnectionError)
+    if isConnErr {  
+        // Handle error as desired
     }
 }
 ```
