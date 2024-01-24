@@ -6,7 +6,7 @@ This document presents the high-level user API for the Go-Wrapper client library
 
 ## Requirements
 
-- The minimum supported Go version will be 1.18. This version was chosen because it added support for generics, including type constraints and type sets.
+- The minimum supported Go version will be 1.18. This version introduces support for generics, including type constraints and type sets.
 - The API will be thread-safe.
 - The API will accept as inputs all [RESP3 types](https://github.com/redis/redis-specifications/blob/master/protocol/RESP3.md).
 - The API will attempt authentication, topology refreshes, reconnections, etc., automatically. In case of failures concrete errors will be returned to the user.
@@ -39,25 +39,31 @@ if err != nil {
         log.Fatal("Failed to connect to Redis: " + closingErr.Error())
     }
 }
-
-// Or user can simply log the error message:
-if err != nil {
-    log.Fatal("Redis client failed with: " + err.Error())
-}
 ```
 
 ### Case 3: Connect to Redis with deferred cleanup
 ```go
-var client *glide.RedisClient
-var err error
-client, err = glide.CreateClient(config)
-if err != nil {
-    log.Fatal("Redis client failed with: " + err.Error())
+func connectAndGet(key string) string {
+    var client *glide.RedisClient
+    var err error
+    client, err = glide.CreateClient(config)
+    if err != nil {
+        log.Fatal("Redis client failed with: " + err.Error())
+    }
+
+    // client.Close() is executed when the function exits.
+    // The client is available until the end of the function.
+    defer client.Close()
+    
+    result, err := client.Get(key)
+    if err != nil {
+        // If we enter this branch, client.Close() will be executed after logging this message.
+        log.Fatal("Redis Get failed with: " + err.Error())
+    }
+
+    // client.Close() will be executed when the result is returned.
+    return result
 }
-
-defer client.Close()
-
-// continue using client...
 ```
 
 ### Case 4: Connect to Redis cluster
@@ -76,6 +82,7 @@ client, err = glide.CreateClusterClient(config)
 ### Case 5: Get(key) from connected RedisClient
 ```go
 result, err := client.Get("apples")
+fmt.Println("The value associated with 'apples' is: " + result)
 ```
 
 ### Case 6: Set(key, value) from connected RedisClient
@@ -91,7 +98,7 @@ oldValue, err := client.SetWithOptions("apples", "oranges", setOptions)
 ```
 
 ### Case 7: Get(key) from a disconnected RedisClient
-Return a glide.ConnectionError if the RedisClient is closed/disconnected
+Return a glide.ConnectionError if the RedisClient fails to connect to Redis
 ```go
 result, err := client.Get("apples")
 if err != nil {
@@ -132,8 +139,8 @@ if err != nil {
     log.Fatal("Redis client transaction failed with: " + err.Error())
 }
 
-firstResponse := result[0]
-secondResponse := result[1]
+firstResponse := result[0]  // evaluates to a string
+secondResponse := result[1]  // evaluates to a string
 thirdResponse := result[2]  // evaluates to nil
 ```
 
