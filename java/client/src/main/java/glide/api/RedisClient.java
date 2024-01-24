@@ -28,18 +28,25 @@ public class RedisClient extends BaseClient implements BaseCommands {
      */
     public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config)
             throws InterruptedException {
-        ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
-        if (threadPoolResource == null) {
-            threadPoolResource =
-                    ThreadPoolResourceAllocator.getOrCreate(Platform.getThreadPoolResourceSupplier());
+        try {
+            ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
+            if (threadPoolResource == null) {
+                threadPoolResource =
+                        ThreadPoolResourceAllocator.getOrCreate(Platform.getThreadPoolResourceSupplier());
+            }
+            ChannelHandler channelHandler = buildChannelHandler(threadPoolResource);
+            var connectionManager = buildConnectionManager(channelHandler);
+            var commandManager = buildCommandManager(channelHandler);
+            // TODO: Support exception throwing, including interrupted exceptions
+            return connectionManager
+                    .connectToRedis(config)
+                    .thenApply(ignore -> new RedisClient(connectionManager, commandManager));
+        } catch (InterruptedException e) {
+            // Something bad happened while we were establishing netty connection to UDS
+            var future = new CompletableFuture<RedisClient>();
+            future.completeExceptionally(e);
+            return future;
         }
-        ChannelHandler channelHandler = buildChannelHandler(threadPoolResource);
-        var connectionManager = buildConnectionManager(channelHandler);
-        var commandManager = buildCommandManager(channelHandler);
-        // TODO: Support exception throwing, including interrupted exceptions
-        return connectionManager
-                .connectToRedis(config)
-                .thenApply(ignore -> new RedisClient(connectionManager, commandManager));
     }
 
     protected static ChannelHandler buildChannelHandler(ThreadPoolResource threadPoolResource)
