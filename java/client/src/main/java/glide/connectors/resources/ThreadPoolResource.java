@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NonNull;
 
 /**
- * Abstract base class that sets up the EventLoopGroup and channel configuration for Netty
- * applications.
+ * Abstract base class that provides the EventLoopGroup and DomainSocketChannel to be used by the
+ * Netty protocol.
  */
 @Getter
 public abstract class ThreadPoolResource {

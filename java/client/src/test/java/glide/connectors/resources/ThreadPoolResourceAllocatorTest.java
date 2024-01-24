@@ -16,7 +16,7 @@ public class ThreadPoolResourceAllocatorTest {
 
   @Test
   public void getOrCreateReturnsDefault() {
-    (new ThreadPoolResourceAllocator.ShutdownHook()).run();
+    new ThreadPoolResourceAllocator.ShutdownHook().run();
 
     ThreadPoolResource mockedThreadPool = mock(ThreadPoolResource.class);
     Supplier<ThreadPoolResource> threadPoolSupplier = mock(Supplier.class);
@@ -38,6 +38,6 @@ public class ThreadPoolResourceAllocatorTest {
     // remove the mocked resource
     EventLoopGroup mockedELG = mock(EventLoopGroup.class);
     when(mockedThreadPool.getEventLoopGroup()).thenReturn(mockedELG);
-    (new ThreadPoolResourceAllocator.ShutdownHook()).run();
+    new ThreadPoolResourceAllocator.ShutdownHook().run();
   }
 }
