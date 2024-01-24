@@ -63,19 +63,10 @@ jobs:
               uses: ./.github/workflows/install-redis
               with:
                   redis-version: ${{ matrix.redis }}
-                  
-            - name: Install tree
-              if: ${{ matrix.os == 'macos-latest' }}
-              run: brew install tree
 
             - name: Build java client
               working-directory: java
               run: ./gradlew --continue build
-              
-            - name: test
-              run: |
-                pwd
-                tree utils/clusters/
 
             - name: Upload test reports
               if: always()
