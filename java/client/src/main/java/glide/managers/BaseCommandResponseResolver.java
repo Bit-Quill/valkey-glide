@@ -14,13 +14,12 @@ public class BaseCommandResponseResolver
     private RedisExceptionCheckedFunction<Long, Object> respPointerResolver;
 
     /**
-     * Extracts value from the RESP pointer. <br>
-     * Throws errors when the response is unsuccessful.
+     * Extracts value from the RESP pointer.
      *
-     * @return A generic Object with the Response | null if the response is empty
+     * @return A generic Object with the Response or null if the response is empty
      */
     public Object apply(Response response) throws RedisException {
-        // Note: errors are already handled before
+        // Note: errors are already handled before in CallbackDispatcher
         if (response.hasConstantResponse()) {
             // Return "OK"
             return response.getConstantResponse().toString();

@@ -12,10 +12,8 @@ import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.exceptions.ClosingException;
 import glide.connectors.handlers.ChannelHandler;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import lombok.RequiredArgsConstructor;
-import response.ResponseOuterClass.RequestError;
 import response.ResponseOuterClass.Response;
 
 /**
