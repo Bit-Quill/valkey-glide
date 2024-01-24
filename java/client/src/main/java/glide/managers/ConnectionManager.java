@@ -38,7 +38,24 @@ public class ConnectionManager {
      */
     public CompletableFuture<Void> connectToRedis(BaseClientConfiguration configuration) {
         ConnectionRequest request = createConnectionRequest(configuration);
-        return channel.connect(request).thenApplyAsync(this::checkGlideRsResponse);
+        return channel
+                .connect(request)
+                .exceptionally(this::exceptionHandler)
+                .thenApplyAsync(this::checkGlideRsResponse);
+    }
+
+    /**
+     * Exception handler for future pipeline.
+     *
+     * @param e An exception thrown in the pipeline before
+     * @return Nothing, it rethrows the exception
+     */
+    private Response exceptionHandler(Throwable e) {
+        channel.close();
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
+        }
+        throw new RuntimeException(e);
     }
 
     /**
@@ -154,15 +171,7 @@ public class ConnectionManager {
 
     /** Check a response received from Glide. */
     private Void checkGlideRsResponse(Response response) {
-        if (response.hasRequestError()) {
-            RequestError error = response.getRequestError();
-            throwClosingError("Unexpected request error in response: " + error.getMessage());
-        }
-        if (response.hasClosingError()) {
-            // A closing error is thrown when Rust-core is not connected to Redis
-            // We want to close shop and throw a ClosingException
-            throwClosingError(response.getClosingError());
-        }
+        // Note: errors are already handled before
         if (response.hasRespPointer()) {
             throwClosingError("Unexpected data in response");
         }
@@ -173,12 +182,8 @@ public class ConnectionManager {
         return null;
     }
 
-    private void throwClosingError(String msg) throws ClosingException {
-        try {
-            closeConnection().get();
-        } catch (InterruptedException | ExecutionException exception) {
-            throw new RuntimeException(exception);
-        }
+    private void throwClosingError(String msg) {
+        closeConnection();
         throw new ClosingException(msg);
     }
 
@@ -188,6 +193,6 @@ public class ConnectionManager {
      * @return a CompletableFuture to indicate the channel is closed
      */
     public Future<Void> closeConnection() {
-        return channel.close().syncUninterruptibly();
+        return channel.close();
     }
 }
