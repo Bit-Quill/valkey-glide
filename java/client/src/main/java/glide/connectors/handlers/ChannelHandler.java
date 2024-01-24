@@ -23,25 +23,27 @@ public class ChannelHandler {
 
     /**
      * Open a new channel for a new client and running it on the provided EventLoopGroup.
+     *
      * @param callbackDispatcher - dispatcher to handle callbacks
      * @param socketPath - address to connect
      * @param threadPoolResource - resource to choose ELG and domainSocketChannelClass
      */
-  public ChannelHandler(
-      CallbackDispatcher callbackDispatcher,
-      String socketPath,
-      ThreadPoolResource threadPoolResource) throws InterruptedException {
+    public ChannelHandler(
+            CallbackDispatcher callbackDispatcher,
+            String socketPath,
+            ThreadPoolResource threadPoolResource)
+            throws InterruptedException {
 
-    channel =
-        new Bootstrap()
-            .group(threadPoolResource.getEventLoopGroup())
-            .channel(threadPoolResource.getDomainSocketChannelClass())
-            .handler(new ProtobufSocketChannelInitializer(callbackDispatcher))
-            .connect(new DomainSocketAddress(socketPath))
-                .sync()
-            .channel();
-    this.callbackDispatcher = callbackDispatcher;
-  }
+        channel =
+                new Bootstrap()
+                        .group(threadPoolResource.getEventLoopGroup())
+                        .channel(threadPoolResource.getDomainSocketChannelClass())
+                        .handler(new ProtobufSocketChannelInitializer(callbackDispatcher))
+                        .connect(new DomainSocketAddress(socketPath))
+                        .sync()
+                        .channel();
+        this.callbackDispatcher = callbackDispatcher;
+    }
 
     /**
      * Complete a protobuf message and write it to the channel (to UDS).

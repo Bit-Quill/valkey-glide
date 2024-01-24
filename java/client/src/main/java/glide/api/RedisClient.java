@@ -20,31 +20,33 @@ import java.util.concurrent.CompletableFuture;
  */
 public class RedisClient extends BaseClient implements BaseCommands {
 
-  /**
-   * Request an async (non-blocking) Redis client in Standalone mode.
-   *
-   * @param config - Redis Client Configuration
-   * @return a Future to connect and return a RedisClient
-   */
-  public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
-    ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
-    if (threadPoolResource == null) {
-      threadPoolResource =
-          ThreadPoolResourceAllocator.getOrCreate(Platform.getThreadPoolResourceSupplier());
+    /**
+     * Request an async (non-blocking) Redis client in Standalone mode.
+     *
+     * @param config - Redis Client Configuration
+     * @return a Future to connect and return a RedisClient
+     */
+    public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config)
+            throws InterruptedException {
+        ThreadPoolResource threadPoolResource = config.getThreadPoolResource();
+        if (threadPoolResource == null) {
+            threadPoolResource =
+                    ThreadPoolResourceAllocator.getOrCreate(Platform.getThreadPoolResourceSupplier());
+        }
+        ChannelHandler channelHandler = buildChannelHandler(threadPoolResource);
+        var connectionManager = buildConnectionManager(channelHandler);
+        var commandManager = buildCommandManager(channelHandler);
+        // TODO: Support exception throwing, including interrupted exceptions
+        return connectionManager
+                .connectToRedis(config)
+                .thenApply(ignore -> new RedisClient(connectionManager, commandManager));
     }
-    ChannelHandler channelHandler = buildChannelHandler(threadPoolResource);
-    var connectionManager = buildConnectionManager(channelHandler);
-    var commandManager = buildCommandManager(channelHandler);
-    // TODO: Support exception throwing, including interrupted exceptions
-    return connectionManager
-        .connectToRedis(config)
-        .thenApply(ignore -> new RedisClient(connectionManager, commandManager));
-  }
 
-  protected static ChannelHandler buildChannelHandler(ThreadPoolResource threadPoolResource) {
-    CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
-    return new ChannelHandler(callbackDispatcher, getSocket(), threadPoolResource);
-  }
+    protected static ChannelHandler buildChannelHandler(ThreadPoolResource threadPoolResource)
+            throws InterruptedException {
+        CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
+        return new ChannelHandler(callbackDispatcher, getSocket(), threadPoolResource);
+    }
 
     protected static ConnectionManager buildConnectionManager(ChannelHandler channelHandler) {
         return new ConnectionManager(channelHandler);

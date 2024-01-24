@@ -9,16 +9,16 @@ import io.netty.util.concurrent.DefaultThreadFactory;
  * configurations.
  */
 public class EpollResource extends ThreadPoolResource {
-  private static final String EPOLL_EVENT_LOOP_IDENTIFIER = "glide-channel-epoll-elg";
+    private static final String EPOLL_EVENT_LOOP_IDENTIFIER = "glide-channel-epoll-elg";
 
-  public EpollResource() {
-    this(
-        new EpollEventLoopGroup(
-            Runtime.getRuntime().availableProcessors(),
-            new DefaultThreadFactory(EPOLL_EVENT_LOOP_IDENTIFIER, true)));
-  }
+    public EpollResource() {
+        this(
+                new EpollEventLoopGroup(
+                        Runtime.getRuntime().availableProcessors(),
+                        new DefaultThreadFactory(EPOLL_EVENT_LOOP_IDENTIFIER, true)));
+    }
 
-  public EpollResource(EpollEventLoopGroup epollEventLoopGroup) {
-    super(epollEventLoopGroup, EpollDomainSocketChannel.class);
-  }
+    public EpollResource(EpollEventLoopGroup epollEventLoopGroup) {
+        super(epollEventLoopGroup, EpollDomainSocketChannel.class);
+    }
 }

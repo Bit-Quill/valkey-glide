@@ -54,15 +54,15 @@ public class Platform {
         }
     }
 
-  public static Supplier<ThreadPoolResource> getThreadPoolResourceSupplier() {
-    if (Platform.getCapabilities().isKQueueAvailable()) {
-      return KQueuePoolResource::new;
-    }
+    public static Supplier<ThreadPoolResource> getThreadPoolResourceSupplier() {
+        if (Platform.getCapabilities().isKQueueAvailable()) {
+            return KQueuePoolResource::new;
+        }
 
-    if (Platform.getCapabilities().isEPollAvailable()) {
-      return EpollResource::new;
+        if (Platform.getCapabilities().isEPollAvailable()) {
+            return EpollResource::new;
+        }
+        // TODO support IO-Uring and NIO
+        throw new RuntimeException("Current platform supports no known thread pool resources");
     }
-    // TODO support IO-Uring and NIO
-    throw new RuntimeException("Current platform supports no known thread pool resources");
-  }
 }

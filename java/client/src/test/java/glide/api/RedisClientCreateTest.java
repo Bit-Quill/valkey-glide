@@ -28,25 +28,25 @@ import org.mockito.Mockito;
 
 public class RedisClientCreateTest {
 
-  private MockedStatic<RedisClient> mockedClient;
-  private ChannelHandler channelHandler;
-  private ConnectionManager connectionManager;
-  private CommandManager commandManager;
-  private ThreadPoolResource threadPoolResource;
+    private MockedStatic<RedisClient> mockedClient;
+    private ChannelHandler channelHandler;
+    private ConnectionManager connectionManager;
+    private CommandManager commandManager;
+    private ThreadPoolResource threadPoolResource;
 
     @BeforeEach
     public void init() {
         mockedClient = Mockito.mockStatic(RedisClient.class);
 
-    channelHandler = mock(ChannelHandler.class);
-    commandManager = mock(CommandManager.class);
-    connectionManager = mock(ConnectionManager.class);
-    threadPoolResource = mock(ThreadPoolResource.class);
+        channelHandler = mock(ChannelHandler.class);
+        commandManager = mock(CommandManager.class);
+        connectionManager = mock(ConnectionManager.class);
+        threadPoolResource = mock(ThreadPoolResource.class);
 
-    mockedClient.when(() -> buildChannelHandler(any())).thenReturn(channelHandler);
-    mockedClient.when(() -> buildConnectionManager(channelHandler)).thenReturn(connectionManager);
-    mockedClient.when(() -> buildCommandManager(channelHandler)).thenReturn(commandManager);
-  }
+        mockedClient.when(() -> buildChannelHandler(any())).thenReturn(channelHandler);
+        mockedClient.when(() -> buildConnectionManager(channelHandler)).thenReturn(connectionManager);
+        mockedClient.when(() -> buildCommandManager(channelHandler)).thenReturn(commandManager);
+    }
 
     @AfterEach
     public void teardown() {
@@ -57,11 +57,11 @@ public class RedisClientCreateTest {
     @SneakyThrows
     public void createClient_withConfig_successfullyReturnsRedisClient() {
 
-    // setup
-    CompletableFuture<Void> connectToRedisFuture = new CompletableFuture<>();
-    connectToRedisFuture.complete(null);
-    RedisClientConfiguration config =
-        RedisClientConfiguration.builder().threadPoolResource(threadPoolResource).build();
+        // setup
+        CompletableFuture<Void> connectToRedisFuture = new CompletableFuture<>();
+        connectToRedisFuture.complete(null);
+        RedisClientConfiguration config =
+                RedisClientConfiguration.builder().threadPoolResource(threadPoolResource).build();
 
         when(connectionManager.connectToRedis(eq(config))).thenReturn(connectToRedisFuture);
         mockedClient.when(() -> CreateClient(config)).thenCallRealMethod();
@@ -84,8 +84,8 @@ public class RedisClientCreateTest {
         connectToRedisFuture.completeExceptionally(exception);
         RedisClientConfiguration config = RedisClientConfiguration.builder().build();
 
-    when(connectionManager.connectToRedis(any())).thenReturn(connectToRedisFuture);
-    mockedClient.when(() -> CreateClient(any())).thenCallRealMethod();
+        when(connectionManager.connectToRedis(any())).thenReturn(connectToRedisFuture);
+        mockedClient.when(() -> CreateClient(any())).thenCallRealMethod();
 
         // exercise
         CompletableFuture<RedisClient> result = CreateClient(config);
