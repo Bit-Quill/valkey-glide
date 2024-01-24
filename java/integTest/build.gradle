@@ -22,7 +22,6 @@ dependencies {
 tasks.register('stopAllAfterTests', Exec) {
     workingDir "${project.rootDir}/../utils"
     commandLine 'python3', 'cluster_manager.py', 'stop', '--prefix', 'redis-cluster', '--keep-folder'
-    ignoreExitValue true
 }
 
 // We need to call for stop before and after the test, but gradle doesn't support executing a task
@@ -31,7 +30,7 @@ tasks.register('stopAllAfterTests', Exec) {
 tasks.register('stopAllBeforeTests', Exec) {
     workingDir "${project.rootDir}/../utils"
     commandLine 'python3', 'cluster_manager.py', 'stop', '--prefix', 'redis-cluster'
-    ignoreExitValue true
+    ignoreExitValue true // ignore fail if servers are stopped before
 }
 
 // delete dirs if stop failed due to https://github.com/aws/glide-for-redis/issues/849
@@ -51,9 +50,10 @@ tasks.register('startStandalone', Exec) {
 
 test.dependsOn 'stopAllBeforeTests'
 stopAllBeforeTests.finalizedBy 'clearDirs'
-clearDirs.dependsOn 'startStandalone'
-clearDirs.dependsOn 'startCluster'
+clearDirs.finalizedBy 'startStandalone'
+clearDirs.finalizedBy 'startCluster'
 test.finalizedBy 'stopAllAfterTests'
+test.dependsOn ':client:buildRust'
 
 tasks.withType(Test) {
     systemProperty 'test.redis.standalone.port', '6380'
