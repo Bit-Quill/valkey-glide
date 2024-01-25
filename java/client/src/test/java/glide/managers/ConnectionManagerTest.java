@@ -13,10 +13,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import connection_request.ConnectionRequestOuterClass;
-import connection_request.ConnectionRequestOuterClass.TlsMode;
 import connection_request.ConnectionRequestOuterClass.AuthenticationInfo;
 import connection_request.ConnectionRequestOuterClass.ConnectionRequest;
 import connection_request.ConnectionRequestOuterClass.ConnectionRetryStrategy;
+import connection_request.ConnectionRequestOuterClass.TlsMode;
 import glide.api.models.configuration.BackoffStrategy;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.ReadFrom;
@@ -31,8 +31,6 @@ import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import response.ResponseOuterClass.RequestError;
-import response.ResponseOuterClass.RequestErrorType;
 import response.ResponseOuterClass.ConstantResponse;
 import response.ResponseOuterClass.Response;
 
@@ -76,8 +74,7 @@ public class ConnectionManagerTest {
                         .setReadFrom(ConnectionRequestOuterClass.ReadFrom.Primary)
                         .build();
         CompletableFuture<Response> completedFuture = new CompletableFuture<>();
-        Response response =
-                Response.newBuilder().setConstantResponse(ConstantResponse.OK).build();
+        Response response = Response.newBuilder().setConstantResponse(ConstantResponse.OK).build();
         completedFuture.complete(response);
 
         // execute
@@ -102,8 +99,7 @@ public class ConnectionManagerTest {
                         .setReadFrom(ConnectionRequestOuterClass.ReadFrom.Primary)
                         .build();
         CompletableFuture<Response> completedFuture = new CompletableFuture<>();
-        Response response =
-                Response.newBuilder().setConstantResponse(ConstantResponse.OK).build();
+        Response response = Response.newBuilder().setConstantResponse(ConstantResponse.OK).build();
         completedFuture.complete(response);
 
         // execute
@@ -163,8 +159,7 @@ public class ConnectionManagerTest {
                         .setDatabaseId(DATABASE_ID)
                         .build();
         CompletableFuture<Response> completedFuture = new CompletableFuture<>();
-        Response response =
-                Response.newBuilder().setConstantResponse(ConstantResponse.OK).build();
+        Response response = Response.newBuilder().setConstantResponse(ConstantResponse.OK).build();
         completedFuture.complete(response);
 
         // execute
@@ -182,8 +177,7 @@ public class ConnectionManagerTest {
         // setup
         RedisClientConfiguration redisClientConfiguration = RedisClientConfiguration.builder().build();
         CompletableFuture<Response> completedFuture = new CompletableFuture<>();
-        Response response =
-                Response.newBuilder().setConstantResponse(ConstantResponse.OK).build();
+        Response response = Response.newBuilder().setConstantResponse(ConstantResponse.OK).build();
         completedFuture.complete(response);
 
         // execute
@@ -226,9 +220,9 @@ public class ConnectionManagerTest {
         // execute
         when(channel.connect(any())).thenReturn(completedFuture);
         ExecutionException executionException =
-            assertThrows(
-                ExecutionException.class,
-                () -> connectionManager.connectToRedis(redisClientConfiguration).get());
+                assertThrows(
+                        ExecutionException.class,
+                        () -> connectionManager.connectToRedis(redisClientConfiguration).get());
 
         assertTrue(executionException.getCause() instanceof ClosingException);
         assertEquals("Unexpected data in response", executionException.getCause().getMessage());
