@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
-import response.ResponseOuterClass;
+import response.ResponseOuterClass.RequestError;
 import response.ResponseOuterClass.Response;
 
 /** Holder for resources required to dispatch responses and used by {@link ReadHandler}. */
@@ -85,7 +85,7 @@ public class CallbackDispatcher {
         freeRequestIds.add(callbackId);
         if (future != null) {
             if (response.hasRequestError()) {
-                ResponseOuterClass.RequestError error = response.getRequestError();
+                RequestError error = response.getRequestError();
                 String msg = error.getMessage();
                 switch (error.getType()) {
                     case Unspecified:
