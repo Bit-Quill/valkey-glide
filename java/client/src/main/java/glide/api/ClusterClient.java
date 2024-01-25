@@ -1,2 +1,3 @@
-package glide.api;public class ClusterClient {
-}
+package glide.api;
+
+public class ClusterClient {}

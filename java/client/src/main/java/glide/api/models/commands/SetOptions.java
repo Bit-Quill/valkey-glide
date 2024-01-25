@@ -91,6 +91,7 @@ public class SetOptions extends Options {
 
     /**
      * Converts SetOptions into a String[] to add to a {@link glide.api.models.Command}
+     *
      * @param arguments
      * @return
      */
