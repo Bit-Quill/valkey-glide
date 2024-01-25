@@ -68,6 +68,14 @@ public class CommandManager {
         switch (inType) {
             case CUSTOM_COMMAND:
                 return RequestType.CustomCommand;
+            case PING:
+                return RequestType.Ping;
+            case INFO:
+                return RequestType.Info;
+            case GET_STRING:
+                return RequestType.GetString;
+            case SET_STRING:
+                return RequestType.SetString;
         }
         throw new RuntimeException("Unsupported request type");
     }

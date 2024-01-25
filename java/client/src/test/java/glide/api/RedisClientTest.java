@@ -14,11 +14,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import glide.api.models.Command;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import glide.managers.models.Command;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

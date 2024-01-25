@@ -3,19 +3,28 @@ package glide.api;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 
 import glide.api.commands.BaseCommands;
+import glide.api.commands.ConnectionCommands;
+import glide.api.commands.GenericCommands;
+import glide.api.commands.ServerCommands;
+import glide.api.commands.StringCommands;
+import glide.api.models.commands.InfoOptions;
+import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import glide.managers.models.Command;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Async (non-blocking) client for Redis in Standalone mode. Use {@link
  * #CreateClient(RedisClientConfiguration)} to request a client to Redis.
  */
-public class RedisClient extends BaseClient implements BaseCommands {
+public class RedisClient extends BaseClient
+        implements BaseCommands, GenericCommands, ConnectionCommands, ServerCommands, StringCommands {
 
     /**
      * Request an async (non-blocking) Redis client in Standalone mode.
@@ -88,7 +97,7 @@ public class RedisClient extends BaseClient implements BaseCommands {
     @Override
     public CompletableFuture<String> ping() {
         Command command = Command.builder().requestType(Command.RequestType.PING).build();
-        return commandManager.submitNewCommand(command, ResponseHandlers::handleStringResponse);
+        return commandManager.submitNewCommand(command, BaseClient::handleStringResponse);
     }
 
     /**
@@ -105,7 +114,7 @@ public class RedisClient extends BaseClient implements BaseCommands {
                         .requestType(Command.RequestType.PING)
                         .arguments(new String[] {msg})
                         .build();
-        return commandManager.submitNewCommand(command, ResponseHandlers::handleStringResponse);
+        return commandManager.submitNewCommand(command, BaseClient::handleStringResponse);
     }
 
     /**
@@ -117,7 +126,7 @@ public class RedisClient extends BaseClient implements BaseCommands {
     @Override
     public CompletableFuture<Map> info() {
         Command command = Command.builder().requestType(Command.RequestType.INFO).build();
-        return commandManager.submitNewCommand(command, ResponseHandlers::handleMapResponse);
+        return commandManager.submitNewCommand(command, BaseClient::handleMapResponse);
     }
 
     /**
@@ -135,7 +144,7 @@ public class RedisClient extends BaseClient implements BaseCommands {
                         .requestType(Command.RequestType.INFO)
                         .arguments(options.toInfoOptions())
                         .build();
-        return commandManager.submitNewCommand(command, ResponseHandlers::handleMapResponse);
+        return commandManager.submitNewCommand(command, BaseClient::handleMapResponse);
     }
 
     /**
@@ -152,7 +161,7 @@ public class RedisClient extends BaseClient implements BaseCommands {
                         .requestType(Command.RequestType.GET_STRING)
                         .arguments(new String[] {key})
                         .build();
-        return commandManager.submitNewCommand(command, ResponseHandlers::handleStringResponse);
+        return commandManager.submitNewCommand(command, BaseClient::handleStringResponse);
     }
 
     /**
@@ -170,7 +179,7 @@ public class RedisClient extends BaseClient implements BaseCommands {
                         .requestType(Command.RequestType.SET_STRING)
                         .arguments(new String[] {key, value})
                         .build();
-        return commandManager.submitNewCommand(command, ResponseHandlers::handleVoidResponse);
+        return commandManager.submitNewCommand(command, BaseClient::handleVoidResponse);
     }
 
     /**
@@ -190,6 +199,6 @@ public class RedisClient extends BaseClient implements BaseCommands {
                         .requestType(Command.RequestType.SET_STRING)
                         .arguments(options.toSetOptions(List.of(key, value)))
                         .build();
-        return commandManager.submitNewCommand(command, ResponseHandlers::handleStringResponse);
+        return commandManager.submitNewCommand(command, BaseClient::handleStringResponse);
     }
 }
