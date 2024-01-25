@@ -15,6 +15,8 @@ import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import glide.managers.models.Command;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -200,5 +202,143 @@ public class RedisClient extends BaseClient
                         .arguments(options.toSetOptions(List.of(key, value)))
                         .build();
         return commandManager.submitNewCommand(command, BaseClient::handleStringResponse);
+    }
+
+    /**
+     * Decrements the number stored at `key` by one. If `key` does not exist, it is set to 0 before
+     * performing the operation.
+     *
+     * @see <a href="https://redis.io/commands/decr/">redis.io</a> for details.
+     * @param key - The key to decrement its value.
+     * @return the value of `key` after the decrement. An error is raised if `key` contains a value of
+     *     the wrong type or contains a string that can not be represented as integer.
+     */
+    @Override
+    public CompletableFuture<Long> decr(String key) {
+        Command command =
+                Command.builder()
+                        .requestType(Command.RequestType.DECR)
+                        .arguments(new String[] {key})
+                        .build();
+        return commandManager.submitNewCommand(command, BaseClient::handleLongResponse);
+    }
+
+    /**
+     * Decrements the number stored at `key` by `amount`. If `key` does not exist, it is set to 0
+     * before performing the operation.
+     *
+     * @see <a href="https://redis.io/commands/decrby/">redis.io</a> for details.
+     * @param key - The key to decrement its value.
+     * @param amount - The amount to decrement.
+     * @return the value of `key` after the decrement. An error is raised if `key` contains a value of
+     *     the wrong type or contains a string that can not be represented as integer.
+     */
+    @Override
+    public CompletableFuture<Long> decrBy(String key, long amount) {
+        Command command =
+                Command.builder()
+                        .requestType(Command.RequestType.DECR_BY)
+                        .arguments(new String[] {key, Long.toString(amount)})
+                        .build();
+        return commandManager.submitNewCommand(command, BaseClient::handleLongResponse);
+    }
+
+    /**
+     * Increments the number stored at `key` by one. If `key` does not exist, it is set to 0 before
+     * performing the operation.
+     *
+     * @see <a href="https://redis.io/commands/incr/">redis.io</a> for details.
+     * @param key - The key to increment its value.
+     * @return the value of `key` after the increment, An error is raised if `key` contains a value of
+     *     the wrong type or contains a string that can not be represented as integer.
+     */
+    @Override
+    public CompletableFuture<Long> incr(String key) {
+        Command command =
+                Command.builder()
+                        .requestType(Command.RequestType.INCR)
+                        .arguments(new String[] {key})
+                        .build();
+        return commandManager.submitNewCommand(command, BaseClient::handleLongResponse);
+    }
+
+    /**
+     * Increments the number stored at `key` by `amount`. If `key` does not exist, it is set to 0
+     * before performing the operation.
+     *
+     * @see <a href="https://redis.io/commands/incrby/">redis.io</a> for details.
+     * @param key - The key to increment its value.
+     * @param amount - The amount to increment.
+     * @returns the value of `key` after the increment, An error is raised if `key` contains a value
+     *     of the wrong type or contains a string that can not be represented as integer.
+     */
+    @Override
+    public CompletableFuture<Long> incrBy(String key, long amount) {
+        Command command =
+                Command.builder()
+                        .requestType(Command.RequestType.INCR_BY)
+                        .arguments(new String[] {key, Long.toString(amount)})
+                        .build();
+        return commandManager.submitNewCommand(command, BaseClient::handleLongResponse);
+    }
+
+    /**
+     * Increment the string representing a floating point number stored at `key` by `amount`. By using
+     * a negative increment value, the result is that the value stored at `key` is decremented. If
+     * `key` does not exist, it is set to 0 before performing the operation.
+     *
+     * @see <a href="https://redis.io/commands/incrbyfloat/">redis.io</a> for details.
+     * @param key - The key to increment its value.
+     * @param amount - The amount to increment.
+     * @returns the value of `key` after the increment. An error is raised if `key` contains a value
+     *     of the wrong type, or the current key content is not parsable as a double precision
+     *     floating point number.
+     */
+    @Override
+    public CompletableFuture<Double> incrByFloat(String key, double amount) {
+        Command command =
+                Command.builder()
+                        .requestType(Command.RequestType.INCR_BY_FLOAT)
+                        .arguments(new String[] {key, Double.toString(amount)})
+                        .build();
+        return commandManager.submitNewCommand(command, BaseClient::handleDoubleResponse);
+    }
+
+    /**
+     * Retrieve the values of multiple keys.
+     *
+     * @see <a href="https://redis.io/commands/mget/">redis.io</a> for details.
+     * @param keys - A list of keys to retrieve values for.
+     * @returns A list of values corresponding to the provided keys. If a key is not found, its
+     *     corresponding value in the list will be null.
+     */
+    @Override
+    public CompletableFuture<Object[]> mget(String[] keys) {
+        Command command =
+                Command.builder().requestType(Command.RequestType.MGET).arguments(keys).build();
+        return commandManager.submitNewCommand(command, BaseClient::handleObjectArrayResponse);
+    }
+
+    /**
+     * Set multiple keys to multiple values in a single operation.
+     *
+     * @see <a href="https://redis.io/commands/mset/">redis.io</a> for details.
+     * @param keyValueMap - A key-value map consisting of keys and their respective values to set.
+     * @returns null
+     */
+    @Override
+    public CompletableFuture<Void> mset(HashMap<String, String> keyValueMap) {
+        List<String> flatMap = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : keyValueMap.entrySet()) {
+            flatMap.add(entry.getKey());
+            flatMap.add(entry.getValue());
+        }
+
+        String[] args = flatMap.toArray(new String[0]);
+
+        Command command =
+                Command.builder().requestType(Command.RequestType.MSET).arguments(args).build();
+        return commandManager.submitNewCommand(command, BaseClient::handleVoidResponse);
     }
 }

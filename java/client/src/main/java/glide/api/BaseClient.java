@@ -67,6 +67,60 @@ public abstract class BaseClient implements AutoCloseable {
 
     /**
      * Extracts the response value from the Redis response and either throws an exception or returns
+     * the value as a Long.
+     *
+     * @param response Redis protobuf message
+     * @return Response as a Long
+     */
+    public static Long handleLongResponse(Response response) {
+        Object value = handleObjectResponse(response);
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        throw new RedisException(
+                "Unexpected return type from Redis: got "
+                        + value.getClass().getSimpleName()
+                        + " expected Long");
+    }
+
+    /**
+     * Extracts the response value from the Redis response and either throws an exception or returns
+     * the value as a Double.
+     *
+     * @param response Redis protobuf message
+     * @return Response as a Double
+     */
+    public static Double handleDoubleResponse(Response response) {
+        Object value = handleObjectResponse(response);
+        if (value instanceof Double) {
+            return (Double) value;
+        }
+        throw new RedisException(
+                "Unexpected return type from Redis: got "
+                        + value.getClass().getSimpleName()
+                        + " expected Double");
+    }
+
+    /**
+     * Extracts the response value from the Redis response and either throws an exception or returns
+     * the value as an Object Array.
+     *
+     * @param response Redis protobuf message
+     * @return Response as an Object Array
+     */
+    public static Object[] handleObjectArrayResponse(Response response) {
+        Object value = handleObjectResponse(response);
+        if (value instanceof Object[]) {
+            return (Object[]) value;
+        }
+        throw new RedisException(
+                "Unexpected return type from Redis: got "
+                        + value.getClass().getSimpleName()
+                        + " expected Object Array");
+    }
+
+    /**
+     * Extracts the response value from the Redis response and either throws an exception or returns
      * the * value as a HashMap
      *
      * @param response Redis protobuf message

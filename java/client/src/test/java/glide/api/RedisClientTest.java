@@ -317,4 +317,170 @@ public class RedisClientTest {
         assertNotNull(response);
         assertEquals(value, response.get());
     }
+
+    @Test
+    public void decr_success() throws ExecutionException, InterruptedException {
+        // setup
+        String key = "testKey";
+        Long value = 10L;
+        Command cmd =
+                Command.builder()
+                        .requestType(Command.RequestType.DECR)
+                        .arguments(new String[] {key})
+                        .build();
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.decr(key);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @Test
+    public void decrBy_success() throws ExecutionException, InterruptedException {
+        // setup
+        String key = "testKey";
+        long amount = 1L;
+        Long value = 10L;
+        Command cmd =
+                Command.builder()
+                        .requestType(Command.RequestType.DECR_BY)
+                        .arguments(new String[] {key, Long.toString(amount)})
+                        .build();
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.decrBy(key, amount);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @Test
+    public void incr_success() throws ExecutionException, InterruptedException {
+        // setup
+        String key = "testKey";
+        Long value = 10L;
+        Command cmd =
+                Command.builder()
+                        .requestType(Command.RequestType.INCR)
+                        .arguments(new String[] {key})
+                        .build();
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.incr(key);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @Test
+    public void incrBy_success() throws ExecutionException, InterruptedException {
+        // setup
+        String key = "testKey";
+        long amount = 1L;
+        Long value = 10L;
+        Command cmd =
+                Command.builder()
+                        .requestType(Command.RequestType.INCR_BY)
+                        .arguments(new String[] {key, Long.toString(amount)})
+                        .build();
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.incrBy(key, amount);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @Test
+    public void incrByFloat_success() throws ExecutionException, InterruptedException {
+        // setup
+        String key = "testKey";
+        double amount = 1.1;
+        Double value = 10.1;
+        Command cmd =
+                Command.builder()
+                        .requestType(Command.RequestType.INCR_BY_FLOAT)
+                        .arguments(new String[] {key, Double.toString(amount)})
+                        .build();
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Double> response = service.incrByFloat(key, amount);
+        Double payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @Test
+    public void mget_success() throws ExecutionException, InterruptedException {
+        // setup
+        String[] keys = {"Key1", "Key2"};
+        Object[] values = {"Value1", "Value2"};
+        Command cmd =
+                Command.builder()
+                        .requestType(Command.RequestType.MGET)
+                        .arguments(keys)
+                        .build();
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(values);
+        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Object[]> response = service.mget(keys);
+        Object[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(values, payload);
+    }
+
+    @Test
+    public void mset_success() throws ExecutionException, InterruptedException {
+        // setup
+        HashMap<String, String> keyValueMap = new HashMap<String, String>() {{
+            put("Key1", "Value1");
+        }};
+        String[] flattenedKeyValueMap = {"Key1", "Value1"};
+        Command cmd =
+                Command.builder()
+                        .requestType(Command.RequestType.MSET)
+                        .arguments(flattenedKeyValueMap)
+                        .build();
+        CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(null);
+        when(commandManager.<Void>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Void> response = service.mset(keyValueMap);
+        Object nullResponse = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertNull(nullResponse);
+    }
 }

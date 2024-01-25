@@ -76,6 +76,20 @@ public class CommandManager {
                 return RequestType.GetString;
             case SET_STRING:
                 return RequestType.SetString;
+            case DECR:
+                return RequestType.Decr;
+            case DECR_BY:
+                return RequestType.DecrBy;
+            case INCR:
+                return RequestType.Incr;
+            case INCR_BY:
+                return RequestType.IncrBy;
+            case INCR_BY_FLOAT:
+                return RequestType.IncrByFloat;
+            case MGET:
+                return RequestType.MGet;
+            case MSET:
+                return RequestType.MSet;
         }
         throw new RuntimeException("Unsupported request type");
     }
