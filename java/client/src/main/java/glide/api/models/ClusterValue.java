@@ -8,19 +8,19 @@ import java.util.Map;
  * @param <T> The wrapped data type
  */
 public class ClusterValue<T> {
-    /** Get per-node value. */
     private Map<String, T> multiValue = null;
 
-    /** Get the single value. */
     private T singleValue = null;
 
     private ClusterValue() {}
 
+    /** Get per-node value. */
     public Map<String, T> getMultiValue() {
         assert hasMultiData();
         return multiValue;
     }
 
+    /** Get the single value. */
     public T getSingleValue() {
         assert !hasMultiData();
         return singleValue;

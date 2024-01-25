@@ -23,7 +23,7 @@ public interface ClusterBaseCommands<T> extends BaseCommands<T> {
      *     <p><code>
      * Object result = client.customCommand(new String[]{ "CLIENT", "LIST", "TYPE", "PUBSUB" }).get();
      * </code>
-     * @param args Arguments for the custom command
+     * @param args Arguments for the custom command including the command name
      * @param route Routing configuration for the command
      * @return A <em>CompletableFuture</em> with response result from Redis
      */

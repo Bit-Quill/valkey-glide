@@ -22,7 +22,7 @@ public interface BaseCommands<T> {
      *     <p><code>
      * Object result = client.customCommand(new String[]{ "CLIENT", "LIST", "TYPE", "PUBSUB" }).get();
      * </code>
-     * @param args Arguments for the custom command
+     * @param args Arguments for the custom command including the command name
      * @return A <em>CompletableFuture</em> with response result from Redis
      */
     CompletableFuture<T> customCommand(String[] args);
