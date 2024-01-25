@@ -5,13 +5,13 @@ import static glide.api.RedisClient.buildCommandManager;
 import static glide.api.RedisClient.buildConnectionManager;
 
 import glide.api.commands.ClusterBaseCommands;
-import glide.api.commands.Command;
 import glide.api.models.ClusterValue;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.Route;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import glide.managers.models.Command;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -32,13 +32,20 @@ public class ClusterClient extends BaseClient implements ClusterBaseCommands<Clu
      */
     public static CompletableFuture<ClusterClient> CreateClient(
             RedisClusterClientConfiguration config) {
-        ChannelHandler channelHandler = buildChannelHandler();
-        ConnectionManager connectionManager = buildConnectionManager(channelHandler);
-        CommandManager commandManager = buildCommandManager(channelHandler);
-        // TODO: Support exception throwing, including interrupted exceptions
-        return connectionManager
-                .connectToRedis(config)
-                .thenApply(ignored -> new ClusterClient(connectionManager, commandManager));
+        try {
+            ChannelHandler channelHandler = buildChannelHandler();
+            ConnectionManager connectionManager = buildConnectionManager(channelHandler);
+            CommandManager commandManager = buildCommandManager(channelHandler);
+            // TODO: Support exception throwing, including interrupted exceptions
+            return connectionManager
+                    .connectToRedis(config)
+                    .thenApply(ignored -> new ClusterClient(connectionManager, commandManager));
+        } catch (InterruptedException e) {
+            // Something bad happened while we were establishing netty connection to UDS
+            var future = new CompletableFuture<ClusterClient>();
+            future.completeExceptionally(e);
+            return future;
+        }
     }
 
     @Override

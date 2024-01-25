@@ -7,9 +7,13 @@ import glide.managers.models.Command;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import redis_request.RedisRequestOuterClass;
-import redis_request.RedisRequestOuterClass.RequestType;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
 import redis_request.RedisRequestOuterClass.RedisRequest;
+import redis_request.RedisRequestOuterClass.RequestType;
+import redis_request.RedisRequestOuterClass.SimpleRoutes;
+import redis_request.RedisRequestOuterClass.SlotIdRoute;
+import redis_request.RedisRequestOuterClass.SlotKeyRoute;
+import redis_request.RedisRequestOuterClass.SlotTypes;
 import response.ResponseOuterClass.Response;
 
 /**
@@ -79,11 +83,11 @@ public class CommandManager {
     }
 
     private RequestType mapRequestTypes(Command.RequestType inType) {
-      switch (inType) {
-        case CUSTOM_COMMAND:
-          return RequestType.CustomCommand;
-      }
-      throw new RuntimeException("Unsupported request type");
+        switch (inType) {
+            case CUSTOM_COMMAND:
+                return RequestType.CustomCommand;
+        }
+        throw new RuntimeException("Unsupported request type");
     }
 
     /**
@@ -94,7 +98,7 @@ public class CommandManager {
      *     adding a callback id.
      */
     private RedisRequest.Builder prepareRedisRequest(
-        Command.RequestType command, String[] args, Route route) {
+            Command.RequestType command, String[] args, Route route) {
         RedisRequest.Builder builder = prepareRedisRequest(command, args);
 
         switch (route.getRouteType()) {
@@ -111,7 +115,7 @@ public class CommandManager {
                 builder.setRoute(
                         RedisRequestOuterClass.Routes.newBuilder()
                                 .setSlotKeyRoute(
-                                        RedisRequestOuterClass.SlotKeyRoute.newBuilder()
+                                        SlotKeyRoute.newBuilder()
                                                 .setSlotKey(route.getSlotKey())
                                                 .setSlotType(getSlotTypes(route.getRouteType()))));
                 break;
@@ -120,33 +124,33 @@ public class CommandManager {
                 builder.setRoute(
                         RedisRequestOuterClass.Routes.newBuilder()
                                 .setSlotIdRoute(
-                                        RedisRequestOuterClass.SlotIdRoute.newBuilder()
+                                        SlotIdRoute.newBuilder()
                                                 .setSlotId(route.getSlotId())
                                                 .setSlotType(getSlotTypes(route.getRouteType()))));
         }
         return builder;
     }
 
-    private RedisRequestOuterClass.SimpleRoutes getSimpleRoutes(Route.RouteType routeType) {
+    private SimpleRoutes getSimpleRoutes(Route.RouteType routeType) {
         switch (routeType) {
             case RANDOM:
-                return RedisRequestOuterClass.SimpleRoutes.Random;
+                return SimpleRoutes.Random;
             case ALL_NODES:
-                return RedisRequestOuterClass.SimpleRoutes.AllNodes;
+                return SimpleRoutes.AllNodes;
             case ALL_PRIMARIES:
-                return RedisRequestOuterClass.SimpleRoutes.AllPrimaries;
+                return SimpleRoutes.AllPrimaries;
         }
         throw new IllegalStateException("Unreachable code");
     }
 
-    private RedisRequestOuterClass.SlotTypes getSlotTypes(Route.RouteType routeType) {
+    private SlotTypes getSlotTypes(Route.RouteType routeType) {
         switch (routeType) {
             case PRIMARY_SLOT_ID:
             case PRIMARY_SLOT_KEY:
-                return RedisRequestOuterClass.SlotTypes.Primary;
+                return SlotTypes.Primary;
             case REPLICA_SLOT_ID:
             case REPLICA_SLOT_KEY:
-                return RedisRequestOuterClass.SlotTypes.Replica;
+                return SlotTypes.Replica;
         }
         throw new IllegalStateException("Unreachable code");
     }
