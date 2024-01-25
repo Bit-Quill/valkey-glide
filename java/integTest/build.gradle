@@ -53,7 +53,7 @@ stopAllBeforeTests.finalizedBy 'clearDirs'
 clearDirs.finalizedBy 'startStandalone'
 clearDirs.finalizedBy 'startCluster'
 test.finalizedBy 'stopAllAfterTests'
-test.dependsOn ':client:buildRust'
+test.dependsOn ':client:buildRustRelease'
 
 tasks.withType(Test) {
     systemProperty 'test.redis.standalone.port', '6380'
@@ -64,5 +64,5 @@ tasks.withType(Test) {
         events "started", "skipped", "passed", "failed"
         showStandardStreams true
     }
-    jvmArgs "-Djava.library.path=${project.rootDir}/target/debug"
+    jvmArgs "-Djava.library.path=${project.rootDir}/target/release"
 }
