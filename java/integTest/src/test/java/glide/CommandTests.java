@@ -17,11 +17,11 @@ public class CommandTests {
     @SneakyThrows
     public static void init() {
         regularClient =
-            RedisClient.CreateClient(
-                    RedisClientConfiguration.builder()
-                        .address(NodeAddress.builder().port(TestConfiguration.STANDALONE_PORT).build())
-                        .build())
-                .get(10, TimeUnit.SECONDS);
+                RedisClient.CreateClient(
+                                RedisClientConfiguration.builder()
+                                        .address(NodeAddress.builder().port(TestConfiguration.STANDALONE_PORT).build())
+                                        .build())
+                        .get(10, TimeUnit.SECONDS);
     }
 
     @AfterAll
