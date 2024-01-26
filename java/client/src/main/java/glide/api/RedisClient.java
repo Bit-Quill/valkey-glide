@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
  * Async (non-blocking) client for Redis in Standalone mode. Use {@link #CreateClient} to request a
  * client to Redis.
  */
-public class RedisClient extends BaseClient implements BaseCommands<Object> {
+public class RedisClient extends BaseClient implements BaseCommands {
 
     protected RedisClient(ConnectionManager connectionManager, CommandManager commandManager) {
         super(connectionManager, commandManager);

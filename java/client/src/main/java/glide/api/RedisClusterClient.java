@@ -18,9 +18,9 @@ import java.util.concurrent.CompletableFuture;
  * Async (non-blocking) client for Redis in Cluster mode. Use {@link #CreateClient} to request a
  * client to Redis.
  */
-public class ClusterClient extends BaseClient implements ClusterBaseCommands<ClusterValue<Object>> {
+public class RedisClusterClient extends BaseClient implements ClusterBaseCommands {
 
-    protected ClusterClient(ConnectionManager connectionManager, CommandManager commandManager) {
+    protected RedisClusterClient(ConnectionManager connectionManager, CommandManager commandManager) {
         super(connectionManager, commandManager);
     }
 
@@ -30,7 +30,7 @@ public class ClusterClient extends BaseClient implements ClusterBaseCommands<Clu
      * @param config Redis cluster client Configuration
      * @return a Future to connect and return a ClusterClient
      */
-    public static CompletableFuture<ClusterClient> CreateClient(
+    public static CompletableFuture<RedisClusterClient> CreateClient(
             RedisClusterClientConfiguration config) {
         try {
             ChannelHandler channelHandler = buildChannelHandler();
@@ -39,10 +39,10 @@ public class ClusterClient extends BaseClient implements ClusterBaseCommands<Clu
             // TODO: Support exception throwing, including interrupted exceptions
             return connectionManager
                     .connectToRedis(config)
-                    .thenApply(ignored -> new ClusterClient(connectionManager, commandManager));
+                    .thenApply(ignored -> new RedisClusterClient(connectionManager, commandManager));
         } catch (InterruptedException e) {
             // Something bad happened while we were establishing netty connection to UDS
-            var future = new CompletableFuture<ClusterClient>();
+            var future = new CompletableFuture<RedisClusterClient>();
             future.completeExceptionally(e);
             return future;
         }
