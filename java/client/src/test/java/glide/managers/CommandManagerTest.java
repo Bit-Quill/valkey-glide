@@ -25,6 +25,7 @@ import glide.api.models.exceptions.TimeoutException;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.models.Command;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +72,9 @@ public class CommandManagerTest {
         // exercise
         CompletableFuture result =
                 service.submitNewCommand(
-                        command, new BaseCommandResponseResolver((ptr) -> ptr == pointer ? respObject : null));
+                        command,
+                        Optional.empty(),
+                        new BaseCommandResponseResolver((ptr) -> ptr == pointer ? respObject : null));
         Object respPointer = result.get();
 
         // verify
@@ -89,7 +92,9 @@ public class CommandManagerTest {
         // exercise
         CompletableFuture result =
                 service.submitNewCommand(
-                        command, new BaseCommandResponseResolver((p) -> new RuntimeException("")));
+                        command,
+                        Optional.empty(),
+                        new BaseCommandResponseResolver((p) -> new RuntimeException("")));
         Object respPointer = result.get();
 
         // verify
@@ -113,7 +118,9 @@ public class CommandManagerTest {
         // exercise
         CompletableFuture result =
                 service.submitNewCommand(
-                        command, new BaseCommandResponseResolver((p) -> p == pointer ? testString : null));
+                        command,
+                        Optional.empty(),
+                        new BaseCommandResponseResolver((p) -> p == pointer ? testString : null));
         Object respPointer = result.get();
 
         // verify
@@ -140,7 +147,9 @@ public class CommandManagerTest {
                         () -> {
                             CompletableFuture result =
                                     service.submitNewCommand(
-                                            command, new BaseCommandResponseResolver((ptr) -> new Object()));
+                                            command,
+                                            Optional.empty(),
+                                            new BaseCommandResponseResolver((ptr) -> new Object()));
                             result.get();
                         });
 
@@ -174,7 +183,8 @@ public class CommandManagerTest {
                         ExecutionException.class,
                         () -> {
                             CompletableFuture result =
-                                    service.submitNewCommand(command, new BaseCommandResponseResolver((ptr) -> null));
+                                    service.submitNewCommand(
+                                            command, Optional.empty(), new BaseCommandResponseResolver((ptr) -> null));
                             result.get();
                         });
 
@@ -216,7 +226,7 @@ public class CommandManagerTest {
         ArgumentCaptor<RedisRequest.Builder> captor =
                 ArgumentCaptor.forClass(RedisRequest.Builder.class);
 
-        service.submitNewCommand(command, new Route.Builder(routeType).build(), r -> null);
+        service.submitNewCommand(command, Optional.of(new Route.Builder(routeType).build()), r -> null);
         verify(channelHandler).write(captor.capture(), anyBoolean());
         var requestBuilder = captor.getValue();
 
@@ -249,7 +259,7 @@ public class CommandManagerTest {
                 ArgumentCaptor.forClass(RedisRequest.Builder.class);
 
         service.submitNewCommand(
-                command, new Route.Builder(routeType).setSlotId(42).build(), r -> null);
+                command, Optional.of(new Route.Builder(routeType).setSlotId(42).build()), r -> null);
         verify(channelHandler).write(captor.capture(), anyBoolean());
         var requestBuilder = captor.getValue();
 
@@ -283,7 +293,7 @@ public class CommandManagerTest {
                 ArgumentCaptor.forClass(RedisRequest.Builder.class);
 
         service.submitNewCommand(
-                command, new Route.Builder(routeType).setSlotKey("TEST").build(), r -> null);
+                command, Optional.of(new Route.Builder(routeType).setSlotKey("TEST").build()), r -> null);
         verify(channelHandler).write(captor.capture(), anyBoolean());
         var requestBuilder = captor.getValue();
 

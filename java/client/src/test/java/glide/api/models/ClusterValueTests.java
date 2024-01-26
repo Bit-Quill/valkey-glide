@@ -18,6 +18,7 @@ public class ClusterValueTests {
         var value = ClusterValue.of(null);
         assertAll(
                 () -> assertFalse(value.hasMultiData()),
+                () -> assertTrue(value.hasSingleData()),
                 () -> assertNull(value.getSingleValue()),
                 () -> assertThrows(Throwable.class, value::getMultiValue));
     }
@@ -27,6 +28,7 @@ public class ClusterValueTests {
         var value = ClusterValue.of(42);
         assertAll(
                 () -> assertFalse(value.hasMultiData()),
+                () -> assertTrue(value.hasSingleData()),
                 () -> assertEquals(42, value.getSingleValue()),
                 () -> assertThrows(Throwable.class, value::getMultiValue));
     }
@@ -37,6 +39,7 @@ public class ClusterValueTests {
         var value = ClusterValue.of(data);
         assertAll(
                 () -> assertTrue(value.hasMultiData()),
+                () -> assertFalse(value.hasSingleData()),
                 () -> assertNotNull(value.getMultiValue()),
                 () -> assertEquals(data, value.getMultiValue()),
                 () -> assertThrows(Throwable.class, value::getSingleValue));
