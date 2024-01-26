@@ -218,3 +218,35 @@ if err != nil {
 ## Presentation
 
 ![API Design](img/design-go-api.svg)
+
+# FFI Design
+
+## Client creation and connection
+
+### Sequence diagram
+
+![FFI Connection Sequence Diagram](img/FFI-conn-sequence.svg)
+
+### Struct diagram
+
+![FFI Connection Struct Diagram](img/FFI-conn-struct-diagram.svg)
+
+## Redis request succeeds
+
+### Sequence diagram
+
+![FFI Request Success Sequence Diagram](img/FFI-request-success-sequence.svg)
+
+### Struct diagram
+
+![FFI Request Success Struct Diagram](img/FFI-request-success-struct-diagram.svg)
+
+## Redis request fails
+
+### Sequence diagram
+
+![FFI Request Failure Sequence Diagram](img/FFI-request-failure-sequence.svg)
+
+### Struct diagram
+
+![FFI Request Failure Struct Diagram](img/FFI-request-failure-struct-diagram.svg)
