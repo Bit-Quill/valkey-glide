@@ -12,6 +12,7 @@ import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import glide.managers.models.Command;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -53,7 +54,7 @@ public class RedisClusterClient extends BaseClient implements ClusterBaseCommand
         Command command =
                 Command.builder().requestType(Command.RequestType.CUSTOM_COMMAND).arguments(args).build();
         return commandManager.submitNewCommand(
-                command, response -> ClusterValue.of(handleObjectResponse(response)));
+                command, Optional.empty(), response -> ClusterValue.of(handleObjectResponse(response)));
     }
 
     @Override
@@ -61,6 +62,6 @@ public class RedisClusterClient extends BaseClient implements ClusterBaseCommand
         Command command =
                 Command.builder().requestType(Command.RequestType.CUSTOM_COMMAND).arguments(args).build();
         return commandManager.submitNewCommand(
-                command, route, response -> ClusterValue.of(handleObjectResponse(response)));
+                command, Optional.of(route), response -> ClusterValue.of(handleObjectResponse(response)));
     }
 }

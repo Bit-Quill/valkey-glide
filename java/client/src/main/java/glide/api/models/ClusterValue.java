@@ -3,7 +3,9 @@ package glide.api.models;
 import java.util.Map;
 
 /**
- * A union-like type which can store single or bulk value retrieved from Redis.
+ * union-like type which can store single-value or multi-value retrieved from Redis. The
+ * multi-value, if defined, contains the routed value as a Map<String, Object> containing a cluster
+ * node address to cluster node value.
  *
  * @param <T> The wrapped data type
  */
@@ -14,18 +16,25 @@ public class ClusterValue<T> {
 
     private ClusterValue() {}
 
-    /** Get per-node value. */
+    /**
+     * Get per-node value.<br>
+     * Check with {@link #hasMultiData()} prior to accessing the data.
+     */
     public Map<String, T> getMultiValue() {
         assert hasMultiData();
         return multiValue;
     }
 
-    /** Get the single value. */
+    /**
+     * Get the single value.<br>
+     * Check with {@link #hasSingleData()} ()} prior to accessing the data.
+     */
     public T getSingleValue() {
-        assert !hasMultiData();
+        assert hasSingleData();
         return singleValue;
     }
 
+    /** A constructor for the value. */
     @SuppressWarnings("unchecked")
     public static <T> ClusterValue<T> of(Object data) {
         var res = new ClusterValue<T>();
@@ -37,8 +46,13 @@ public class ClusterValue<T> {
         return res;
     }
 
-    /** Get the value type. Use it prior to accessing the data. */
+    /** Check that multi-value is stored in this object. Use it prior to accessing the data. */
     public boolean hasMultiData() {
         return multiValue != null;
+    }
+
+    /** Check that single-value is stored in this object. Use it prior to accessing the data. */
+    public boolean hasSingleData() {
+        return !hasMultiData();
     }
 }
