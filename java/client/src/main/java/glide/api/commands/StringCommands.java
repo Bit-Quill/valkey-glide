@@ -27,7 +27,7 @@ public interface StringCommands {
 
     CompletableFuture<Double> incrByFloat(String key, double amount);
 
-    CompletableFuture<Object[]> mget(String[] keys);
+    CompletableFuture<String[]> mget(String[] keys);
 
     CompletableFuture<Void> mset(HashMap<String, String> keyValueMap);
 }

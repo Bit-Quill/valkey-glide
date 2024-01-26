@@ -329,8 +329,8 @@ public class RedisClientTest {
                         .arguments(new String[] {key})
                         .build();
         CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
         when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(testResponse.get()).thenReturn(value);
 
         // exercise
         CompletableFuture<Long> response = service.decr(key);
@@ -353,8 +353,8 @@ public class RedisClientTest {
                         .arguments(new String[] {key, Long.toString(amount)})
                         .build();
         CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
         when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(testResponse.get()).thenReturn(value);
 
         // exercise
         CompletableFuture<Long> response = service.decrBy(key, amount);
@@ -376,8 +376,8 @@ public class RedisClientTest {
                         .arguments(new String[] {key})
                         .build();
         CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
         when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(testResponse.get()).thenReturn(value);
 
         // exercise
         CompletableFuture<Long> response = service.incr(key);
@@ -400,8 +400,8 @@ public class RedisClientTest {
                         .arguments(new String[] {key, Long.toString(amount)})
                         .build();
         CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
         when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(testResponse.get()).thenReturn(value);
 
         // exercise
         CompletableFuture<Long> response = service.incrBy(key, amount);
@@ -424,8 +424,8 @@ public class RedisClientTest {
                         .arguments(new String[] {key, Double.toString(amount)})
                         .build();
         CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
         when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(testResponse.get()).thenReturn(value);
 
         // exercise
         CompletableFuture<Double> response = service.incrByFloat(key, amount);
@@ -440,19 +440,16 @@ public class RedisClientTest {
     public void mget_success() throws ExecutionException, InterruptedException {
         // setup
         String[] keys = {"Key1", "Key2"};
-        Object[] values = {"Value1", "Value2"};
-        Command cmd =
-                Command.builder()
-                        .requestType(Command.RequestType.MGET)
-                        .arguments(keys)
-                        .build();
+        String[] values = {"Value1", "Value2"};
+        Command cmd = Command.builder().requestType(Command.RequestType.MGET).arguments(keys).build();
         CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(values);
         when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(testResponse.thenApply(any())).thenReturn(testResponse);
+        when(testResponse.get()).thenReturn(values);
 
         // exercise
-        CompletableFuture<Object[]> response = service.mget(keys);
-        Object[] payload = response.get();
+        CompletableFuture<String[]> response = service.mget(keys);
+        String[] payload = response.get();
 
         // verify
         assertEquals(testResponse, response);
@@ -462,9 +459,12 @@ public class RedisClientTest {
     @Test
     public void mset_success() throws ExecutionException, InterruptedException {
         // setup
-        HashMap<String, String> keyValueMap = new HashMap<String, String>() {{
-            put("Key1", "Value1");
-        }};
+        HashMap<String, String> keyValueMap =
+                new HashMap<String, String>() {
+                    {
+                        put("Key1", "Value1");
+                    }
+                };
         String[] flattenedKeyValueMap = {"Key1", "Value1"};
         Command cmd =
                 Command.builder()
@@ -472,8 +472,8 @@ public class RedisClientTest {
                         .arguments(flattenedKeyValueMap)
                         .build();
         CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(null);
         when(commandManager.<Void>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(testResponse.get()).thenReturn(null);
 
         // exercise
         CompletableFuture<Void> response = service.mset(keyValueMap);

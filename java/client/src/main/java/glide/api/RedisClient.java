@@ -211,7 +211,7 @@ public class RedisClient extends BaseClient
      * @see <a href="https://redis.io/commands/decr/">redis.io</a> for details.
      * @param key - The key to decrement its value.
      * @return the value of `key` after the decrement. An error is raised if `key` contains a value of
-     *     the wrong type or contains a string that can not be represented as integer.
+     *     the wrong type or contains a string that can not be represented as a long.
      */
     @Override
     public CompletableFuture<Long> decr(String key) {
@@ -231,7 +231,7 @@ public class RedisClient extends BaseClient
      * @param key - The key to decrement its value.
      * @param amount - The amount to decrement.
      * @return the value of `key` after the decrement. An error is raised if `key` contains a value of
-     *     the wrong type or contains a string that can not be represented as integer.
+     *     the wrong type or contains a string that can not be represented as long.
      */
     @Override
     public CompletableFuture<Long> decrBy(String key, long amount) {
@@ -250,7 +250,7 @@ public class RedisClient extends BaseClient
      * @see <a href="https://redis.io/commands/incr/">redis.io</a> for details.
      * @param key - The key to increment its value.
      * @return the value of `key` after the increment, An error is raised if `key` contains a value of
-     *     the wrong type or contains a string that can not be represented as integer.
+     *     the wrong type or contains a string that can not be represented as long.
      */
     @Override
     public CompletableFuture<Long> incr(String key) {
@@ -270,7 +270,7 @@ public class RedisClient extends BaseClient
      * @param key - The key to increment its value.
      * @param amount - The amount to increment.
      * @returns the value of `key` after the increment, An error is raised if `key` contains a value
-     *     of the wrong type or contains a string that can not be represented as integer.
+     *     of the wrong type or contains a string that can not be represented as long.
      */
     @Override
     public CompletableFuture<Long> incrBy(String key, long amount) {
@@ -308,15 +308,17 @@ public class RedisClient extends BaseClient
      * Retrieve the values of multiple keys.
      *
      * @see <a href="https://redis.io/commands/mget/">redis.io</a> for details.
-     * @param keys - A list of keys to retrieve values for.
-     * @returns A list of values corresponding to the provided keys. If a key is not found, its
-     *     corresponding value in the list will be null.
+     * @param keys - An array of keys to retrieve values for.
+     * @returns An array of values corresponding to the provided keys. If a key is not found, its
+     *     corresponding value in the array will be null.
      */
     @Override
-    public CompletableFuture<Object[]> mget(String[] keys) {
+    public CompletableFuture<String[]> mget(String[] keys) {
         Command command =
                 Command.builder().requestType(Command.RequestType.MGET).arguments(keys).build();
-        return commandManager.submitNewCommand(command, BaseClient::handleObjectArrayResponse);
+        return commandManager
+                .submitNewCommand(command, BaseClient::handleObjectArrayResponse)
+                .thenApply(objects -> (String[]) objects);
     }
 
     /**

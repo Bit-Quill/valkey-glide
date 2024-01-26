@@ -72,7 +72,7 @@ public abstract class BaseClient implements AutoCloseable {
      * @param response Redis protobuf message
      * @return Response as a Long
      */
-    public static Long handleLongResponse(Response response) {
+    protected static Long handleLongResponse(Response response) {
         Object value = handleObjectResponse(response);
         if (value instanceof Long) {
             return (Long) value;
@@ -90,7 +90,7 @@ public abstract class BaseClient implements AutoCloseable {
      * @param response Redis protobuf message
      * @return Response as a Double
      */
-    public static Double handleDoubleResponse(Response response) {
+    protected static Double handleDoubleResponse(Response response) {
         Object value = handleObjectResponse(response);
         if (value instanceof Double) {
             return (Double) value;
@@ -108,7 +108,7 @@ public abstract class BaseClient implements AutoCloseable {
      * @param response Redis protobuf message
      * @return Response as an Object Array
      */
-    public static Object[] handleObjectArrayResponse(Response response) {
+    protected static Object[] handleObjectArrayResponse(Response response) {
         Object value = handleObjectResponse(response);
         if (value instanceof Object[]) {
             return (Object[]) value;
