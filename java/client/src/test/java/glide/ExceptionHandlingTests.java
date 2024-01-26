@@ -19,6 +19,7 @@ import glide.api.models.exceptions.RequestException;
 import glide.api.models.exceptions.TimeoutException;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
+import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import glide.managers.models.Command;
@@ -203,6 +204,22 @@ public class ExceptionHandlingTests {
             // check the channel
             assertFalse(channelHandler.wasClosed);
         }
+    }
+
+    @Test
+    public void response_resolver_does_not_expect_errors() {
+        var resolver = new BaseCommandResponseResolver(null);
+
+        var response1 =
+                Response.newBuilder()
+                        .setRequestError(RequestError.newBuilder().setType(ExecAbort).setMessage("TEST"))
+                        .build();
+        var exception = assertThrows(Throwable.class, () -> resolver.apply(response1));
+        assertEquals("Unhandled response request error", exception.getMessage());
+
+        var response2 = Response.newBuilder().setClosingError("TEST").build();
+        exception = assertThrows(Throwable.class, () -> resolver.apply(response2));
+        assertEquals("Unhandled response closing error", exception.getMessage());
     }
 
     /** Create a config which causes connection failure. */

@@ -77,13 +77,14 @@ public class CallbackDispatcher {
                     .values()
                     .forEach(f -> f.completeExceptionally(new ClosingException(response.getClosingError())));
             responses.clear();
+            return;
         }
         // Complete and return the response at callbackId
         // free up the callback ID in the freeRequestIds list
         int callbackId = response.getCallbackIdx();
         CompletableFuture<Response> future = responses.remove(callbackId);
-        freeRequestIds.add(callbackId);
         if (future != null) {
+            freeRequestIds.add(callbackId);
             if (response.hasRequestError()) {
                 RequestError error = response.getRequestError();
                 String msg = error.getMessage();
@@ -111,7 +112,8 @@ public class CallbackDispatcher {
             // probably a response was received after shutdown or `registerRequest` call was missing
 
             System.err.printf(
-                    "Received a response for not registered callback id %d%n%s%n", callbackId, response);
+                    "Received a response for not registered callback id %d, request error = %s%n",
+                    callbackId, response.getRequestError());
         }
     }
 

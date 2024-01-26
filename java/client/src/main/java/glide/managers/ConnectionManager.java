@@ -46,11 +46,12 @@ public class ConnectionManager {
      * Exception handler for future pipeline.
      *
      * @param e An exception thrown in the pipeline before
-     * @return Nothing, it rethrows the exception
+     * @return Nothing, it always rethrows the exception
      */
     private Response exceptionHandler(Throwable e) {
         channel.close();
         if (e instanceof RuntimeException) {
+            // RedisException also goes here
             throw (RuntimeException) e;
         }
         throw new RuntimeException(e);
@@ -169,7 +170,15 @@ public class ConnectionManager {
 
     /** Check a response received from Glide. */
     private Void checkGlideRsResponse(Response response) {
-        // Note: errors are already handled before
+        // Note: errors are already handled before in CallbackDispatcher, but we double-check
+        if (response.hasRequestError()) {
+            throwClosingError(
+                    "Unhandled request error in response: " + response.getRequestError().getMessage());
+        }
+        if (response.hasClosingError()) {
+            throwClosingError("Unhandled closing error in response: " + response.getClosingError());
+        }
+
         if (response.hasRespPointer()) {
             throwClosingError("Unexpected data in response");
         }

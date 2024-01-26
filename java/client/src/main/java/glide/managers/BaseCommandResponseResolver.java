@@ -20,6 +20,9 @@ public class BaseCommandResponseResolver
      */
     public Object apply(Response response) throws RedisException {
         // Note: errors are already handled before in CallbackDispatcher
+        assert !response.hasClosingError() : "Unhandled response closing error";
+        assert !response.hasRequestError() : "Unhandled response request error";
+
         if (response.hasConstantResponse()) {
             // Return "OK"
             return response.getConstantResponse().toString();

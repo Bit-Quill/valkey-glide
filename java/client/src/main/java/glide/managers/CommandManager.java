@@ -47,6 +47,7 @@ public class CommandManager {
             channel.close();
         }
         if (e instanceof RuntimeException) {
+            // RedisException also goes here
             throw (RuntimeException) e;
         }
         throw new RuntimeException(e);
