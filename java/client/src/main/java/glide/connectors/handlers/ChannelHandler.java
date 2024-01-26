@@ -68,12 +68,13 @@ public class ChannelHandler {
     /**
      * Complete a protobuf message and write it to the channel (to UDS).
      *
-     * @param request Incomplete request, function completes it by setting callback ID
+     * @param requestWithoutCallback Incomplete request, function completes it by setting callback ID
      * @param flush True to flush immediately
      * @return A response promise
      */
-    public CompletableFuture<Response> write(RedisRequest.Builder request, boolean flush) {
+    public CompletableFuture<Response> write(RedisRequest requestWithoutCallback, boolean flush) {
         var commandId = callbackDispatcher.registerRequest();
+        var request = RedisRequest.newBuilder(requestWithoutCallback);
         request.setCallbackIdx(commandId.getKey());
 
         if (flush) {

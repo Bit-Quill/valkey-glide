@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
  * Async (non-blocking) client for Redis in Cluster mode. Use {@link #CreateClient} to request a
  * client to Redis.
  */
-public class ClusterClient extends BaseClient implements ClusterBaseCommands<ClusterValue<Object>> {
+public class ClusterClient extends BaseClient implements ClusterBaseCommands {
 
     protected ClusterClient(ConnectionManager connectionManager, CommandManager commandManager) {
         super(connectionManager, commandManager);
@@ -46,14 +46,6 @@ public class ClusterClient extends BaseClient implements ClusterBaseCommands<Clu
             future.completeExceptionally(e);
             return future;
         }
-    }
-
-    @Override
-    public CompletableFuture<ClusterValue<Object>> customCommand(String[] args) {
-        Command command =
-                Command.builder().requestType(Command.RequestType.CUSTOM_COMMAND).arguments(args).build();
-        return commandManager.submitNewCommand(
-                command, response -> ClusterValue.of(handleObjectResponse(response)));
     }
 
     @Override

@@ -9,11 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static response.ResponseOuterClass.RequestErrorType.UNRECOGNIZED;
-import static response.ResponseOuterClass.RequestErrorType.Unspecified;
 
 import glide.api.models.configuration.Route;
 import glide.api.models.configuration.Route.RouteType;
@@ -28,12 +28,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
+import redis_request.RedisRequestOuterClass;
 import redis_request.RedisRequestOuterClass.RedisRequest;
+import redis_request.RedisRequestOuterClass.RequestType;
+import redis_request.RedisRequestOuterClass.Routes;
 import redis_request.RedisRequestOuterClass.SimpleRoutes;
 import redis_request.RedisRequestOuterClass.SlotTypes;
 import response.ResponseOuterClass;
@@ -223,8 +227,7 @@ public class CommandManagerTest {
                         SimpleRoutes.AllNodes, RouteType.ALL_NODES,
                         SimpleRoutes.AllPrimaries, RouteType.ALL_PRIMARIES);
 
-        ArgumentCaptor<RedisRequest.Builder> captor =
-                ArgumentCaptor.forClass(RedisRequest.Builder.class);
+        ArgumentCaptor<RedisRequest> captor = ArgumentCaptor.forClass(RedisRequest.class);
 
         service.submitNewCommand(command, Optional.of(new Route.Builder(routeType).build()), r -> null);
         verify(channelHandler).write(captor.capture(), anyBoolean());
@@ -255,8 +258,7 @@ public class CommandManagerTest {
                         SlotTypes.Primary, RouteType.PRIMARY_SLOT_ID,
                         SlotTypes.Replica, RouteType.REPLICA_SLOT_ID);
 
-        ArgumentCaptor<RedisRequest.Builder> captor =
-                ArgumentCaptor.forClass(RedisRequest.Builder.class);
+        ArgumentCaptor<RedisRequest> captor = ArgumentCaptor.forClass(RedisRequest.class);
 
         service.submitNewCommand(
                 command, Optional.of(new Route.Builder(routeType).setSlotId(42).build()), r -> null);
@@ -289,8 +291,7 @@ public class CommandManagerTest {
                         SlotTypes.Primary, RouteType.PRIMARY_SLOT_KEY,
                         SlotTypes.Replica, RouteType.REPLICA_SLOT_KEY);
 
-        ArgumentCaptor<RedisRequest.Builder> captor =
-                ArgumentCaptor.forClass(RedisRequest.Builder.class);
+        ArgumentCaptor<RedisRequest> captor = ArgumentCaptor.forClass(RedisRequest.class);
 
         service.submitNewCommand(
                 command, Optional.of(new Route.Builder(routeType).setSlotKey("TEST").build()), r -> null);
@@ -308,5 +309,66 @@ public class CommandManagerTest {
                 () -> assertEquals("TEST", requestBuilder.getRoute().getSlotKeyRoute().getSlotKey()),
                 () -> assertFalse(requestBuilder.getRoute().hasSimpleRoutes()),
                 () -> assertFalse(requestBuilder.getRoute().hasSlotIdRoute()));
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @EnumSource(Command.RequestType.class)
+    public void submitNewCommand_covers_all_mapRequestTypes(Command.RequestType requestType) {
+
+        // setup
+        RequestType protobufRequestType;
+        switch (requestType) {
+            case CUSTOM_COMMAND:
+                protobufRequestType = RequestType.CustomCommand;
+                break;
+            case PING:
+                protobufRequestType = RequestType.Ping;
+                break;
+            case INFO:
+                protobufRequestType = RequestType.Info;
+                break;
+            case GET_STRING:
+                protobufRequestType = RequestType.GetString;
+                break;
+            case SET_STRING:
+                protobufRequestType = RequestType.SetString;
+                break;
+            default:
+                // not implemented
+                return;
+        }
+
+        Command command = Command.builder().requestType(requestType).arguments(new String[] {}).build();
+
+        RedisRequest request =
+                prepareProtoBufRequest(
+                                protobufRequestType, RedisRequestOuterClass.Command.ArgsArray.newBuilder().build())
+                        .build();
+
+        CompletableFuture<Response> testFuture = new CompletableFuture<>();
+        testFuture.complete(Response.newBuilder().setRespPointer(-1L).build());
+
+        when(channelHandler.write(eq(request), anyBoolean())).thenReturn(testFuture);
+        Object testResult = new Object();
+
+        // exercise
+        CompletableFuture future =
+                service.submitNewCommand(command, new BaseCommandResponseResolver((r) -> testResult));
+        Object result = future.get();
+
+        // verify
+        assertEquals(testResult, result);
+    }
+
+    private RedisRequest.Builder prepareProtoBufRequest(
+            RequestType requestType, RedisRequestOuterClass.Command.ArgsArray argsArray) {
+        return RedisRequest.newBuilder()
+                .setSingleCommand(
+                        RedisRequestOuterClass.Command.newBuilder()
+                                .setRequestType(requestType)
+                                .setArgsArray(argsArray)
+                                .build())
+                .setRoute(Routes.newBuilder().setSimpleRoutes(SimpleRoutes.AllNodes).build());
     }
 }
