@@ -63,8 +63,8 @@ public class CommandManager {
      * Build a protobuf command/transaction request object.<br>
      * Used by {@link CommandManager}.
      *
-     * @param command - Redis command
-     * @param args - Redis command arguments as string array
+     * @param command Redis command type
+     * @param args Redis command arguments
      * @return An uncompleted request. {@link CallbackDispatcher} is responsible to complete it by
      *     adding a callback id.
      */
