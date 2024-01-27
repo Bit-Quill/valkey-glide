@@ -326,7 +326,7 @@ public class RedisClient extends BaseClient
      *
      * @see <a href="https://redis.io/commands/mset/">redis.io</a> for details.
      * @param keyValueMap A key-value map consisting of keys and their respective values to set.
-     * @returns void
+     * @returns An empty response on success
      */
     @Override
     public CompletableFuture<Void> mset(HashMap<String, String> keyValueMap) {
