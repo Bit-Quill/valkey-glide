@@ -210,7 +210,7 @@ public class RedisClient extends BaseClient
      *
      * @see <a href="https://redis.io/commands/decr/">redis.io</a> for details.
      * @param key The key to decrement its value.
-     * @return the value of `key` after the decrement. An error is raised if `key` contains a value of
+     * @return The value of `key` after the decrement. An error is raised if `key` contains a value of
      *     the wrong type or contains a string that can not be represented as a long.
      */
     @Override
