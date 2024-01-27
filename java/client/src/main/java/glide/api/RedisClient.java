@@ -269,8 +269,8 @@ public class RedisClient extends BaseClient
      * @see <a href="https://redis.io/commands/incrby/">redis.io</a> for details.
      * @param key The key to increment its value.
      * @param amount The amount to increment.
-     * @return The value of `key` after the increment, An error is raised if `key` contains a value
-     *     of the wrong type or contains a string that can not be represented as long.
+     * @return The value of `key` after the increment, An error is raised if `key` contains a value of
+     *     the wrong type or contains a string that can not be represented as long.
      */
     @Override
     public CompletableFuture<Long> incrBy(String key, long amount) {
@@ -290,9 +290,9 @@ public class RedisClient extends BaseClient
      * @see <a href="https://redis.io/commands/incrbyfloat/">redis.io</a> for details.
      * @param key The key to increment its value.
      * @param amount The amount to increment.
-     * @return The value of `key` after the increment. An error is raised if `key` contains a value
-     *     of the wrong type, or the current key content is not parsable as a double precision
-     *     floating point number.
+     * @return The value of `key` after the increment. An error is raised if `key` contains a value of
+     *     the wrong type, or the current key content is not parsable as a double precision floating
+     *     point number.
      */
     @Override
     public CompletableFuture<Double> incrByFloat(String key, double amount) {
