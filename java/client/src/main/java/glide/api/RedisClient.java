@@ -82,7 +82,7 @@ public class RedisClient extends BaseClient
      * </pre>
      *
      * @param args Arguments for the custom command
-     * @return a CompletableFuture with response result from Redis
+     * @return A CompletableFuture with response result from Redis
      */
     public CompletableFuture<Object> customCommand(String[] args) {
         Command command =
@@ -94,7 +94,7 @@ public class RedisClient extends BaseClient
      * Ping the Redis server.
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
-     * @returns the String "PONG"
+     * @returns The String "PONG"
      */
     @Override
     public CompletableFuture<String> ping() {
@@ -107,7 +107,7 @@ public class RedisClient extends BaseClient
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
      * @param msg The ping argument that will be returned.
-     * @returns return a copy of the argument.
+     * @returns Return a copy of the argument.
      */
     @Override
     public CompletableFuture<String> ping(String msg) {
@@ -172,7 +172,7 @@ public class RedisClient extends BaseClient
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
      * @param key The key to store.
      * @param value The value to store with the given key.
-     * @return null
+     * @return An empty response on success
      */
     @Override
     public CompletableFuture<Void> set(String key, String value) {
@@ -191,7 +191,7 @@ public class RedisClient extends BaseClient
      * @param key The key to store.
      * @param value The value to store with the given key.
      * @param options The Set options
-     * @return string or null If value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist`
+     * @return String or null If value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist`
      *     conditions, return null. If `returnOldValue` is set, return the old value as a string.
      */
     @Override
@@ -230,7 +230,7 @@ public class RedisClient extends BaseClient
      * @see <a href="https://redis.io/commands/decrby/">redis.io</a> for details.
      * @param key The key to decrement its value.
      * @param amount The amount to decrement.
-     * @return the value of `key` after the decrement. An error is raised if `key` contains a value of
+     * @return The value of `key` after the decrement. An error is raised if `key` contains a value of
      *     the wrong type or contains a string that can not be represented as long.
      */
     @Override
@@ -249,7 +249,7 @@ public class RedisClient extends BaseClient
      *
      * @see <a href="https://redis.io/commands/incr/">redis.io</a> for details.
      * @param key The key to increment its value.
-     * @return the value of `key` after the increment, An error is raised if `key` contains a value of
+     * @return The value of `key` after the increment, An error is raised if `key` contains a value of
      *     the wrong type or contains a string that can not be represented as long.
      */
     @Override
@@ -269,7 +269,7 @@ public class RedisClient extends BaseClient
      * @see <a href="https://redis.io/commands/incrby/">redis.io</a> for details.
      * @param key The key to increment its value.
      * @param amount The amount to increment.
-     * @returns the value of `key` after the increment, An error is raised if `key` contains a value
+     * @returns The value of `key` after the increment, An error is raised if `key` contains a value
      *     of the wrong type or contains a string that can not be represented as long.
      */
     @Override
@@ -290,7 +290,7 @@ public class RedisClient extends BaseClient
      * @see <a href="https://redis.io/commands/incrbyfloat/">redis.io</a> for details.
      * @param key The key to increment its value.
      * @param amount The amount to increment.
-     * @returns the value of `key` after the increment. An error is raised if `key` contains a value
+     * @returns The value of `key` after the increment. An error is raised if `key` contains a value
      *     of the wrong type, or the current key content is not parsable as a double precision
      *     floating point number.
      */
