@@ -11,7 +11,7 @@ import lombok.NonNull;
  * String, SetOptions)}
  */
 @Builder
-public class SetOptions extends Options {
+public class SetOptions {
 
     /**
      * if `conditional` is not set the value will be set regardless of prior value existence. <br>
@@ -90,13 +90,12 @@ public class SetOptions extends Options {
     public static String TIME_TO_LIVE_UNIX_MILLISECONDS = "PXAT";
 
     /**
-     * Converts SetOptions into a String[] to add to a {@link glide.api.models.Command}
+     * Converts SetOptions into a String[]
      *
-     * @param arguments
-     * @return
+     * @return String[]
      */
-    public String[] toSetOptions(List<String> arguments) {
-        optionArgs = new LinkedList();
+    public String[] toArgs() {
+        List<String> optionArgs = new LinkedList();
         if (conditionalSet != null) {
             if (conditionalSet == ConditionalSet.ONLY_IF_EXISTS) {
                 optionArgs.add(CONDITIONAL_SET_ONLY_IF_EXISTS);
@@ -134,6 +133,6 @@ public class SetOptions extends Options {
             }
         }
 
-        return toArgs(arguments);
+        return optionArgs.toArray(new String[0]);
     }
 }

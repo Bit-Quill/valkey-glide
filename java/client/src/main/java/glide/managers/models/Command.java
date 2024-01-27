@@ -68,7 +68,8 @@ public class Command {
     /** Command to set the given key with the given value. */
     public static Command set(String key, String value, String[] options) {
         String[] args = ArrayUtils.addAll(new String[] {key, value}, options);
-        return Command.builder().requestType(Command.RequestType.SET_STRING).arguments(args).build();
+        Command cmd = Command.builder().requestType(Command.RequestType.SET_STRING).arguments(args).build();
+        return cmd;
     }
 
     public enum RequestType {

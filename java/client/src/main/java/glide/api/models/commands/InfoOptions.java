@@ -9,7 +9,7 @@ import lombok.Singular;
 
 /** Object builder to add optional arguments to {@link ServerCommands#info(InfoOptions)} */
 @Builder
-public class InfoOptions extends Options {
+public class InfoOptions {
 
     @Singular private final List<Section> sections;
 
@@ -56,7 +56,7 @@ public class InfoOptions extends Options {
      * @return String[]
      */
     public String[] toInfoOptions() {
-        optionArgs = sections.stream().map(Objects::toString).collect(Collectors.toList());
-        return toArgs();
+        List<String> optionArgs = sections.stream().map(Objects::toString).collect(Collectors.toList());
+        return optionArgs.toArray(new String[0]);
     }
 }

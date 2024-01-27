@@ -368,7 +368,6 @@ public class CommandManagerTest {
                         RedisRequestOuterClass.Command.newBuilder()
                                 .setRequestType(requestType)
                                 .setArgsArray(argsArray)
-                                .build())
-                .setRoute(Routes.newBuilder().setSimpleRoutes(SimpleRoutes.AllNodes).build());
+                                .build());
     }
 }
