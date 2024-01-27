@@ -31,8 +31,8 @@ public class RedisClient extends BaseClient
     /**
      * Request an async (non-blocking) Redis client in Standalone mode.
      *
-     * @param config - Redis Client Configuration
-     * @return a Future to connect and return a RedisClient
+     * @param config Redis Client Configuration
+     * @return A Future to connect and return a RedisClient
      */
     public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
         try {
@@ -81,7 +81,7 @@ public class RedisClient extends BaseClient
      * Object result = client.customCommand(new String[]{"CLIENT","LIST","TYPE", "PUBSUB"}).get();
      * </pre>
      *
-     * @param args arguments for the custom command
+     * @param args Arguments for the custom command
      * @return a CompletableFuture with response result from Redis
      */
     public CompletableFuture<Object> customCommand(String[] args) {
@@ -106,7 +106,7 @@ public class RedisClient extends BaseClient
      * Ping the Redis server.
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
-     * @param msg - the ping argument that will be returned.
+     * @param msg The ping argument that will be returned.
      * @returns return a copy of the argument.
      */
     @Override
@@ -135,7 +135,7 @@ public class RedisClient extends BaseClient
      * Get information and statistics about the Redis server.
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
-     * @param options - A list of InfoSection values specifying which sections of information to
+     * @param options A list of InfoSection values specifying which sections of information to
      *     retrieve. When no parameter is provided, the default option is assumed.
      * @return CompletableFuture with the response
      */
@@ -153,7 +153,7 @@ public class RedisClient extends BaseClient
      * Get the value associated with the given key, or null if no such value exists.
      *
      * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
-     * @param key - The key to retrieve from the database.
+     * @param key The key to retrieve from the database.
      * @return If `key` exists, returns the value of `key` as a string. Otherwise, return null
      */
     @Override
@@ -170,8 +170,8 @@ public class RedisClient extends BaseClient
      * Set the given key with the given value.
      *
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
-     * @param key - The key to store.
-     * @param value - The value to store with the given key.
+     * @param key The key to store.
+     * @param value The value to store with the given key.
      * @return null
      */
     @Override
@@ -188,9 +188,9 @@ public class RedisClient extends BaseClient
      * Set the given key with the given value. Return value is dependent on the passed options.
      *
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
-     * @param key - The key to store.
-     * @param value - The value to store with the given key.
-     * @param options - The Set options
+     * @param key The key to store.
+     * @param value The value to store with the given key.
+     * @param options The Set options
      * @return string or null If value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist`
      *     conditions, return null. If `returnOldValue` is set, return the old value as a string.
      */
@@ -209,7 +209,7 @@ public class RedisClient extends BaseClient
      * performing the operation.
      *
      * @see <a href="https://redis.io/commands/decr/">redis.io</a> for details.
-     * @param key - The key to decrement its value.
+     * @param key The key to decrement its value.
      * @return the value of `key` after the decrement. An error is raised if `key` contains a value of
      *     the wrong type or contains a string that can not be represented as a long.
      */
@@ -228,8 +228,8 @@ public class RedisClient extends BaseClient
      * before performing the operation.
      *
      * @see <a href="https://redis.io/commands/decrby/">redis.io</a> for details.
-     * @param key - The key to decrement its value.
-     * @param amount - The amount to decrement.
+     * @param key The key to decrement its value.
+     * @param amount The amount to decrement.
      * @return the value of `key` after the decrement. An error is raised if `key` contains a value of
      *     the wrong type or contains a string that can not be represented as long.
      */
@@ -248,7 +248,7 @@ public class RedisClient extends BaseClient
      * performing the operation.
      *
      * @see <a href="https://redis.io/commands/incr/">redis.io</a> for details.
-     * @param key - The key to increment its value.
+     * @param key The key to increment its value.
      * @return the value of `key` after the increment, An error is raised if `key` contains a value of
      *     the wrong type or contains a string that can not be represented as long.
      */
@@ -267,8 +267,8 @@ public class RedisClient extends BaseClient
      * before performing the operation.
      *
      * @see <a href="https://redis.io/commands/incrby/">redis.io</a> for details.
-     * @param key - The key to increment its value.
-     * @param amount - The amount to increment.
+     * @param key The key to increment its value.
+     * @param amount The amount to increment.
      * @returns the value of `key` after the increment, An error is raised if `key` contains a value
      *     of the wrong type or contains a string that can not be represented as long.
      */
@@ -288,8 +288,8 @@ public class RedisClient extends BaseClient
      * `key` does not exist, it is set to 0 before performing the operation.
      *
      * @see <a href="https://redis.io/commands/incrbyfloat/">redis.io</a> for details.
-     * @param key - The key to increment its value.
-     * @param amount - The amount to increment.
+     * @param key The key to increment its value.
+     * @param amount The amount to increment.
      * @returns the value of `key` after the increment. An error is raised if `key` contains a value
      *     of the wrong type, or the current key content is not parsable as a double precision
      *     floating point number.
@@ -308,7 +308,7 @@ public class RedisClient extends BaseClient
      * Retrieve the values of multiple keys.
      *
      * @see <a href="https://redis.io/commands/mget/">redis.io</a> for details.
-     * @param keys - An array of keys to retrieve values for.
+     * @param keys An array of keys to retrieve values for.
      * @returns An array of values corresponding to the provided keys. If a key is not found, its
      *     corresponding value in the array will be null.
      */
@@ -325,8 +325,8 @@ public class RedisClient extends BaseClient
      * Set multiple keys to multiple values in a single operation.
      *
      * @see <a href="https://redis.io/commands/mset/">redis.io</a> for details.
-     * @param keyValueMap - A key-value map consisting of keys and their respective values to set.
-     * @returns null
+     * @param keyValueMap A key-value map consisting of keys and their respective values to set.
+     * @returns void
      */
     @Override
     public CompletableFuture<Void> mset(HashMap<String, String> keyValueMap) {

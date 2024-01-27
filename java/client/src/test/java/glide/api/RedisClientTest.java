@@ -22,7 +22,7 @@ import glide.managers.models.Command;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,8 +41,9 @@ public class RedisClientTest {
         service = new RedisClient(connectionManager, commandManager);
     }
 
+    @SneakyThrows
     @Test
-    public void customCommand_success() throws ExecutionException, InterruptedException {
+    public void customCommand_success() {
         // setup
         String key = "testKey";
         Object value = "testValue";
@@ -60,8 +61,9 @@ public class RedisClientTest {
         assertEquals(value, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void customCommand_interruptedException() throws ExecutionException, InterruptedException {
+    public void customCommand_interruptedException() {
         // setup
         String key = "testKey";
         String cmd = "GETSTRING";
@@ -83,8 +85,9 @@ public class RedisClientTest {
         assertEquals(interruptedException, exception);
     }
 
+    @SneakyThrows
     @Test
-    public void ping_success() throws ExecutionException, InterruptedException {
+    public void ping_success() {
         // setup
         Command cmd = Command.builder().requestType(Command.RequestType.PING).build();
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
@@ -100,8 +103,9 @@ public class RedisClientTest {
         assertEquals("PONG", payload);
     }
 
+    @SneakyThrows
     @Test
-    public void pingWithMessage_success() throws ExecutionException, InterruptedException {
+    public void pingWithMessage_success() {
         // setup
         String message = "RETURN OF THE PONG";
         Command cmd =
@@ -122,8 +126,9 @@ public class RedisClientTest {
         assertEquals(message, pong);
     }
 
+    @SneakyThrows
     @Test
-    public void info_success() throws ExecutionException, InterruptedException {
+    public void info_success() {
         // setup
         Command cmd = Command.builder().requestType(Command.RequestType.INFO).build();
         CompletableFuture<Map> testResponse = mock(CompletableFuture.class);
@@ -143,8 +148,9 @@ public class RedisClientTest {
         assertEquals(testPayload, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void infoWithMultipleOptions_success() throws ExecutionException, InterruptedException {
+    public void infoWithMultipleOptions_success() {
         // setup
         Command cmd =
                 Command.builder()
@@ -173,8 +179,9 @@ public class RedisClientTest {
         assertEquals(testPayload, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void infoEmptyWithOptions_success() throws ExecutionException, InterruptedException {
+    public void infoEmptyWithOptions_success() {
         // setup
         Command cmd =
                 Command.builder().requestType(Command.RequestType.INFO).arguments(new String[] {}).build();
@@ -195,8 +202,9 @@ public class RedisClientTest {
         assertEquals(testPayload, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void get_success() throws ExecutionException, InterruptedException {
+    public void get_success() {
         // setup
         // TODO: randomize keys
         String key = "testKey";
@@ -219,8 +227,9 @@ public class RedisClientTest {
         assertEquals(value, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void set_success() throws ExecutionException, InterruptedException {
+    public void set_success() {
         // setup
         // TODO: randomize keys
         String key = "testKey";
@@ -243,9 +252,9 @@ public class RedisClientTest {
         assertNull(nullResponse);
     }
 
+    @SneakyThrows
     @Test
-    public void set_withOptionsOnlyIfExists_success()
-            throws ExecutionException, InterruptedException {
+    public void set_withOptionsOnlyIfExists_success() {
         // setup
         String key = "testKey";
         String value = "testValue";
@@ -278,9 +287,9 @@ public class RedisClientTest {
         assertNull(response.get());
     }
 
+    @SneakyThrows
     @Test
-    public void set_withOptionsOnlyIfDoesNotExist_success()
-            throws ExecutionException, InterruptedException {
+    public void set_withOptionsOnlyIfDoesNotExist_success() {
         // setup
         String key = "testKey";
         String value = "testValue";
@@ -318,8 +327,9 @@ public class RedisClientTest {
         assertEquals(value, response.get());
     }
 
+    @SneakyThrows
     @Test
-    public void decr_success() throws ExecutionException, InterruptedException {
+    public void decr_success() {
         // setup
         String key = "testKey";
         Long value = 10L;
@@ -341,8 +351,9 @@ public class RedisClientTest {
         assertEquals(value, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void decrBy_success() throws ExecutionException, InterruptedException {
+    public void decrBy_success() {
         // setup
         String key = "testKey";
         long amount = 1L;
@@ -365,8 +376,9 @@ public class RedisClientTest {
         assertEquals(value, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void incr_success() throws ExecutionException, InterruptedException {
+    public void incr_success() {
         // setup
         String key = "testKey";
         Long value = 10L;
@@ -388,8 +400,9 @@ public class RedisClientTest {
         assertEquals(value, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void incrBy_success() throws ExecutionException, InterruptedException {
+    public void incrBy_success() {
         // setup
         String key = "testKey";
         long amount = 1L;
@@ -412,8 +425,9 @@ public class RedisClientTest {
         assertEquals(value, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void incrByFloat_success() throws ExecutionException, InterruptedException {
+    public void incrByFloat_success() {
         // setup
         String key = "testKey";
         double amount = 1.1;
@@ -436,8 +450,9 @@ public class RedisClientTest {
         assertEquals(value, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void mget_success() throws ExecutionException, InterruptedException {
+    public void mget_success() {
         // setup
         String[] keys = {"Key1", "Key2"};
         String[] values = {"Value1", "Value2"};
@@ -456,8 +471,9 @@ public class RedisClientTest {
         assertEquals(values, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void mset_success() throws ExecutionException, InterruptedException {
+    public void mset_success() {
         // setup
         HashMap<String, String> keyValueMap =
                 new HashMap<String, String>() {

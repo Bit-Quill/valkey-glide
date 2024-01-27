@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * String Commands interface.
+ * Commands that perform string manipulation.
  *
  * @see: <a href="https://redis.io/commands/?group=string">String Commands</a>
  */
