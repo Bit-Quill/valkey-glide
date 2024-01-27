@@ -94,7 +94,7 @@ public class RedisClient extends BaseClient
      * Ping the Redis server.
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
-     * @returns The String "PONG"
+     * @return The String "PONG"
      */
     @Override
     public CompletableFuture<String> ping() {
@@ -107,7 +107,7 @@ public class RedisClient extends BaseClient
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
      * @param msg The ping argument that will be returned.
-     * @returns Return a copy of the argument.
+     * @return Return a copy of the argument.
      */
     @Override
     public CompletableFuture<String> ping(String msg) {
@@ -269,7 +269,7 @@ public class RedisClient extends BaseClient
      * @see <a href="https://redis.io/commands/incrby/">redis.io</a> for details.
      * @param key The key to increment its value.
      * @param amount The amount to increment.
-     * @returns The value of `key` after the increment, An error is raised if `key` contains a value
+     * @return The value of `key` after the increment, An error is raised if `key` contains a value
      *     of the wrong type or contains a string that can not be represented as long.
      */
     @Override
@@ -290,7 +290,7 @@ public class RedisClient extends BaseClient
      * @see <a href="https://redis.io/commands/incrbyfloat/">redis.io</a> for details.
      * @param key The key to increment its value.
      * @param amount The amount to increment.
-     * @returns The value of `key` after the increment. An error is raised if `key` contains a value
+     * @return The value of `key` after the increment. An error is raised if `key` contains a value
      *     of the wrong type, or the current key content is not parsable as a double precision
      *     floating point number.
      */
@@ -309,7 +309,7 @@ public class RedisClient extends BaseClient
      *
      * @see <a href="https://redis.io/commands/mget/">redis.io</a> for details.
      * @param keys An array of keys to retrieve values for.
-     * @returns An array of values corresponding to the provided keys. If a key is not found, its
+     * @return An array of values corresponding to the provided keys. If a key is not found, its
      *     corresponding value in the array will be null.
      */
     @Override
@@ -326,7 +326,7 @@ public class RedisClient extends BaseClient
      *
      * @see <a href="https://redis.io/commands/mset/">redis.io</a> for details.
      * @param keyValueMap A key-value map consisting of keys and their respective values to set.
-     * @returns An empty response on success
+     * @return An empty response on success
      */
     @Override
     public CompletableFuture<Void> mset(HashMap<String, String> keyValueMap) {
