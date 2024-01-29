@@ -1,7 +1,8 @@
 package glide.api;
 
-import glide.api.commands.BaseCommands;
-import glide.api.commands.Transaction;
+import glide.api.commands.ConnectionCommands;
+import glide.api.commands.StringCommands;
+import glide.api.models.commands.SetOptions;
 import glide.api.models.exceptions.RedisException;
 import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
@@ -9,6 +10,7 @@ import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import glide.managers.models.Command;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import lombok.AllArgsConstructor;
@@ -16,7 +18,7 @@ import response.ResponseOuterClass.Response;
 
 /** Base Client class for Redis */
 @AllArgsConstructor
-public abstract class BaseClient implements AutoCloseable, BaseCommands {
+public abstract class BaseClient implements AutoCloseable, StringCommands, ConnectionCommands {
 
     protected final ConnectionManager connectionManager;
     protected final CommandManager commandManager;
@@ -45,7 +47,7 @@ public abstract class BaseClient implements AutoCloseable, BaseCommands {
      * @param response Redis protobuf message
      * @return Response Object
      */
-    protected static Object handleObjectResponse(Response response) {
+    protected Object handleObjectResponse(Response response) {
         // convert protobuf response into Object and then Object into T
         return new BaseCommandResponseResolver(RedisValueResolver::valueFromPointer).apply(response);
     }
@@ -56,7 +58,7 @@ public abstract class BaseClient implements AutoCloseable, BaseCommands {
      *
      * @return null if the response is empty
      */
-    protected static Void handleVoidResponse(Response response) {
+    protected Void handleVoidResponse(Response response) {
         Object value = handleObjectResponse(response);
         if (value == null) {
             return null;
@@ -74,7 +76,7 @@ public abstract class BaseClient implements AutoCloseable, BaseCommands {
      * @param response Redis protobuf message
      * @return Response as a String
      */
-    protected static String handleStringResponse(Response response) {
+    protected String handleStringResponse(Response response) {
         Object value = handleObjectResponse(response);
         if (value instanceof String) {
             return (String) value;
@@ -92,7 +94,7 @@ public abstract class BaseClient implements AutoCloseable, BaseCommands {
      * @param response Redis protobuf message
      * @return Response as an Object[]
      */
-    protected static Object[] handleArrayResponse(Response response) {
+    protected Object[] handleArrayResponse(Response response) {
         Object value = handleObjectResponse(response);
         if (value instanceof Object[]) {
             return (Object[]) value;
@@ -110,7 +112,7 @@ public abstract class BaseClient implements AutoCloseable, BaseCommands {
      * @param response Redis protobuf message
      * @return Response as a String
      */
-    protected static HashMap<String, Object> handleMapResponse(Response response) {
+    protected HashMap<String, Object> handleMapResponse(Response response) {
         Object value = handleObjectResponse(response);
         if (value instanceof HashMap) {
             return (HashMap<String, Object>) value;
@@ -122,26 +124,32 @@ public abstract class BaseClient implements AutoCloseable, BaseCommands {
     }
 
     @Override
-    public CompletableFuture<Object> customCommand(String[] args) {
-        Command command =
-                Command.builder().requestType(Command.RequestType.CUSTOM_COMMAND).arguments(args).build();
-        return commandManager.submitNewCommand(command, BaseClient::handleObjectResponse);
+    public CompletableFuture<String> ping() {
+        return commandManager.submitNewCommand(
+                Command.ping(), Optional.empty(), r -> handleStringResponse(r));
     }
 
-    /**
-     * Execute a transaction by processing the queued commands.
-     *
-     * @see <a href="https://redis.io/topics/Transactions/">redis.io</a> for details on Redis
-     *     Transactions.
-     * @param transaction - A {@link Transaction} object containing a list of commands to be executed.
-     * @return A list of results corresponding to the execution of each command in the transaction.
-     *     <ul>
-     *       <li>If a command returns a value, it will be included in the list. If a command doesn't
-     *           return a value, the list entry will be null.
-     *       <li>If the transaction failed due to a WATCH command, `exec` will return `null`.
-     *     </ul>
-     */
-    public CompletableFuture<Object[]> exec(Transaction transaction) {
-        return commandManager.submitNewTransaction(transaction, BaseClient::handleArrayResponse);
+    @Override
+    public CompletableFuture<String> ping(String msg) {
+        return commandManager.submitNewCommand(
+                Command.ping(msg), Optional.empty(), r -> handleStringResponse(r));
+    }
+
+    @Override
+    public CompletableFuture<String> get(String key) {
+        return commandManager.submitNewCommand(
+                Command.get(key), Optional.empty(), r -> handleStringResponse(r));
+    }
+
+    @Override
+    public CompletableFuture<Void> set(String key, String value) {
+        return commandManager.submitNewCommand(
+                Command.set(key, value), Optional.empty(), r -> handleVoidResponse(r));
+    }
+
+    @Override
+    public CompletableFuture<String> set(String key, String value, SetOptions options) {
+        return commandManager.submitNewCommand(
+                Command.set(key, value, options.toArgs()), Optional.empty(), r -> handleStringResponse(r));
     }
 }

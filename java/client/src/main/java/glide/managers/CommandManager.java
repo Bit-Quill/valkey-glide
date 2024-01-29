@@ -1,5 +1,6 @@
 package glide.managers;
 
+import glide.api.commands.Transaction;
 import glide.api.models.configuration.Route;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
@@ -42,7 +43,18 @@ public class CommandManager {
         // write command request to channel
         // when complete, convert the response to our expected type T using the given responseHandler
         return channel
-                .write(prepareRedisRequest(command.getRequestType(), command.getArguments(), route), true)
+                .write(prepareRedisRequest(command, route), true)
+                .thenApplyAsync(responseHandler::apply);
+    }
+
+    public <T> CompletableFuture<T> submitNewTransaction(
+            Transaction transaction,
+            Optional<Route> route,
+            RedisExceptionCheckedFunction<Response, T> responseHandler) {
+        // write command request to channel
+        // when complete, convert the response to our expected type T using the given responseHandler
+        return channel
+                .write(prepareRedisTransaction(transaction, route), true)
                 .thenApplyAsync(responseHandler::apply);
     }
 
@@ -50,34 +62,35 @@ public class CommandManager {
         switch (inType) {
             case CUSTOM_COMMAND:
                 return RequestType.CustomCommand;
+            case PING:
+                return RequestType.Ping;
+            case INFO:
+                return RequestType.Info;
+            case GET_STRING:
+                return RequestType.GetString;
+            case SET_STRING:
+                return RequestType.SetString;
         }
         throw new RuntimeException("Unsupported request type");
     }
 
     /**
-     * Build a protobuf command/transaction request object with routing options.<br>
+     * Build a protobuf command request object with routing options.<br>
      * Used by {@link CommandManager}.
      *
      * @param command Redis command type
-     * @param args Redis command arguments
      * @param route Command routing parameters
      * @return An uncompleted request. {@link CallbackDispatcher} is responsible to complete it by
      *     adding a callback id.
      */
-    private RedisRequest.Builder prepareRedisRequest(
-            Command.RequestType command, String[] args, Optional<Route> route) {
+    private RedisRequest.Builder prepareRedisRequest(Command command, Optional<Route> route) {
         ArgsArray.Builder commandArgs = ArgsArray.newBuilder();
-        for (var arg : args) {
+        for (var arg : command.getArguments()) {
             commandArgs.addArgs(arg);
         }
 
-        var builder =
-                RedisRequest.newBuilder()
-                        .setSingleCommand(
-                                RedisRequestOuterClass.Command.newBuilder()
-                                        .setRequestType(mapRequestTypes(command))
-                                        .setArgsArray(commandArgs.build())
-                                        .build());
+        RedisRequest.Builder builder =
+                RedisRequest.newBuilder().setSingleCommand(prepareCommand(command));
 
         if (route.isEmpty()) {
             return builder;
@@ -111,6 +124,75 @@ public class CommandManager {
                                                 .setSlotType(getSlotTypes(route.get().getRouteType()))));
         }
         return builder;
+    }
+
+    /**
+     * Build a protobuf transaction request object with routing options.<br>
+     * Used by {@link CommandManager}.
+     *
+     * @param transaction Redis command type
+     * @param route Command routing parameters
+     * @return An uncompleted request. {@link CallbackDispatcher} is responsible to complete it by
+     *     adding a callback id.
+     */
+    private RedisRequest.Builder prepareRedisTransaction(
+            Transaction transaction, Optional<Route> route) {
+
+        RedisRequestOuterClass.Transaction.Builder transactionBuilder =
+                RedisRequestOuterClass.Transaction.newBuilder();
+        transaction.getCommands().stream()
+                .map(command -> prepareCommand(command))
+                .forEach(transactionBuilder::addCommands);
+
+        RedisRequest.Builder builder =
+                RedisRequest.newBuilder().setTransaction(transactionBuilder.build());
+
+        if (route.isEmpty()) {
+            return builder;
+        }
+
+        switch (route.get().getRouteType()) {
+            case RANDOM:
+            case ALL_NODES:
+            case ALL_PRIMARIES:
+                builder.setRoute(
+                        RedisRequestOuterClass.Routes.newBuilder()
+                                .setSimpleRoutes(getSimpleRoutes(route.get().getRouteType()))
+                                .build());
+                break;
+            case PRIMARY_SLOT_KEY:
+            case REPLICA_SLOT_KEY:
+                builder.setRoute(
+                        RedisRequestOuterClass.Routes.newBuilder()
+                                .setSlotKeyRoute(
+                                        SlotKeyRoute.newBuilder()
+                                                .setSlotKey(route.get().getSlotKey())
+                                                .setSlotType(getSlotTypes(route.get().getRouteType()))));
+                break;
+            case PRIMARY_SLOT_ID:
+            case REPLICA_SLOT_ID:
+                builder.setRoute(
+                        RedisRequestOuterClass.Routes.newBuilder()
+                                .setSlotIdRoute(
+                                        SlotIdRoute.newBuilder()
+                                                .setSlotId(route.get().getSlotId())
+                                                .setSlotType(getSlotTypes(route.get().getRouteType()))));
+        }
+        return builder;
+    }
+
+    private RedisRequestOuterClass.Command prepareCommand(Command command) {
+
+        RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
+                RedisRequestOuterClass.Command.ArgsArray.newBuilder();
+        for (var arg : command.getArguments()) {
+            commandArgs.addArgs(arg);
+        }
+
+        return RedisRequestOuterClass.Command.newBuilder()
+                .setRequestType(mapRequestTypes(command.getRequestType()))
+                .setArgsArray(commandArgs.build())
+                .build();
     }
 
     private SimpleRoutes getSimpleRoutes(Route.RouteType routeType) {

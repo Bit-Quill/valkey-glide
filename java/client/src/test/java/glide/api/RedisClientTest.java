@@ -23,6 +23,7 @@ import glide.managers.ConnectionManager;
 import glide.managers.models.Command;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
@@ -93,7 +94,8 @@ public class RedisClientTest {
         Command cmd = Command.builder().requestType(Command.RequestType.PING).build();
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn("PONG");
-        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(commandManager.<String>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String> response = service.ping();
@@ -115,7 +117,8 @@ public class RedisClientTest {
                         .build();
         CompletableFuture<String> testResponse = new CompletableFuture();
         testResponse.complete(message);
-        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(commandManager.<String>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String> response = service.ping(message);
@@ -136,7 +139,8 @@ public class RedisClientTest {
         testPayload.put("key2", "value2");
         testPayload.put("key3", "value3");
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<Map>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(commandManager.<Map>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map> response = service.info();
@@ -161,7 +165,8 @@ public class RedisClientTest {
         testPayload.put("key2", "value2");
         testPayload.put("key3", "value3");
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<Map>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(commandManager.<Map>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         InfoOptions options =
@@ -188,7 +193,8 @@ public class RedisClientTest {
         testPayload.put("key2", "value2");
         testPayload.put("key3", "value3");
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<Map>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(commandManager.<Map>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map> response = service.info(InfoOptions.builder().build());
@@ -212,7 +218,8 @@ public class RedisClientTest {
                         .build();
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);
-        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(commandManager.<String>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String> response = service.get(key);
@@ -236,7 +243,8 @@ public class RedisClientTest {
                         .build();
         CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(null);
-        when(commandManager.<Void>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(commandManager.<Void>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Void> response = service.set(key, value);
@@ -272,7 +280,8 @@ public class RedisClientTest {
                         .build();
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(null);
-        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(commandManager.<String>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String> response = service.set(key, value, setOptions);
@@ -312,7 +321,8 @@ public class RedisClientTest {
                         .build();
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);
-        when(commandManager.<String>submitNewCommand(eq(cmd), any())).thenReturn(testResponse);
+        when(commandManager.<String>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String> response = service.set(key, value, setOptions);
@@ -338,7 +348,8 @@ public class RedisClientTest {
         CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(testObj);
         // TODO update to expect the correct protobuf request
-        when(commandManager.submitNewTransaction(any(), any())).thenReturn(testResponse);
+        when(commandManager.<Object[]>submitNewTransaction(any(), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Object[]> response = service.exec(trans);
@@ -364,7 +375,8 @@ public class RedisClientTest {
         CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenThrow(interruptedException);
         // TODO update to expect the correct protobuf request
-        when(commandManager.submitNewTransaction(any(), any())).thenReturn(testResponse);
+        when(commandManager.<Object[]>submitNewTransaction(any(), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         InterruptedException exception =
@@ -393,7 +405,8 @@ public class RedisClientTest {
         CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(testObj);
         // TODO update to expect the correct protobuf request
-        when(commandManager.submitNewTransaction(any(), any())).thenReturn(testResponse);
+        when(commandManager.<Object[]>submitNewTransaction(any(), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Object[]> response = service.exec(trans);
@@ -416,7 +429,8 @@ public class RedisClientTest {
         CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(testObj);
         // TODO update to expect the correct protobuf request
-        when(commandManager.submitNewTransaction(any(), any())).thenReturn(testResponse);
+        when(commandManager.<Object[]>submitNewTransaction(any(), eq(Optional.empty()), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Object[]> response = service.exec(trans);
@@ -427,15 +441,16 @@ public class RedisClientTest {
         assertEquals(msg, payload[1]);
         assertNull(payload[2]);
     }
-    //
+
     //    @SneakyThrows
     //    @Test
     //    public void transaction_info_success() {
     //        // setup
     //        InfoOptions infoOptions =
+    //
     // InfoOptions.builder().section(InfoOptions.Section.SERVER).section(InfoOptions.Section.ERRORSTATS).build();
     //        InfoOptions infoOptionsEverything =
-    // InfoOptions.builder().section(InfoOptions.Section.EVERYTHING).build();
+    //            InfoOptions.builder().section(InfoOptions.Section.EVERYTHING).build();
     //        Transaction trans =
     //            Transaction.builder()
     //                .info()
@@ -443,10 +458,11 @@ public class RedisClientTest {
     //                .info(infoOptionsEverything)
     //                .build();
     //
-    //        Object[] testObj = new Object[] {null, value, null};
+    //        Object[] testObj = new Object[] {null, infoOptionsValue, infoOptionsEverythingValue};
     //        CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
     //        when(testResponse.get()).thenReturn(testObj);
-    //        when(commandManager.submitNewTransaction(any(), any())).thenReturn(testResponse);
+    //        when(commandManager.<Object[]>submitNewTransaction(any(), eq(Optional.empty()),
+    // any())).thenReturn(testResponse);
     //
     //        // exercise
     //        CompletableFuture<Object[]> response = service.exec(trans);

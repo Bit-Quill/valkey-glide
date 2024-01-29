@@ -45,4 +45,35 @@ public interface ClusterBaseCommands {
      * @return A <em>CompletableFuture</em> with response result from Redis
      */
     CompletableFuture<ClusterValue<Object>> customCommand(String[] args, Route route);
+
+    /**
+     * Execute a transaction by processing the queued commands.
+     *
+     * @see <a href="https://redis.io/topics/Transactions/">redis.io</a> for details on Redis
+     *     Transactions.
+     * @param transaction - A {@link Transaction} object containing a list of commands to be executed.
+     * @return A list of results corresponding to the execution of each command in the transaction.
+     *     <ul>
+     *       <li>If a command returns a value, it will be included in the list. If a command doesn't
+     *           return a value, the list entry will be null.
+     *       <li>If the transaction failed due to a WATCH command, `exec` will return `null`.
+     *     </ul>
+     */
+    CompletableFuture<ClusterValue<Object[]>> exec(Transaction transaction);
+
+    /**
+     * Execute a transaction by processing the queued commands.
+     *
+     * @see <a href="https://redis.io/topics/Transactions/">redis.io</a> for details on Redis
+     *     Transactions.
+     * @param transaction - A {@link Transaction} object containing a list of commands to be executed.
+     * @param route Routing configuration for the command
+     * @return A list of results corresponding to the execution of each command in the transaction.
+     *     <ul>
+     *       <li>If a command returns a value, it will be included in the list. If a command doesn't
+     *           return a value, the list entry will be null.
+     *       <li>If the transaction failed due to a WATCH command, `exec` will return `null`.
+     *     </ul>
+     */
+    CompletableFuture<ClusterValue<Object[]>> exec(Transaction transaction, Route route);
 }

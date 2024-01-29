@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,7 +36,6 @@ import org.mockito.ArgumentCaptor;
 import redis_request.RedisRequestOuterClass;
 import redis_request.RedisRequestOuterClass.RedisRequest;
 import redis_request.RedisRequestOuterClass.RequestType;
-import redis_request.RedisRequestOuterClass.Routes;
 import redis_request.RedisRequestOuterClass.SimpleRoutes;
 import redis_request.RedisRequestOuterClass.SlotTypes;
 import response.ResponseOuterClass;
@@ -227,8 +225,8 @@ public class CommandManagerTest {
                         SimpleRoutes.AllNodes, RouteType.ALL_NODES,
                         SimpleRoutes.AllPrimaries, RouteType.ALL_PRIMARIES);
 
-        ArgumentCaptor<RedisRequest> captor = ArgumentCaptor.forClass(RedisRequest.class);
-
+        ArgumentCaptor<RedisRequest.Builder> captor =
+                ArgumentCaptor.forClass(RedisRequest.Builder.class);
         service.submitNewCommand(command, Optional.of(new Route.Builder(routeType).build()), r -> null);
         verify(channelHandler).write(captor.capture(), anyBoolean());
         var requestBuilder = captor.getValue();
@@ -258,8 +256,8 @@ public class CommandManagerTest {
                         SlotTypes.Primary, RouteType.PRIMARY_SLOT_ID,
                         SlotTypes.Replica, RouteType.REPLICA_SLOT_ID);
 
-        ArgumentCaptor<RedisRequest> captor = ArgumentCaptor.forClass(RedisRequest.class);
-
+        ArgumentCaptor<RedisRequest.Builder> captor =
+                ArgumentCaptor.forClass(RedisRequest.Builder.class);
         service.submitNewCommand(
                 command, Optional.of(new Route.Builder(routeType).setSlotId(42).build()), r -> null);
         verify(channelHandler).write(captor.capture(), anyBoolean());
@@ -291,8 +289,8 @@ public class CommandManagerTest {
                         SlotTypes.Primary, RouteType.PRIMARY_SLOT_KEY,
                         SlotTypes.Replica, RouteType.REPLICA_SLOT_KEY);
 
-        ArgumentCaptor<RedisRequest> captor = ArgumentCaptor.forClass(RedisRequest.class);
-
+        ArgumentCaptor<RedisRequest.Builder> captor =
+                ArgumentCaptor.forClass(RedisRequest.Builder.class);
         service.submitNewCommand(
                 command, Optional.of(new Route.Builder(routeType).setSlotKey("TEST").build()), r -> null);
         verify(channelHandler).write(captor.capture(), anyBoolean());
@@ -341,20 +339,23 @@ public class CommandManagerTest {
 
         Command command = Command.builder().requestType(requestType).arguments(new String[] {}).build();
 
-        RedisRequest request =
-                prepareProtoBufRequest(
-                                protobufRequestType, RedisRequestOuterClass.Command.ArgsArray.newBuilder().build())
-                        .build();
+        //        RedisRequest.Builder request =
+        //                prepareProtoBufRequest(
+        //                                protobufRequestType,
+        // RedisRequestOuterClass.Command.ArgsArray.newBuilder().build());
+        ArgumentCaptor<RedisRequest.Builder> captor =
+                ArgumentCaptor.forClass(RedisRequest.Builder.class);
 
         CompletableFuture<Response> testFuture = new CompletableFuture<>();
         testFuture.complete(Response.newBuilder().setRespPointer(-1L).build());
 
-        when(channelHandler.write(eq(request), anyBoolean())).thenReturn(testFuture);
+        when(channelHandler.write(captor.capture(), anyBoolean())).thenReturn(testFuture);
         Object testResult = new Object();
 
         // exercise
         CompletableFuture future =
-                service.submitNewCommand(command, new BaseCommandResponseResolver((r) -> testResult));
+                service.submitNewCommand(
+                        command, Optional.empty(), new BaseCommandResponseResolver((r) -> testResult));
         Object result = future.get();
 
         // verify

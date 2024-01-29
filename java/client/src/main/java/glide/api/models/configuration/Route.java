@@ -24,6 +24,10 @@ public class Route {
         REPLICA_SLOT_KEY,
     }
 
+    public static Builder builder(RouteType routeType) {
+        return new Builder(routeType);
+    }
+
     @Getter private final RouteType routeType;
 
     private final Optional<Integer> slotId;
