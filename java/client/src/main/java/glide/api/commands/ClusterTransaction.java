@@ -6,6 +6,7 @@ import glide.managers.models.Command;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Singular;
@@ -26,4 +27,4 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Getter
 @EqualsAndHashCode
-public class Transaction extends BaseTransaction {}
+public class ClusterTransaction extends BaseTransaction {}
