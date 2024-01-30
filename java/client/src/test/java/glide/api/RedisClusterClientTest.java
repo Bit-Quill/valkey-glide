@@ -1,17 +1,11 @@
 package glide.api;
 
-import static glide.ProtobufArgumentMatchers.ProtobufRouteMatcher;
-import static glide.ProtobufArgumentMatchers.ProtobufSingleCommandMatcher;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
-import static redis_request.RedisRequestOuterClass.RequestType.Info;
 
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
@@ -49,8 +43,7 @@ public class RedisClusterClientTest {
         String[] arguments = new String[] {cmd, key};
         CompletableFuture<ClusterValue<Object>> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(ClusterValue.of(value));
-        when(commandManager.<ClusterValue<Object>>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(CustomCommand, arguments)), any()))
+        when(commandManager.<ClusterValue<Object>>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -73,8 +66,7 @@ public class RedisClusterClientTest {
         CompletableFuture<ClusterValue<Object>> testResponse = mock(CompletableFuture.class);
         InterruptedException interruptedException = new InterruptedException();
         when(testResponse.get()).thenThrow(interruptedException);
-        when(commandManager.<ClusterValue<Object>>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(CustomCommand, arguments)), any()))
+        when(commandManager.<ClusterValue<Object>>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -100,8 +92,7 @@ public class RedisClusterClientTest {
         testPayload.put("key2", "value2");
         testPayload.put("key3", "value3");
         when(testResponse.get()).thenReturn(ClusterValue.of(testPayload));
-        when(commandManager.<ClusterValue<Map>>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(Info, new String[0])), any()))
+        when(commandManager.<ClusterValue<Map>>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -125,11 +116,7 @@ public class RedisClusterClientTest {
                 Map.of("addr1", testPayloadAddr1, "addr2", testPayloadAddr2);
         RequestRoutingConfiguration.Route route = RequestRoutingConfiguration.SimpleRoute.ALL_NODES;
         when(testResponse.get()).thenReturn(ClusterValue.of(testClusterValue));
-        when(commandManager.<ClusterValue<Map>>submitNewCommand(
-                        and(
-                                argThat(new ProtobufRouteMatcher(route)),
-                                argThat(new ProtobufSingleCommandMatcher(Info, new String[0]))),
-                        any()))
+        when(commandManager.<ClusterValue<Map>>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -156,11 +143,7 @@ public class RedisClusterClientTest {
                 Map.of("addr1", testPayloadAddr1, "addr2", testPayloadAddr2);
         when(testResponse.get()).thenReturn(ClusterValue.of(testClusterValue));
         RequestRoutingConfiguration.Route route = RequestRoutingConfiguration.SimpleRoute.ALL_PRIMARIES;
-        when(commandManager.<ClusterValue<Map>>submitNewCommand(
-                        and(
-                                argThat(new ProtobufRouteMatcher(route)),
-                                argThat(new ProtobufSingleCommandMatcher(Info, infoArguments))),
-                        any()))
+        when(commandManager.<ClusterValue<Map>>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise

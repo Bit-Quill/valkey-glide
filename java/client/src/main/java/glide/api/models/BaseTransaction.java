@@ -2,10 +2,14 @@ package glide.api.models;
 
 import static glide.managers.CommandManager.mapRequestTypes;
 
-import glide.api.BaseClient;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
+import glide.managers.CommandManager.RequestType;
 import lombok.Getter;
+import org.apache.commons.lang3.ArrayUtils;
+import redis_request.RedisRequestOuterClass.Command;
+import redis_request.RedisRequestOuterClass.Command.ArgsArray;
+import redis_request.RedisRequestOuterClass.Transaction;
 
 /**
  * Base class encompassing shared commands for both standalone and cluster mode implementations in a
@@ -28,8 +32,7 @@ import lombok.Getter;
 @Getter
 public abstract class BaseTransaction {
     /** Command class to send a single request to Redis. */
-    redis_request.RedisRequestOuterClass.Transaction.Builder transactionBuilder =
-            redis_request.RedisRequestOuterClass.Transaction.newBuilder();
+    Transaction.Builder transactionBuilder = Transaction.newBuilder();
 
     /**
      * Executes a single command, without checking inputs. Every part of the command, including
@@ -44,20 +47,15 @@ public abstract class BaseTransaction {
      * Object result = client.customCommand(new String[]{"CLIENT","LIST","TYPE", "PUBSUB"}).get();
      * </pre>
      *
-     * @param args arguments for the custom command
-     * @return a CompletableFuture with response result from Redis
+     * @param args Arguments for the custom command.
+     * @return a CompletableFuture with response result from Redis.
      */
     public BaseTransaction customCommand(String[] args) {
-        redis_request.RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
-                redis_request.RedisRequestOuterClass.Command.ArgsArray.newBuilder();
-
-        for (var arg : args) {
-            commandArgs.addArgs(arg);
-        }
+        ArgsArray.Builder commandArgs = addAllArgs(args);
 
         transactionBuilder.addCommands(
-                redis_request.RedisRequestOuterClass.Command.newBuilder()
-                        .setRequestType(mapRequestTypes(BaseClient.RequestType.CUSTOM_COMMAND))
+                Command.newBuilder()
+                        .setRequestType(mapRequestTypes(RequestType.CUSTOM_COMMAND))
                         .setArgsArray(commandArgs.build())
                         .build());
         return this;
@@ -67,13 +65,11 @@ public abstract class BaseTransaction {
      * Ping the Redis server.
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
-     * @return the String "PONG"
+     * @return The String "PONG".
      */
     public BaseTransaction ping() {
         transactionBuilder.addCommands(
-                redis_request.RedisRequestOuterClass.Command.newBuilder()
-                        .setRequestType(mapRequestTypes(BaseClient.RequestType.PING))
-                        .build());
+                Command.newBuilder().setRequestType(mapRequestTypes(RequestType.PING)).build());
         return this;
     }
 
@@ -81,18 +77,15 @@ public abstract class BaseTransaction {
      * Ping the Redis server.
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
-     * @param msg - the ping argument that will be returned.
-     * @return return a copy of the argument.
+     * @param msg The ping argument that will be returned.
+     * @return Return a copy of the argument.
      */
     public BaseTransaction ping(String msg) {
-        redis_request.RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
-                redis_request.RedisRequestOuterClass.Command.ArgsArray.newBuilder();
-
-        commandArgs.addArgs(msg);
+        ArgsArray.Builder commandArgs = addAllArgs(msg);
 
         transactionBuilder.addCommands(
-                redis_request.RedisRequestOuterClass.Command.newBuilder()
-                        .setRequestType(mapRequestTypes(BaseClient.RequestType.PING))
+                Command.newBuilder()
+                        .setRequestType(mapRequestTypes(RequestType.PING))
                         .setArgsArray(commandArgs.build())
                         .build());
         return this;
@@ -102,13 +95,11 @@ public abstract class BaseTransaction {
      * Get information and statistics about the Redis server. DEFAULT option is assumed
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
-     * @return CompletableFuture with the response
+     * @return CompletableFuture with the response.
      */
     public BaseTransaction info() {
         transactionBuilder.addCommands(
-                redis_request.RedisRequestOuterClass.Command.newBuilder()
-                        .setRequestType(mapRequestTypes(BaseClient.RequestType.INFO))
-                        .build());
+                Command.newBuilder().setRequestType(mapRequestTypes(RequestType.INFO)).build());
         return this;
     }
 
@@ -118,19 +109,14 @@ public abstract class BaseTransaction {
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
      * @param options A list of InfoSection values specifying which sections of information to
      *     retrieve. When no parameter is provided, the default option is assumed.
-     * @return CompletableFuture with the response
+     * @return CompletableFuture with the response.
      */
     public BaseTransaction info(InfoOptions options) {
-        redis_request.RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
-                redis_request.RedisRequestOuterClass.Command.ArgsArray.newBuilder();
-
-        for (var arg : options.toArgs()) {
-            commandArgs.addArgs(arg);
-        }
+        ArgsArray.Builder commandArgs = addAllArgs(options.toArgs());
 
         transactionBuilder.addCommands(
-                redis_request.RedisRequestOuterClass.Command.newBuilder()
-                        .setRequestType(mapRequestTypes(BaseClient.RequestType.INFO))
+                Command.newBuilder()
+                        .setRequestType(mapRequestTypes(RequestType.INFO))
                         .setArgsArray(commandArgs.build())
                         .build());
         return this;
@@ -141,17 +127,14 @@ public abstract class BaseTransaction {
      *
      * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
      * @param key The key to retrieve from the database.
-     * @return If `key` exists, returns the value of `key` as a string. Otherwise, return null
+     * @return If `key` exists, returns the value of `key` as a string. Otherwise, return null.
      */
     public BaseTransaction get(String key) {
-        redis_request.RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
-                redis_request.RedisRequestOuterClass.Command.ArgsArray.newBuilder();
-
-        commandArgs.addArgs(key);
+        ArgsArray.Builder commandArgs = addAllArgs(key);
 
         transactionBuilder.addCommands(
-                redis_request.RedisRequestOuterClass.Command.newBuilder()
-                        .setRequestType(mapRequestTypes(BaseClient.RequestType.GET_STRING))
+                Command.newBuilder()
+                        .setRequestType(mapRequestTypes(RequestType.GET_STRING))
                         .setArgsArray(commandArgs.build())
                         .build());
         return this;
@@ -166,15 +149,11 @@ public abstract class BaseTransaction {
      * @return null
      */
     public BaseTransaction set(String key, String value) {
-        redis_request.RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
-                redis_request.RedisRequestOuterClass.Command.ArgsArray.newBuilder();
-
-        commandArgs.addArgs(key);
-        commandArgs.addArgs(value);
+        ArgsArray.Builder commandArgs = addAllArgs(key, value);
 
         transactionBuilder.addCommands(
-                redis_request.RedisRequestOuterClass.Command.newBuilder()
-                        .setRequestType(mapRequestTypes(BaseClient.RequestType.SET_STRING))
+                Command.newBuilder()
+                        .setRequestType(mapRequestTypes(RequestType.SET_STRING))
                         .setArgsArray(commandArgs.build())
                         .build());
         return this;
@@ -186,27 +165,30 @@ public abstract class BaseTransaction {
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
      * @param key The key to store.
      * @param value The value to store with the given key.
-     * @param options - The Set options
+     * @param options The Set options
      * @return string or null The old value as a string if `returnOldValue` is set. Otherwise, if the
      *     value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist` conditions, return null.
      *     Otherwise, return "OK".
      */
     public BaseTransaction set(String key, String value, SetOptions options) {
-        redis_request.RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =
-                redis_request.RedisRequestOuterClass.Command.ArgsArray.newBuilder();
-
-        commandArgs.addArgs(key);
-        commandArgs.addArgs(value);
-
-        for (var arg : options.toArgs()) {
-            commandArgs.addArgs(arg);
-        }
+        ArgsArray.Builder commandArgs =
+                addAllArgs(ArrayUtils.addAll(new String[] {key, value}, options.toArgs()));
 
         transactionBuilder.addCommands(
-                redis_request.RedisRequestOuterClass.Command.newBuilder()
-                        .setRequestType(mapRequestTypes(BaseClient.RequestType.SET_STRING))
+                Command.newBuilder()
+                        .setRequestType(mapRequestTypes(RequestType.SET_STRING))
                         .setArgsArray(commandArgs.build())
                         .build());
         return this;
+    }
+
+    protected ArgsArray.Builder addAllArgs(String... stringArgs) {
+        ArgsArray.Builder commandArgs = ArgsArray.newBuilder();
+
+        for (String string : stringArgs) {
+            commandArgs.addArgs(string);
+        }
+
+        return commandArgs;
     }
 }

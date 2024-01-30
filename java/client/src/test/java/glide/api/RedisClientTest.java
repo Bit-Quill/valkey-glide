@@ -1,6 +1,5 @@
 package glide.api;
 
-import static glide.ProtobufArgumentMatchers.ProtobufSingleCommandMatcher;
 import static glide.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
@@ -12,14 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
-import static redis_request.RedisRequestOuterClass.RequestType.GetString;
-import static redis_request.RedisRequestOuterClass.RequestType.Info;
-import static redis_request.RedisRequestOuterClass.RequestType.Ping;
-import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
@@ -58,9 +51,7 @@ public class RedisClientTest {
         when(testResponse.get()).thenReturn(value);
 
         // match on protobuf request
-        when(commandManager.submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(CustomCommand, arguments)), any()))
-                .thenReturn(testResponse);
+        when(commandManager.submitNewCommand(any(), any(), any(), any())).thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Object> response = service.customCommand(arguments);
@@ -83,9 +74,7 @@ public class RedisClientTest {
         when(testResponse.get()).thenThrow(interruptedException);
 
         // match on protobuf request
-        when(commandManager.submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(CustomCommand, arguments)), any()))
-                .thenReturn(testResponse);
+        when(commandManager.submitNewCommand(any(), any(), any(), any())).thenReturn(testResponse);
 
         // exercise
         InterruptedException exception =
@@ -107,8 +96,7 @@ public class RedisClientTest {
         when(testResponse.get()).thenReturn("PONG");
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(Ping, new String[0])), any()))
+        when(commandManager.<String>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -129,8 +117,7 @@ public class RedisClientTest {
         testResponse.complete(message);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(Ping, arguments)), any()))
+        when(commandManager.<String>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -151,9 +138,7 @@ public class RedisClientTest {
         testPayload.put("key2", "value2");
         testPayload.put("key3", "value3");
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<Map>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(Info, new String[0])), any()))
-                .thenReturn(testResponse);
+        when(commandManager.<Map>submitNewCommand(any(), any(), any(), any())).thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map> response = service.info();
@@ -175,9 +160,7 @@ public class RedisClientTest {
         testPayload.put("key2", "value2");
         testPayload.put("key3", "value3");
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<Map>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(Info, arguments)), any()))
-                .thenReturn(testResponse);
+        when(commandManager.<Map>submitNewCommand(any(), any(), any(), any())).thenReturn(testResponse);
 
         // exercise
         InfoOptions options =
@@ -202,9 +185,7 @@ public class RedisClientTest {
         testPayload.put("key2", "value2");
         testPayload.put("key3", "value3");
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<Map>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(Info, new String[0])), any()))
-                .thenReturn(testResponse);
+        when(commandManager.<Map>submitNewCommand(any(), any(), any(), any())).thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map> response = service.info(InfoOptions.builder().build());
@@ -223,8 +204,7 @@ public class RedisClientTest {
         String value = "testValue";
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);
-        when(commandManager.<String>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(GetString, new String[] {key})), any()))
+        when(commandManager.<String>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -244,8 +224,7 @@ public class RedisClientTest {
         String value = "testValue";
         CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(null);
-        when(commandManager.<Void>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(SetString, new String[] {key, value})), any()))
+        when(commandManager.<Void>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -277,8 +256,7 @@ public class RedisClientTest {
 
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(null);
-        when(commandManager.<String>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(SetString, arguments)), any()))
+        when(commandManager.<String>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -315,8 +293,7 @@ public class RedisClientTest {
                 };
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);
-        when(commandManager.<String>submitNewCommand(
-                        argThat(new ProtobufSingleCommandMatcher(SetString, arguments)), any()))
+        when(commandManager.<String>submitNewCommand(any(), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise

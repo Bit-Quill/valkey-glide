@@ -9,6 +9,7 @@ import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
+import glide.managers.CommandManager.RequestType;
 import glide.managers.ConnectionManager;
 import java.util.Map;
 import java.util.Optional;
@@ -53,7 +54,9 @@ public class RedisClusterClient extends BaseClient
     public CompletableFuture<ClusterValue<Object>> customCommand(String[] args) {
         // TODO if a command returns a map as a single value, ClusterValue misleads user
         return commandManager.submitNewCommand(
-                prepareRedisRequest(RequestType.CUSTOM_COMMAND, args, Optional.empty()),
+                RequestType.CUSTOM_COMMAND,
+                args,
+                Optional.empty(),
                 response -> ClusterValue.of(handleObjectResponse(response)));
     }
 
@@ -61,7 +64,9 @@ public class RedisClusterClient extends BaseClient
     @SuppressWarnings("unchecked")
     public CompletableFuture<ClusterValue<Object>> customCommand(String[] args, Route route) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(RequestType.CUSTOM_COMMAND, args, Optional.ofNullable(route)),
+                RequestType.CUSTOM_COMMAND,
+                args,
+                Optional.ofNullable(route),
                 response ->
                         route.isSingleNodeRoute()
                                 ? ClusterValue.ofSingleValue(handleObjectResponse(response))
@@ -71,40 +76,48 @@ public class RedisClusterClient extends BaseClient
     @Override
     public CompletableFuture<Object[]> exec(ClusterTransaction transaction) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(transaction, Optional.empty()), this::handleArrayResponse);
+                transaction, Optional.empty(), this::handleArrayResponse);
     }
 
     @Override
     public CompletableFuture<Object[]> exec(ClusterTransaction transaction, Route route) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(transaction, Optional.ofNullable(route)), this::handleArrayResponse);
+                transaction, Optional.ofNullable(route), this::handleArrayResponse);
     }
 
     @Override
     public CompletableFuture<ClusterValue<Map>> info() {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(RequestType.INFO, new String[0], Optional.empty()),
+                RequestType.INFO,
+                new String[0],
+                Optional.empty(),
                 response -> ClusterValue.of(handleMapResponse(response)));
     }
 
     @Override
     public CompletableFuture<ClusterValue<Map>> info(Route route) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(RequestType.INFO, new String[0], Optional.ofNullable(route)),
+                RequestType.INFO,
+                new String[0],
+                Optional.ofNullable(route),
                 response -> ClusterValue.of(handleMapResponse(response)));
     }
 
     @Override
     public CompletableFuture<ClusterValue<Map>> info(InfoOptions options) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(RequestType.INFO, options.toArgs(), Optional.empty()),
+                RequestType.INFO,
+                options.toArgs(),
+                Optional.empty(),
                 response -> ClusterValue.of(handleMapResponse(response)));
     }
 
     @Override
     public CompletableFuture<ClusterValue<Map>> info(InfoOptions options, Route route) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(RequestType.INFO, options.toArgs(), Optional.ofNullable(route)),
+                RequestType.INFO,
+                options.toArgs(),
+                Optional.ofNullable(route),
                 response -> ClusterValue.of(handleMapResponse(response)));
     }
 }

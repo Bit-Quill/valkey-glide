@@ -8,6 +8,7 @@ import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
+import glide.managers.CommandManager.RequestType;
 import glide.managers.ConnectionManager;
 import java.util.Map;
 import java.util.Optional;
@@ -50,27 +51,24 @@ public class RedisClient extends BaseClient
     @Override
     public CompletableFuture<Object> customCommand(String[] args) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(RequestType.CUSTOM_COMMAND, args, Optional.empty()),
-                this::handleStringResponse);
+                RequestType.CUSTOM_COMMAND, args, Optional.empty(), this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<Object[]> exec(Transaction transaction) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(transaction, Optional.empty()), this::handleArrayResponse);
+                transaction, Optional.empty(), this::handleArrayResponse);
     }
 
     @Override
     public CompletableFuture<Map> info() {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(RequestType.INFO, new String[0], Optional.empty()),
-                this::handleMapResponse);
+                RequestType.INFO, new String[0], Optional.empty(), this::handleMapResponse);
     }
 
     @Override
     public CompletableFuture<Map> info(InfoOptions options) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(RequestType.INFO, options.toArgs(), Optional.empty()),
-                this::handleMapResponse);
+                RequestType.INFO, options.toArgs(), Optional.empty(), this::handleMapResponse);
     }
 }

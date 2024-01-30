@@ -1,7 +1,5 @@
 package glide.api.models;
 
-import glide.api.models.configuration.RequestRoutingConfiguration.Route;
-import java.util.Optional;
 import lombok.AllArgsConstructor;
 
 /**
@@ -23,7 +21,4 @@ import lombok.AllArgsConstructor;
  *  </pre>
  */
 @AllArgsConstructor
-public class ClusterTransaction extends BaseTransaction {
-    /** Request routing configuration */
-    final Optional<Route> route;
-}
+public class ClusterTransaction extends BaseTransaction {}

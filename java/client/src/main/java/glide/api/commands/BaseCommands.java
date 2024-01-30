@@ -20,8 +20,8 @@ public interface BaseCommands {
      * Object result = client.customCommand(new String[]{"CLIENT","LIST","TYPE", "PUBSUB"}).get();
      * </pre>
      *
-     * @param args arguments for the custom command
-     * @return a CompletableFuture with response result from Redis
+     * @param args Arguments for the custom command.
+     * @return A CompletableFuture with response result from Redis.
      */
     CompletableFuture<Object> customCommand(String[] args);
 
