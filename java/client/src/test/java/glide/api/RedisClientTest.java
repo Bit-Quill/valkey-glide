@@ -1,5 +1,6 @@
 package glide.api;
 
+import static glide.ProtobufArgumentMatchers.ProtobufSingleCommandMatcher;
 import static glide.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
@@ -11,22 +12,23 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
+import static redis_request.RedisRequestOuterClass.RequestType.GetString;
+import static redis_request.RedisRequestOuterClass.RequestType.Info;
+import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
-import glide.api.commands.Transaction;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
-import glide.managers.models.Command;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -51,12 +53,17 @@ public class RedisClientTest {
         String key = "testKey";
         Object value = "testValue";
         String cmd = "GETSTRING";
+        String[] arguments = new String[] {cmd, key};
         CompletableFuture<Object> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);
-        when(commandManager.submitNewCommand(any(), any(), any())).thenReturn(testResponse);
+
+        // match on protobuf request
+        when(commandManager.submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(CustomCommand, arguments)), any()))
+                .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Object> response = service.customCommand(new String[] {cmd, key});
+        CompletableFuture<Object> response = service.customCommand(arguments);
         String payload = (String) response.get();
 
         // verify
@@ -70,17 +77,22 @@ public class RedisClientTest {
         String key = "testKey";
         Object value = "testValue";
         String cmd = "GETSTRING";
+        String[] arguments = new String[] {cmd, key};
         CompletableFuture<Object> testResponse = mock(CompletableFuture.class);
         InterruptedException interruptedException = new InterruptedException();
         when(testResponse.get()).thenThrow(interruptedException);
-        when(commandManager.submitNewCommand(any(), any(), any())).thenReturn(testResponse);
+
+        // match on protobuf request
+        when(commandManager.submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(CustomCommand, arguments)), any()))
+                .thenReturn(testResponse);
 
         // exercise
         InterruptedException exception =
                 assertThrows(
                         InterruptedException.class,
                         () -> {
-                            CompletableFuture<Object> response = service.customCommand(new String[] {cmd, key});
+                            CompletableFuture<Object> response = service.customCommand(arguments);
                             response.get();
                         });
 
@@ -91,10 +103,12 @@ public class RedisClientTest {
     @Test
     public void ping_success() throws ExecutionException, InterruptedException {
         // setup
-        Command cmd = Command.builder().requestType(Command.RequestType.PING).build();
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn("PONG");
-        when(commandManager.<String>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(Ping, new String[0])), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -110,14 +124,13 @@ public class RedisClientTest {
     public void pingWithMessage_success() throws ExecutionException, InterruptedException {
         // setup
         String message = "RETURN OF THE PONG";
-        Command cmd =
-                Command.builder()
-                        .requestType(Command.RequestType.PING)
-                        .arguments(new String[] {message})
-                        .build();
+        String[] arguments = new String[] {message};
         CompletableFuture<String> testResponse = new CompletableFuture();
         testResponse.complete(message);
-        when(commandManager.<String>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(Ping, arguments)), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -132,14 +145,14 @@ public class RedisClientTest {
     @Test
     public void info_success() throws ExecutionException, InterruptedException {
         // setup
-        Command cmd = Command.builder().requestType(Command.RequestType.INFO).build();
         CompletableFuture<Map> testResponse = mock(CompletableFuture.class);
         Map testPayload = new HashMap<String, String>();
         testPayload.put("key1", "value1");
         testPayload.put("key2", "value2");
         testPayload.put("key3", "value3");
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<Map>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+        when(commandManager.<Map>submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(Info, new String[0])), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -154,18 +167,16 @@ public class RedisClientTest {
     @Test
     public void infoWithMultipleOptions_success() throws ExecutionException, InterruptedException {
         // setup
-        Command cmd =
-                Command.builder()
-                        .requestType(Command.RequestType.INFO)
-                        .arguments(new String[] {"ALL", "DEFAULT"})
-                        .build();
+        String[] arguments =
+                new String[] {InfoOptions.Section.ALL.toString(), InfoOptions.Section.DEFAULT.toString()};
         CompletableFuture<Map> testResponse = mock(CompletableFuture.class);
         Map testPayload = new HashMap<String, String>();
         testPayload.put("key1", "value1");
         testPayload.put("key2", "value2");
         testPayload.put("key3", "value3");
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<Map>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+        when(commandManager.<Map>submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(Info, arguments)), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -185,15 +196,14 @@ public class RedisClientTest {
     @Test
     public void infoEmptyWithOptions_success() throws ExecutionException, InterruptedException {
         // setup
-        Command cmd =
-                Command.builder().requestType(Command.RequestType.INFO).arguments(new String[] {}).build();
         CompletableFuture<Map> testResponse = mock(CompletableFuture.class);
         Map testPayload = new HashMap<String, String>();
         testPayload.put("key1", "value1");
         testPayload.put("key2", "value2");
         testPayload.put("key3", "value3");
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<Map>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+        when(commandManager.<Map>submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(Info, new String[0])), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -211,14 +221,10 @@ public class RedisClientTest {
         // TODO: randomize keys
         String key = "testKey";
         String value = "testValue";
-        Command cmd =
-                Command.builder()
-                        .requestType(Command.RequestType.GET_STRING)
-                        .arguments(new String[] {key})
-                        .build();
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);
-        when(commandManager.<String>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+        when(commandManager.<String>submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(GetString, new String[] {key})), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -236,14 +242,10 @@ public class RedisClientTest {
         // TODO: randomize keys
         String key = "testKey";
         String value = "testValue";
-        Command cmd =
-                Command.builder()
-                        .requestType(Command.RequestType.SET_STRING)
-                        .arguments(new String[] {key, value})
-                        .build();
         CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(null);
-        when(commandManager.<Void>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+        when(commandManager.<Void>submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(SetString, new String[] {key, value})), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -270,24 +272,20 @@ public class RedisClientTest {
                                         .type(SetOptions.TimeToLiveType.KEEP_EXISTING)
                                         .build())
                         .build();
-        Command cmd =
-                Command.builder()
-                        .requestType(Command.RequestType.SET_STRING)
-                        .arguments(
-                                new String[] {
-                                    key, value, CONDITIONAL_SET_ONLY_IF_EXISTS, TIME_TO_LIVE_KEEP_EXISTING
-                                })
-                        .build();
+        String[] arguments =
+                new String[] {key, value, CONDITIONAL_SET_ONLY_IF_EXISTS, TIME_TO_LIVE_KEEP_EXISTING};
+
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(null);
-        when(commandManager.<String>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+        when(commandManager.<String>submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(SetString, arguments)), any()))
                 .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String> response = service.set(key, value, setOptions);
 
         // verify
-        assertNotNull(response);
+        assertEquals(testResponse, response);
         assertNull(response.get());
     }
 
@@ -307,21 +305,18 @@ public class RedisClientTest {
                                         .count(60)
                                         .build())
                         .build();
-        Command cmd =
-                Command.builder()
-                        .requestType(Command.RequestType.SET_STRING)
-                        .arguments(
-                                new String[] {
-                                    key,
-                                    value,
-                                    CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST,
-                                    RETURN_OLD_VALUE,
-                                    TIME_TO_LIVE_UNIX_SECONDS + " 60"
-                                })
-                        .build();
+        String[] arguments =
+                new String[] {
+                    key,
+                    value,
+                    CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST,
+                    RETURN_OLD_VALUE,
+                    TIME_TO_LIVE_UNIX_SECONDS + " 60"
+                };
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);
-        when(commandManager.<String>submitNewCommand(eq(cmd), eq(Optional.empty()), any()))
+        when(commandManager.<String>submitNewCommand(
+                        argThat(new ProtobufSingleCommandMatcher(SetString, arguments)), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -331,147 +326,4 @@ public class RedisClientTest {
         assertNotNull(response);
         assertEquals(value, response.get());
     }
-
-    @SneakyThrows
-    @Test
-    public void transaction_success() {
-        // setup
-        String cmd = "GETSTRING";
-        Transaction trans =
-                Transaction.builder()
-                        .customCommand(new String[] {cmd, "one"})
-                        .customCommand(new String[] {cmd, "two"})
-                        .customCommand(new String[] {cmd, "three"})
-                        .build();
-
-        Object[] testObj = new Object[] {};
-        CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(testObj);
-        // TODO update to expect the correct protobuf request
-        when(commandManager.<Object[]>submitNewTransaction(any(), eq(Optional.empty()), any()))
-                .thenReturn(testResponse);
-
-        // exercise
-        CompletableFuture<Object[]> response = service.exec(trans);
-        Object[] payload = response.get();
-
-        // verify
-        assertEquals(testObj, payload);
-    }
-
-    @SneakyThrows
-    @Test
-    public void transaction_interruptedException() {
-        // setup
-        String cmd = "GETSTRING";
-        Transaction trans =
-                Transaction.builder()
-                        .customCommand(new String[] {cmd, "one"})
-                        .customCommand(new String[] {cmd, "two"})
-                        .customCommand(new String[] {cmd, "three"})
-                        .build();
-
-        InterruptedException interruptedException = new InterruptedException();
-        CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenThrow(interruptedException);
-        // TODO update to expect the correct protobuf request
-        when(commandManager.<Object[]>submitNewTransaction(any(), eq(Optional.empty()), any()))
-                .thenReturn(testResponse);
-
-        // exercise
-        InterruptedException exception =
-                assertThrows(
-                        InterruptedException.class,
-                        () -> {
-                            CompletableFuture response = service.exec(trans);
-                            response.get();
-                        });
-
-        // verify
-        assertEquals(interruptedException, exception);
-    }
-
-    @SneakyThrows
-    @Test
-    public void transaction_getSet_success() {
-        // setup
-        String key = "testKey";
-        String value = "testValue";
-        SetOptions setOptions = SetOptions.builder().conditionalSet(ONLY_IF_EXISTS).build();
-        Transaction trans =
-                Transaction.builder().set(key, value).get(key).set(key, value, setOptions).build();
-
-        Object[] testObj = new Object[] {null, value, null};
-        CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(testObj);
-        // TODO update to expect the correct protobuf request
-        when(commandManager.<Object[]>submitNewTransaction(any(), eq(Optional.empty()), any()))
-                .thenReturn(testResponse);
-
-        // exercise
-        CompletableFuture<Object[]> response = service.exec(trans);
-        Object[] payload = response.get();
-
-        // verify
-        assertNull(payload[0]);
-        assertEquals(value, payload[1]);
-        assertNull(payload[2]);
-    }
-
-    @SneakyThrows
-    @Test
-    public void transaction_pingPong_success() {
-        // setup
-        String msg = "PONGPONG";
-        Transaction trans = Transaction.builder().ping().ping(msg).ping().build();
-
-        Object[] testObj = new Object[] {null, msg, null};
-        CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(testObj);
-        // TODO update to expect the correct protobuf request
-        when(commandManager.<Object[]>submitNewTransaction(any(), eq(Optional.empty()), any()))
-                .thenReturn(testResponse);
-
-        // exercise
-        CompletableFuture<Object[]> response = service.exec(trans);
-        Object[] payload = response.get();
-
-        // verify
-        assertNull(payload[0]);
-        assertEquals(msg, payload[1]);
-        assertNull(payload[2]);
-    }
-
-    //    @SneakyThrows
-    //    @Test
-    //    public void transaction_info_success() {
-    //        // setup
-    //        InfoOptions infoOptions =
-    //
-    // InfoOptions.builder().section(InfoOptions.Section.SERVER).section(InfoOptions.Section.ERRORSTATS).build();
-    //        InfoOptions infoOptionsEverything =
-    //            InfoOptions.builder().section(InfoOptions.Section.EVERYTHING).build();
-    //        Transaction trans =
-    //            Transaction.builder()
-    //                .info()
-    //                .info(infoOptions)
-    //                .info(infoOptionsEverything)
-    //                .build();
-    //
-    //        Object[] testObj = new Object[] {null, infoOptionsValue, infoOptionsEverythingValue};
-    //        CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
-    //        when(testResponse.get()).thenReturn(testObj);
-    //        when(commandManager.<Object[]>submitNewTransaction(any(), eq(Optional.empty()),
-    // any())).thenReturn(testResponse);
-    //
-    //        // exercise
-    //        CompletableFuture<Object[]> response = service.exec(trans);
-    //        Object[] payload = response.get();
-    //
-    //        // verify
-    //        assertNull(payload[0]);
-    //        assertEquals(value, payload[1]);
-    //        assertNull(payload[2]);
-    //    }
-
 }

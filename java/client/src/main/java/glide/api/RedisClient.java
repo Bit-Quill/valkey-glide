@@ -1,18 +1,14 @@
 package glide.api;
 
-import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
-
 import glide.api.commands.BaseCommands;
 import glide.api.commands.ConnectionCommands;
 import glide.api.commands.ServerCommands;
-import glide.api.commands.Transaction;
+import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RedisClientConfiguration;
-import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
-import glide.managers.models.Command;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -51,40 +47,30 @@ public class RedisClient extends BaseClient
         }
     }
 
-    protected static ChannelHandler buildChannelHandler() throws InterruptedException {
-        CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
-        return new ChannelHandler(callbackDispatcher, getSocket());
-    }
-
-    protected static ConnectionManager buildConnectionManager(ChannelHandler channelHandler) {
-        return new ConnectionManager(channelHandler);
-    }
-
-    protected static CommandManager buildCommandManager(ChannelHandler channelHandler) {
-        return new CommandManager(channelHandler);
-    }
-
     @Override
     public CompletableFuture<Object> customCommand(String[] args) {
         return commandManager.submitNewCommand(
-                Command.customCommand(args), Optional.empty(), response -> handleObjectResponse(response));
+                prepareRedisRequest(RequestType.CUSTOM_COMMAND, args, Optional.empty()),
+                this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<Object[]> exec(Transaction transaction) {
-        return commandManager.submitNewTransaction(
-                transaction, Optional.empty(), r -> handleArrayResponse(r));
+        return commandManager.submitNewCommand(
+                prepareRedisRequest(transaction, Optional.empty()), this::handleArrayResponse);
     }
 
     @Override
     public CompletableFuture<Map> info() {
         return commandManager.submitNewCommand(
-                Command.info(), Optional.empty(), r -> handleMapResponse(r));
+                prepareRedisRequest(RequestType.INFO, new String[0], Optional.empty()),
+                this::handleMapResponse);
     }
 
     @Override
     public CompletableFuture<Map> info(InfoOptions options) {
         return commandManager.submitNewCommand(
-                Command.info(options.toInfoOptions()), Optional.empty(), r -> handleMapResponse(r));
+                prepareRedisRequest(RequestType.INFO, options.toArgs(), Optional.empty()),
+                this::handleMapResponse);
     }
 }

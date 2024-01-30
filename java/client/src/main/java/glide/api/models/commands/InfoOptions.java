@@ -55,7 +55,7 @@ public class InfoOptions {
      *
      * @return String[]
      */
-    public String[] toInfoOptions() {
+    public String[] toArgs() {
         List<String> optionArgs = sections.stream().map(Objects::toString).collect(Collectors.toList());
         return optionArgs.toArray(new String[0]);
     }

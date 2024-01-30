@@ -1,15 +1,8 @@
-package glide.api.commands;
+package glide.api.models;
 
-import glide.api.models.commands.InfoOptions;
-import glide.api.models.commands.SetOptions;
-import glide.managers.models.Command;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Singular;
-import lombok.experimental.SuperBuilder;
+import glide.api.models.configuration.RequestRoutingConfiguration.Route;
+import java.util.Optional;
+import lombok.AllArgsConstructor;
 
 /**
  * Base class encompassing shared commands for both standalone and cluster mode implementations in a
@@ -23,7 +16,8 @@ import lombok.experimental.SuperBuilder;
  * @example transaction = new Transaction.Builder() .set("key", "value"); .get("key"); .build();
  *     Object[] result = client.exec(transaction).get(); assertEqual(new Object[] {OK , "value"});
  */
-@SuperBuilder
-@Getter
-@EqualsAndHashCode
-public class Transaction extends BaseTransaction {}
+@AllArgsConstructor
+public class ClusterTransaction extends BaseTransaction {
+    /** Request routing configuration */
+    final Optional<Route> route;
+}

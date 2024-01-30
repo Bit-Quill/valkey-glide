@@ -1,7 +1,9 @@
 package glide.api.commands;
 
+import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
-import glide.api.models.configuration.Route;
+import glide.api.models.Transaction;
+import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -59,7 +61,7 @@ public interface ClusterBaseCommands {
      *       <li>If the transaction failed due to a WATCH command, `exec` will return `null`.
      *     </ul>
      */
-    CompletableFuture<ClusterValue<Object[]>> exec(Transaction transaction);
+    CompletableFuture<ClusterValue<Object[]>> exec(ClusterTransaction transaction);
 
     /**
      * Execute a transaction by processing the queued commands.
@@ -75,5 +77,5 @@ public interface ClusterBaseCommands {
      *       <li>If the transaction failed due to a WATCH command, `exec` will return `null`.
      *     </ul>
      */
-    CompletableFuture<ClusterValue<Object[]>> exec(Transaction transaction, Route route);
+    CompletableFuture<ClusterValue<Object[]>> exec(ClusterTransaction transaction, Route route);
 }

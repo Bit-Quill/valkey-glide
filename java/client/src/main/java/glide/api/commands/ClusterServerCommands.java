@@ -2,7 +2,7 @@ package glide.api.commands;
 
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
-import glide.api.models.configuration.Route;
+import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
