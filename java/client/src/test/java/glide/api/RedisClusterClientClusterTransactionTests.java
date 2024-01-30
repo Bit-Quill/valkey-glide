@@ -4,7 +4,6 @@ import static glide.ProtobufArgumentMatchers.ProtobufRouteMatcher;
 import static glide.ProtobufArgumentMatchers.ProtobufTransactionMatcher;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -54,10 +53,10 @@ public class RedisClusterClientClusterTransactionTests {
         ClusterTransaction trans = new ClusterTransaction(Optional.empty());
         trans.customCommand(arg1).customCommand(arg2).customCommand(arg3);
         Object[] testObj = new Object[] {};
-        CompletableFuture<ClusterValue<Object[]>> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(ClusterValue.of(testObj));
+        CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(testObj);
 
-        when(commandManager.<ClusterValue<Object[]>>submitNewCommand(
+        when(commandManager.<Object[]>submitNewCommand(
                         argThat(
                                 new ProtobufArgumentMatchers.ProtobufTransactionMatcher(
                                         List.of(
@@ -68,13 +67,11 @@ public class RedisClusterClientClusterTransactionTests {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<ClusterValue<Object[]>> response = service.exec(trans);
+        CompletableFuture<Object[]> response = service.exec(trans);
 
         // verify
         assertEquals(testResponse, response);
-        ClusterValue<Object[]> clusterResponse = response.get();
-        assertTrue(clusterResponse.hasSingleData());
-        Object[] payload = clusterResponse.getSingleValue();
+        Object[] payload = response.get();
         assertEquals(testObj, payload);
     }
 
@@ -144,9 +141,9 @@ public class RedisClusterClientClusterTransactionTests {
         Map infoOptionsEverythingValue = Map.of(InfoOptions.Section.EVERYTHING.toString(), "value");
         Object[] testObj = new Object[] {infoValue, infoOptionsValue, infoOptionsEverythingValue};
 
-        CompletableFuture<ClusterValue<Object[]>> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(ClusterValue.of(testObj));
-        when(commandManager.<ClusterValue<Object[]>>submitNewCommand(
+        CompletableFuture<Object[]> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(testObj);
+        when(commandManager.<Object[]>submitNewCommand(
                         and(
                                 argThat(
                                         new ProtobufTransactionMatcher(
@@ -165,13 +162,11 @@ public class RedisClusterClientClusterTransactionTests {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<ClusterValue<Object[]>> response = service.exec(trans, route);
+        CompletableFuture<Object[]> response = service.exec(trans, route);
 
         // verify
         assertEquals(testResponse, response);
-        ClusterValue<Object[]> clusterResponse = response.get();
-        assertTrue(clusterResponse.hasSingleData());
-        Object[] payload = clusterResponse.getSingleValue();
+        Object[] payload = response.get();
         assertEquals(testObj, payload);
     }
 }

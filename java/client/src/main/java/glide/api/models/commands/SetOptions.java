@@ -14,7 +14,7 @@ import lombok.NonNull;
 public class SetOptions {
 
     /**
-     * if `conditional` is not set the value will be set regardless of prior value existence. <br>
+     * If `conditional` is not set the value will be set regardless of prior value existence. <br>
      * If value isn't set because of the condition, return null.
      */
     private ConditionalSet conditionalSet;

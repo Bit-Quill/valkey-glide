@@ -11,9 +11,10 @@ public interface BaseCommands {
      * subcommands, should be added as a separate value in args.
      *
      * @remarks This function should only be used for single-response commands. Commands that don't
-     *     return response (such as SUBSCRIBE), or that return potentially more than a single response
-     *     (such as XREAD), or that change the client's behavior (such as entering pub/sub mode on
-     *     RESP2 connections) shouldn't be called using this function.
+     *     return response (such as <em>SUBSCRIBE</em>), or that return potentially more than a single
+     *     response (such as <em>XREAD</em>), or that change the client's behavior (such as entering
+     *     <em>pub</em>/<em>sub</em> mode on <em>RESP2</em> connections) shouldn't be called using
+     *     this function.
      * @example Returns a list of all pub/sub clients:
      *     <pre>
      * Object result = client.customCommand(new String[]{"CLIENT","LIST","TYPE", "PUBSUB"}).get();
@@ -29,7 +30,7 @@ public interface BaseCommands {
      *
      * @see <a href="https://redis.io/topics/Transactions/">redis.io</a> for details on Redis
      *     Transactions.
-     * @param transaction - A {@link Transaction} object containing a list of commands to be executed.
+     * @param transaction A {@link Transaction} object containing a list of commands to be executed.
      * @return A list of results corresponding to the execution of each command in the transaction.
      *     <ul>
      *       <li>If a command returns a value, it will be included in the list. If a command doesn't

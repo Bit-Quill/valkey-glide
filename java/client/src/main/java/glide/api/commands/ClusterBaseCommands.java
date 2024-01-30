@@ -53,7 +53,7 @@ public interface ClusterBaseCommands {
      *
      * @see <a href="https://redis.io/topics/Transactions/">redis.io</a> for details on Redis
      *     Transactions.
-     * @param transaction - A {@link Transaction} object containing a list of commands to be executed.
+     * @param transaction A {@link Transaction} object containing a list of commands to be executed.
      * @return A list of results corresponding to the execution of each command in the transaction.
      *     <ul>
      *       <li>If a command returns a value, it will be included in the list. If a command doesn't
@@ -61,14 +61,14 @@ public interface ClusterBaseCommands {
      *       <li>If the transaction failed due to a WATCH command, `exec` will return `null`.
      *     </ul>
      */
-    CompletableFuture<ClusterValue<Object[]>> exec(ClusterTransaction transaction);
+    CompletableFuture<Object[]> exec(ClusterTransaction transaction);
 
     /**
      * Execute a transaction by processing the queued commands.
      *
      * @see <a href="https://redis.io/topics/Transactions/">redis.io</a> for details on Redis
      *     Transactions.
-     * @param transaction - A {@link Transaction} object containing a list of commands to be executed.
+     * @param transaction A {@link Transaction} object containing a list of commands to be executed.
      * @param route Routing configuration for the command
      * @return A list of results corresponding to the execution of each command in the transaction.
      *     <ul>
@@ -77,5 +77,5 @@ public interface ClusterBaseCommands {
      *       <li>If the transaction failed due to a WATCH command, `exec` will return `null`.
      *     </ul>
      */
-    CompletableFuture<ClusterValue<Object[]>> exec(ClusterTransaction transaction, Route route);
+    CompletableFuture<Object[]> exec(ClusterTransaction transaction, Route route);
 }

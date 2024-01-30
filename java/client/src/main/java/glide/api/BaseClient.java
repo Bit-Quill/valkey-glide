@@ -34,8 +34,8 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
      * Closes this resource, relinquishing any underlying resources. This method is invoked
      * automatically on objects managed by the try-with-resources statement.
      *
-     * <p>see: <a
-     * href="https://docs.oracle.com/javase/8/docs/api/java/lang/AutoCloseable.html#close--">AutoCloseable::close()</a>
+     * @see: <a
+     *     href="https://docs.oracle.com/javase/8/docs/api/java/lang/AutoCloseable.html#close--">AutoCloseable::close()</a>
      */
     @Override
     public void close() throws ExecutionException {

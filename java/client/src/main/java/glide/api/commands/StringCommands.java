@@ -11,7 +11,7 @@ public interface StringCommands {
      *
      * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
      * @param key - The key to retrieve from the database.
-     * @return If `key` exists, returns the value of `key` as a string. Otherwise, return null
+     * @return If `key` exists, returns the value of `key` as a string. Otherwise, return null.
      */
     CompletableFuture<String> get(String key);
 
@@ -31,9 +31,10 @@ public interface StringCommands {
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
      * @param key - The key to store.
      * @param value - The value to store with the given key.
-     * @param options - The Set options
-     * @return string or null If value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist`
-     *     conditions, return null. If `returnOldValue` is set, return the old value as a string.
+     * @param options - The Set options.
+     * @return string or null The old value as a string if `returnOldValue` is set. Otherwise, if the
+     *     value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist` conditions, return null.
+     *     Otherwise, return "OK".
      */
     CompletableFuture<String> set(String key, String value, SetOptions options);
 }

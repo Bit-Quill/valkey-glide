@@ -16,8 +16,14 @@ import lombok.Getter;
  * The response for each command depends on the executed Redis command. Specific response types are
  * documented alongside each method.
  *
- * @example transaction = new Transaction.Builder() .set("key", "value"); .get("key"); .build();
- *     Object[] result = client.exec(transaction).get(); assertEqual(new Object[] {OK , "value"});
+ * @example
+ *     <pre>
+ * transaction = new Transaction();
+ * transaction.set("key", "value");
+ * transaction.get("key");
+ * Object[] result = client.exec(transaction).get();
+ * assertEqual(new Object[] {OK , "value"});
+ * </pre>
  */
 @Getter
 public abstract class BaseTransaction {
@@ -110,7 +116,7 @@ public abstract class BaseTransaction {
      * Get information and statistics about the Redis server.
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
-     * @param options - A list of InfoSection values specifying which sections of information to
+     * @param options A list of InfoSection values specifying which sections of information to
      *     retrieve. When no parameter is provided, the default option is assumed.
      * @return CompletableFuture with the response
      */
@@ -134,7 +140,7 @@ public abstract class BaseTransaction {
      * Get the value associated with the given key, or null if no such value exists.
      *
      * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
-     * @param key - The key to retrieve from the database.
+     * @param key The key to retrieve from the database.
      * @return If `key` exists, returns the value of `key` as a string. Otherwise, return null
      */
     public BaseTransaction get(String key) {
@@ -155,8 +161,8 @@ public abstract class BaseTransaction {
      * Set the given key with the given value.
      *
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
-     * @param key - The key to store.
-     * @param value - The value to store with the given key.
+     * @param key The key to store.
+     * @param value The value to store with the given key.
      * @return null
      */
     public BaseTransaction set(String key, String value) {
@@ -178,11 +184,12 @@ public abstract class BaseTransaction {
      * Set the given key with the given value. Return value is dependent on the passed options.
      *
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
-     * @param key - The key to store.
-     * @param value - The value to store with the given key.
+     * @param key The key to store.
+     * @param value The value to store with the given key.
      * @param options - The Set options
-     * @return string or null If value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist`
-     *     conditions, return null. If `returnOldValue` is set, return the old value as a string.
+     * @return string or null The old value as a string if `returnOldValue` is set. Otherwise, if the
+     *     value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist` conditions, return null.
+     *     Otherwise, return "OK".
      */
     public BaseTransaction set(String key, String value, SetOptions options) {
         redis_request.RedisRequestOuterClass.Command.ArgsArray.Builder commandArgs =

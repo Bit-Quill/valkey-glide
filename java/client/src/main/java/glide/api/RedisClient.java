@@ -28,7 +28,7 @@ public class RedisClient extends BaseClient
      * Async request for an async (non-blocking) Redis client in Standalone mode.
      *
      * @param config Redis client Configuration
-     * @return a Future to connect and return a RedisClient
+     * @return A Future to connect and return a RedisClient
      */
     public static CompletableFuture<RedisClient> CreateClient(RedisClientConfiguration config) {
         try {

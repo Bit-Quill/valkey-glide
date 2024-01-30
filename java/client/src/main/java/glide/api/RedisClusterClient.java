@@ -29,7 +29,7 @@ public class RedisClusterClient extends BaseClient
      * Async request for an async (non-blocking) Redis client in Cluster mode.
      *
      * @param config Redis cluster client Configuration
-     * @return a Future to connect and return a RedisClusterClient
+     * @return A Future to connect and return a RedisClusterClient
      */
     public static CompletableFuture<RedisClusterClient> CreateClient(
             RedisClusterClientConfiguration config) {
@@ -69,18 +69,15 @@ public class RedisClusterClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<ClusterValue<Object[]>> exec(ClusterTransaction transaction) {
+    public CompletableFuture<Object[]> exec(ClusterTransaction transaction) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(transaction, Optional.empty()),
-                response -> ClusterValue.of(handleArrayResponse(response)));
+                prepareRedisRequest(transaction, Optional.empty()), this::handleArrayResponse);
     }
 
     @Override
-    public CompletableFuture<ClusterValue<Object[]>> exec(
-            ClusterTransaction transaction, Route route) {
+    public CompletableFuture<Object[]> exec(ClusterTransaction transaction, Route route) {
         return commandManager.submitNewCommand(
-                prepareRedisRequest(transaction, Optional.ofNullable(route)),
-                response -> ClusterValue.of(handleArrayResponse(response)));
+                prepareRedisRequest(transaction, Optional.ofNullable(route)), this::handleArrayResponse);
     }
 
     @Override
