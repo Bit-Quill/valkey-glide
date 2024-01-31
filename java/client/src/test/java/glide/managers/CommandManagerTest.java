@@ -357,7 +357,7 @@ public class CommandManagerTest {
 
     @SneakyThrows
     @Test
-    public void transaction_success() {
+    public void submitNewCommand_with_Transaction_sends_protobuf_request() {
         // setup
         String[] arg1 = new String[] {"GETSTRING", "one"};
         String[] arg2 = new String[] {"GETSTRING", "two"};
@@ -396,7 +396,7 @@ public class CommandManagerTest {
 
     @SneakyThrows
     @Test
-    public void transaction_interruptedException() {
+    public void submitNewCommand_with_Transaction_throws_interruptedException() {
         // setup
         String[] arg1 = new String[] {"GETSTRING", "one"};
         String[] arg2 = new String[] {"GETSTRING", "two"};
@@ -428,5 +428,36 @@ public class CommandManagerTest {
         assertTrue(requestBuilder.hasTransaction());
         assertEquals(3, requestBuilder.getTransaction().getCommandsCount());
         assertEquals(interruptedException, exception.getCause());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = SimpleRoute.class)
+    public void submitNewCommand_with_Transaction_with_route_sends_protobuf_request(
+            SimpleRoute routeType) {
+
+        String[] arg1 = new String[] {"GETSTRING", "one"};
+        String[] arg2 = new String[] {"GETSTRING", "two"};
+        String[] arg3 = new String[] {"GETSTRING", "two"};
+        Transaction trans = new Transaction();
+        trans.customCommand(arg1).customCommand(arg2).customCommand(arg3);
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        when(channelHandler.write(any(), anyBoolean())).thenReturn(future);
+
+        ArgumentCaptor<RedisRequest.Builder> captor =
+                ArgumentCaptor.forClass(RedisRequest.Builder.class);
+
+        service.submitNewCommand(trans, Optional.of(routeType), r -> null);
+        verify(channelHandler).write(captor.capture(), anyBoolean());
+        var requestBuilder = captor.getValue();
+
+        assertAll(
+                () -> assertTrue(requestBuilder.hasRoute()),
+                () -> assertTrue(requestBuilder.getRoute().hasSimpleRoutes()),
+                () ->
+                        assertEquals(
+                                routeType.getProtobufMapping(), requestBuilder.getRoute().getSimpleRoutes()),
+                () -> assertFalse(requestBuilder.getRoute().hasSlotIdRoute()),
+                () -> assertFalse(requestBuilder.getRoute().hasSlotKeyRoute()));
     }
 }
