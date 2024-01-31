@@ -16,7 +16,7 @@ public interface ClusterServerCommands {
      * Get information and statistics about the Redis server. DEFAULT option is assumed
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
-     * @return A <em>CompletableFuture</em> with String response from Redis
+     * @return Response from Redis with a <code>String</code>.
      */
     CompletableFuture<ClusterValue<String>> info();
 
@@ -25,7 +25,7 @@ public interface ClusterServerCommands {
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
      * @param route Routing configuration for the command
-     * @return A <em>CompletableFuture</em> with String response from Redis
+     * @return Response from Redis with a <code>String</code>.
      */
     CompletableFuture<ClusterValue<String>> info(Route route);
 
@@ -35,7 +35,7 @@ public interface ClusterServerCommands {
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
      * @param options - A list of InfoSection values specifying which sections of information to
      *     retrieve. When no parameter is provided, the default option is assumed.
-     * @return A <em>CompletableFuture</em> with String response from Redis
+     * @return Response from Redis with a <code>String</code> containing the requested Sections.
      */
     CompletableFuture<ClusterValue<String>> info(InfoOptions options);
 
@@ -46,7 +46,7 @@ public interface ClusterServerCommands {
      * @param options - A list of InfoSection values specifying which sections of information to
      *     retrieve. When no parameter is provided, the default option is assumed.
      * @param route Routing configuration for the command
-     * @return A <em>CompletableFuture</em> with String response from Redis
+     * @return Response from Redis with a <code>String</code> containing the requested Sections.
      */
     CompletableFuture<ClusterValue<String>> info(InfoOptions options, Route route);
 }

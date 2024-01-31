@@ -15,7 +15,7 @@ public interface ServerCommands {
      * DEFAULT</code> option is assumed.
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
-     * @return A <em>CompletableFuture</em> with String response from Redis
+     * @return Response from Redis with a <code>String</code>.
      */
     CompletableFuture<String> info();
 
@@ -25,7 +25,7 @@ public interface ServerCommands {
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
      * @param options A list of InfoSection values specifying which sections of information to
      *     retrieve. When no parameter is provided, the <code>DEFAULT</code> option is assumed.
-     * @return A <em>CompletableFuture</em> with String response from Redis
+     * @return Response from Redis with a <code>String</code> containing the requested Sections.
      */
     CompletableFuture<String> info(InfoOptions options);
 }

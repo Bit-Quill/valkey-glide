@@ -47,7 +47,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * </pre>
      *
      * @param args Arguments for the custom command.
-     * @return When executed, a <code>CompletableFuture</code> with response result from Redis.
+     * @return A response from Redis with an <code>Object</code>.
      */
     public T customCommand(String[] args) {
         ArgsArray.Builder commandArgs = addAllArgs(args);
@@ -64,7 +64,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Ping the Redis server.
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
-     * @return When executed, a <em>CompletableFuture</em> with the String <code>"PONG"</code>
+     * @return A response from Redis with a <code>String</code>.
      */
     public T ping() {
         transactionBuilder.addCommands(
@@ -77,7 +77,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
      * @param msg The ping argument that will be returned.
-     * @return When executed, a <em>CompletableFuture</em> with a copy of the argument.
+     * @return A response from Redis with a <code>String</code>.
      */
     public T ping(String msg) {
         ArgsArray.Builder commandArgs = addAllArgs(msg);
@@ -95,7 +95,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * DEFAULT</code> option is assumed.
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
-     * @return A <em>CompletableFuture</em> with String response from Redis
+     * @return A response from Redis with a <code>String</code>.
      */
     public T info() {
         transactionBuilder.addCommands(
@@ -109,7 +109,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
      * @param options A list of InfoSection values specifying which sections of information to
      *     retrieve. When no parameter is provided, the <code>DEFAULT</code> option is assumed.
-     * @return A <em>CompletableFuture</em> with String response from Redis
+     * @return A response from Redis with a <code>String</code>.
      */
     public T info(InfoOptions options) {
         ArgsArray.Builder commandArgs = addAllArgs(options.toArgs());
@@ -127,8 +127,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
      * @param key The key to retrieve from the database.
-     * @return If <code>key</code> exists, returns the <code>value</code> of <code>key</code> as a
-     *     String. Otherwise, return <code>null</code>.
+     * @return Response from Redis. <code>key</code> exists, returns the <code>value</code> of <code>key</code> as a
+     *      String. Otherwise, return <code>null</code>.
      */
     public T get(String key) {
         ArgsArray.Builder commandArgs = addAllArgs(key);
@@ -147,7 +147,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
      * @param key The key to store.
      * @param value The value to store with the given <code>key</code>.
-     * @return An empty response
+     * @return Response from Redis.
      */
     public T set(String key, String value) {
         ArgsArray.Builder commandArgs = addAllArgs(key, value);
@@ -167,9 +167,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key The key to store.
      * @param value The value to store with the given key.
      * @param options The Set options.
-     * @return A string or null response. The old value as a string if <code>returnOldValue</code> is
-     *     set. Otherwise, if the value isn't set because of <code>onlyIfExists</code> or <code>
-     *     onlyIfDoesNotExist</code> conditions, return <code>null</code>. Otherwise, return "OK".
+     * @return Response from Redis with a <code>String</code> or <code>null</code> response. The old value as a <code>String</code> if <code>returnOldValue</code> is
+     *      set. Otherwise, if the value isn't set because of <code>onlyIfExists</code> or <code>
+     *      onlyIfDoesNotExist</code> conditions, return <code>null</code>. Otherwise, return <code>OK</code>.
      */
     public T set(String key, String value, SetOptions options) {
         ArgsArray.Builder commandArgs =

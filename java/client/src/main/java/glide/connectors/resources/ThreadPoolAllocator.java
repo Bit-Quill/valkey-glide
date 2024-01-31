@@ -39,7 +39,6 @@ public class ThreadPoolAllocator {
                     () -> new EpollEventLoopGroup(threadCount, new DefaultThreadFactory(name, true)));
         }
         // TODO support IO-Uring and NIO
-
         throw new RuntimeException("Current platform supports no known thread pool types");
     }
 

@@ -24,8 +24,8 @@ public interface ClusterBaseCommands {
      *     <p><code>
      * Object result = client.customCommand(new String[]{ "CLIENT", "LIST", "TYPE", "PUBSUB" }).get();
      * </code>
-     * @param args Arguments for the custom command including the command name
-     * @return A <em>CompletableFuture</em> with response result from Redis
+     * @param args Arguments for the custom command including the command name.
+     * @return Response from Redis with an <code>Object</code>.
      */
     CompletableFuture<ClusterValue<Object>> customCommand(String[] args);
 
@@ -44,7 +44,7 @@ public interface ClusterBaseCommands {
      * </code>
      * @param args Arguments for the custom command including the command name
      * @param route Routing configuration for the command
-     * @return A <em>CompletableFuture</em> with response result from Redis
+     * @return Response from Redis with an <code>Object</code>.
      */
     CompletableFuture<ClusterValue<Object>> customCommand(String[] args, Route route);
 
