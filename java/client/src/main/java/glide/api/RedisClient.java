@@ -1,5 +1,8 @@
 package glide.api;
 
+import static glide.managers.RequestType.CUSTOM_COMMAND;
+import static glide.managers.RequestType.INFO;
+
 import glide.api.commands.BaseCommands;
 import glide.api.commands.ConnectionCommands;
 import glide.api.commands.ServerCommands;
@@ -8,7 +11,6 @@ import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
-import glide.managers.CommandManager.RequestType;
 import glide.managers.ConnectionManager;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -49,8 +51,7 @@ public class RedisClient extends BaseClient
 
     @Override
     public CompletableFuture<Object> customCommand(String[] args) {
-        return commandManager.submitNewCommand(
-                RequestType.CUSTOM_COMMAND, args, this::handleStringResponse);
+        return commandManager.submitNewCommand(CUSTOM_COMMAND, args, this::handleStringResponse);
     }
 
     @Override
@@ -61,13 +62,11 @@ public class RedisClient extends BaseClient
 
     @Override
     public CompletableFuture<String> info() {
-        return commandManager.submitNewCommand(
-                RequestType.INFO, new String[0], this::handleStringResponse);
+        return commandManager.submitNewCommand(INFO, new String[0], this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<String> info(InfoOptions options) {
-        return commandManager.submitNewCommand(
-                RequestType.INFO, options.toArgs(), this::handleStringResponse);
+        return commandManager.submitNewCommand(INFO, options.toArgs(), this::handleStringResponse);
     }
 }

@@ -1,6 +1,6 @@
 package glide.managers;
 
-import static glide.managers.CommandManager.RequestType.CUSTOM_COMMAND;
+import static glide.managers.RequestType.CUSTOM_COMMAND;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -304,8 +304,8 @@ public class CommandManagerTest {
 
     @SneakyThrows
     @ParameterizedTest
-    @EnumSource(CommandManager.RequestType.class)
-    public void submitNewCommand_covers_all_mapRequestTypes(CommandManager.RequestType requestType) {
+    @EnumSource(RequestType.class)
+    public void submitNewCommand_covers_all_mapRequestTypes(RequestType requestType) {
         // setup
         RedisRequestOuterClass.RequestType protobufRequestType;
         switch (requestType) {

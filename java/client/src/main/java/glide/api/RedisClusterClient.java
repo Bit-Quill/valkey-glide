@@ -1,5 +1,8 @@
 package glide.api;
 
+import static glide.managers.RequestType.CUSTOM_COMMAND;
+import static glide.managers.RequestType.INFO;
+
 import glide.api.commands.ClusterBaseCommands;
 import glide.api.commands.ClusterServerCommands;
 import glide.api.models.ClusterTransaction;
@@ -9,7 +12,6 @@ import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
-import glide.managers.CommandManager.RequestType;
 import glide.managers.ConnectionManager;
 import java.util.Map;
 import java.util.Optional;
@@ -54,7 +56,7 @@ public class RedisClusterClient extends BaseClient
     public CompletableFuture<ClusterValue<Object>> customCommand(String[] args) {
         // TODO if a command returns a map as a single value, ClusterValue misleads user
         return commandManager.submitNewCommand(
-                RequestType.CUSTOM_COMMAND,
+                CUSTOM_COMMAND,
                 args,
                 Optional.empty(),
                 response -> ClusterValue.of(handleObjectResponse(response)));
@@ -64,7 +66,7 @@ public class RedisClusterClient extends BaseClient
     @SuppressWarnings("unchecked")
     public CompletableFuture<ClusterValue<Object>> customCommand(String[] args, Route route) {
         return commandManager.submitNewCommand(
-                RequestType.CUSTOM_COMMAND,
+                CUSTOM_COMMAND,
                 args,
                 Optional.ofNullable(route),
                 response ->
@@ -88,7 +90,7 @@ public class RedisClusterClient extends BaseClient
     @Override
     public CompletableFuture<ClusterValue<String>> info() {
         return commandManager.submitNewCommand(
-                RequestType.INFO,
+                INFO,
                 new String[0],
                 Optional.empty(),
                 response -> ClusterValue.of(handleStringResponse(response)));
@@ -97,7 +99,7 @@ public class RedisClusterClient extends BaseClient
     @Override
     public CompletableFuture<ClusterValue<String>> info(Route route) {
         return commandManager.submitNewCommand(
-                RequestType.INFO,
+                INFO,
                 new String[0],
                 Optional.ofNullable(route),
                 response -> ClusterValue.of(handleStringResponse(response)));
@@ -106,7 +108,7 @@ public class RedisClusterClient extends BaseClient
     @Override
     public CompletableFuture<ClusterValue<String>> info(InfoOptions options) {
         return commandManager.submitNewCommand(
-                RequestType.INFO,
+                INFO,
                 options.toArgs(),
                 Optional.empty(),
                 response -> ClusterValue.of(handleStringResponse(response)));
@@ -115,7 +117,7 @@ public class RedisClusterClient extends BaseClient
     @Override
     public CompletableFuture<ClusterValue<String>> info(InfoOptions options, Route route) {
         return commandManager.submitNewCommand(
-                RequestType.INFO,
+                INFO,
                 options.toArgs(),
                 Optional.ofNullable(route),
                 response -> ClusterValue.of(handleStringResponse(response)));

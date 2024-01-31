@@ -3,7 +3,6 @@ package glide.api.models.commands;
 import glide.api.commands.ServerCommands;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Singular;
 

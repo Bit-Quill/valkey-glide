@@ -6,11 +6,11 @@ import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static glide.api.models.commands.SetOptions.TIME_TO_LIVE_KEEP_EXISTING;
 import static glide.api.models.commands.SetOptions.TIME_TO_LIVE_UNIX_SECONDS;
-import static glide.managers.CommandManager.RequestType.CUSTOM_COMMAND;
-import static glide.managers.CommandManager.RequestType.GET_STRING;
-import static glide.managers.CommandManager.RequestType.INFO;
-import static glide.managers.CommandManager.RequestType.PING;
-import static glide.managers.CommandManager.RequestType.SET_STRING;
+import static glide.managers.RequestType.CUSTOM_COMMAND;
+import static glide.managers.RequestType.GET_STRING;
+import static glide.managers.RequestType.INFO;
+import static glide.managers.RequestType.PING;
+import static glide.managers.RequestType.SET_STRING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

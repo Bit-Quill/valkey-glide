@@ -14,14 +14,15 @@ import lombok.NonNull;
 public class SetOptions {
 
     /**
-     * If <code>conditionalSet</code> is not set the value will be set regardless of prior value existence.
-     * If value isn't set because of the condition, return <code>null</code>.
+     * If <code>conditionalSet</code> is not set the value will be set regardless of prior value
+     * existence. If value isn't set because of the condition, return <code>null</code>.
      */
     private ConditionalSet conditionalSet;
 
     /**
-     * Return the old string stored at <code>key</code>, or <code>null</code> if <code>key</code> did not exist. An error is returned and <code>SET</code>
-     * aborted if the value stored at <code>key</code> is not a string. Equivalent to <code>GET</code> in the Redis API.
+     * Return the old string stored at <code>key</code>, or <code>null</code> if <code>key</code> did
+     * not exist. An error is returned and <code>SET</code> aborted if the value stored at <code>key
+     * </code> is not a string. Equivalent to <code>GET</code> in the Redis API.
      */
     private boolean returnOldValue;
 
@@ -30,14 +31,11 @@ public class SetOptions {
 
     public enum ConditionalSet {
         /**
-         * Only set the key if it does not already exist.
-         * Equivalent to <code>NX</code> in the Redis API.
+         * Only set the key if it does not already exist. Equivalent to <code>NX</code> in the Redis
+         * API.
          */
         ONLY_IF_EXISTS,
-        /**
-         * Only set the key if it already exists.
-         * Equivalent to <code>EX</code> in the Redis API.
-         */
+        /** Only set the key if it already exists. Equivalent to <code>EX</code> in the Redis API. */
         ONLY_IF_DOES_NOT_EXIST
     }
 
@@ -47,35 +45,35 @@ public class SetOptions {
         @NonNull private TimeToLiveType type;
 
         /**
-         * The amount of time to live before the key expires. Ignored when <code>KEEP_EXISTING</code> type is set.
+         * The amount of time to live before the key expires. Ignored when <code>KEEP_EXISTING</code>
+         * type is set.
          */
         private Integer count;
     }
 
     public enum TimeToLiveType {
         /**
-         * Retain the time to live associated with the key.
-         * Equivalent to <code>KEEPTTL</code> in the Redis API.
+         * Retain the time to live associated with the key. Equivalent to <code>KEEPTTL</code> in the
+         * Redis API.
          */
         KEEP_EXISTING,
         /**
-         * Set the specified expire time, in seconds.
-         * Equivalent to <code>EX</code> in the Redis API.
+         * Set the specified expire time, in seconds. Equivalent to <code>EX</code> in the Redis API.
          */
         SECONDS,
         /**
-         * Set the specified expire time, in milliseconds.
-         * Equivalent to <code>PX</code> in the Redis API.
+         * Set the specified expire time, in milliseconds. Equivalent to <code>PX</code> in the Redis
+         * API.
          */
         MILLISECONDS,
         /**
-         * Set the specified Unix time at which the key will expire, in seconds.
-         * Equivalent to <code>EXAT</code> in the Redis API.
+         * Set the specified Unix time at which the key will expire, in seconds. Equivalent to <code>
+         * EXAT</code> in the Redis API.
          */
         UNIX_SECONDS,
         /**
-         * Set the specified Unix time at which the key will expire, in milliseconds.
-         * Equivalent to <code>PXAT</code> in the Redis API.
+         * Set the specified Unix time at which the key will expire, in milliseconds. Equivalent to
+         * <code>PXAT</code> in the Redis API.
          */
         UNIX_MILLISECONDS
     }

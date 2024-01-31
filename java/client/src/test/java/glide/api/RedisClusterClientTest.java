@@ -2,6 +2,8 @@ package glide.api;
 
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.ALL_NODES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.RANDOM;
+import static glide.managers.RequestType.CUSTOM_COMMAND;
+import static glide.managers.RequestType.INFO;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -15,7 +17,6 @@ import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RequestRoutingConfiguration;
 import glide.managers.CommandManager;
-import glide.managers.CommandManager.RequestType;
 import glide.managers.ConnectionManager;
 import glide.managers.RedisExceptionCheckedFunction;
 import java.util.HashMap;
@@ -137,7 +138,8 @@ public class RedisClusterClientTest {
         String[] arguments = new String[] {cmd, key};
         CompletableFuture<ClusterValue<Object>> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(ClusterValue.of(value));
-        when(commandManager.<ClusterValue<Object>>submitNewCommand(any(), any(), any(), any()))
+        when(commandManager.<ClusterValue<Object>>submitNewCommand(
+                        eq(CUSTOM_COMMAND), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -161,7 +163,8 @@ public class RedisClusterClientTest {
         CompletableFuture<ClusterValue<Object>> testResponse = mock(CompletableFuture.class);
         InterruptedException interruptedException = new InterruptedException();
         when(testResponse.get()).thenThrow(interruptedException);
-        when(commandManager.<ClusterValue<Object>>submitNewCommand(any(), any(), any(), any()))
+        when(commandManager.<ClusterValue<Object>>submitNewCommand(
+                        eq(CUSTOM_COMMAND), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -188,7 +191,7 @@ public class RedisClusterClientTest {
         testPayload.put("addr1", "value3");
         when(testResponse.get()).thenReturn(ClusterValue.of(testPayload));
         when(commandManager.<ClusterValue<Map>>submitNewCommand(
-                        eq(RequestType.INFO), eq(new String[0]), any(), any()))
+                        eq(INFO), eq(new String[0]), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -210,8 +213,7 @@ public class RedisClusterClientTest {
         Map<String, String> testClusterValue = Map.of("addr1", "addr1 result", "addr2", "addr2 result");
         RequestRoutingConfiguration.Route route = RequestRoutingConfiguration.SimpleRoute.ALL_NODES;
         when(testResponse.get()).thenReturn(ClusterValue.of(testClusterValue));
-        when(commandManager.<ClusterValue<Map>>submitNewCommand(
-                        eq(RequestType.INFO), any(), any(), any()))
+        when(commandManager.<ClusterValue<Map>>submitNewCommand(eq(INFO), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -236,7 +238,7 @@ public class RedisClusterClientTest {
         when(testResponse.get()).thenReturn(ClusterValue.of(testClusterValue));
         RequestRoutingConfiguration.Route route = RequestRoutingConfiguration.SimpleRoute.ALL_PRIMARIES;
         when(commandManager.<ClusterValue<Map>>submitNewCommand(
-                        eq(RequestType.INFO), eq(infoArguments), any(), any()))
+                        eq(INFO), eq(infoArguments), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise

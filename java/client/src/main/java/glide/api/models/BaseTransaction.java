@@ -1,10 +1,13 @@
 package glide.api.models;
 
-import static glide.managers.CommandManager.mapRequestTypes;
+import static glide.managers.RequestType.CUSTOM_COMMAND;
+import static glide.managers.RequestType.GET_STRING;
+import static glide.managers.RequestType.INFO;
+import static glide.managers.RequestType.PING;
+import static glide.managers.RequestType.SET_STRING;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
-import glide.managers.CommandManager.RequestType;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import redis_request.RedisRequestOuterClass.Command;
@@ -23,7 +26,7 @@ import redis_request.RedisRequestOuterClass.Transaction;
  * @param <T> child typing for chaining method calls
  */
 @Getter
-public abstract class BaseTransaction <T extends BaseTransaction<T>> {
+public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /** Command class to send a single request to Redis. */
     Transaction.Builder transactionBuilder = Transaction.newBuilder();
 
@@ -51,7 +54,7 @@ public abstract class BaseTransaction <T extends BaseTransaction<T>> {
 
         transactionBuilder.addCommands(
                 Command.newBuilder()
-                        .setRequestType(mapRequestTypes(RequestType.CUSTOM_COMMAND))
+                        .setRequestType(CUSTOM_COMMAND.getProtobufMapping())
                         .setArgsArray(commandArgs.build())
                         .build());
         return getThis();
@@ -65,7 +68,7 @@ public abstract class BaseTransaction <T extends BaseTransaction<T>> {
      */
     public T ping() {
         transactionBuilder.addCommands(
-                Command.newBuilder().setRequestType(mapRequestTypes(RequestType.PING)).build());
+                Command.newBuilder().setRequestType(PING.getProtobufMapping()).build());
         return getThis();
     }
 
@@ -81,7 +84,7 @@ public abstract class BaseTransaction <T extends BaseTransaction<T>> {
 
         transactionBuilder.addCommands(
                 Command.newBuilder()
-                        .setRequestType(mapRequestTypes(RequestType.PING))
+                        .setRequestType(PING.getProtobufMapping())
                         .setArgsArray(commandArgs.build())
                         .build());
         return getThis();
@@ -96,7 +99,7 @@ public abstract class BaseTransaction <T extends BaseTransaction<T>> {
      */
     public T info() {
         transactionBuilder.addCommands(
-                Command.newBuilder().setRequestType(mapRequestTypes(RequestType.INFO)).build());
+                Command.newBuilder().setRequestType(INFO.getProtobufMapping()).build());
         return getThis();
     }
 
@@ -113,7 +116,7 @@ public abstract class BaseTransaction <T extends BaseTransaction<T>> {
 
         transactionBuilder.addCommands(
                 Command.newBuilder()
-                        .setRequestType(mapRequestTypes(RequestType.INFO))
+                        .setRequestType(INFO.getProtobufMapping())
                         .setArgsArray(commandArgs.build())
                         .build());
         return getThis();
@@ -132,7 +135,7 @@ public abstract class BaseTransaction <T extends BaseTransaction<T>> {
 
         transactionBuilder.addCommands(
                 Command.newBuilder()
-                        .setRequestType(mapRequestTypes(RequestType.GET_STRING))
+                        .setRequestType(GET_STRING.getProtobufMapping())
                         .setArgsArray(commandArgs.build())
                         .build());
         return getThis();
@@ -151,7 +154,7 @@ public abstract class BaseTransaction <T extends BaseTransaction<T>> {
 
         transactionBuilder.addCommands(
                 Command.newBuilder()
-                        .setRequestType(mapRequestTypes(RequestType.SET_STRING))
+                        .setRequestType(SET_STRING.getProtobufMapping())
                         .setArgsArray(commandArgs.build())
                         .build());
         return getThis();
@@ -174,7 +177,7 @@ public abstract class BaseTransaction <T extends BaseTransaction<T>> {
 
         transactionBuilder.addCommands(
                 Command.newBuilder()
-                        .setRequestType(mapRequestTypes(RequestType.SET_STRING))
+                        .setRequestType(SET_STRING.getProtobufMapping())
                         .setArgsArray(commandArgs.build())
                         .build());
         return getThis();

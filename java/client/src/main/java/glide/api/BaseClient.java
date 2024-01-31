@@ -1,6 +1,9 @@
 package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
+import static glide.managers.RequestType.GET_STRING;
+import static glide.managers.RequestType.PING;
+import static glide.managers.RequestType.SET_STRING;
 
 import glide.api.commands.ConnectionCommands;
 import glide.api.commands.StringCommands;
@@ -11,7 +14,6 @@ import glide.connectors.handlers.ChannelHandler;
 import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
-import glide.managers.CommandManager.RequestType;
 import glide.managers.ConnectionManager;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -143,32 +145,29 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
 
     @Override
     public CompletableFuture<String> ping() {
-        return commandManager.submitNewCommand(
-                RequestType.PING, new String[0], this::handleStringResponse);
+        return commandManager.submitNewCommand(PING, new String[0], this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<String> ping(String msg) {
-        return commandManager.submitNewCommand(
-                RequestType.PING, new String[] {msg}, this::handleStringResponse);
+        return commandManager.submitNewCommand(PING, new String[] {msg}, this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<String> get(String key) {
         return commandManager.submitNewCommand(
-                RequestType.GET_STRING, new String[] {key}, this::handleStringResponse);
+                GET_STRING, new String[] {key}, this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<Void> set(String key, String value) {
         return commandManager.submitNewCommand(
-                RequestType.SET_STRING, new String[] {key, value}, this::handleVoidResponse);
+                SET_STRING, new String[] {key, value}, this::handleVoidResponse);
     }
 
     @Override
     public CompletableFuture<String> set(String key, String value, SetOptions options) {
         String[] arguments = ArrayUtils.addAll(new String[] {key, value}, options.toArgs());
-        return commandManager.submitNewCommand(
-                RequestType.SET_STRING, arguments, this::handleStringResponse);
+        return commandManager.submitNewCommand(SET_STRING, arguments, this::handleStringResponse);
     }
 }

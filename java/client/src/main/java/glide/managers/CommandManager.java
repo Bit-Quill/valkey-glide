@@ -1,15 +1,14 @@
 package glide.managers;
 
 import glide.api.models.BaseTransaction;
+import glide.api.models.configuration.RequestRoutingConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute;
-import glide.api.models.configuration.RequestRoutingConfiguration;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
-import redis_request.RedisRequestOuterClass;
 import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
 import redis_request.RedisRequestOuterClass.RedisRequest;
@@ -104,9 +103,7 @@ public class CommandManager {
      *     adding a callback id.
      */
     protected RedisRequest.Builder prepareRedisRequest(
-            RequestType requestType,
-            String[] arguments,
-            Optional<Route> route) {
+            RequestType requestType, String[] arguments, Optional<Route> route) {
         ArgsArray.Builder commandArgs = ArgsArray.newBuilder();
         for (var arg : arguments) {
             commandArgs.addArgs(arg);
@@ -116,7 +113,7 @@ public class CommandManager {
                 RedisRequest.newBuilder()
                         .setSingleCommand(
                                 Command.newBuilder()
-                                        .setRequestType(mapRequestTypes(requestType))
+                                        .setRequestType(requestType.getProtobufMapping())
                                         .setArgsArray(commandArgs.build())
                                         .build());
 
@@ -127,8 +124,7 @@ public class CommandManager {
         if (route.get() instanceof SimpleRoute) {
             builder.setRoute(
                     Routes.newBuilder()
-                            .setSimpleRoutes(
-                                    ((SimpleRoute) route.get()).getProtobufMapping())
+                            .setSimpleRoutes(((SimpleRoute) route.get()).getProtobufMapping())
                             .build());
         } else if (route.get() instanceof RequestRoutingConfiguration.SlotIdRoute) {
             builder.setRoute(
@@ -171,8 +167,7 @@ public class CommandManager {
         if (route.get() instanceof SimpleRoute) {
             builder.setRoute(
                     Routes.newBuilder()
-                            .setSimpleRoutes(
-                                    ((SimpleRoute) route.get()).getProtobufMapping())
+                            .setSimpleRoutes(((SimpleRoute) route.get()).getProtobufMapping())
                             .build());
         } else if (route.get() instanceof RequestRoutingConfiguration.SlotIdRoute) {
             builder.setRoute(
@@ -200,50 +195,5 @@ public class CommandManager {
             throw new IllegalArgumentException("Unknown type of route");
         }
         return builder;
-    }
-
-    public enum RequestType {
-        /** Call a custom command with list of string arguments */
-        CUSTOM_COMMAND,
-        /**
-         * Ping the Redis server.
-         *
-         * @see <hred=https://redis.io/commands/ping/>command reference</a>
-         */
-        PING,
-        /**
-         * Get information and statistics about the Redis server.
-         *
-         * @see <hred=https://redis.io/commands/info/>command reference</a>
-         */
-        INFO,
-        /**
-         * Get the value of key.
-         *
-         * @see: <href=https://redis.io/commands/get/>command reference</a>
-         */
-        GET_STRING,
-        /**
-         * Set key to hold the string value.
-         *
-         * @see: <href=https://redis.io/commands/set/>command reference</a>
-         */
-        SET_STRING,
-    }
-
-    public static RedisRequestOuterClass.RequestType mapRequestTypes(RequestType inType) {
-        switch (inType) {
-            case CUSTOM_COMMAND:
-                return RedisRequestOuterClass.RequestType.CustomCommand;
-            case PING:
-                return RedisRequestOuterClass.RequestType.Ping;
-            case INFO:
-                return RedisRequestOuterClass.RequestType.Info;
-            case GET_STRING:
-                return RedisRequestOuterClass.RequestType.GetString;
-            case SET_STRING:
-                return RedisRequestOuterClass.RequestType.SetString;
-        }
-        throw new RuntimeException("Unsupported request type");
     }
 }
