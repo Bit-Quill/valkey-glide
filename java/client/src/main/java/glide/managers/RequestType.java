@@ -4,9 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import redis_request.RedisRequestOuterClass;
 
-/**
- * Typing used to map client command calls to protobuf request types
- */
+/** Typing used to map client command calls to protobuf request types */
 @AllArgsConstructor
 @Getter
 public enum RequestType {

@@ -307,27 +307,7 @@ public class CommandManagerTest {
     @EnumSource(RequestType.class)
     public void submitNewCommand_covers_all_mapRequestTypes(RequestType requestType) {
         // setup
-        RedisRequestOuterClass.RequestType protobufRequestType;
-        switch (requestType) {
-            case CUSTOM_COMMAND:
-                protobufRequestType = RedisRequestOuterClass.RequestType.CustomCommand;
-                break;
-            case PING:
-                protobufRequestType = RedisRequestOuterClass.RequestType.Ping;
-                break;
-            case INFO:
-                protobufRequestType = RedisRequestOuterClass.RequestType.Info;
-                break;
-            case GET_STRING:
-                protobufRequestType = RedisRequestOuterClass.RequestType.GetString;
-                break;
-            case SET_STRING:
-                protobufRequestType = RedisRequestOuterClass.RequestType.SetString;
-                break;
-            default:
-                // not implemented
-                return;
-        }
+        RedisRequestOuterClass.RequestType protobufRequestType = requestType.getProtobufMapping();
 
         ArgumentCaptor<RedisRequest.Builder> captor =
                 ArgumentCaptor.forClass(RedisRequest.Builder.class);

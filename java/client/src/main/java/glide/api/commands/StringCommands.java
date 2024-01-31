@@ -11,8 +11,8 @@ public interface StringCommands {
      *
      * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
      * @param key The key to retrieve from the database.
-     * @return Response from Redis. <code>key</code> exists, returns the <code>value</code> of <code>key</code> as a
-     *     String. Otherwise, return <code>null</code>.
+     * @return Response from Redis. <code>key</code> exists, returns the <code>value</code> of <code>
+     *     key</code> as a String. Otherwise, return <code>null</code>.
      */
     CompletableFuture<String> get(String key);
 
@@ -33,9 +33,11 @@ public interface StringCommands {
      * @param key The key to store.
      * @param value The value to store with the given key.
      * @param options The Set options.
-     * @return Response from Redis with a <code>String</code> or <code>null</code> response. The old value as a <code>String</code> if <code>returnOldValue</code> is
-     *     set. Otherwise, if the value isn't set because of <code>onlyIfExists</code> or <code>
-     *     onlyIfDoesNotExist</code> conditions, return <code>null</code>. Otherwise, return <code>OK</code>.
+     * @return Response from Redis with a <code>String</code> or <code>null</code> response. The old
+     *     value as a <code>String</code> if <code>returnOldValue</code> is set. Otherwise, if the
+     *     value isn't set because of <code>onlyIfExists</code> or <code>
+     *     onlyIfDoesNotExist</code> conditions, return <code>null</code>. Otherwise, return <code>OK
+     *     </code>.
      */
     CompletableFuture<String> set(String key, String value, SetOptions options);
 }
