@@ -131,7 +131,7 @@ public class CommandManagerTest {
     }
 
     @Test
-    public void submitNewCommand_throwClosingException() {
+    public void submitNewCommand_throws_ClosingException() {
 
         // setup
         String errorMsg = "Closing";
@@ -306,7 +306,6 @@ public class CommandManagerTest {
     @ParameterizedTest
     @EnumSource(CommandManager.RequestType.class)
     public void submitNewCommand_covers_all_mapRequestTypes(CommandManager.RequestType requestType) {
-
         // setup
         RedisRequestOuterClass.RequestType protobufRequestType;
         switch (requestType) {

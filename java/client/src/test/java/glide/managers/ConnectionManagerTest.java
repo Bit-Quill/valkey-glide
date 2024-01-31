@@ -53,7 +53,7 @@ public class ConnectionManagerTest {
     private static int REQUEST_TIMEOUT = 3;
 
     @BeforeEach
-    public void setUp() throws ExecutionException, InterruptedException {
+    public void setUp() {
         channel = mock(ChannelHandler.class);
         ChannelFuture closeFuture = mock(ChannelFuture.class);
         when(closeFuture.syncUninterruptibly()).thenReturn(closeFuture);

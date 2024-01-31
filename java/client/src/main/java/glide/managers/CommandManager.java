@@ -69,7 +69,7 @@ public class CommandManager {
      * @param responseHandler The handler for the response object
      * @return A result promise of type T
      */
-    private <T> CompletableFuture<T> submitNewCommand(
+    protected <T> CompletableFuture<T> submitNewCommand(
             RedisRequest.Builder command, RedisExceptionCheckedFunction<Response, T> responseHandler) {
         // write command request to channel
         // when complete, convert the response to our expected type T using the given responseHandler

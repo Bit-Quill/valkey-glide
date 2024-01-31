@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -48,8 +48,9 @@ public class RedisClientTest {
         service = new RedisClient(connectionManager, commandManager);
     }
 
+    @SneakyThrows
     @Test
-    public void customCommand_success() throws ExecutionException, InterruptedException {
+    public void customCommand_returns_success() {
         // setup
         String key = "testKey";
         Object value = "testValue";
@@ -75,8 +76,9 @@ public class RedisClientTest {
         assertEquals(value, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void customCommand_interruptedException() throws ExecutionException, InterruptedException {
+    public void customCommand_throws_InterruptedException() {
         // setup
         String key = "testKey";
         Object value = "testValue";
@@ -104,8 +106,9 @@ public class RedisClientTest {
         assertEquals(interruptedException, exception);
     }
 
+    @SneakyThrows
     @Test
-    public void ping_success() throws ExecutionException, InterruptedException {
+    public void ping_returns_success() {
         // setup
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn("PONG");
@@ -124,8 +127,9 @@ public class RedisClientTest {
         assertEquals("PONG", payload);
     }
 
+    @SneakyThrows
     @Test
-    public void pingWithMessage_success() throws ExecutionException, InterruptedException {
+    public void ping_with_message_returns_success() {
         // setup
         String message = "RETURN OF THE PONG";
         String[] arguments = new String[] {message};
@@ -146,8 +150,9 @@ public class RedisClientTest {
         assertEquals(message, pong);
     }
 
+    @SneakyThrows
     @Test
-    public void info_success() throws ExecutionException, InterruptedException {
+    public void info_returns_success() {
         // setup
         CompletableFuture<Map> testResponse = mock(CompletableFuture.class);
         Map testPayload = new HashMap<String, String>();
@@ -168,8 +173,9 @@ public class RedisClientTest {
         assertEquals(testPayload, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void infoWithMultipleOptions_success() throws ExecutionException, InterruptedException {
+    public void info_with_multiple_InfoOptions_returns_success() {
         // setup
         String[] arguments =
                 new String[] {InfoOptions.Section.ALL.toString(), InfoOptions.Section.DEFAULT.toString()};
@@ -196,8 +202,9 @@ public class RedisClientTest {
         assertEquals(testPayload, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void infoEmptyWithOptions_success() throws ExecutionException, InterruptedException {
+    public void info_with_empty_InfoOptions_returns_success() {
         // setup
         CompletableFuture<Map> testResponse = mock(CompletableFuture.class);
         Map testPayload = new HashMap<String, String>();
@@ -218,10 +225,10 @@ public class RedisClientTest {
         assertEquals(testPayload, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void get_success() throws ExecutionException, InterruptedException {
+    public void get_returns_success() {
         // setup
-        // TODO: randomize keys
         String key = "testKey";
         String value = "testValue";
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
@@ -239,10 +246,10 @@ public class RedisClientTest {
         assertEquals(value, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void set_success() throws ExecutionException, InterruptedException {
+    public void set_returns_success() {
         // setup
-        // TODO: randomize keys
         String key = "testKey";
         String value = "testValue";
         CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
@@ -259,9 +266,9 @@ public class RedisClientTest {
         assertNull(nullResponse);
     }
 
+    @SneakyThrows
     @Test
-    public void set_withOptionsOnlyIfExists_success()
-            throws ExecutionException, InterruptedException {
+    public void set_with_SetOptions_OnlyIfExists_returns_success() {
         // setup
         String key = "testKey";
         String value = "testValue";
@@ -290,9 +297,9 @@ public class RedisClientTest {
         assertNull(response.get());
     }
 
+    @SneakyThrows
     @Test
-    public void set_withOptionsOnlyIfDoesNotExist_success()
-            throws ExecutionException, InterruptedException {
+    public void set_with_SetOptions_OnlyIfDoesNotExist_returns_success() {
         // setup
         String key = "testKey";
         String value = "testValue";

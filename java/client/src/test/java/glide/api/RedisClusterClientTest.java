@@ -1,5 +1,8 @@
 package glide.api;
 
+import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.ALL_NODES;
+import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.RANDOM;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,12 +15,15 @@ import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RequestRoutingConfiguration;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import glide.managers.RedisExceptionCheckedFunction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import redis_request.RedisRequestOuterClass;
+import response.ResponseOuterClass.Response;
 
 public class RedisClusterClientTest {
 
@@ -35,7 +41,93 @@ public class RedisClusterClientTest {
     }
 
     @Test
-    public void customCommand_success() throws ExecutionException, InterruptedException {
+    @SneakyThrows
+    public void customCommand_returns_single_value() {
+        var commandManager = new TestCommandManager(null);
+
+        var client = new TestClient(commandManager, "TEST");
+
+        var value = client.customCommand(new String[0]).get();
+        assertAll(
+                () -> assertTrue(value.hasSingleData()),
+                () -> assertEquals("TEST", value.getSingleValue()));
+    }
+
+    @Test
+    @SneakyThrows
+    public void customCommand_returns_multi_value() {
+        var commandManager = new TestCommandManager(null);
+
+        var data = Map.of("key1", "value1", "key2", "value2");
+        var client = new TestClient(commandManager, data);
+
+        var value = client.customCommand(new String[0]).get();
+        assertAll(
+                () -> assertTrue(value.hasMultiData()), () -> assertEquals(data, value.getMultiValue()));
+    }
+
+    @Test
+    @SneakyThrows
+    // test checks that even a map returned as a single value when single node route is used
+    public void customCommand_with_single_node_route_returns_single_value() {
+        var commandManager = new TestCommandManager(null);
+
+        var data = Map.of("key1", "value1", "key2", "value2");
+        var client = new TestClient(commandManager, data);
+
+        var value = client.customCommand(new String[0], RANDOM).get();
+        assertAll(
+                () -> assertTrue(value.hasSingleData()), () -> assertEquals(data, value.getSingleValue()));
+    }
+
+    @Test
+    @SneakyThrows
+    public void customCommand_with_multi_node_route_returns_multi_value() {
+        var commandManager = new TestCommandManager(null);
+
+        var data = Map.of("key1", "value1", "key2", "value2");
+        var client = new TestClient(commandManager, data);
+
+        var value = client.customCommand(new String[0], ALL_NODES).get();
+        assertAll(
+                () -> assertTrue(value.hasMultiData()), () -> assertEquals(data, value.getMultiValue()));
+    }
+
+    private static class TestClient extends RedisClusterClient {
+
+        private final Object object;
+
+        public TestClient(CommandManager commandManager, Object objectToReturn) {
+            super(null, commandManager);
+            object = objectToReturn;
+        }
+
+        @Override
+        protected Object handleObjectResponse(Response response) {
+            return object;
+        }
+    }
+
+    private static class TestCommandManager extends CommandManager {
+
+        private final Response response;
+
+        public TestCommandManager(Response responseToReturn) {
+            super(null);
+            response = responseToReturn;
+        }
+
+        @Override
+        public <T> CompletableFuture<T> submitNewCommand(
+                RedisRequestOuterClass.RedisRequest.Builder command,
+                RedisExceptionCheckedFunction<Response, T> responseHandler) {
+            return CompletableFuture.supplyAsync(() -> responseHandler.apply(response));
+        }
+    }
+
+    @SneakyThrows
+    @Test
+    public void customCommand_success() {
         // setup
         String key = "testKey";
         String value = "testValue";
@@ -57,8 +149,9 @@ public class RedisClusterClientTest {
         assertEquals(value, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void customCommand_interruptedException() throws ExecutionException, InterruptedException {
+    public void customCommand_interruptedException() {
         // setup
         String key = "testKey";
         String cmd = "GETSTRING";
@@ -82,10 +175,10 @@ public class RedisClusterClientTest {
         assertEquals(interruptedException, exception);
     }
 
+    @SneakyThrows
     @Test
-    public void info_success() throws ExecutionException, InterruptedException {
+    public void info_returns_string() {
         // setup
-
         CompletableFuture<ClusterValue<Map>> testResponse = mock(CompletableFuture.class);
         Map testPayload = new HashMap<String, String>();
         testPayload.put("key1", "value1");
@@ -106,8 +199,9 @@ public class RedisClusterClientTest {
         assertEquals(testPayload, payload);
     }
 
+    @SneakyThrows
     @Test
-    public void info_withRoute_success() throws ExecutionException, InterruptedException {
+    public void info_with_route_returns_string() {
         // setup
         CompletableFuture<ClusterValue<Map>> testResponse = mock(CompletableFuture.class);
         Map testPayloadAddr1 = Map.of("key1", "value1", "key2", "value2");
@@ -131,9 +225,9 @@ public class RedisClusterClientTest {
         assertEquals(testPayloadAddr2, clusterMap.get("addr2"));
     }
 
+    @SneakyThrows
     @Test
-    public void infoWithRouteAndMultipleOptions_success()
-            throws ExecutionException, InterruptedException {
+    public void info_with_route_with_infoOptions_returns_string() {
         // setup
         String[] infoArguments = new String[] {"ALL", "DEFAULT"};
         CompletableFuture<ClusterValue<Map>> testResponse = mock(CompletableFuture.class);

@@ -50,7 +50,7 @@ public class RedisClientCreateTest {
 
     @Test
     @SneakyThrows
-    public void createClient_withConfig_successfullyReturnsRedisClient() {
+    public void createClient_with_config_successfully_returns_RedisClient() {
 
         // setup
         CompletableFuture<Void> connectToRedisFuture = new CompletableFuture<>();
@@ -70,7 +70,7 @@ public class RedisClientCreateTest {
 
     @SneakyThrows
     @Test
-    public void createClient_errorOnConnectionThrowsExecutionException() {
+    public void createClient_throws_ExecutionException() {
         // setup
         CompletableFuture<Void> connectToRedisFuture = new CompletableFuture<>();
         ClosingException exception = new ClosingException("disconnected");
