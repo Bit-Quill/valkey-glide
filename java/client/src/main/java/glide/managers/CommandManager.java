@@ -1,6 +1,8 @@
 package glide.managers;
 
 import glide.api.models.BaseTransaction;
+import glide.api.models.configuration.RequestRoutingConfiguration.Route;
+import glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute;
 import glide.api.models.configuration.RequestRoutingConfiguration;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
@@ -38,7 +40,7 @@ public class CommandManager {
     public <T> CompletableFuture<T> submitNewCommand(
             RequestType requestType,
             String[] arguments,
-            Optional<RequestRoutingConfiguration.Route> route,
+            Optional<Route> route,
             RedisExceptionCheckedFunction<Response, T> responseHandler) {
 
         RedisRequest.Builder command = prepareRedisRequest(requestType, arguments, route);
@@ -71,7 +73,7 @@ public class CommandManager {
      */
     public <T> CompletableFuture<T> submitNewCommand(
             BaseTransaction transaction,
-            Optional<RequestRoutingConfiguration.Route> route,
+            Optional<Route> route,
             RedisExceptionCheckedFunction<Response, T> responseHandler) {
 
         RedisRequest.Builder command = prepareRedisRequest(transaction, route);
@@ -104,7 +106,7 @@ public class CommandManager {
     protected RedisRequest.Builder prepareRedisRequest(
             RequestType requestType,
             String[] arguments,
-            Optional<RequestRoutingConfiguration.Route> route) {
+            Optional<Route> route) {
         ArgsArray.Builder commandArgs = ArgsArray.newBuilder();
         for (var arg : arguments) {
             commandArgs.addArgs(arg);
@@ -122,11 +124,11 @@ public class CommandManager {
             return builder;
         }
 
-        if (route.get() instanceof RequestRoutingConfiguration.SimpleRoute) {
+        if (route.get() instanceof SimpleRoute) {
             builder.setRoute(
                     Routes.newBuilder()
                             .setSimpleRoutes(
-                                    ((RequestRoutingConfiguration.SimpleRoute) route.get()).getProtobufMapping())
+                                    ((SimpleRoute) route.get()).getProtobufMapping())
                             .build());
         } else if (route.get() instanceof RequestRoutingConfiguration.SlotIdRoute) {
             builder.setRoute(
@@ -157,7 +159,7 @@ public class CommandManager {
     }
 
     protected RedisRequest.Builder prepareRedisRequest(
-            BaseTransaction transaction, Optional<RequestRoutingConfiguration.Route> route) {
+            BaseTransaction transaction, Optional<Route> route) {
 
         var builder =
                 RedisRequest.newBuilder().setTransaction(transaction.getTransactionBuilder().build());
@@ -166,11 +168,11 @@ public class CommandManager {
             return builder;
         }
 
-        if (route.get() instanceof RequestRoutingConfiguration.SimpleRoute) {
+        if (route.get() instanceof SimpleRoute) {
             builder.setRoute(
                     Routes.newBuilder()
                             .setSimpleRoutes(
-                                    ((RequestRoutingConfiguration.SimpleRoute) route.get()).getProtobufMapping())
+                                    ((SimpleRoute) route.get()).getProtobufMapping())
                             .build());
         } else if (route.get() instanceof RequestRoutingConfiguration.SlotIdRoute) {
             builder.setRoute(

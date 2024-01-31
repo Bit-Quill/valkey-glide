@@ -14,11 +14,16 @@ import lombok.AllArgsConstructor;
  * @example
  *     <pre>
  *  ClusterTransaction transaction = new ClusterTransaction();
- *  transaction.set("key", "value");
- *  transaction.get("key");
+ *    .set("key", "value");
+ *    .get("key");
  *  ClusterValue<Object[]> result = client.exec(transaction, route).get();
  *  // result contains: OK and "value"
  *  </pre>
  */
 @AllArgsConstructor
-public class ClusterTransaction extends BaseTransaction {}
+public class ClusterTransaction extends BaseTransaction<ClusterTransaction> {
+    @Override
+    protected ClusterTransaction getThis() {
+        return this;
+    }
+}

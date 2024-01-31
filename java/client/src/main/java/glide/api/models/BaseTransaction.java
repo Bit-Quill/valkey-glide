@@ -19,11 +19,15 @@ import redis_request.RedisRequestOuterClass.Transaction;
  * order they were given. Each element in the array represents a command given to the transaction.
  * The response for each command depends on the executed Redis command. Specific response types are
  * documented alongside each method.
+ *
+ * @param <T> child typing for chaining method calls
  */
 @Getter
-public abstract class BaseTransaction {
+public abstract class BaseTransaction <T extends BaseTransaction<T>> {
     /** Command class to send a single request to Redis. */
     Transaction.Builder transactionBuilder = Transaction.newBuilder();
+
+    protected abstract T getThis();
 
     /**
      * Executes a single command, without checking inputs. Every part of the command, including
@@ -42,7 +46,7 @@ public abstract class BaseTransaction {
      * @param args Arguments for the custom command.
      * @return When executed, a <code>CompletableFuture</code> with response result from Redis.
      */
-    public BaseTransaction customCommand(String[] args) {
+    public T customCommand(String[] args) {
         ArgsArray.Builder commandArgs = addAllArgs(args);
 
         transactionBuilder.addCommands(
@@ -50,7 +54,7 @@ public abstract class BaseTransaction {
                         .setRequestType(mapRequestTypes(RequestType.CUSTOM_COMMAND))
                         .setArgsArray(commandArgs.build())
                         .build());
-        return this;
+        return getThis();
     }
 
     /**
@@ -59,10 +63,10 @@ public abstract class BaseTransaction {
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
      * @return When executed, a <em>CompletableFuture</em> with the String <code>"PONG"</code>
      */
-    public BaseTransaction ping() {
+    public T ping() {
         transactionBuilder.addCommands(
                 Command.newBuilder().setRequestType(mapRequestTypes(RequestType.PING)).build());
-        return this;
+        return getThis();
     }
 
     /**
@@ -72,7 +76,7 @@ public abstract class BaseTransaction {
      * @param msg The ping argument that will be returned.
      * @return When executed, a <em>CompletableFuture</em> with a copy of the argument.
      */
-    public BaseTransaction ping(String msg) {
+    public T ping(String msg) {
         ArgsArray.Builder commandArgs = addAllArgs(msg);
 
         transactionBuilder.addCommands(
@@ -80,7 +84,7 @@ public abstract class BaseTransaction {
                         .setRequestType(mapRequestTypes(RequestType.PING))
                         .setArgsArray(commandArgs.build())
                         .build());
-        return this;
+        return getThis();
     }
 
     /**
@@ -90,10 +94,10 @@ public abstract class BaseTransaction {
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
      * @return A <em>CompletableFuture</em> with String response from Redis
      */
-    public BaseTransaction info() {
+    public T info() {
         transactionBuilder.addCommands(
                 Command.newBuilder().setRequestType(mapRequestTypes(RequestType.INFO)).build());
-        return this;
+        return getThis();
     }
 
     /**
@@ -104,7 +108,7 @@ public abstract class BaseTransaction {
      *     retrieve. When no parameter is provided, the <code>DEFAULT</code> option is assumed.
      * @return A <em>CompletableFuture</em> with String response from Redis
      */
-    public BaseTransaction info(InfoOptions options) {
+    public T info(InfoOptions options) {
         ArgsArray.Builder commandArgs = addAllArgs(options.toArgs());
 
         transactionBuilder.addCommands(
@@ -112,7 +116,7 @@ public abstract class BaseTransaction {
                         .setRequestType(mapRequestTypes(RequestType.INFO))
                         .setArgsArray(commandArgs.build())
                         .build());
-        return this;
+        return getThis();
     }
 
     /**
@@ -123,7 +127,7 @@ public abstract class BaseTransaction {
      * @return If <code>key</code> exists, returns the <code>value</code> of <code>key</code> as a
      *     String. Otherwise, return <code>null</code>.
      */
-    public BaseTransaction get(String key) {
+    public T get(String key) {
         ArgsArray.Builder commandArgs = addAllArgs(key);
 
         transactionBuilder.addCommands(
@@ -131,7 +135,7 @@ public abstract class BaseTransaction {
                         .setRequestType(mapRequestTypes(RequestType.GET_STRING))
                         .setArgsArray(commandArgs.build())
                         .build());
-        return this;
+        return getThis();
     }
 
     /**
@@ -142,7 +146,7 @@ public abstract class BaseTransaction {
      * @param value The value to store with the given <code>key</code>.
      * @return An empty response
      */
-    public BaseTransaction set(String key, String value) {
+    public T set(String key, String value) {
         ArgsArray.Builder commandArgs = addAllArgs(key, value);
 
         transactionBuilder.addCommands(
@@ -150,7 +154,7 @@ public abstract class BaseTransaction {
                         .setRequestType(mapRequestTypes(RequestType.SET_STRING))
                         .setArgsArray(commandArgs.build())
                         .build());
-        return this;
+        return getThis();
     }
 
     /**
@@ -164,7 +168,7 @@ public abstract class BaseTransaction {
      *     set. Otherwise, if the value isn't set because of <code>onlyIfExists</code> or <code>
      *     onlyIfDoesNotExist</code> conditions, return <code>null</code>. Otherwise, return "OK".
      */
-    public BaseTransaction set(String key, String value, SetOptions options) {
+    public T set(String key, String value, SetOptions options) {
         ArgsArray.Builder commandArgs =
                 addAllArgs(ArrayUtils.addAll(new String[] {key, value}, options.toArgs()));
 
@@ -173,7 +177,7 @@ public abstract class BaseTransaction {
                         .setRequestType(mapRequestTypes(RequestType.SET_STRING))
                         .setArgsArray(commandArgs.build())
                         .build());
-        return this;
+        return getThis();
     }
 
     protected ArgsArray.Builder addAllArgs(String... stringArgs) {

@@ -13,12 +13,17 @@ import lombok.AllArgsConstructor;
  *
  * @example
  *     <pre>
- *  transaction = new Transaction();
- *  transaction.set("key", "value");
- *  transaction.get("key");
+ *  Transaction transaction = new Transaction()
+ *    .transaction.set("key", "value");
+ *    .transaction.get("key");
  *  Object[] result = client.exec(transaction).get();
  *  // result contains: OK and "value"
  *  </pre>
  */
 @AllArgsConstructor
-public class Transaction extends BaseTransaction {}
+public class Transaction extends BaseTransaction<Transaction> {
+    @Override
+    protected Transaction getThis() {
+        return this;
+    }
+}
