@@ -17,7 +17,7 @@ import lombok.AllArgsConstructor;
  *  transaction.set("key", "value");
  *  transaction.get("key");
  *  ClusterValue<Object[]> result = client.exec(transaction, route).get();
- *  assertEqual(new Object[] {OK , "value"});
+ *  // result contains: OK and "value"
  *  </pre>
  */
 @AllArgsConstructor
