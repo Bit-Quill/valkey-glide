@@ -11,7 +11,8 @@ import java.util.concurrent.CompletableFuture;
 public interface ServerCommands {
 
     /**
-     * Get information and statistics about the Redis server. No argument is provided, so the <code>DEFAULT</code> option is assumed.
+     * Get information and statistics about the Redis server. No argument is provided, so the <code>
+     * DEFAULT</code> option is assumed.
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
      * @return A <em>CompletableFuture</em> with String response from Redis

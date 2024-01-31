@@ -84,7 +84,8 @@ public abstract class BaseTransaction {
     }
 
     /**
-     * Get information and statistics about the Redis server. No argument is provided, so the <code>DEFAULT</code> option is assumed.
+     * Get information and statistics about the Redis server. No argument is provided, so the <code>
+     * DEFAULT</code> option is assumed.
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
      * @return A <em>CompletableFuture</em> with String response from Redis
@@ -119,7 +120,8 @@ public abstract class BaseTransaction {
      *
      * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
      * @param key The key to retrieve from the database.
-     * @return If <code>key</code> exists, returns the <code>value</code> of <code>key</code> as a String. Otherwise, return <code>null</code>.
+     * @return If <code>key</code> exists, returns the <code>value</code> of <code>key</code> as a
+     *     String. Otherwise, return <code>null</code>.
      */
     public BaseTransaction get(String key) {
         ArgsArray.Builder commandArgs = addAllArgs(key);
@@ -158,9 +160,9 @@ public abstract class BaseTransaction {
      * @param key The key to store.
      * @param value The value to store with the given key.
      * @param options The Set options.
-     * @return A string or null response. The old value as a string if <code>returnOldValue</code> is set. Otherwise, if the
-     *     value isn't set because of <code>onlyIfExists</code> or <code>onlyIfDoesNotExist</code> conditions, return <code>null</code>.
-     *     Otherwise, return "OK".
+     * @return A string or null response. The old value as a string if <code>returnOldValue</code> is
+     *     set. Otherwise, if the value isn't set because of <code>onlyIfExists</code> or <code>
+     *     onlyIfDoesNotExist</code> conditions, return <code>null</code>. Otherwise, return "OK".
      */
     public BaseTransaction set(String key, String value, SetOptions options) {
         ArgsArray.Builder commandArgs =
