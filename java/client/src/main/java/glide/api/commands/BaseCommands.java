@@ -35,7 +35,7 @@ public interface BaseCommands {
      *     <ul>
      *       <li>If a command returns a value, it will be included in the list. If a command doesn't
      *           return a value, the list entry will be null.
-     *       <li>If the transaction failed due to a WATCH command, `exec` will return `null`.
+     *       <li>If the transaction failed due to a <em>WATCH</em> command, <code>exec</code> will return <code>null</code>.
      *     </ul>
      */
     CompletableFuture<Object[]> exec(Transaction transaction);

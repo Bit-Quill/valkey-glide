@@ -19,15 +19,6 @@ import redis_request.RedisRequestOuterClass.Transaction;
  * order they were given. Each element in the array represents a command given to the transaction.
  * The response for each command depends on the executed Redis command. Specific response types are
  * documented alongside each method.
- *
- * @example
- *     <pre>
- * transaction = new Transaction();
- * transaction.set("key", "value");
- * transaction.get("key");
- * Object[] result = client.exec(transaction).get();
- * assertEqual(new Object[] {OK , "value"});
- * </pre>
  */
 @Getter
 public abstract class BaseTransaction {
@@ -39,16 +30,17 @@ public abstract class BaseTransaction {
      * subcommands, should be added as a separate value in args.
      *
      * @remarks This function should only be used for single-response commands. Commands that don't
-     *     return response (such as SUBSCRIBE), or that return potentially more than a single response
-     *     (such as XREAD), or that change the client's behavior (such as entering pub/sub mode on
-     *     RESP2 connections) shouldn't be called using this function.
+     *     return response (such as <em>SUBSCRIBE</em>), or that return potentially more than a single
+     *     response (such as <em>XREAD</em>), or that change the client's behavior (such as entering
+     *     <em>pub</em>/<em>sub</em> mode on <em>RESP2</em> connections) shouldn't be called using
+     *     this function.
      * @example Returns a list of all pub/sub clients:
      *     <pre>
      * Object result = client.customCommand(new String[]{"CLIENT","LIST","TYPE", "PUBSUB"}).get();
      * </pre>
      *
      * @param args Arguments for the custom command.
-     * @return a CompletableFuture with response result from Redis.
+     * @return When executed, a <code>CompletableFuture</code> with response result from Redis.
      */
     public BaseTransaction customCommand(String[] args) {
         ArgsArray.Builder commandArgs = addAllArgs(args);
@@ -65,7 +57,7 @@ public abstract class BaseTransaction {
      * Ping the Redis server.
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
-     * @return The String "PONG".
+     * @return When executed, a <em>CompletableFuture</em> with the String <code>"PONG"</code>
      */
     public BaseTransaction ping() {
         transactionBuilder.addCommands(
@@ -78,7 +70,7 @@ public abstract class BaseTransaction {
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
      * @param msg The ping argument that will be returned.
-     * @return Return a copy of the argument.
+     * @return When executed, a <em>CompletableFuture</em> with a copy of the argument.
      */
     public BaseTransaction ping(String msg) {
         ArgsArray.Builder commandArgs = addAllArgs(msg);
@@ -92,10 +84,10 @@ public abstract class BaseTransaction {
     }
 
     /**
-     * Get information and statistics about the Redis server. DEFAULT option is assumed
+     * Get information and statistics about the Redis server. No argument is provided, so the <code>DEFAULT</code> option is assumed.
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
-     * @return CompletableFuture with the response.
+     * @return A <em>CompletableFuture</em> with String response from Redis
      */
     public BaseTransaction info() {
         transactionBuilder.addCommands(
@@ -108,8 +100,8 @@ public abstract class BaseTransaction {
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
      * @param options A list of InfoSection values specifying which sections of information to
-     *     retrieve. When no parameter is provided, the default option is assumed.
-     * @return CompletableFuture with the response.
+     *     retrieve. When no parameter is provided, the <code>DEFAULT</code> option is assumed.
+     * @return A <em>CompletableFuture</em> with String response from Redis
      */
     public BaseTransaction info(InfoOptions options) {
         ArgsArray.Builder commandArgs = addAllArgs(options.toArgs());
@@ -127,7 +119,7 @@ public abstract class BaseTransaction {
      *
      * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
      * @param key The key to retrieve from the database.
-     * @return If `key` exists, returns the value of `key` as a string. Otherwise, return null.
+     * @return If <code>key</code> exists, returns the <code>value</code> of <code>key</code> as a String. Otherwise, return <code>null</code>.
      */
     public BaseTransaction get(String key) {
         ArgsArray.Builder commandArgs = addAllArgs(key);
@@ -145,8 +137,8 @@ public abstract class BaseTransaction {
      *
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
      * @param key The key to store.
-     * @param value The value to store with the given key.
-     * @return null
+     * @param value The value to store with the given <code>key</code>.
+     * @return An empty response
      */
     public BaseTransaction set(String key, String value) {
         ArgsArray.Builder commandArgs = addAllArgs(key, value);
@@ -165,9 +157,9 @@ public abstract class BaseTransaction {
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
      * @param key The key to store.
      * @param value The value to store with the given key.
-     * @param options The Set options
-     * @return string or null The old value as a string if `returnOldValue` is set. Otherwise, if the
-     *     value isn't set because of `onlyIfExists` or `onlyIfDoesNotExist` conditions, return null.
+     * @param options The Set options.
+     * @return A string or null response. The old value as a string if <code>returnOldValue</code> is set. Otherwise, if the
+     *     value isn't set because of <code>onlyIfExists</code> or <code>onlyIfDoesNotExist</code> conditions, return <code>null</code>.
      *     Otherwise, return "OK".
      */
     public BaseTransaction set(String key, String value, SetOptions options) {
