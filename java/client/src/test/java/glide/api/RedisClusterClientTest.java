@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +15,7 @@ import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RequestRoutingConfiguration;
 import glide.managers.CommandManager;
+import glide.managers.CommandManager.RequestType;
 import glide.managers.ConnectionManager;
 import glide.managers.RedisExceptionCheckedFunction;
 import java.util.HashMap;
@@ -181,21 +183,22 @@ public class RedisClusterClientTest {
         // setup
         CompletableFuture<ClusterValue<Map>> testResponse = mock(CompletableFuture.class);
         Map testPayload = new HashMap<String, String>();
-        testPayload.put("key1", "value1");
-        testPayload.put("key2", "value2");
-        testPayload.put("key3", "value3");
+        testPayload.put("addr1", "value1");
+        testPayload.put("addr1", "value2");
+        testPayload.put("addr1", "value3");
         when(testResponse.get()).thenReturn(ClusterValue.of(testPayload));
-        when(commandManager.<ClusterValue<Map>>submitNewCommand(any(), any(), any(), any()))
+        when(commandManager.<ClusterValue<Map>>submitNewCommand(
+                        eq(RequestType.INFO), eq(new String[0]), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<ClusterValue<Map>> response = service.info();
+        CompletableFuture<ClusterValue<String>> response = service.info();
 
         // verify
         assertEquals(testResponse, response);
-        ClusterValue<Map> clusterValue = response.get();
+        ClusterValue<String> clusterValue = response.get();
         assertTrue(clusterValue.hasMultiData());
-        Map payload = clusterValue.getMultiValue();
+        Map<String, String> payload = clusterValue.getMultiValue();
         assertEquals(testPayload, payload);
     }
 
@@ -204,25 +207,23 @@ public class RedisClusterClientTest {
     public void info_with_route_returns_string() {
         // setup
         CompletableFuture<ClusterValue<Map>> testResponse = mock(CompletableFuture.class);
-        Map testPayloadAddr1 = Map.of("key1", "value1", "key2", "value2");
-        Map testPayloadAddr2 = Map.of("key3", "value3", "key4", "value4");
-        Map<String, Map> testClusterValue =
-                Map.of("addr1", testPayloadAddr1, "addr2", testPayloadAddr2);
+        Map<String, String> testClusterValue = Map.of("addr1", "addr1 result", "addr2", "addr2 result");
         RequestRoutingConfiguration.Route route = RequestRoutingConfiguration.SimpleRoute.ALL_NODES;
         when(testResponse.get()).thenReturn(ClusterValue.of(testClusterValue));
-        when(commandManager.<ClusterValue<Map>>submitNewCommand(any(), any(), any(), any()))
+        when(commandManager.<ClusterValue<Map>>submitNewCommand(
+                        eq(RequestType.INFO), any(), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<ClusterValue<Map>> response = service.info(route);
+        CompletableFuture<ClusterValue<String>> response = service.info(route);
 
         // verify
         assertEquals(testResponse, response);
-        ClusterValue<Map> clusterValue = response.get();
+        ClusterValue<String> clusterValue = response.get();
         assertTrue(clusterValue.hasMultiData());
-        Map<String, Map> clusterMap = clusterValue.getMultiValue();
-        assertEquals(testPayloadAddr1, clusterMap.get("addr1"));
-        assertEquals(testPayloadAddr2, clusterMap.get("addr2"));
+        Map<String, String> clusterMap = clusterValue.getMultiValue();
+        assertEquals("addr1 result", clusterMap.get("addr1"));
+        assertEquals("addr2 result", clusterMap.get("addr2"));
     }
 
     @SneakyThrows
@@ -231,13 +232,11 @@ public class RedisClusterClientTest {
         // setup
         String[] infoArguments = new String[] {"ALL", "DEFAULT"};
         CompletableFuture<ClusterValue<Map>> testResponse = mock(CompletableFuture.class);
-        Map testPayloadAddr1 = Map.of("key1", "value1", "key2", "value2");
-        Map testPayloadAddr2 = Map.of("key3", "value3", "key4", "value4");
-        Map<String, Map> testClusterValue =
-                Map.of("addr1", testPayloadAddr1, "addr2", testPayloadAddr2);
+        Map<String, String> testClusterValue = Map.of("addr1", "addr1 result", "addr2", "addr2 result");
         when(testResponse.get()).thenReturn(ClusterValue.of(testClusterValue));
         RequestRoutingConfiguration.Route route = RequestRoutingConfiguration.SimpleRoute.ALL_PRIMARIES;
-        when(commandManager.<ClusterValue<Map>>submitNewCommand(any(), any(), any(), any()))
+        when(commandManager.<ClusterValue<Map>>submitNewCommand(
+                        eq(RequestType.INFO), eq(infoArguments), any(), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -246,14 +245,14 @@ public class RedisClusterClientTest {
                         .section(InfoOptions.Section.ALL)
                         .section(InfoOptions.Section.DEFAULT)
                         .build();
-        CompletableFuture<ClusterValue<Map>> response = service.info(options, route);
+        CompletableFuture<ClusterValue<String>> response = service.info(options, route);
 
         // verify
         assertEquals(testResponse, response);
-        ClusterValue<Map> clusterValue = response.get();
+        ClusterValue<String> clusterValue = response.get();
         assertTrue(clusterValue.hasMultiData());
-        Map<String, Map> clusterMap = clusterValue.getMultiValue();
-        assertEquals(testPayloadAddr1, clusterMap.get("addr1"));
-        assertEquals(testPayloadAddr2, clusterMap.get("addr2"));
+        Map<String, String> clusterMap = clusterValue.getMultiValue();
+        assertEquals("addr1 result", clusterMap.get("addr1"));
+        assertEquals("addr2 result", clusterMap.get("addr2"));
     }
 }

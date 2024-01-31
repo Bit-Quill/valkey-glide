@@ -10,7 +10,6 @@ import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
 import glide.managers.CommandManager.RequestType;
 import glide.managers.ConnectionManager;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -51,7 +50,7 @@ public class RedisClient extends BaseClient
     @Override
     public CompletableFuture<Object> customCommand(String[] args) {
         return commandManager.submitNewCommand(
-                RequestType.CUSTOM_COMMAND, args, Optional.empty(), this::handleStringResponse);
+                RequestType.CUSTOM_COMMAND, args, this::handleStringResponse);
     }
 
     @Override
@@ -61,14 +60,14 @@ public class RedisClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<Map> info() {
+    public CompletableFuture<String> info() {
         return commandManager.submitNewCommand(
-                RequestType.INFO, new String[0], Optional.empty(), this::handleMapResponse);
+                RequestType.INFO, new String[0], this::handleStringResponse);
     }
 
     @Override
-    public CompletableFuture<Map> info(InfoOptions options) {
+    public CompletableFuture<String> info(InfoOptions options) {
         return commandManager.submitNewCommand(
-                RequestType.INFO, options.toArgs(), Optional.empty(), this::handleMapResponse);
+                RequestType.INFO, options.toArgs(), this::handleStringResponse);
     }
 }

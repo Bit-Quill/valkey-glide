@@ -14,7 +14,6 @@ import glide.managers.CommandManager;
 import glide.managers.CommandManager.RequestType;
 import glide.managers.ConnectionManager;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import lombok.AllArgsConstructor;
@@ -32,7 +31,7 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
      * Closes this resource, relinquishing any underlying resources. This method is invoked
      * automatically on objects managed by the try-with-resources statement.
      *
-     * @see: <a
+     * @see <a
      *     href="https://docs.oracle.com/javase/8/docs/api/java/lang/AutoCloseable.html#close--">AutoCloseable::close()</a>
      */
     @Override
@@ -60,10 +59,10 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
 
     /**
      * Extracts the response from the Protobuf response and either throws an exception or returns the
-     * appropriate response as an Object
+     * appropriate response as an <code>Object</code>.
      *
      * @param response Redis protobuf message
-     * @return Response Object
+     * @return Response <code>Object</code>
      */
     protected Object handleObjectResponse(Response response) {
         // convert protobuf response into Object and then Object into T
@@ -89,10 +88,10 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
 
     /**
      * Extracts the response value from the Redis response and either throws an exception or returns
-     * the value as a String.
+     * the value as a <code>String</code>.
      *
      * @param response Redis protobuf message
-     * @return Response as a String
+     * @return Response as a <code>String</code>
      */
     protected String handleStringResponse(Response response) {
         Object value = handleObjectResponse(response);
@@ -107,10 +106,10 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
 
     /**
      * Extracts the response value from the Redis response and either throws an exception or returns
-     * the value as an Object[].
+     * the value as an <code>Object[]</code>.
      *
      * @param response Redis protobuf message
-     * @return Response as an Object[]
+     * @return Response as an <code>Object[]</code>
      */
     protected Object[] handleArrayResponse(Response response) {
         Object value = handleObjectResponse(response);
@@ -125,10 +124,10 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
 
     /**
      * Extracts the response value from the Redis response and either throws an exception or returns
-     * the * value as a HashMap
+     * the value as a <code>Map</code>.
      *
      * @param response Redis protobuf message
-     * @return Response as a String
+     * @return Response as a <code>Map</code>.
      */
     @SuppressWarnings("unchecked")
     protected Map<Object, Object> handleMapResponse(Response response) {
@@ -145,34 +144,31 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
     @Override
     public CompletableFuture<String> ping() {
         return commandManager.submitNewCommand(
-                RequestType.PING, new String[0], Optional.empty(), this::handleStringResponse);
+                RequestType.PING, new String[0], this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<String> ping(String msg) {
         return commandManager.submitNewCommand(
-                RequestType.PING, new String[] {msg}, Optional.empty(), this::handleStringResponse);
+                RequestType.PING, new String[] {msg}, this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<String> get(String key) {
         return commandManager.submitNewCommand(
-                RequestType.GET_STRING, new String[] {key}, Optional.empty(), this::handleStringResponse);
+                RequestType.GET_STRING, new String[] {key}, this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<Void> set(String key, String value) {
         return commandManager.submitNewCommand(
-                RequestType.SET_STRING,
-                new String[] {key, value},
-                Optional.empty(),
-                this::handleVoidResponse);
+                RequestType.SET_STRING, new String[] {key, value}, this::handleVoidResponse);
     }
 
     @Override
     public CompletableFuture<String> set(String key, String value, SetOptions options) {
         String[] arguments = ArrayUtils.addAll(new String[] {key, value}, options.toArgs());
         return commandManager.submitNewCommand(
-                RequestType.SET_STRING, arguments, Optional.empty(), this::handleStringResponse);
+                RequestType.SET_STRING, arguments, this::handleStringResponse);
     }
 }

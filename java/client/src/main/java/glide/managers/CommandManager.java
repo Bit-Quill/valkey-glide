@@ -46,6 +46,22 @@ public class CommandManager {
     }
 
     /**
+     * Build a command and send.
+     *
+     * @param requestType Redis command type
+     * @param arguments Redis command arguments
+     * @param responseHandler The handler for the response object
+     * @return A result promise of type T
+     */
+    public <T> CompletableFuture<T> submitNewCommand(
+            RequestType requestType,
+            String[] arguments,
+            RedisExceptionCheckedFunction<Response, T> responseHandler) {
+
+        return submitNewCommand(requestType, arguments, Optional.empty(), responseHandler);
+    }
+
+    /**
      * Build a Transaction and send.
      *
      * @param transaction Redis Transaction request with multiple commands
