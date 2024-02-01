@@ -5,7 +5,15 @@ import glide.api.models.configuration.RequestRoutingConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute;
 import glide.connectors.handlers.CallbackDispatcher;
+import glide.api.models.configuration.RequestRoutingConfiguration.Route;
+import glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute;
+import glide.api.models.configuration.RequestRoutingConfiguration.SlotIdRoute;
+import glide.api.models.configuration.RequestRoutingConfiguration.SlotKeyRoute;
+import glide.api.models.exceptions.ClosingException;
+import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
+import java.util.Optional;
+import glide.managers.models.Command;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +23,13 @@ import redis_request.RedisRequestOuterClass.RedisRequest;
 import redis_request.RedisRequestOuterClass.Routes;
 import redis_request.RedisRequestOuterClass.SlotIdRoute;
 import redis_request.RedisRequestOuterClass.SlotKeyRoute;
+import redis_request.RedisRequestOuterClass;
+import redis_request.RedisRequestOuterClass.Command.ArgsArray;
+import redis_request.RedisRequestOuterClass.RedisRequest;
+import redis_request.RedisRequestOuterClass.RequestType;
+import redis_request.RedisRequestOuterClass.Routes;
+import redis_request.RedisRequestOuterClass.SimpleRoutes;
+import redis_request.RedisRequestOuterClass.SlotTypes;
 import response.ResponseOuterClass.Response;
 
 /**
@@ -90,6 +105,32 @@ public class CommandManager {
             RedisRequest.Builder command, RedisExceptionCheckedFunction<Response, T> responseHandler) {
         // write command request to channel
         // when complete, convert the response to our expected type T using the given responseHandler
+        return channel
+                .write(
+                        prepareRedisRequest(
+                                command.getRequestType(),
+                                command.getArguments(),
+                                Optional.ofNullable(command.getRoute())),
+                        true)
+                .exceptionally(this::exceptionHandler)
+                .thenApplyAsync(responseHandler::apply);
+    }
+
+    /**
+     * Exception handler for future pipeline.
+     *
+     * @param e An exception thrown in the pipeline before
+     * @return Nothing, it rethrows the exception
+     */
+    private Response exceptionHandler(Throwable e) {
+        if (e instanceof ClosingException) {
+            channel.close();
+        }
+        if (e instanceof RuntimeException) {
+            // RedisException also goes here
+            throw (RuntimeException) e;
+        }
+        throw new RuntimeException(e);
         return channel.write(command, true).thenApplyAsync(responseHandler::apply);
     }
 

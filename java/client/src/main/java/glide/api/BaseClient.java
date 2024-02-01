@@ -1,5 +1,11 @@
+/** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
+
+import glide.api.models.configuration.BaseClientConfiguration;
+import glide.connectors.handlers.CallbackDispatcher;
+import glide.connectors.handlers.ChannelHandler;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.managers.RequestType.GET_STRING;
 import static glide.managers.RequestType.PING;
@@ -15,9 +21,11 @@ import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.concurrent.CompletableFuture;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
 import response.ResponseOuterClass.Response;
@@ -28,6 +36,33 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
 
     protected final ConnectionManager connectionManager;
     protected final CommandManager commandManager;
+
+    /**
+     * Async request for an async (non-blocking) Redis client.
+     *
+     * @param config Redis client Configuration
+     * @param constructor Redis client constructor reference
+     * @param <T> Client type
+     * @return a Future to connect and return a RedisClient
+     */
+    protected static <T> CompletableFuture<T> CreateClient(
+            BaseClientConfiguration config,
+            BiFunction<ConnectionManager, CommandManager, T> constructor) {
+        try {
+            ChannelHandler channelHandler = buildChannelHandler();
+            ConnectionManager connectionManager = buildConnectionManager(channelHandler);
+            CommandManager commandManager = buildCommandManager(channelHandler);
+            // TODO: Support exception throwing, including interrupted exceptions
+            return connectionManager
+                    .connectToRedis(config)
+                    .thenApply(ignore -> constructor.apply(connectionManager, commandManager));
+        } catch (InterruptedException e) {
+            // Something bad happened while we were establishing netty connection to UDS
+            var future = new CompletableFuture<T>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
 
     /**
      * Closes this resource, relinquishing any underlying resources. This method is invoked
