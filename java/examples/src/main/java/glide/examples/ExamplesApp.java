@@ -55,18 +55,6 @@ public class ExamplesApp {
         try {
             RedisClient client = GlideClient.connectToGlide(settings);
 
-            System.out.println("Glide PING: " + client.ping().get());
-            System.out.println("Glide PING(custom): " + client.ping("found you!").get());
-
-            // panic
-            // System.out.println("Glide INFO(): " + client.info().get());
-
-            System.out.println("Glide SET(myKey, myValue): " + client.set("myKey", "myValue").get());
-            System.out.println("Glide GET(myKey): " + client.get("myKey").get());
-            System.out.println("Glide SET(myKey, yourValue): " + client.set("myKey", "yourValue").get());
-            System.out.println("Glide GET(myKey): " + client.get("myKey").get());
-            System.out.println("Glide GET(invalid): " + client.get("invalid").get());
-
             Object customGetMyKey = client.customCommand(new String[] {"get", "myKey"}).get();
             System.out.println("Glide CUSTOM_COMMAND(get, myKey): " + customGetMyKey);
 

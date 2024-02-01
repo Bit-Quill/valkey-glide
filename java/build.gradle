@@ -31,6 +31,12 @@ subprojects {
     }
 }
 
+tasks.named('jar') {
+    manifest {
+        attributes('Automatic-Module-Name': 'glide')
+    }
+}
+
 dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.9.2'
 }

@@ -1,12 +1,16 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
-import glide.api.models.exceptions.RedisException;
+import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
+
+import glide.api.models.configuration.BaseClientConfiguration;
+import glide.connectors.handlers.CallbackDispatcher;
+import glide.connectors.handlers.ChannelHandler;
 import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
-import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import lombok.AllArgsConstructor;
@@ -56,59 +60,6 @@ public abstract class BaseClient implements AutoCloseable {
             future.completeExceptionally(e);
             return future;
         }
-    }
-
-    /**
-     * Check for errors in the Response and return null Throws an error if an unexpected value is
-     * returned
-     *
-     * @return null if the response is empty
-     */
-    protected static Void handleVoidResponse(Response response) {
-        Object value = handleObjectResponse(response);
-        if (value == null) {
-            return null;
-        }
-        throw new RedisException(
-                "Unexpected return type from Redis: got "
-                        + value.getClass().getSimpleName()
-                        + " expected null");
-    }
-
-    /**
-     * Extracts the response value from the Redis response and either throws an exception or returns
-     * the value as a String.
-     *
-     * @param response Redis protobuf message
-     * @return Response as a String
-     */
-    protected static String handleStringResponse(Response response) {
-        Object value = handleObjectResponse(response);
-        if (value instanceof String) {
-            return (String) value;
-        }
-        throw new RedisException(
-                "Unexpected return type from Redis: got "
-                        + value.getClass().getSimpleName()
-                        + " expected String");
-    }
-
-    /**
-     * Extracts the response value from the Redis response and either throws an exception or returns
-     * the * value as a HashMap
-     *
-     * @param response Redis protobuf message
-     * @return Response as a String
-     */
-    protected static HashMap<String, Object> handleMapResponse(Response response) {
-        Object value = handleObjectResponse(response);
-        if (value instanceof HashMap) {
-            return (HashMap<String, Object>) value;
-        }
-        throw new RedisException(
-                "Unexpected return type from Redis: got "
-                        + value.getClass().getSimpleName()
-                        + " expected HashMap");
     }
 
     /**
