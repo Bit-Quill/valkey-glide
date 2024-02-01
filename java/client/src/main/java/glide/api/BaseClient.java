@@ -2,11 +2,6 @@
 package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
-
-import glide.api.models.configuration.BaseClientConfiguration;
-import glide.connectors.handlers.CallbackDispatcher;
-import glide.connectors.handlers.ChannelHandler;
-import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.managers.RequestType.GET_STRING;
 import static glide.managers.RequestType.PING;
 import static glide.managers.RequestType.SET_STRING;
@@ -14,6 +9,7 @@ import static glide.managers.RequestType.SET_STRING;
 import glide.api.commands.ConnectionCommands;
 import glide.api.commands.StringCommands;
 import glide.api.models.commands.SetOptions;
+import glide.api.models.configuration.BaseClientConfiguration;
 import glide.api.models.exceptions.RedisException;
 import glide.connectors.handlers.CallbackDispatcher;
 import glide.connectors.handlers.ChannelHandler;
@@ -21,7 +17,6 @@ import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
-import java.util.concurrent.CompletableFuture;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;

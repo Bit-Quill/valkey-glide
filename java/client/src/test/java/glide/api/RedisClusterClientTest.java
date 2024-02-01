@@ -1,19 +1,6 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute;
-import glide.managers.CommandManager;
-import glide.managers.RedisExceptionCheckedFunction;
-import glide.managers.models.Command;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.Test;
-
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.ALL_NODES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.RANDOM;
 import static glide.managers.RequestType.CUSTOM_COMMAND;
