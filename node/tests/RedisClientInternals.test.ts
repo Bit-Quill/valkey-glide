@@ -1,3 +1,7 @@
+/**
+ * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+ */
+
 import { beforeAll, describe, expect, it } from "@jest/globals";
 import fs from "fs";
 import {
@@ -452,7 +456,7 @@ describe("SocketConnectionInternals", () => {
         });
     });
 
-    it("should handle receiving a closing error with an unknown callback index", async () => {
+    it("should fail all requests when receiving a closing error with an unknown callback index", async () => {
         await testWithResources(async (connection, socket) => {
             const error = "check";
             socket.once("data", (data) => {

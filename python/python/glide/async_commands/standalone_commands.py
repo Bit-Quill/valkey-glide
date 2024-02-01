@@ -1,3 +1,5 @@
+# Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+
 from __future__ import annotations
 
 from typing import Dict, List, Mapping, Optional, cast
@@ -59,7 +61,7 @@ class StandaloneCommands(CoreCommands):
             If the transaction failed due to a WATCH command, `exec` will return `None`.
         """
         commands = transaction.commands[:]
-        return await self.execute_transaction(commands)
+        return await self._execute_transaction(commands)
 
     async def select(self, index: int) -> TOK:
         """Change the currently selected Redis database.

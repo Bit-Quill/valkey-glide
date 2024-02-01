@@ -1,3 +1,5 @@
+# Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+
 from glide.async_commands.core import (
     ConditionalChange,
     ExpireOptions,
@@ -35,6 +37,8 @@ from glide.routes import (
     SlotType,
 )
 
+from .glide import Script
+
 __all__ = [
     "BaseClientConfiguration",
     "ClusterClientConfiguration",
@@ -52,6 +56,7 @@ __all__ = [
     "RedisClient",
     "RedisClusterClient",
     "RedisCredentials",
+    "Script",
     "NodeAddress",
     "Transaction",
     "ClusterTransaction",

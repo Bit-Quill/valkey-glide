@@ -1,3 +1,5 @@
+# Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+
 from __future__ import annotations
 
 from typing import Dict, List, Mapping, Optional, cast
@@ -78,7 +80,7 @@ class ClusterCommands(CoreCommands):
             If the transaction failed due to a WATCH command, `exec` will return `None`.
         """
         commands = transaction.commands[:]
-        return await self.execute_transaction(commands, route)
+        return await self._execute_transaction(commands, route)
 
     async def config_resetstat(
         self,

@@ -1,3 +1,7 @@
+/**
+ * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+ */
+
 import {
     ExpireOptions,
     InfoOptions,
@@ -51,6 +55,7 @@ import {
     createTTL,
     createUnlink,
     createZadd,
+    createZcard,
     createZrem,
 } from "./Commands";
 import { redis_request } from "./ProtobufMessage";
@@ -221,7 +226,7 @@ export class BaseTransaction {
      * @param key - The key to increment its value.
      * @param amount - The amount to increment.
      *
-     * Command Response - the value of `key` after the increment as string.
+     * Command Response - the value of `key` after the increment.
      * An error is raised if `key` contains a value of the wrong type,
      * or the current key content is not parsable as a double precision floating point number.
      *
@@ -269,7 +274,7 @@ export class BaseTransaction {
      *
      * @param parameters - A list of configuration parameter names to retrieve values for.
      *
-     * Command Response - A list of values corresponding to the configuration parameters.
+     * Command Response - A map of values corresponding to the configuration parameters.
      *
      */
     public configGet(parameters: string[]) {
@@ -351,8 +356,8 @@ export class BaseTransaction {
      * @param key - The key of the hash.
      * @param field - The field to check in the hash stored at `key`.
      *
-     * Command Response - 1 if the hash contains `field`. If the hash does not contain `field`, or if `key` does not exist,
-     * the command response will be 0.
+     * Command Response - `true` if the hash contains `field`. If the hash does not contain `field`, or if `key` does not exist,
+     * the command response will be `false`.
      */
     public hexists(key: string, field: string) {
         this.commands.push(createHExists(key, field));
@@ -363,8 +368,8 @@ export class BaseTransaction {
      *
      * @param key - The key of the hash.
      *
-     * Command Response - a list of fields and their values stored in the hash. Every field name in the list is followed by its value.
-     * If `key` does not exist, it returns an empty list.
+     * Command Response - a map of fields and their values stored in the hash. Every field name in the map is followed by its value.
+     * If `key` does not exist, it returns an empty map.
      * If `key` holds a value that is not a hash, an error is raised.
      */
     public hgetall(key: string) {
@@ -397,7 +402,7 @@ export class BaseTransaction {
      * @param amount - The amount to increment.
      * @param field - The field in the hash stored at `key` to increment its value.
      *
-     * Command Response - the value of `field` in the hash stored at `key` after the increment as string.
+     * Command Response - the value of `field` in the hash stored at `key` after the increment.
      *  An error is raised if `key` contains a value of the wrong type
      *  or the current field content is not parsable as a double precision floating point number.
      *
@@ -422,18 +427,28 @@ export class BaseTransaction {
     }
 
     /** Removes and returns the first elements of the list stored at `key`.
-     * By default, the command pops a single element from the beginning of the list.
-     * When `count` is provided, the command pops up to `count` elements, depending on the list's length.
+     * The command pops a single element from the beginning of the list.
+     * See https://redis.io/commands/lpop/ for details.
+     *
+     * @param key - The key of the list.
+     * Command Response - The value of the first element.
+     * If `key` does not exist null will be returned.
+     * If `key` holds a value that is not a list, the transaction fails with an error.
+     */
+    public lpop(key: string) {
+        this.commands.push(createLPop(key));
+    }
+
+    /** Removes and returns up to `count` elements of the list stored at `key`, depending on the list's length.
      * See https://redis.io/commands/lpop/ for details.
      *
      * @param key - The key of the list.
      * @param count - The count of the elements to pop from the list.
-     *
-     * Command Response - The value of the first element if `count` is not provided. If `count` is provided, a list of the popped elements will be returned depending on the list's length.
+     * Command Response - A list of the popped elements will be returned depending on the list's length.
      * If `key` does not exist null will be returned.
-     * If `key` holds a value that is not a list, an error is raised.
+     * If `key` holds a value that is not a list, the transaction fails with an error.
      */
-    public lpop(key: string, count?: number) {
+    public lpopCount(key: string, count: number) {
         this.commands.push(createLPop(key, count));
     }
 
@@ -523,19 +538,29 @@ export class BaseTransaction {
     }
 
     /** Removes and returns the last elements of the list stored at `key`.
-     * By default, the command pops a single element from the end of the list.
-     * When `count` is provided, the command pops up to `count` elements, depending on the list's length.
+     * The command pops a single element from the end of the list.
+     * See https://redis.io/commands/rpop/ for details.
+     *
+     * @param key - The key of the list.
+     * Command Response - The value of the last element.
+     * If `key` does not exist null will be returned.
+     * If `key` holds a value that is not a list, the transaction fails with an error.
+     */
+    public rpop(key: string) {
+        this.commands.push(createRPop(key));
+    }
+
+    /** Removes and returns up to `count` elements from the list stored at `key`, depending on the list's length.
      * See https://redis.io/commands/rpop/ for details.
      *
      * @param key - The key of the list.
      * @param count - The count of the elements to pop from the list.
-     *
-     * Command Response - The value of the last element if `count` is not provided. If `count` is provided, list of popped elements will be returned depending on the list's length.
+     * Command Response - A list of popped elements will be returned depending on the list's length.
      * If `key` does not exist null will be returned.
-     * If `key` holds a value that is not a list, an error is raised.
+     * If `key` holds a value that is not a list, the transaction fails with an error.
      */
-    public rpop(key: string, count?: number) {
-        this.commands.push(createRPop(key, count));
+    public rpopCount(key: string, count: number) {
+        return this.commands.push(createRPop(key, count));
     }
 
     /** Adds the specified members to the set stored at `key`. Specified members that are already a member of this set are ignored.
@@ -626,7 +651,7 @@ export class BaseTransaction {
      * @param seconds - The timeout in seconds.
      * @param option - The expire option.
      *
-     * Command Response - 1 if the timeout was set. 0 if the timeout was not set. e.g. key doesn't exist,
+     * Command Response - `true` if the timeout was set. `false` if the timeout was not set. e.g. key doesn't exist,
      * or operation skipped due to the provided arguments.
      */
     public expire(key: string, seconds: number, option?: ExpireOptions) {
@@ -643,7 +668,7 @@ export class BaseTransaction {
      * @param unixSeconds - The timeout in an absolute Unix timestamp.
      * @param option - The expire option.
      *
-     * Command Response - 1 if the timeout was set. 0 if the timeout was not set. e.g. key doesn't exist,
+     * Command Response - `true` if the timeout was set. `false` if the timeout was not set. e.g. key doesn't exist,
      * or operation skipped due to the provided arguments.
      */
     public expireAt(key: string, unixSeconds: number, option?: ExpireOptions) {
@@ -660,7 +685,7 @@ export class BaseTransaction {
      * @param milliseconds - The timeout in milliseconds.
      * @param option - The expire option.
      *
-     * Command Response - 1 if the timeout was set. 0 if the timeout was not set. e.g. key doesn't exist,
+     * Command Response - `true` if the timeout was set. `false` if the timeout was not set. e.g. key doesn't exist,
      * or operation skipped due to the provided arguments.
      */
     public pexpire(key: string, milliseconds: number, option?: ExpireOptions) {
@@ -677,7 +702,7 @@ export class BaseTransaction {
      * @param unixMilliseconds - The timeout in an absolute Unix timestamp.
      * @param option - The expire option.
      *
-     * Command Response - 1 if the timeout was set. 0 if the timeout was not set. e.g. key doesn't exist,
+     * Command Response - `true` if the timeout was set. `false` if the timeout was not set. e.g. key doesn't exist,
      * or operation skipped due to the provided arguments.
      */
     public pexpireAt(
@@ -710,6 +735,7 @@ export class BaseTransaction {
      *
      * Command Response - The number of elements added to the sorted set.
      * If `changed` is set, returns the number of elements updated in the sorted set.
+     * If `key` holds a value that is not a sorted set, an error is returned.
      */
     public zadd(
         key: string,
@@ -739,6 +765,7 @@ export class BaseTransaction {
      *
      * Command Response - The score of the member.
      * If there was a conflict with the options, the operation aborts and null is returned.
+     * If `key` holds a value that is not a sorted set, an error is returned.
      */
     public zaddIncr(
         key: string,
@@ -764,6 +791,19 @@ export class BaseTransaction {
      */
     public zrem(key: string, members: string[]) {
         this.commands.push(createZrem(key, members));
+    }
+
+    /** Returns the cardinality (number of elements) of the sorted set stored at `key`.
+     * See https://redis.io/commands/zcard/ for more details.
+     *
+     * @param key - The key of the sorted set.
+     *
+     * Command Response - The number of elements in the sorted set.
+     * If `key` does not exist, it is treated as an empty sorted set, and this command returns 0.
+     * If `key` holds a value that is not a sorted set, an error is returned.
+     */
+    public zcard(key: string) {
+        this.commands.push(createZcard(key));
     }
 
     /** Executes a single command, without checking inputs. Every part of the command, including subcommands,

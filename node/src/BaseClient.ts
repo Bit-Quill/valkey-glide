@@ -1,3 +1,7 @@
+/**
+ * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+ */
+
 import {
     DEFAULT_TIMEOUT_IN_MILLISECONDS,
     Script,
@@ -48,6 +52,7 @@ import {
     createTTL,
     createUnlink,
     createZadd,
+    createZcard,
     createZrem,
 } from "./Commands";
 import {
@@ -643,9 +648,7 @@ export class BaseClient {
      * If `key` does not exist null will be returned.
      * If `key` holds a value that is not a list, an error is raised.
      */
-    public lpop(
-        key: string,
-    ): Promise<string | null> {
+    public lpop(key: string): Promise<string | null> {
         return this.createWritePromise(createLPop(key));
     }
 
@@ -658,10 +661,7 @@ export class BaseClient {
      * If `key` does not exist null will be returned.
      * If `key` holds a value that is not a list, an error is raised.
      */
-    public lpopCount(
-        key: string,
-        count: number
-    ): Promise<string[] | null> {
+    public lpopCount(key: string, count: number): Promise<string[] | null> {
         return this.createWritePromise(createLPop(key, count));
     }
 
@@ -754,9 +754,7 @@ export class BaseClient {
      * If `key` does not exist null will be returned.
      * If `key` holds a value that is not a list, an error is raised.
      */
-    public rpop(
-        key: string,
-    ): Promise<string | null> {
+    public rpop(key: string): Promise<string | null> {
         return this.createWritePromise(createRPop(key));
     }
 
@@ -769,10 +767,7 @@ export class BaseClient {
      * If `key` does not exist null will be returned.
      * If `key` holds a value that is not a list, an error is raised.
      */
-    public rpopCount(
-        key: string,
-        count: number
-    ): Promise<string[] | null> {
+    public rpopCount(key: string, count: number): Promise<string[] | null> {
         return this.createWritePromise(createRPop(key, count));
     }
 
@@ -954,7 +949,7 @@ export class BaseClient {
      * @returns a value that depends on the script that was executed.
      *
      * @example
-     *       const luaScript = "return \{ KEYS[1], ARGV[1] \}";
+     *       const luaScript = new Script("return \{ KEYS[1], ARGV[1] \}");
      *       const scriptOptions = \{
      *            keys: ["foo"],
      *            args: ["bar"],
@@ -984,6 +979,7 @@ export class BaseClient {
      * @param changed - Modify the return value from the number of new elements added, to the total number of elements changed.
      * @returns The number of elements added to the sorted set.
      * If `changed` is set, returns the number of elements updated in the sorted set.
+     * If `key` holds a value that is not a sorted set, an error is returned.
      *
      * @example
      *      await zadd("mySortedSet", \{ "member1": 10.5, "member2": 8.2 \})
@@ -1020,6 +1016,7 @@ export class BaseClient {
      * @param options - The Zadd options.
      * @returns The score of the member.
      * If there was a conflict with the options, the operation aborts and null is returned.
+     * If `key` holds a value that is not a sorted set, an error is returned.
      *
      * @example
      *      await zaddIncr("mySortedSet", member , 5.0)
@@ -1051,6 +1048,18 @@ export class BaseClient {
      */
     public zrem(key: string, members: string[]): Promise<number> {
         return this.createWritePromise(createZrem(key, members));
+    }
+
+    /** Returns the cardinality (number of elements) of the sorted set stored at `key`.
+     * See https://redis.io/commands/zcard/ for more details.
+     *
+     * @param key - The key of the sorted set.
+     * @returns The number of elements in the sorted set.
+     * If `key` does not exist, it is treated as an empty sorted set, and this command returns 0.
+     * If `key` holds a value that is not a sorted set, an error is returned.
+     */
+    public zcard(key: string): Promise<number> {
+        return this.createWritePromise(createZcard(key));
     }
 
     private readonly MAP_READ_FROM_STRATEGY: Record<

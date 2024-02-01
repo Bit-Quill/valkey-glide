@@ -1,3 +1,6 @@
+/**
+ * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+ */
 use redis::{cluster_routing::Routable, from_redis_value, Cmd, ErrorKind, RedisResult, Value};
 
 pub(crate) enum ExpectedReturnType {
@@ -83,6 +86,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
             Some(ExpectedReturnType::Boolean)
         }
         b"SMEMBERS" => Some(ExpectedReturnType::Set),
+        b"ZSCORE" => Some(ExpectedReturnType::DoubleOrNull),
         _ => None,
     }
 }

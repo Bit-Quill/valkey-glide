@@ -1,3 +1,7 @@
+/**
+ * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+ */
+
 import { beforeAll, expect } from "@jest/globals";
 import { exec } from "child_process";
 import { v4 as uuidv4 } from "uuid";
@@ -74,13 +78,16 @@ export function transactionTest(
     baseTransaction.hdel(key4, [field]);
     baseTransaction.hmget(key4, [field]);
     baseTransaction.hexists(key4, field);
-    baseTransaction.lpush(key5, [field + "1", field + "2", field + "3"]);
+    baseTransaction.lpush(key5, [field + "1", field + "2", field + "3" , field + "4"]);
     baseTransaction.lpop(key5);
     baseTransaction.llen(key5);
-    baseTransaction.ltrim(key5, 1, 1);
+    baseTransaction.lrem(key5, 1 , field + "1");
+    baseTransaction.ltrim(key5, 0, 1);
     baseTransaction.lrange(key5, 0, -1);
-    baseTransaction.rpush(key6, [field + "1", field + "2"]);
+    baseTransaction.lpopCount(key5 , 2);
+    baseTransaction.rpush(key6, [field + "1", field + "2" , field + "3"]);
     baseTransaction.rpop(key6);
+    baseTransaction.rpopCount(key6 , 2)
     baseTransaction.sadd(key7, ["bar", "foo"]);
     baseTransaction.srem(key7, ["foo"]);
     baseTransaction.scard(key7);
@@ -88,6 +95,7 @@ export function transactionTest(
     baseTransaction.zadd(key8, { member1: 1, member2: 2 });
     baseTransaction.zaddIncr(key8, "member2", 1);
     baseTransaction.zrem(key8, ["member1"]);
+    baseTransaction.zcard(key8);
     return [
         "OK",
         null,
@@ -101,19 +109,23 @@ export function transactionTest(
         1,
         [null],
         false,
+        4,
+        field + "4",
+        3,
+        1,
+        "OK",
+        [field + "3" , field + "2"],
+        [field + "3" , field + "2"],
         3,
         field + "3",
-        2,
-        "OK",
-        [field + "1"],
-        2,
-        field + "2",
+        [field + "2" , field + "1"],
         2,
         1,
         1,
         ["bar"],
         2,
         3,
+        1,
         1,
     ];
 }

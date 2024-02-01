@@ -1,3 +1,4 @@
+/** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
 import static glide.api.RedisClient.CreateClient;
@@ -5,8 +6,10 @@ import static glide.api.RedisClient.buildCommandManager;
 import static glide.api.RedisClient.buildConnectionManager;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import glide.api.models.configuration.RedisClientConfiguration;
@@ -21,26 +24,26 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 public class RedisClientCreateTest {
 
-    private MockedStatic<RedisClient> mockedClient;
+    private MockedStatic<BaseClient> mockedClient;
     private ChannelHandler channelHandler;
     private ConnectionManager connectionManager;
     private CommandManager commandManager;
 
     @BeforeEach
     public void init() {
-        mockedClient = Mockito.mockStatic(RedisClient.class);
+        mockedClient = mockStatic(BaseClient.class);
 
         channelHandler = mock(ChannelHandler.class);
         commandManager = mock(CommandManager.class);
         connectionManager = mock(ConnectionManager.class);
 
-        mockedClient.when(RedisClient::buildChannelHandler).thenReturn(channelHandler);
+        mockedClient.when(BaseClient::buildChannelHandler).thenReturn(channelHandler);
         mockedClient.when(() -> buildConnectionManager(channelHandler)).thenReturn(connectionManager);
         mockedClient.when(() -> buildCommandManager(channelHandler)).thenReturn(commandManager);
+        mockedClient.when(() -> CreateClient(any(), any())).thenCallRealMethod();
     }
 
     @AfterEach
@@ -50,7 +53,7 @@ public class RedisClientCreateTest {
 
     @Test
     @SneakyThrows
-    public void createClient_withConfig_successfullyReturnsRedisClient() {
+    public void createClient_with_config_successfully_returns_RedisClient() {
 
         // setup
         CompletableFuture<Void> connectToRedisFuture = new CompletableFuture<>();
@@ -58,7 +61,6 @@ public class RedisClientCreateTest {
         RedisClientConfiguration config = RedisClientConfiguration.builder().build();
 
         when(connectionManager.connectToRedis(eq(config))).thenReturn(connectToRedisFuture);
-        mockedClient.when(() -> CreateClient(config)).thenCallRealMethod();
 
         // exercise
         CompletableFuture<RedisClient> result = CreateClient(config);
@@ -71,7 +73,7 @@ public class RedisClientCreateTest {
 
     @SneakyThrows
     @Test
-    public void createClient_errorOnConnectionThrowsExecutionException() {
+    public void createClient_error_on_connection_throws_ExecutionException() {
         // setup
         CompletableFuture<Void> connectToRedisFuture = new CompletableFuture<>();
         ClosingException exception = new ClosingException("disconnected");
@@ -79,13 +81,11 @@ public class RedisClientCreateTest {
         RedisClientConfiguration config = RedisClientConfiguration.builder().build();
 
         when(connectionManager.connectToRedis(eq(config))).thenReturn(connectToRedisFuture);
-        mockedClient.when(() -> CreateClient(config)).thenCallRealMethod();
 
         // exercise
         CompletableFuture<RedisClient> result = CreateClient(config);
 
-        ExecutionException executionException =
-                assertThrows(ExecutionException.class, () -> result.get());
+        ExecutionException executionException = assertThrows(ExecutionException.class, result::get);
 
         // verify
         assertEquals(exception, executionException.getCause());

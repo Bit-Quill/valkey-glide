@@ -1,3 +1,6 @@
+/**
+ * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+ */
 use glide_core::*;
 use rsevents::{Awaitable, EventState, ManualResetEvent};
 use std::io::prelude::*;
@@ -531,7 +534,7 @@ mod socket_listener {
 
     #[rstest]
     #[timeout(SHORT_CLUSTER_TEST_TIMEOUT)]
-    fn test_socket_handle_custom_command(
+    fn test_socket_pass_custom_command(
         #[values(false, true)] args_pointer: bool,
         #[values(true, false)] use_cluster: bool,
     ) {
@@ -666,7 +669,7 @@ mod socket_listener {
 
     #[rstest]
     #[timeout(SHORT_CLUSTER_TEST_TIMEOUT)]
-    fn test_socket_handle_long_input(
+    fn test_socket_send_and_receive_long_values(
         #[values((false, false), (true, false), (false,true))] use_arg_pointer_and_tls: (
             bool,
             bool,
@@ -728,7 +731,7 @@ mod socket_listener {
     // verifies that the outputs match the inputs.
     #[rstest]
     #[timeout(SHORT_CLUSTER_TEST_TIMEOUT)]
-    fn test_socket_handle_multiple_long_inputs(
+    fn test_socket_send_and_receive_multiple_long_inputs(
         #[values((false, false), (true, false), (false,true))] use_arg_pointer_and_tls: (
             bool,
             bool,

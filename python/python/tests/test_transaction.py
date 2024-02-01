@@ -1,3 +1,5 @@
+# Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+
 from datetime import datetime, timezone
 from typing import List, Union
 
@@ -75,9 +77,11 @@ def transaction_test(
     transaction.lrem(key5, 1, value)
     transaction.ltrim(key5, 0, 1)
     transaction.lrange(key5, 0, -1)
+    transaction.lpop_count(key5, 2)
 
-    transaction.rpush(key6, [value, value2])
+    transaction.rpush(key6, [value, value2, value2])
     transaction.rpop(key6)
+    transaction.rpop_count(key6, 2)
 
     transaction.sadd(key7, ["foo", "bar"])
     transaction.srem(key7, ["foo"])
@@ -87,6 +91,8 @@ def transaction_test(
     transaction.zadd(key8, {"one": 1, "two": 2, "three": 3})
     transaction.zadd_incr(key8, "one", 3)
     transaction.zrem(key8, ["one"])
+    transaction.zcard(key8)
+    transaction.zscore(key8, "two")
     return [
         OK,
         value,
@@ -108,7 +114,7 @@ def transaction_test(
         value2,
         5,
         10.5,
-        1,
+        True,
         [value, None, value2],
         {key: value, key2: value2, key3: "10.5"},
         2,
@@ -119,8 +125,10 @@ def transaction_test(
         1,
         OK,
         [value2, value],
-        2,
+        [value2, value],
+        3,
         value2,
+        [value2, value],
         2,
         1,
         {"bar"},
@@ -128,6 +136,8 @@ def transaction_test(
         3,
         4,
         1,
+        2,
+        2.0,
     ]
 
 

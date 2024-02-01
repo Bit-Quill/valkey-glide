@@ -1,3 +1,5 @@
+# Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+
 from __future__ import annotations
 
 import asyncio
@@ -8,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, List, TypeVar, Union, cast
 
 import pytest
-from glide import ClosingError, RequestError, TimeoutError
+from glide import ClosingError, RequestError, Script, TimeoutError
 from glide.async_commands.core import (
     ConditionalChange,
     ExpireOptions,
@@ -114,7 +116,7 @@ class TestRedisClients:
         assert "lib-ver=0.1.0" in info
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
-    async def test_large_values(self, redis_client: TRedisClient):
+    async def test_send_and_receive_large_values(self, redis_client: TRedisClient):
         length = 2**16
         key = get_random_string(length)
         value = get_random_string(length)
@@ -124,7 +126,7 @@ class TestRedisClients:
         assert await redis_client.get(key) == value
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
-    async def test_non_ascii_unicode(self, redis_client: TRedisClient):
+    async def test_send_and_receive_non_ascii_unicode(self, redis_client: TRedisClient):
         key = "foo"
         value = "שלום hello 汉字"
         assert value == "שלום hello 汉字"
@@ -133,7 +135,9 @@ class TestRedisClients:
 
     @pytest.mark.parametrize("value_size", [100, 2**16])
     @pytest.mark.parametrize("cluster_mode", [True, False])
-    async def test_concurrent_tasks(self, redis_client: TRedisClient, value_size):
+    async def test_client_handle_concurrent_workload_without_dropping_or_changing_values(
+        self, redis_client: TRedisClient, value_size
+    ):
         num_of_concurrent_tasks = 100
         running_tasks = set()
 
@@ -1055,6 +1059,29 @@ class TestCommands:
 
         assert await redis_client.zrem("non_existing_set", ["member"]) == 0
 
+    @pytest.mark.parametrize("cluster_mode", [True, False])
+    async def test_zcard(self, redis_client: TRedisClient):
+        key = get_random_string(10)
+        members_scores = {"one": 1, "two": 2, "three": 3}
+        assert await redis_client.zadd(key, members_scores=members_scores) == 3
+        assert await redis_client.zcard(key) == 3
+
+        assert await redis_client.zrem(key, ["one"]) == 1
+        assert await redis_client.zcard(key) == 2
+        assert await redis_client.zcard("non_existing_key") == 0
+
+    @pytest.mark.parametrize("cluster_mode", [True, False])
+    async def test_zscore(self, redis_client: TRedisClient):
+        key = get_random_string(10)
+        members_scores = {"one": 1, "two": 2, "three": 3}
+        assert await redis_client.zadd(key, members_scores=members_scores) == 3
+        assert await redis_client.zscore(key, "one") == 1.0
+
+        assert await redis_client.zscore(key, "non_existing_member") == None
+        assert (
+            await redis_client.zscore("non_existing_key", "non_existing_member") == None
+        )
+
 
 class TestCommandsUnitTests:
     def test_expiry_cmd_args(self):
@@ -1215,3 +1242,28 @@ class TestExceptions:
         key = get_random_string(10)
         with pytest.raises(TimeoutError) as e:
             await redis_client.custom_command(["BLPOP", key, "1"])
+
+
+@pytest.mark.asyncio
+class TestScripts:
+    @pytest.mark.smoke_test
+    @pytest.mark.parametrize("cluster_mode", [True, False])
+    async def test_script(self, redis_client: TRedisClient):
+        key1 = get_random_string(10)
+        key2 = get_random_string(10)
+        script = Script("return 'Hello'")
+        assert await redis_client.invoke_script(script) == "Hello"
+
+        script = Script("return redis.call('SET', KEYS[1], ARGV[1])")
+        assert (
+            await redis_client.invoke_script(script, keys=[key1], args=["value1"])
+            == "OK"
+        )
+        # Reuse the same script with different parameters.
+        assert (
+            await redis_client.invoke_script(script, keys=[key2], args=["value2"])
+            == "OK"
+        )
+        script = Script("return redis.call('GET', KEYS[1])")
+        assert await redis_client.invoke_script(script, keys=[key1]) == "value1"
+        assert await redis_client.invoke_script(script, keys=[key2]) == "value2"

@@ -1,3 +1,7 @@
+/**
+ * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+ */
+
 import {
     MAX_REQUEST_ARGS_LEN,
     createLeakedStringVec,
@@ -748,4 +752,11 @@ export function createZrem(
     members: string[]
 ): redis_request.Command {
     return createCommand(RequestType.Zrem, [key].concat(members));
+}
+
+/**
+ * @internal
+ */
+export function createZcard(key: string): redis_request.Command {
+    return createCommand(RequestType.Zcard, [key]);
 }

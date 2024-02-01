@@ -1,3 +1,7 @@
+/**
+ * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+ */
+
 import { expect, it } from "@jest/globals";
 import { exec } from "child_process";
 import { v4 as uuidv4 } from "uuid";
@@ -755,7 +759,10 @@ export function runBaseTests<Context>(config: {
                     "value3",
                     "value4",
                 ]);
-                expect(await client.lpopCount(key, 2)).toEqual(["value2", "value3"]);
+                expect(await client.lpopCount(key, 2)).toEqual([
+                    "value2",
+                    "value3",
+                ]);
                 expect(await client.lrange("nonExistingKey", 0, -1)).toEqual(
                     []
                 );
@@ -899,7 +906,10 @@ export function runBaseTests<Context>(config: {
                 const valueList = ["value1", "value2", "value3", "value4"];
                 expect(await client.rpush(key, valueList)).toEqual(4);
                 expect(await client.rpop(key)).toEqual("value4");
-                expect(await client.rpopCount(key, 2)).toEqual(["value3", "value2"]);
+                expect(await client.rpopCount(key, 2)).toEqual([
+                    "value3",
+                    "value2",
+                ]);
                 expect(await client.rpop("nonExistingKey")).toEqual(null);
             });
         },
@@ -1360,6 +1370,21 @@ export function runBaseTests<Context>(config: {
         },
         config.timeout
     );
+
+    it(
+        "zcard test",
+        async () => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const membersScores = { one: 1, two: 2, three: 3 };
+                expect(await client.zadd(key, membersScores)).toEqual(3);
+                expect(await client.zcard(key)).toEqual(3);
+                expect(await client.zrem(key, ["one"])).toEqual(1);
+                expect(await client.zcard(key)).toEqual(2);
+            });
+        },
+        config.timeout
+    );
 }
 
 export function runCommonTests<Context>(config: {
@@ -1388,7 +1413,7 @@ export function runCommonTests<Context>(config: {
     );
 
     it(
-        "can handle non-ASCII unicode",
+        "can set and get non-ASCII unicode without modification",
         async () => {
             await runTest(async (client: Client) => {
                 const key = uuidv4();
@@ -1455,7 +1480,7 @@ export function runCommonTests<Context>(config: {
     );
 
     it(
-        "can handle concurrent operations",
+        "can handle concurrent operations without dropping or changing values",
         async () => {
             await runTest(async (client: Client) => {
                 const singleOp = async (index: number) => {

@@ -1,3 +1,5 @@
+# Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+
 import threading
 from typing import List, Mapping, Optional, Tuple, Union
 
@@ -115,7 +117,7 @@ class BaseTransaction:
             parameters (List[str]): A list of configuration parameter names to retrieve values for.
 
         Command response:
-            List[str]: A list of values corresponding to the configuration parameters.
+            Dict[str, str]: A dictionary of values corresponding to the configuration parameters.
         """
         self.append_command(RequestType.ConfigGet, parameters)
 
@@ -229,8 +231,8 @@ class BaseTransaction:
           amount (float) : The amount to increment.
 
         Command response:
-              str: The value of key after the increment. An error is returned if the key contains a value
-              of the wrong type.
+            float: The value of key after the increment. The transaction fails if the key contains a value
+            of the wrong type.
         """
         self.append_command(RequestType.IncrByFloat, [key, str(amount)])
 
@@ -341,7 +343,7 @@ class BaseTransaction:
                 Use a negative value to decrement.
 
         Returns:
-            str: The value of the specified field in the hash stored at `key` after the increment as a string.
+            float: The value of the specified field in the hash stored at `key` after the increment as a string.
                 The transaction fails if `key` contains a value of the wrong type or the current field content is not
                 parsable as a double precision floating point number.
         """
@@ -356,8 +358,8 @@ class BaseTransaction:
             field (str): The field to check in the hash stored at `key`.
 
         Command response:
-            int: Returns 1 if the hash contains the specified field. If the hash does not contain the field,
-                or if the key does not exist, it returns 0.
+            bool: Returns 'True' if the hash contains the specified field. If the hash does not contain the field,
+                or if the key does not exist, it returns 'False'.
                 If `key` holds a value that is not a hash, the transaction fails with an error.
         """
         self.append_command(RequestType.HashExists, [key, field])
@@ -381,9 +383,9 @@ class BaseTransaction:
             key (str): The key of the hash.
 
         Command response:
-            List[str]: A list of fields and their values stored in the hash. Every field name in the list is followed by
-            its value. If `key` does not exist, it returns an empty list.
-            If `key` holds a value that is not a hash , the transaction fails.
+            Dict[str, str]: A dictionary of fields and their values stored in the hash. Every field name in the list is followed by
+            its value. If `key` does not exist, it returns an empty dictionary.
+            If `key` holds a value that is not a hash, the transaction fails with an error.
         """
         self.append_command(RequestType.HashGetAll, [key]),
 
@@ -434,25 +436,37 @@ class BaseTransaction:
         """
         self.append_command(RequestType.LPush, [key] + elements)
 
-    def lpop(self, key: str, count: Optional[int] = None):
+    def lpop(self, key: str):
         """Remove and return the first elements of the list stored at `key`.
-        By default, the command pops a single element from the beginning of the list.
-        When `count` is provided, the command pops up to `count` elements, depending on the list's length.
+        The command pops a single element from the beginning of the list.
         See https://redis.io/commands/lpop/ for details.
 
         Args:
             key (str): The key of the list.
-            count (Optional[int]): The count of elements to pop from the list. Default is to pop a single element.
 
         Command response:
-            Optional[Union[str, List[str]]]: The value of the first element if `count` is not provided.
-            If `count` is provided, a list of popped elements will be returned depending on the list's length.
+            Optional[str]: The value of the first element.
             If `key` does not exist, None will be returned.
-            If `key` holds a value that is not a list, the transaction fails.
+            If `key` holds a value that is not a list, the transaction fails with an error
         """
 
-        args: List[str] = [key] if count is None else [key, str(count)]
-        self.append_command(RequestType.LPop, args)
+        self.append_command(RequestType.LPop, [key])
+
+    def lpop_count(self, key: str, count: int):
+        """Remove and return up to `count` elements from the list stored at `key`, depending on the list's length.
+        See https://redis.io/commands/lpop/ for details.
+
+        Args:
+            key (str): The key of the list.
+            count (int): The count of elements to pop from the list.
+
+        Command response:
+            Optional[List[str]]: A a list of popped elements will be returned depending on the list's length.
+            If `key` does not exist, None will be returned.
+            If `key` holds a value that is not a list, the transaction fails with an error
+        """
+
+        self.append_command(RequestType.LPop, [key, str(count)])
 
     def lrange(self, key: str, start: int, end: int):
         """Retrieve the specified elements of the list stored at `key` within the given range.
@@ -494,23 +508,35 @@ class BaseTransaction:
 
     def rpop(self, key: str, count: Optional[int] = None):
         """Removes and returns the last elements of the list stored at `key`.
-        By default, the command pops a single element from the end of the list.
-        When `count` is provided, the command pops up to `count` elements, depending on the list's length.
+        The command pops a single element from the end of the list.
         See https://redis.io/commands/rpop/ for details.
 
         Args:
             key (str): The key of the list.
-            count (Optional[int]): The count of elements to pop from the list. Default is to pop a single element.
 
-        Command response:
-            Optional[Union[str, List[str]]: The value of the last element if `count` is not provided.
-            If `count` is provided, a list of popped elements will be returned depending on the list's length.
+        Commands response:
+            Optional[str]: The value of the last element.
             If `key` does not exist, None will be returned.
-            If `key` holds a value that is not a list, the transaction fails.
+            If `key` holds a value that is not a list, the transaction fails with an error.
         """
 
-        args: List[str] = [key] if count is None else [key, str(count)]
-        self.append_command(RequestType.RPop, args)
+        self.append_command(RequestType.RPop, [key])
+
+    def rpop_count(self, key: str, count: int):
+        """Removes and returns up to `count` elements from the list stored at `key`, depending on the list's length.
+        See https://redis.io/commands/rpop/ for details.
+
+        Args:
+            key (str): The key of the list.
+            count (int): The count of elements to pop from the list.
+
+        Commands response:
+            Optional[List[str]: A list of popped elements will be returned depending on the list's length.
+            If `key` does not exist, None will be returned.
+            If `key` holds a value that is not a list, the transaction fails with an error.
+        """
+
+        self.append_command(RequestType.RPop, [key, str(count)])
 
     def sadd(self, key: str, members: List[str]):
         """Add specified members to the set stored at `key`.
@@ -552,7 +578,7 @@ class BaseTransaction:
             key (str): The key from which to retrieve the set members.
 
         Commands response:
-            List[str]: A list of all members of the set.
+            Set[str]: A set of all members of the set.
                 If `key` does not exist an empty list will be returned.
                 If `key` holds a value that is not a set, the transaction fails.
         """
@@ -670,7 +696,7 @@ class BaseTransaction:
             option (Optional[ExpireOptions]): The expire option.
 
         Commands response:
-            int: 1 if the timeout was set, 0 if the timeout was not set (e.g., the key doesn't exist or the operation is
+            bool: 'True' if the timeout was set, 'False' if the timeout was not set (e.g., the key doesn't exist or the operation is
                 skipped due to the provided arguments).
 
         """
@@ -697,7 +723,7 @@ class BaseTransaction:
             option (Optional[ExpireOptions]): The expire option.
 
         Commands response:
-            int: 1 if the timeout was set, 0 if the timeout was not set (e.g., the key doesn't exist or the operation is
+            bool: 'True' if the timeout was set, 'False' if the timeout was not set (e.g., the key doesn't exist or the operation is
                 skipped due to the provided arguments).
         """
         args = (
@@ -723,7 +749,7 @@ class BaseTransaction:
             option (Optional[ExpireOptions]): The expire option.
 
         Commands response:
-            int: 1 if the timeout was set, 0 if the timeout was not set (e.g., the key doesn't exist or the operation is
+            bool: 'True' if the timeout was set, 'False' if the timeout was not set (e.g., the key doesn't exist or the operation is
                 skipped due to the provided arguments).
 
         """
@@ -752,7 +778,7 @@ class BaseTransaction:
             option (Optional[ExpireOptions]): The expire option.
 
         Commands response:
-            int: 1 if the timeout was set, 0 if the timeout was not set (e.g., the key doesn't exist or the operation is
+            bool: 'True' if the timeout was set, 'False' if the timeout was not set (e.g., the key doesn't exist or the operation is
                 skipped due to the provided arguments).
         """
         args = (
@@ -803,6 +829,7 @@ class BaseTransaction:
         Commands response:
             int: The number of elements added to the sorted set.
             If `changed` is set, returns the number of elements updated in the sorted set.
+            If `key` holds a value that is not a sorted set, the transaction fails with an error.
         """
         args = [key]
         if existing_options:
@@ -856,7 +883,8 @@ class BaseTransaction:
 
         Commands response:
             Optional[float]: The score of the member.
-            If there was a conflict with choosing the XX/NX/LT/GT options, the operation aborts and null is returned.
+            If there was a conflict with choosing the XX/NX/LT/GT options, the operation aborts and None is returned.
+            If `key` holds a value that is not a sorted set, the transaction fails with an error.
         """
         args = [key]
         if existing_options:
@@ -877,6 +905,22 @@ class BaseTransaction:
         args += [str(increment), member]
         self.append_command(RequestType.Zadd, args)
 
+    def zcard(self, key: str):
+        """
+        Returns the cardinality (number of elements) of the sorted set stored at `key`.
+
+        See https://redis.io/commands/zcard/ for more details.
+
+        Args:
+            key (str): The key of the sorted set.
+
+        Commands response:
+            int: The number of elements in the sorted set.
+            If `key` does not exist, it is treated as an empty sorted set, and the command returns 0.
+            If `key` holds a value that is not a sorted set, the transaction fails with an error.
+        """
+        self.append_command(RequestType.Zcard, [key])
+
     def zrem(
         self,
         key: str,
@@ -894,10 +938,28 @@ class BaseTransaction:
 
         Commands response:
             int: The number of members that were removed from the sorted set, not including non-existing members.
-            If `key` does not exist, it is treated as an empty sorted set, and this command returns 0.
-            If `key` holds a value that is not a sorted set, an error is returned.
+            If `key` does not exist, it is treated as an empty sorted set, and the command returns 0.
+            If `key` holds a value that is not a sorted set, the transaction fails with an error.
         """
         self.append_command(RequestType.Zrem, [key] + members)
+
+    def zscore(self, key: str, member: str):
+        """
+        Returns the score of `member` in the sorted set stored at `key`.
+
+        See https://redis.io/commands/zscore/ for more details.
+
+        Args:
+            key (str): The key of the sorted set.
+            member (str): The member whose score is to be retrieved.
+
+        Commands response:
+            Optional[float]: The score of the member.
+            If `member` does not exist in the sorted set, None is returned.
+            If `key` does not exist,  None is returned.
+            If `key` holds a value that is not a sorted set, the transaction fails with an error.
+        """
+        self.append_command(RequestType.ZScore, [key, member])
 
 
 class Transaction(BaseTransaction):

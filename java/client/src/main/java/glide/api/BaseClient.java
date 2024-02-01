@@ -1,3 +1,4 @@
+/** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
 import glide.api.models.exceptions.RedisException;
@@ -7,6 +8,7 @@ import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 import lombok.AllArgsConstructor;
 import response.ResponseOuterClass.Response;
 
@@ -14,8 +16,8 @@ import response.ResponseOuterClass.Response;
 @AllArgsConstructor
 public abstract class BaseClient implements AutoCloseable {
 
-    protected ConnectionManager connectionManager;
-    protected CommandManager commandManager;
+    protected final ConnectionManager connectionManager;
+    protected final CommandManager commandManager;
 
     /**
      * Extracts the response from the Protobuf response and either throws an exception or returns the
@@ -24,10 +26,36 @@ public abstract class BaseClient implements AutoCloseable {
      * @param response Redis protobuf message
      * @return Response Object
      */
-    protected static Object handleObjectResponse(Response response) {
-        // return function to convert protobuf.Response into the response object by
-        // calling valueFromPointer
-        return (new BaseCommandResponseResolver(RedisValueResolver::valueFromPointer)).apply(response);
+    protected Object handleObjectResponse(Response response) {
+        // convert protobuf response into Object and then Object into T
+        return new BaseCommandResponseResolver(RedisValueResolver::valueFromPointer).apply(response);
+    }
+
+    /**
+     * Async request for an async (non-blocking) Redis client.
+     *
+     * @param config Redis client Configuration
+     * @param constructor Redis client constructor reference
+     * @param <T> Client type
+     * @return a Future to connect and return a RedisClient
+     */
+    protected static <T> CompletableFuture<T> CreateClient(
+            BaseClientConfiguration config,
+            BiFunction<ConnectionManager, CommandManager, T> constructor) {
+        try {
+            ChannelHandler channelHandler = buildChannelHandler();
+            ConnectionManager connectionManager = buildConnectionManager(channelHandler);
+            CommandManager commandManager = buildCommandManager(channelHandler);
+            // TODO: Support exception throwing, including interrupted exceptions
+            return connectionManager
+                    .connectToRedis(config)
+                    .thenApply(ignore -> constructor.apply(connectionManager, commandManager));
+        } catch (InterruptedException e) {
+            // Something bad happened while we were establishing netty connection to UDS
+            var future = new CompletableFuture<T>();
+            future.completeExceptionally(e);
+            return future;
+        }
     }
 
     /**
@@ -98,5 +126,18 @@ public abstract class BaseClient implements AutoCloseable {
             // suppressing the interrupted exception - it is already suppressed in the future
             throw new RuntimeException(e);
         }
+    }
+
+    protected static ChannelHandler buildChannelHandler() throws InterruptedException {
+        CallbackDispatcher callbackDispatcher = new CallbackDispatcher();
+        return new ChannelHandler(callbackDispatcher, getSocket());
+    }
+
+    protected static ConnectionManager buildConnectionManager(ChannelHandler channelHandler) {
+        return new ConnectionManager(channelHandler);
+    }
+
+    protected static CommandManager buildCommandManager(ChannelHandler channelHandler) {
+        return new CommandManager(channelHandler);
     }
 }

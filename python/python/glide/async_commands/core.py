@@ -1,3 +1,5 @@
+# Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import (
@@ -17,6 +19,8 @@ from typing import (
 from glide.constants import TOK, TResult
 from glide.protobuf.redis_request_pb2 import RequestType
 from glide.routes import Route
+
+from ..glide import Script
 
 
 class ConditionalChange(Enum):
@@ -125,12 +129,12 @@ class ExpirySet:
     def __init__(
         self,
         expiry_type: ExpiryType,
-        value: Union[int, datetime, timedelta, None],
+        value: Optional[Union[int, datetime, timedelta]],
     ) -> None:
         """
         Args:
             - expiry_type (ExpiryType): The expiry type.
-            - value (Union[int, datetime, timedelta, None]): The value of the expiration type. The type of expiration
+            - value (Optional[Union[int, datetime, timedelta]]): The value of the expiration type. The type of expiration
                 determines the type of expiration value:
                 - SEC: Union[int, timedelta]
                 - MILLSEC: Union[int, timedelta]
@@ -141,7 +145,7 @@ class ExpirySet:
         self.set_expiry_type_and_value(expiry_type, value)
 
     def set_expiry_type_and_value(
-        self, expiry_type: ExpiryType, value: Union[int, datetime, timedelta, None]
+        self, expiry_type: ExpiryType, value: Optional[Union[int, datetime, timedelta]]
     ):
         if not isinstance(value, get_args(expiry_type.value[1])):
             raise ValueError(
@@ -178,22 +182,28 @@ class CoreCommands(Protocol):
         request_type: RequestType.ValueType,
         args: List[str],
         route: Optional[Route] = ...,
-    ) -> TResult:
-        ...
+    ) -> TResult: ...
 
-    async def execute_transaction(
+    async def _execute_transaction(
         self,
         commands: List[Tuple[RequestType.ValueType, List[str]]],
         route: Optional[Route] = None,
-    ) -> List[TResult]:
-        ...
+    ) -> List[TResult]: ...
+
+    async def _execute_script(
+        self,
+        hash: str,
+        keys: Optional[List[str]] = None,
+        args: Optional[List[str]] = None,
+        route: Optional[Route] = None,
+    ) -> TResult: ...
 
     async def set(
         self,
         key: str,
         value: str,
-        conditional_set: Union[ConditionalChange, None] = None,
-        expiry: Union[ExpirySet, None] = None,
+        conditional_set: Optional[ConditionalChange] = None,
+        expiry: Optional[ExpirySet] = None,
         return_old_value: bool = False,
     ) -> Optional[str]:
         """Set the given key with the given value. Return value is dependent on the passed options.
@@ -205,9 +215,9 @@ class CoreCommands(Protocol):
         Args:
             key (str): the key to store.
             value (str): the value to store with the given key.
-            conditional_set (Union[ConditionalChange, None], optional): set the key only if the given condition is met.
+            conditional_set (Optional[ConditionalChange], optional): set the key only if the given condition is met.
                 Equivalent to [`XX` | `NX`] in the Redis API. Defaults to None.
-            expiry (Union[Expiry, None], optional): set expiriation to the given key.
+            expiry (Optional[ExpirySet], optional): set expiriation to the given key.
                 Equivalent to [`EX` | `PX` | `EXAT` | `PXAT` | `KEEPTTL`] in the Redis API. Defaults to None.
             return_old_value (bool, optional): Return the old string stored at key, or None if key did not exist.
                 An error is returned and SET aborted if the value stored at key is not a string.
@@ -237,7 +247,7 @@ class CoreCommands(Protocol):
             key (str): the key to retrieve from the database
 
         Returns:
-            Union[str, None]: If the key exists, returns the value of the key as a string. Otherwise, return None.
+            Optional[str]: If the key exists, returns the value of the key as a string. Otherwise, return None.
         """
         return cast(
             Optional[str], await self._execute_command(RequestType.GetString, [key])
@@ -1095,6 +1105,7 @@ class CoreCommands(Protocol):
         Returns:
             int: The number of elements added to the sorted set.
             If `changed` is set, returns the number of elements updated in the sorted set.
+            If `key` holds a value that is not a sorted set, an error is returned.
 
         Examples:
             >>> await zadd("my_sorted_set", {"member1": 10.5, "member2": 8.2})
@@ -1157,7 +1168,9 @@ class CoreCommands(Protocol):
 
         Returns:
             Optional[float]: The score of the member.
-            If there was a conflict with choosing the XX/NX/LT/GT options, the operation aborts and null is returned.
+            If there was a conflict with choosing the XX/NX/LT/GT options, the operation aborts and None is returned.
+            If `key` holds a value that is not a sorted set, an error is returned.
+
         Examples:
             >>> await zaddIncr("my_sorted_set", member , 5.0)
                 5.0
@@ -1186,6 +1199,28 @@ class CoreCommands(Protocol):
             await self._execute_command(RequestType.Zadd, args),
         )
 
+    async def zcard(self, key: str) -> int:
+        """
+        Returns the cardinality (number of elements) of the sorted set stored at `key`.
+
+        See https://redis.io/commands/zcard/ for more details.
+
+        Args:
+            key (str): The key of the sorted set.
+
+        Returns:
+            int: The number of elements in the sorted set.
+            If `key` does not exist, it is treated as an empty sorted set, and the command returns 0.
+            If `key` holds a value that is not a sorted set, an error is returned.
+
+        Examples:
+            >>> await zcard("my_sorted_set")
+                3  # Indicates that there are 3 elements in the sorted set "my_sorted_set".
+            >>> await zcard("non_existing_key")
+                0
+        """
+        return cast(int, await self._execute_command(RequestType.Zcard, [key]))
+
     async def zrem(
         self,
         key: str,
@@ -1203,7 +1238,7 @@ class CoreCommands(Protocol):
 
         Returns:
             int: The number of members that were removed from the sorted set, not including non-existing members.
-            If `key` does not exist, it is treated as an empty sorted set, and this command returns 0.
+            If `key` does not exist, it is treated as an empty sorted set, and the command returns 0.
             If `key` holds a value that is not a sorted set, an error is returned.
 
         Examples:
@@ -1216,3 +1251,58 @@ class CoreCommands(Protocol):
             int,
             await self._execute_command(RequestType.Zrem, [key] + members),
         )
+
+    async def zscore(self, key: str, member: str) -> Optional[float]:
+        """
+        Returns the score of `member` in the sorted set stored at `key`.
+
+        See https://redis.io/commands/zscore/ for more details.
+
+        Args:
+            key (str): The key of the sorted set.
+            member (str): The member whose score is to be retrieved.
+
+        Returns:
+            Optional[float]: The score of the member.
+            If `member` does not exist in the sorted set, None is returned.
+            If `key` does not exist,  None is returned.
+            If `key` holds a value that is not a sorted set, an error is returned.
+
+        Examples:
+            >>> await zscore("my_sorted_set", "member")
+                10.5  # Indicates that the score of "member" in the sorted set "my_sorted_set" is 10.5.
+            >>> await zscore("my_sorted_set", "non_existing_member")
+                None
+        """
+        return cast(
+            Optional[float],
+            await self._execute_command(RequestType.ZScore, [key, member]),
+        )
+
+    async def invoke_script(
+        self,
+        script: Script,
+        keys: Optional[List[str]] = None,
+        args: Optional[List[str]] = None,
+    ) -> TResult:
+        """
+        Invokes a Lua script with its keys and arguments.
+        This method simplifies the process of invoking scripts on a Redis server by using an object that represents a Lua script.
+        The script loading, argument preparation, and execution will all be handled internally.
+        If the script has not already been loaded, it will be loaded automatically using the Redis `SCRIPT LOAD` command.
+        After that, it will be invoked using the Redis `EVALSHA` command.
+
+        Args:
+            script (Script): The Lua script to execute.
+            keys (List[str]): The keys that are used in the script.
+            args (List[str]): The arguments for the script.
+
+        Returns:
+            TResult: a value that depends on the script that was executed.
+
+        Examples:
+            >>> lua_script = Script("return { KEYS[1], ARGV[1] }")
+            >>> await invoke_script(lua_script, keys=["foo"], args=["bar"] );
+                ["foo", "bar"]
+        """
+        return await self._execute_script(script.get_hash(), keys, args)
