@@ -1,16 +1,19 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
-import java.util.Map;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
+import java.util.Map;
 
 /**
- * Represents a Response object from a Redis server with cluster-mode enabled. The response type may depend on the submitted {@link Route}.
+ * Represents a Response object from a Redis server with cluster-mode enabled. The response type may
+ * depend on the submitted {@link Route}.
  *
- * @remark ClusterValue stores values in a union-like object.  It contains a single-value or multi-value response from Redis.
- * If the command's routing is to one node use {@link #getSingleValue()} to return a response of type <code>T</code>.
- * Otherwise, use {@link #getMultiValue()} to return a <code>Map</code> of <code>address: nodeResponse</code> where <code>address</code> is of type <code>string</code> and <code>nodeResponse</code> is of type <code>T</code>.
- *
+ * @remark ClusterValue stores values in a union-like object. It contains a single-value or
+ *     multi-value response from Redis. If the command's routing is to one node use {@link
+ *     #getSingleValue()} to return a response of type <code>T</code>. Otherwise, use {@link
+ *     #getMultiValue()} to return a <code>Map</code> of <code>address: nodeResponse</code> where
+ *     <code>address</code> is of type <code>string</code> and <code>nodeResponse</code> is of type
+ *     <code>T</code>.
  * @see <a href="https://redis.io/docs/reference/cluster-spec/">Redis cluster specification</a>
  * @param <T> The wrapped response type
  */

@@ -8,8 +8,8 @@ import lombok.Builder;
 import lombok.NonNull;
 
 /**
- * Object builder to add optional arguments to {@link StringCommands#set(String,
- * String, SetOptions)}
+ * Object builder to add optional arguments to {@link StringCommands#set(String, String,
+ * SetOptions)}
  */
 @Builder
 public class SetOptions {
@@ -21,8 +21,9 @@ public class SetOptions {
     private ConditionalSet conditionalSet;
 
     /**
-     * Set command returns the old string stored at <code>key</code>, or <code>null</code> if <code>key</code> did
-     * not exist. An error is returned and <code>SET</code> aborted if the value stored at <code>key
+     * Set command returns the old string stored at <code>key</code>, or <code>null</code> if <code>
+     * key</code> did not exist. An error is returned and <code>SET</code> aborted if the value stored
+     * at <code>key
      * </code> is not a string. Equivalent to <code>GET</code> in the Redis API.
      */
     private boolean returnOldValue;
@@ -46,8 +47,8 @@ public class SetOptions {
         @NonNull private TimeToLiveType type;
 
         /**
-         * The amount of time to live before the key expires. Ignored when {@link TimeToLiveType#KEEP_EXISTING}
-         * type is set.
+         * The amount of time to live before the key expires. Ignored when {@link
+         * TimeToLiveType#KEEP_EXISTING} type is set.
          */
         private Integer count;
     }

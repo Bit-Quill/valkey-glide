@@ -303,7 +303,8 @@ public class RedisClientTest {
                     value,
                     CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST,
                     RETURN_OLD_VALUE,
-                    TIME_TO_LIVE_UNIX_SECONDS + " 60"
+                    TIME_TO_LIVE_UNIX_SECONDS,
+                    "60"
                 };
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);

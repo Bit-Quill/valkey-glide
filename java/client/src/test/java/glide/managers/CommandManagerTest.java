@@ -124,16 +124,19 @@ public class CommandManagerTest {
         assertEquals(testString, respPointer);
     }
 
+    @SneakyThrows
     @Test
     public void submitNewCommand_throws_ClosingException() {
         // setup
         String errorMsg = "Closing";
-
         Response closingErrorResponse = Response.newBuilder().setClosingError(errorMsg).build();
+        BaseCommandResponseResolver handler =
+                new BaseCommandResponseResolver((ptr) -> closingErrorResponse);
 
-        CompletableFuture<Response> future = new CompletableFuture<>();
-        future.complete(closingErrorResponse);
-        when(channelHandler.write(any(), anyBoolean())).thenReturn(future);
+        CompletableFuture<Response> futureResponse = new CompletableFuture();
+        when(channelHandler.write(any(), anyBoolean())).thenReturn(futureResponse);
+        ClosingException closingException = new ClosingException(errorMsg);
+        futureResponse.completeExceptionally(closingException);
 
         // exercise
         ExecutionException e =
@@ -142,15 +145,12 @@ public class CommandManagerTest {
                         () -> {
                             CompletableFuture result =
                                     service.submitNewCommand(
-                                            CUSTOM_COMMAND,
-                                            new String[0],
-                                            Optional.empty(),
-                                            new BaseCommandResponseResolver((ptr) -> new Object()));
+                                            CUSTOM_COMMAND, new String[0], Optional.empty(), handler);
                             result.get();
                         });
 
         // verify
-        assertTrue(e.getCause() instanceof ClosingException);
+        assertEquals(closingException, e.getCause());
         assertEquals(errorMsg, e.getCause().getMessage());
     }
 
@@ -322,10 +322,13 @@ public class CommandManagerTest {
         Transaction trans = new Transaction();
         trans.customCommand(arg1).customCommand(arg2).customCommand(arg3);
 
-        CompletableFuture<Response> future = new CompletableFuture<>();
-        when(channelHandler.write(any(), anyBoolean())).thenReturn(future);
+        CompletableFuture<Response> futureResponse = mock(CompletableFuture.class);
+        CompletableFuture<Object> futureObject = mock(CompletableFuture.class);
+        when(channelHandler.write(any(), anyBoolean())).thenReturn(futureResponse);
         InterruptedException interruptedException = new InterruptedException();
-        future.completeExceptionally(interruptedException);
+        when(futureResponse.exceptionally(any())).thenReturn(futureResponse);
+        when(futureResponse.thenApplyAsync(any())).thenReturn(futureObject);
+        when(futureObject.get()).thenThrow(new ExecutionException(interruptedException));
 
         ArgumentCaptor<RedisRequest.Builder> captor =
                 ArgumentCaptor.forClass(RedisRequest.Builder.class);
