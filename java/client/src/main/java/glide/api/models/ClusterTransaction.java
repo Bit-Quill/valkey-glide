@@ -6,8 +6,8 @@ import lombok.AllArgsConstructor;
  * Extends BaseTransaction class for cluster mode commands. Transactions allow the execution of a
  * group of commands in a single step.
  *
- * <p>Command Response: An array of command responses is returned by the client exec command, in the
- * order they were given. Each element in the array represents a command given to the transaction.
+ * <p>Command Response: An array of command responses is returned by the client <code>exec</code> command, in the
+ * order they were given. Each element in the array represents a command given to the <code>Transaction</code>.
  * The response for each command depends on the executed Redis command. Specific response types are
  * documented alongside each method.
  *
@@ -16,7 +16,7 @@ import lombok.AllArgsConstructor;
  *  ClusterTransaction transaction = new ClusterTransaction();
  *    .set("key", "value");
  *    .get("key");
- *  ClusterValue<Object[]> result = client.exec(transaction, route).get();
+ *  ClusterValue[] result = client.exec(transaction, route).get();
  *  // result contains: OK and "value"
  *  </pre>
  */

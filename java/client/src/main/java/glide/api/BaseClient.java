@@ -97,15 +97,14 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
      * @return Response <code>Object</code>
      */
     protected Object handleObjectResponse(Response response) {
-        // convert protobuf response into Object and then Object into T
+        // convert protobuf response into Object
         return new BaseCommandResponseResolver(RedisValueResolver::valueFromPointer).apply(response);
     }
 
     /**
-     * Check for errors in the Response and return null Throws an error if an unexpected value is
-     * returned
+     * Checks that the Response is empty.
      *
-     * @return null if the response is empty
+     * @return An empty response
      */
     protected Void handleVoidResponse(Response response) {
         Object value = handleObjectResponse(response);

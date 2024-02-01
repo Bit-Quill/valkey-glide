@@ -2,7 +2,6 @@ package glide.api.models.commands;
 
 import glide.api.commands.ServerCommands;
 import java.util.List;
-import java.util.Objects;
 import lombok.Builder;
 import lombok.Singular;
 
@@ -50,11 +49,11 @@ public class InfoOptions {
     }
 
     /**
-     * Converts options enum into a String[] to add to a {@link glide.api.models.Command}
+     * Converts options enum into a String[] to add to a Redis request.
      *
      * @return String[]
      */
     public String[] toArgs() {
-        return sections.stream().map(Objects::toString).toArray(String[]::new);
+        return sections.stream().map(Object::toString).toArray(String[]::new);
     }
 }

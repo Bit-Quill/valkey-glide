@@ -26,7 +26,7 @@ public interface ClusterBaseCommands {
      * Object result = client.customCommand(new String[]{ "CLIENT", "LIST", "TYPE", "PUBSUB" }).get();
      * </code>
      * @param args Arguments for the custom command including the command name.
-     * @return Response from Redis with an <code>Object</code>.
+     * @return Response from Redis containing an <code>Object</code>.
      */
     CompletableFuture<ClusterValue<Object>> customCommand(String[] args);
 
@@ -45,7 +45,7 @@ public interface ClusterBaseCommands {
      * </code>
      * @param args Arguments for the custom command including the command name
      * @param route Routing configuration for the command
-     * @return Response from Redis with an <code>Object</code>.
+     * @return Response from Redis containing an <code>Object</code>.
      */
     CompletableFuture<ClusterValue<Object>> customCommand(String[] args, Route route);
 
@@ -56,9 +56,10 @@ public interface ClusterBaseCommands {
      *     Transactions.
      * @param transaction A {@link Transaction} object containing a list of commands to be executed.
      * @return A list of results corresponding to the execution of each command in the transaction.
+     * @remarks
      *     <ul>
      *       <li>If a command returns a value, it will be included in the list. If a command doesn't
-     *           return a value, the list entry will be null.
+     *           return a value, the list entry will be empty.
      *       <li>If the transaction failed due to a <em>WATCH</em> command, <code>exec</code> will
      *           return <code>null</code>.
      *     </ul>
@@ -73,9 +74,10 @@ public interface ClusterBaseCommands {
      * @param transaction A {@link Transaction} object containing a list of commands to be executed.
      * @param route Routing configuration for the command
      * @return A list of results corresponding to the execution of each command in the transaction.
+     * @remarks
      *     <ul>
      *       <li>If a command returns a value, it will be included in the list. If a command doesn't
-     *           return a value, the list entry will be null.
+     *           return a value, the list entry will be empty.
      *       <li>If the transaction failed due to a <em>WATCH</em> command, <code>exec</code> will
      *           return <code>null</code>.
      *     </ul>

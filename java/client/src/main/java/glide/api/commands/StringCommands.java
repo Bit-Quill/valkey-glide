@@ -1,6 +1,8 @@
 package glide.api.commands;
 
 import glide.api.models.commands.SetOptions;
+import glide.api.models.commands.SetOptions.ConditionalSet;
+import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import java.util.concurrent.CompletableFuture;
 
 /** String Commands interface to handle single commands that return Strings. */
@@ -33,11 +35,11 @@ public interface StringCommands {
      * @param key The key to store.
      * @param value The value to store with the given key.
      * @param options The Set options.
-     * @return Response from Redis with a <code>String</code> or <code>null</code> response. The old
-     *     value as a <code>String</code> if <code>returnOldValue</code> is set. Otherwise, if the
-     *     value isn't set because of <code>onlyIfExists</code> or <code>
-     *     onlyIfDoesNotExist</code> conditions, return <code>null</code>. Otherwise, return <code>OK
-     *     </code>.
+     * @return Response from Redis containing a <code>String</code> or <code>null</code> response. The
+     *     old value as a <code>String</code> if {@link SetOptionsBuilder#returnOldValue(boolean)} is
+     *     set. Otherwise, if the value isn't set because of {@link ConditionalSet#ONLY_IF_EXISTS} or
+     *     {@link ConditionalSet#ONLY_IF_DOES_NOT_EXIST} conditions, return <code>null</code>.
+     *     Otherwise, return <code>OK</code>.
      */
     CompletableFuture<String> set(String key, String value, SetOptions options);
 }
