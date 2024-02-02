@@ -103,9 +103,10 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
     }
 
     /**
-     * Checks that the Response is empty.
+     * Checks that the Response contains the simple-string Ok.
      *
-     * @return An empty response
+     * @return An Ok response
+     * @throws RedisException if there's a type mismatch
      */
     protected Ok handleOkResponse(Response response) {
         Object value = handleObjectResponse(response);
@@ -124,6 +125,7 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
      *
      * @param response Redis protobuf message
      * @return Response as a <code>String</code>
+     * @throws RedisException if there's a type mismatch
      */
     protected String handleStringResponse(Response response) {
         Object value = handleObjectResponse(response);
@@ -145,6 +147,7 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
      *
      * @param response Redis protobuf message
      * @return Response as an <code>Object[]</code>
+     * @throws RedisException if there's a type mismatch
      */
     protected Object[] handleArrayResponse(Response response) {
         Object value = handleObjectResponse(response);
@@ -162,7 +165,8 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
      * the value as a <code>Map</code>.
      *
      * @param response Redis protobuf message
-     * @return Response as a <code>Map</code>.
+     * @return Response as a <code>Map</code>
+     * @throws RedisException if there's a type mismatch
      */
     @SuppressWarnings("unchecked")
     protected Map<Object, Object> handleMapResponse(Response response) {
