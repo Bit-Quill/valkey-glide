@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static response.ResponseOuterClass.RequestErrorType.Disconnect;
 import static response.ResponseOuterClass.RequestErrorType.ExecAbort;
 import static response.ResponseOuterClass.RequestErrorType.Timeout;
@@ -24,8 +25,6 @@ import glide.connectors.handlers.ChannelHandler;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
-import glide.managers.models.Command;
-import glide.managers.models.Command.RequestType;
 import io.netty.channel.ChannelFuture;
 import java.io.IOException;
 import java.util.concurrent.CancellationException;
@@ -84,7 +83,7 @@ public class ExceptionHandlingTests {
         var channelHandler = new TestChannelHandler(callbackDispatcher);
         var commandManager = new CommandManager(channelHandler);
 
-        var future = commandManager.submitNewCommand(createDummyCommand(), r -> null);
+        var future = commandManager.submitNewCommand(CustomCommand, new String[0], r -> null);
         callbackDispatcher.completeRequest(null);
         var exception = assertThrows(ExecutionException.class, future::get);
         // a ClosingException thrown from CallbackDispatcher::completeRequest and then
@@ -101,7 +100,7 @@ public class ExceptionHandlingTests {
         var channelHandler = new TestChannelHandler(callbackDispatcher);
         var commandManager = new CommandManager(channelHandler);
 
-        var future = commandManager.submitNewCommand(createDummyCommand(), r -> null);
+        var future = commandManager.submitNewCommand(CustomCommand, new String[0], r -> null);
         callbackDispatcher.completeRequest(null);
         var exception = assertThrows(ExecutionException.class, future::get);
         // a RequestException thrown from CallbackDispatcher::completeRequest and then
@@ -118,7 +117,7 @@ public class ExceptionHandlingTests {
         var channelHandler = new TestChannelHandler(callbackDispatcher);
         var commandManager = new CommandManager(channelHandler);
 
-        var future = commandManager.submitNewCommand(createDummyCommand(), r -> null);
+        var future = commandManager.submitNewCommand(CustomCommand, new String[0], r -> null);
         callbackDispatcher.completeRequest(null);
         var exception = assertThrows(ExecutionException.class, future::get);
         // a IOException thrown from CallbackDispatcher::completeRequest and then wrapped
@@ -199,7 +198,7 @@ public class ExceptionHandlingTests {
         var channelHandler = new TestChannelHandler(callbackDispatcher);
         var commandManager = new CommandManager(channelHandler);
 
-        var future = commandManager.submitNewCommand(createDummyCommand(), r -> null);
+        var future = commandManager.submitNewCommand(CustomCommand, new String[0], r -> null);
         var response =
                 Response.newBuilder()
                         .setCallbackIdx(0)
@@ -267,10 +266,6 @@ public class ExceptionHandlingTests {
     /** Create a config which causes connection failure. */
     private static RedisClientConfiguration createDummyConfig() {
         return RedisClientConfiguration.builder().build();
-    }
-
-    private static Command createDummyCommand() {
-        return Command.builder().requestType(RequestType.CUSTOM_COMMAND).build();
     }
 
     /** Test ChannelHandler extension which allows to validate whether the channel was closed. */
