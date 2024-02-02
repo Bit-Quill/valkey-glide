@@ -47,18 +47,15 @@ public class BenchmarkingApp {
         for (ClientName client : runConfiguration.clients) {
             switch (client) {
                 case JEDIS:
-                    // run testClientSetGet on JEDIS sync client
-                    System.out.println("Run JEDIS sync client");
+=                    System.out.println("Run JEDIS sync client");
                     testClientSetGet(JedisClient::new, runConfiguration, false);
                     break;
                 case LETTUCE:
-                    // run testClientSetGet on LETTUCE async client
-                    System.out.println("Run LETTUCE async client");
+=                    System.out.println("Run LETTUCE async client");
                     testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
                     break;
                 case GLIDE:
-                    // run testClientSetGet on GLIDE async client
-                    System.out.println("GLIDE for Redis async not yet configured");
+                    System.out.println("Run GLIDE async client");
                     testClientSetGet(GlideAsyncClient::new, runConfiguration, true);
                     break;
             }
