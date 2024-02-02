@@ -47,11 +47,11 @@ public class BenchmarkingApp {
         for (ClientName client : runConfiguration.clients) {
             switch (client) {
                 case JEDIS:
-=                    System.out.println("Run JEDIS sync client");
+                    System.out.println("Run JEDIS sync client");
                     testClientSetGet(JedisClient::new, runConfiguration, false);
                     break;
                 case LETTUCE:
-=                    System.out.println("Run LETTUCE async client");
+                    System.out.println("Run LETTUCE async client");
                     testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
                     break;
                 case GLIDE:
