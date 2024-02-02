@@ -113,10 +113,9 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
         if (value == Ok.INSTANCE) {
             return Ok.INSTANCE;
         }
+        String className = (value == null) ? "null" : value.getClass().getSimpleName();
         throw new RedisException(
-                "Unexpected return type from Redis: got "
-                        + value.getClass().getSimpleName()
-                        + " expected simple-string Ok");
+                "Unexpected return type from Redis: got " + className + " expected simple-string Ok");
     }
 
     /**
@@ -154,10 +153,9 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
         if (value instanceof Object[]) {
             return (Object[]) value;
         }
+        String className = (value == null) ? "null" : value.getClass().getSimpleName();
         throw new RedisException(
-                "Unexpected return type from Redis: got "
-                        + value.getClass().getSimpleName()
-                        + " expected Object[]");
+                "Unexpected return type from Redis: got " + className + " expected Object[]");
     }
 
     /**
@@ -174,10 +172,9 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
         if (value instanceof Map) {
             return (Map<Object, Object>) value;
         }
+        String className = (value == null) ? "null" : value.getClass().getSimpleName();
         throw new RedisException(
-                "Unexpected return type from Redis: got "
-                        + value.getClass().getSimpleName()
-                        + " expected Map");
+                "Unexpected return type from Redis: got " + className + " expected Map");
     }
 
     @Override
