@@ -9,6 +9,8 @@ repositories {
 }
 
 dependencies {
+    implementation project(':client')
+
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:32.1.1-jre'
     implementation 'redis.clients:jedis:4.4.3'
@@ -23,4 +25,5 @@ dependencies {
 application {
     // Define the main class for the application.
     mainClass = 'glide.benchmarks.BenchmarkingApp'
+    applicationDefaultJvmArgs = ['-Djava.library.path=../target/release']
 }

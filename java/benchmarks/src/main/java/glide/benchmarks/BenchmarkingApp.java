@@ -3,6 +3,7 @@ package glide.benchmarks;
 
 import static glide.benchmarks.utils.Benchmarking.testClientSetGet;
 
+import glide.benchmarks.clients.glide.GlideAsyncClient;
 import glide.benchmarks.clients.jedis.JedisClient;
 import glide.benchmarks.clients.lettuce.LettuceAsyncClient;
 import java.util.Arrays;
@@ -56,7 +57,9 @@ public class BenchmarkingApp {
                     testClientSetGet(LettuceAsyncClient::new, runConfiguration, true);
                     break;
                 case GLIDE:
+                    // run testClientSetGet on GLIDE async client
                     System.out.println("GLIDE for Redis async not yet configured");
+                    testClientSetGet(GlideAsyncClient::new, runConfiguration, true);
                     break;
             }
         }
