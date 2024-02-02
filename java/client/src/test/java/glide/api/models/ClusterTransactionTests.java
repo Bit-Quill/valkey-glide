@@ -13,7 +13,9 @@ import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
-import redis_request.RedisRequestOuterClass;
+import redis_request.RedisRequestOuterClass.Command;
+import redis_request.RedisRequestOuterClass.Command.ArgsArray;
+import redis_request.RedisRequestOuterClass.RequestType;
 
 public class ClusterTransactionTests {
     @Test
@@ -21,58 +23,43 @@ public class ClusterTransactionTests {
 
         ClusterTransaction transaction = new ClusterTransaction();
 
-        List<Pair<RedisRequestOuterClass.RequestType, RedisRequestOuterClass.Command.ArgsArray>>
-                results = new LinkedList<>();
+        List<Pair<RequestType, ArgsArray>> results = new LinkedList<>();
 
         transaction.get("key");
-        results.add(
-                Pair.of(
-                        GetString,
-                        RedisRequestOuterClass.Command.ArgsArray.newBuilder().addArgs("key").build()));
+        results.add(Pair.of(GetString, ArgsArray.newBuilder().addArgs("key").build()));
 
         transaction.set("key", "value");
-        results.add(
-                Pair.of(
-                        SetString,
-                        RedisRequestOuterClass.Command.ArgsArray.newBuilder()
-                                .addArgs("key")
-                                .addArgs("value")
-                                .build()));
+        results.add(Pair.of(SetString, ArgsArray.newBuilder().addArgs("key").addArgs("value").build()));
 
         transaction.set("key", "value", SetOptions.builder().returnOldValue(true).build());
         results.add(
                 Pair.of(
                         SetString,
-                        RedisRequestOuterClass.Command.ArgsArray.newBuilder()
+                        ArgsArray.newBuilder()
                                 .addArgs("key")
                                 .addArgs("value")
                                 .addArgs(RETURN_OLD_VALUE)
                                 .build()));
 
         transaction.ping();
-        results.add(Pair.of(Ping, RedisRequestOuterClass.Command.ArgsArray.newBuilder().build()));
+        results.add(Pair.of(Ping, ArgsArray.newBuilder().build()));
 
         transaction.ping("KING PONG");
-        results.add(
-                Pair.of(
-                        Ping,
-                        RedisRequestOuterClass.Command.ArgsArray.newBuilder().addArgs("KING PONG").build()));
+        results.add(Pair.of(Ping, ArgsArray.newBuilder().addArgs("KING PONG").build()));
 
         transaction.info();
-        results.add(Pair.of(Info, RedisRequestOuterClass.Command.ArgsArray.newBuilder().build()));
+        results.add(Pair.of(Info, ArgsArray.newBuilder().build()));
 
         transaction.info(InfoOptions.builder().section(InfoOptions.Section.EVERYTHING).build());
         results.add(
                 Pair.of(
                         Info,
-                        RedisRequestOuterClass.Command.ArgsArray.newBuilder()
-                                .addArgs(InfoOptions.Section.EVERYTHING.toString())
-                                .build()));
+                        ArgsArray.newBuilder().addArgs(InfoOptions.Section.EVERYTHING.toString()).build()));
 
         var protobufTransaction = transaction.getTransactionBuilder().build();
 
         for (int idx = 0; idx < protobufTransaction.getCommandsCount(); idx++) {
-            RedisRequestOuterClass.Command protobuf = protobufTransaction.getCommands(idx);
+            Command protobuf = protobufTransaction.getCommands(idx);
 
             assertEquals(results.get(idx).getLeft(), protobuf.getRequestType());
             assertEquals(

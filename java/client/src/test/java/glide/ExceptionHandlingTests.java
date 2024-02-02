@@ -2,11 +2,11 @@
 package glide;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
-import static glide.managers.RequestType.CUSTOM_COMMAND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static response.ResponseOuterClass.RequestErrorType.Disconnect;
 import static response.ResponseOuterClass.RequestErrorType.ExecAbort;
 import static response.ResponseOuterClass.RequestErrorType.Timeout;
@@ -83,7 +83,7 @@ public class ExceptionHandlingTests {
         var channelHandler = new TestChannelHandler(callbackDispatcher);
         var commandManager = new CommandManager(channelHandler);
 
-        var future = commandManager.submitNewCommand(CUSTOM_COMMAND, new String[0], r -> null);
+        var future = commandManager.submitNewCommand(CustomCommand, new String[0], r -> null);
         callbackDispatcher.completeRequest(null);
         var exception = assertThrows(ExecutionException.class, future::get);
         // a ClosingException thrown from CallbackDispatcher::completeRequest and then
@@ -100,7 +100,7 @@ public class ExceptionHandlingTests {
         var channelHandler = new TestChannelHandler(callbackDispatcher);
         var commandManager = new CommandManager(channelHandler);
 
-        var future = commandManager.submitNewCommand(CUSTOM_COMMAND, new String[0], r -> null);
+        var future = commandManager.submitNewCommand(CustomCommand, new String[0], r -> null);
         callbackDispatcher.completeRequest(null);
         var exception = assertThrows(ExecutionException.class, future::get);
         // a RequestException thrown from CallbackDispatcher::completeRequest and then
@@ -117,7 +117,7 @@ public class ExceptionHandlingTests {
         var channelHandler = new TestChannelHandler(callbackDispatcher);
         var commandManager = new CommandManager(channelHandler);
 
-        var future = commandManager.submitNewCommand(CUSTOM_COMMAND, new String[0], r -> null);
+        var future = commandManager.submitNewCommand(CustomCommand, new String[0], r -> null);
         callbackDispatcher.completeRequest(null);
         var exception = assertThrows(ExecutionException.class, future::get);
         // a IOException thrown from CallbackDispatcher::completeRequest and then wrapped
@@ -198,7 +198,7 @@ public class ExceptionHandlingTests {
         var channelHandler = new TestChannelHandler(callbackDispatcher);
         var commandManager = new CommandManager(channelHandler);
 
-        var future = commandManager.submitNewCommand(CUSTOM_COMMAND, new String[0], r -> null);
+        var future = commandManager.submitNewCommand(CustomCommand, new String[0], r -> null);
         var response =
                 Response.newBuilder()
                         .setCallbackIdx(0)

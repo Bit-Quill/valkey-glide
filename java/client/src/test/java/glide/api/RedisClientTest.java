@@ -1,17 +1,11 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
-import static glide.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST;
-import static glide.api.models.commands.SetOptions.CONDITIONAL_SET_ONLY_IF_EXISTS;
+import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
-import static glide.api.models.commands.SetOptions.TIME_TO_LIVE_KEEP_EXISTING;
-import static glide.api.models.commands.SetOptions.TIME_TO_LIVE_UNIX_SECONDS;
-import static glide.managers.RequestType.CUSTOM_COMMAND;
-import static glide.managers.RequestType.GET_STRING;
-import static glide.managers.RequestType.INFO;
-import static glide.managers.RequestType.PING;
-import static glide.managers.RequestType.SET_STRING;
+import static glide.api.models.commands.SetOptions.TimeToLiveType.KEEP_EXISTING;
+import static glide.api.models.commands.SetOptions.TimeToLiveType.UNIX_SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -20,6 +14,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
+import static redis_request.RedisRequestOuterClass.RequestType.GetString;
+import static redis_request.RedisRequestOuterClass.RequestType.Info;
+import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
@@ -62,7 +61,7 @@ public class RedisClientTest {
                 ArgumentCaptor.forClass(RedisRequestOuterClass.RedisRequest.Builder.class);
 
         // match on protobuf request
-        when(commandManager.submitNewCommand(eq(CUSTOM_COMMAND), eq(arguments), any()))
+        when(commandManager.submitNewCommand(eq(CustomCommand), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -87,7 +86,7 @@ public class RedisClientTest {
         when(testResponse.get()).thenThrow(interruptedException);
 
         // match on protobuf request
-        when(commandManager.submitNewCommand(eq(CUSTOM_COMMAND), eq(arguments), any()))
+        when(commandManager.submitNewCommand(eq(CustomCommand), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -111,7 +110,7 @@ public class RedisClientTest {
         when(testResponse.get()).thenReturn("PONG");
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(PING), eq(new String[0]), any()))
+        when(commandManager.<String>submitNewCommand(eq(Ping), eq(new String[0]), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -133,7 +132,7 @@ public class RedisClientTest {
         testResponse.complete(message);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(PING), eq(arguments), any()))
+        when(commandManager.<String>submitNewCommand(eq(Ping), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -152,7 +151,7 @@ public class RedisClientTest {
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         String testPayload = "Key: Value";
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<String>submitNewCommand(eq(INFO), eq(new String[0]), any()))
+        when(commandManager.<String>submitNewCommand(eq(Info), eq(new String[0]), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -173,7 +172,7 @@ public class RedisClientTest {
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         String testPayload = "Key: Value";
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<String>submitNewCommand(eq(INFO), eq(arguments), any()))
+        when(commandManager.<String>submitNewCommand(eq(Info), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -197,7 +196,7 @@ public class RedisClientTest {
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         String testPayload = "Key: Value";
         when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<String>submitNewCommand(eq(INFO), eq(new String[0]), any()))
+        when(commandManager.<String>submitNewCommand(eq(Info), eq(new String[0]), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -217,7 +216,7 @@ public class RedisClientTest {
         String value = "testValue";
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);
-        when(commandManager.<String>submitNewCommand(eq(GET_STRING), eq(new String[] {key}), any()))
+        when(commandManager.<String>submitNewCommand(eq(GetString), eq(new String[] {key}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -237,8 +236,7 @@ public class RedisClientTest {
         String value = "testValue";
         CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(null);
-        when(commandManager.<Void>submitNewCommand(
-                        eq(SET_STRING), eq(new String[] {key, value}), any()))
+        when(commandManager.<Void>submitNewCommand(eq(SetString), eq(new String[] {key, value}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -266,11 +264,11 @@ public class RedisClientTest {
                                         .build())
                         .build();
         String[] arguments =
-                new String[] {key, value, CONDITIONAL_SET_ONLY_IF_EXISTS, TIME_TO_LIVE_KEEP_EXISTING};
+                new String[] {key, value, ONLY_IF_EXISTS.getRedisApi(), KEEP_EXISTING.getRedisApi()};
 
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(null);
-        when(commandManager.<String>submitNewCommand(eq(SET_STRING), eq(arguments), any()))
+        when(commandManager.<String>submitNewCommand(eq(SetString), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -289,26 +287,22 @@ public class RedisClientTest {
         String value = "testValue";
         SetOptions setOptions =
                 SetOptions.builder()
-                        .conditionalSet(SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST)
+                        .conditionalSet(ONLY_IF_DOES_NOT_EXIST)
                         .returnOldValue(true)
-                        .expiry(
-                                SetOptions.TimeToLive.builder()
-                                        .type(SetOptions.TimeToLiveType.UNIX_SECONDS)
-                                        .count(60)
-                                        .build())
+                        .expiry(SetOptions.TimeToLive.builder().type(UNIX_SECONDS).count(60).build())
                         .build();
         String[] arguments =
                 new String[] {
                     key,
                     value,
-                    CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST,
+                    ONLY_IF_DOES_NOT_EXIST.getRedisApi(),
                     RETURN_OLD_VALUE,
-                    TIME_TO_LIVE_UNIX_SECONDS,
+                    UNIX_SECONDS.getRedisApi(),
                     "60"
                 };
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);
-        when(commandManager.<String>submitNewCommand(eq(SET_STRING), eq(arguments), any()))
+        when(commandManager.<String>submitNewCommand(eq(SetString), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise

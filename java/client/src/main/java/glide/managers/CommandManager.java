@@ -1,6 +1,7 @@
 package glide.managers;
 
-import glide.api.models.BaseTransaction;
+import glide.api.models.ClusterTransaction;
+import glide.api.models.Transaction;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute;
 import glide.api.models.configuration.RequestRoutingConfiguration.SlotIdRoute;
@@ -15,6 +16,7 @@ import redis_request.RedisRequestOuterClass;
 import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
 import redis_request.RedisRequestOuterClass.RedisRequest;
+import redis_request.RedisRequestOuterClass.RequestType;
 import redis_request.RedisRequestOuterClass.Routes;
 import redis_request.RedisRequestOuterClass.SimpleRoutes;
 import response.ResponseOuterClass.Response;
@@ -57,11 +59,26 @@ public class CommandManager {
      * @return A result promise of type T
      */
     public <T> CompletableFuture<T> submitNewCommand(
-            RequestType requestType,
+            RedisRequestOuterClass.RequestType requestType,
             String[] arguments,
             RedisExceptionCheckedFunction<Response, T> responseHandler) {
 
-        return submitNewCommand(requestType, arguments, Optional.empty(), responseHandler);
+        RedisRequest.Builder command = prepareRedisRequest(requestType, arguments);
+        return submitNewCommand(command, responseHandler);
+    }
+
+    /**
+     * Build a Transaction and send.
+     *
+     * @param transaction Redis Transaction request with multiple commands
+     * @param responseHandler The handler for the response object
+     * @return A result promise of type T
+     */
+    public <T> CompletableFuture<T> submitNewCommand(
+            Transaction transaction, RedisExceptionCheckedFunction<Response, T> responseHandler) {
+
+        RedisRequest.Builder command = prepareRedisRequest(transaction);
+        return submitNewCommand(command, responseHandler);
     }
 
     /**
@@ -73,7 +90,7 @@ public class CommandManager {
      * @return A result promise of type T
      */
     public <T> CompletableFuture<T> submitNewCommand(
-            BaseTransaction transaction,
+            ClusterTransaction transaction,
             Optional<Route> route,
             RedisExceptionCheckedFunction<Response, T> responseHandler) {
 
@@ -135,11 +152,51 @@ public class CommandManager {
                 RedisRequest.newBuilder()
                         .setSingleCommand(
                                 Command.newBuilder()
-                                        .setRequestType(requestType.getProtobufMapping())
+                                        .setRequestType(requestType)
                                         .setArgsArray(commandArgs.build())
                                         .build());
 
         return prepareRedisRequestRoute(builder, route);
+    }
+
+    /**
+     * Build a protobuf command request object with routing options.<br>
+     *
+     * @param requestType Redis command type
+     * @param arguments Redis command arguments
+     * @return An uncompleted request. {@link CallbackDispatcher} is responsible to complete it by
+     *     adding a callback id.
+     */
+    protected RedisRequest.Builder prepareRedisRequest(RequestType requestType, String[] arguments) {
+        ArgsArray.Builder commandArgs = ArgsArray.newBuilder();
+        for (var arg : arguments) {
+            commandArgs.addArgs(arg);
+        }
+
+        var builder =
+                RedisRequest.newBuilder()
+                        .setSingleCommand(
+                                Command.newBuilder()
+                                        .setRequestType(requestType)
+                                        .setArgsArray(commandArgs.build())
+                                        .build());
+
+        return prepareRedisRequestRoute(builder, Optional.empty());
+    }
+
+    /**
+     * Build a protobuf transaction request object with routing options.<br>
+     *
+     * @param transaction Redis transaction with commands
+     * @return An uncompleted request. {@link CallbackDispatcher} is responsible to complete it by
+     *     adding a callback id.
+     */
+    protected RedisRequest.Builder prepareRedisRequest(Transaction transaction) {
+
+        var builder =
+                RedisRequest.newBuilder().setTransaction(transaction.getTransactionBuilder().build());
+
+        return prepareRedisRequestRoute(builder, Optional.empty());
     }
 
     /**
@@ -151,7 +208,7 @@ public class CommandManager {
      *     adding a callback id.
      */
     protected RedisRequest.Builder prepareRedisRequest(
-            BaseTransaction transaction, Optional<Route> route) {
+            ClusterTransaction transaction, Optional<Route> route) {
 
         var builder =
                 RedisRequest.newBuilder().setTransaction(transaction.getTransactionBuilder().build());

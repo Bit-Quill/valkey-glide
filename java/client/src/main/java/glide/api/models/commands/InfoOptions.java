@@ -5,9 +5,13 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Singular;
 
-/** Object builder to add optional arguments to {@link ServerCommands#info(InfoOptions)} */
+/**
+ * Optional arguments to {@link ServerCommands#info(InfoOptions)}
+ *
+ * @see <a href="https://redis.io/commands/info/">redis.io</a>
+ */
 @Builder
-public class InfoOptions {
+public final class InfoOptions {
 
     @Singular private final List<Section> sections;
 

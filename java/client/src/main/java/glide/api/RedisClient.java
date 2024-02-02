@@ -1,8 +1,8 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
-import static glide.managers.RequestType.CUSTOM_COMMAND;
-import static glide.managers.RequestType.INFO;
+import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
+import static redis_request.RedisRequestOuterClass.RequestType.Info;
 
 import glide.api.commands.BaseCommands;
 import glide.api.commands.ConnectionCommands;
@@ -13,7 +13,6 @@ import glide.api.models.configuration.RedisClientConfiguration;
 import glide.connectors.handlers.ChannelHandler;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -51,23 +50,22 @@ public class RedisClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<Object> customCommand(String[] args) {
-        return commandManager.submitNewCommand(CUSTOM_COMMAND, args, this::handleStringResponse);
+    public CompletableFuture<Object> customCommand(String... args) {
+        return commandManager.submitNewCommand(CustomCommand, args, this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<Object[]> exec(Transaction transaction) {
-        return commandManager.submitNewCommand(
-                transaction, Optional.empty(), this::handleArrayResponse);
+        return commandManager.submitNewCommand(transaction, this::handleArrayResponse);
     }
 
     @Override
     public CompletableFuture<String> info() {
-        return commandManager.submitNewCommand(INFO, new String[0], this::handleStringResponse);
+        return commandManager.submitNewCommand(Info, new String[0], this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<String> info(InfoOptions options) {
-        return commandManager.submitNewCommand(INFO, options.toArgs(), this::handleStringResponse);
+        return commandManager.submitNewCommand(Info, options.toArgs(), this::handleStringResponse);
     }
 }

@@ -1,7 +1,6 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.managers;
 
-import static glide.managers.RequestType.CUSTOM_COMMAND;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -15,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 
+import glide.api.models.ClusterTransaction;
 import glide.api.models.Transaction;
 import glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute;
 import glide.api.models.configuration.RequestRoutingConfiguration.SlotIdRoute;
@@ -64,7 +64,7 @@ public class CommandManagerTest {
         // exercise
         CompletableFuture<Object> result =
                 service.submitNewCommand(
-                        CUSTOM_COMMAND,
+                        CustomCommand,
                         new String[0],
                         Optional.empty(),
                         new BaseCommandResponseResolver((ptr) -> ptr == pointer ? respObject : null));
@@ -86,7 +86,7 @@ public class CommandManagerTest {
         // exercise
         CompletableFuture<Object> result =
                 service.submitNewCommand(
-                        CUSTOM_COMMAND,
+                        CustomCommand,
                         new String[0],
                         Optional.empty(),
                         new BaseCommandResponseResolver((p) -> new RuntimeException("")));
@@ -113,7 +113,7 @@ public class CommandManagerTest {
         // exercise
         CompletableFuture<Object> result =
                 service.submitNewCommand(
-                        CUSTOM_COMMAND,
+                        CustomCommand,
                         new String[0],
                         Optional.empty(),
                         new BaseCommandResponseResolver((p) -> p == pointer ? testString : null));
@@ -133,7 +133,7 @@ public class CommandManagerTest {
         BaseCommandResponseResolver handler =
                 new BaseCommandResponseResolver((ptr) -> closingErrorResponse);
 
-        CompletableFuture<Response> futureResponse = new CompletableFuture();
+        CompletableFuture<Response> futureResponse = new CompletableFuture<>();
         when(channelHandler.write(any(), anyBoolean())).thenReturn(futureResponse);
         ClosingException closingException = new ClosingException(errorMsg);
         futureResponse.completeExceptionally(closingException);
@@ -143,9 +143,8 @@ public class CommandManagerTest {
                 assertThrows(
                         ExecutionException.class,
                         () -> {
-                            CompletableFuture result =
-                                    service.submitNewCommand(
-                                            CUSTOM_COMMAND, new String[0], Optional.empty(), handler);
+                            CompletableFuture<Object> result =
+                                    service.submitNewCommand(CustomCommand, new String[0], Optional.empty(), handler);
                             result.get();
                         });
 
@@ -163,7 +162,7 @@ public class CommandManagerTest {
         ArgumentCaptor<RedisRequest.Builder> captor =
                 ArgumentCaptor.forClass(RedisRequest.Builder.class);
 
-        service.submitNewCommand(CUSTOM_COMMAND, new String[0], Optional.of(routeType), r -> null);
+        service.submitNewCommand(CustomCommand, new String[0], Optional.of(routeType), r -> null);
         verify(channelHandler).write(captor.capture(), anyBoolean());
         var requestBuilder = captor.getValue();
 
@@ -187,7 +186,7 @@ public class CommandManagerTest {
                 ArgumentCaptor.forClass(RedisRequest.Builder.class);
 
         service.submitNewCommand(
-                CUSTOM_COMMAND, new String[0], Optional.of(new SlotIdRoute(42, slotType)), r -> null);
+                CustomCommand, new String[0], Optional.of(new SlotIdRoute(42, slotType)), r -> null);
         verify(channelHandler).write(captor.capture(), anyBoolean());
         var requestBuilder = captor.getValue();
 
@@ -212,7 +211,7 @@ public class CommandManagerTest {
                 ArgumentCaptor.forClass(RedisRequest.Builder.class);
 
         service.submitNewCommand(
-                CUSTOM_COMMAND, new String[0], Optional.of(new SlotKeyRoute("TEST", slotType)), r -> null);
+                CustomCommand, new String[0], Optional.of(new SlotKeyRoute("TEST", slotType)), r -> null);
         verify(channelHandler).write(captor.capture(), anyBoolean());
         var requestBuilder = captor.getValue();
 
@@ -237,40 +236,8 @@ public class CommandManagerTest {
                         IllegalArgumentException.class,
                         () ->
                                 service.submitNewCommand(
-                                        CUSTOM_COMMAND, new String[0], Optional.of(() -> false), r -> null));
+                                        CustomCommand, new String[0], Optional.of(() -> false), r -> null));
         assertEquals("Unknown type of route", exception.getMessage());
-    }
-
-    @SneakyThrows
-    @ParameterizedTest
-    @EnumSource(RequestType.class)
-    public void submitNewCommand_covers_all_mapRequestTypes(RequestType requestType) {
-        // setup
-        RedisRequestOuterClass.RequestType protobufRequestType = requestType.getProtobufMapping();
-
-        ArgumentCaptor<RedisRequest.Builder> captor =
-                ArgumentCaptor.forClass(RedisRequest.Builder.class);
-
-        CompletableFuture<Response> testFuture = new CompletableFuture<>();
-        testFuture.complete(Response.newBuilder().setRespPointer(-1L).build());
-
-        when(channelHandler.write(captor.capture(), anyBoolean())).thenReturn(testFuture);
-        Object testResult = new Object();
-
-        // exercise
-        CompletableFuture future =
-                service.submitNewCommand(
-                        requestType,
-                        new String[0],
-                        Optional.empty(),
-                        new BaseCommandResponseResolver((r) -> testResult));
-        Object result = future.get();
-        var requestBuilder = captor.getValue();
-
-        // verify
-        assertEquals(testResult, result);
-        assertTrue(requestBuilder.hasSingleCommand());
-        assertEquals(protobufRequestType, requestBuilder.getSingleCommand().getRequestType());
     }
 
     @SneakyThrows
@@ -290,7 +257,7 @@ public class CommandManagerTest {
                 ArgumentCaptor.forClass(RedisRequest.Builder.class);
 
         // exercise
-        service.submitNewCommand(trans, Optional.empty(), r -> null);
+        service.submitNewCommand(trans, r -> null);
 
         // verify
         verify(channelHandler).write(captor.capture(), anyBoolean());
@@ -300,7 +267,7 @@ public class CommandManagerTest {
         assertTrue(requestBuilder.hasTransaction());
         assertEquals(3, requestBuilder.getTransaction().getCommandsCount());
 
-        LinkedList<String> resultPayloads = new LinkedList();
+        LinkedList<String> resultPayloads = new LinkedList<>();
         resultPayloads.add("one");
         resultPayloads.add("two");
         resultPayloads.add("three");
@@ -338,8 +305,7 @@ public class CommandManagerTest {
                 assertThrows(
                         ExecutionException.class,
                         () -> {
-                            CompletableFuture response =
-                                    service.submitNewCommand(trans, Optional.empty(), r -> null);
+                            CompletableFuture<Object> response = service.submitNewCommand(trans, r -> null);
                             response.get();
                         });
         verify(channelHandler).write(captor.capture(), anyBoolean());
@@ -353,13 +319,13 @@ public class CommandManagerTest {
 
     @ParameterizedTest
     @EnumSource(value = SimpleRoute.class)
-    public void submitNewCommand_with_Transaction_with_route_sends_protobuf_request(
+    public void submitNewCommand_with_ClusterTransaction_with_route_sends_protobuf_request(
             SimpleRoute routeType) {
 
         String[] arg1 = new String[] {"GETSTRING", "one"};
         String[] arg2 = new String[] {"GETSTRING", "two"};
         String[] arg3 = new String[] {"GETSTRING", "two"};
-        Transaction trans = new Transaction();
+        ClusterTransaction trans = new ClusterTransaction();
         trans.customCommand(arg1).customCommand(arg2).customCommand(arg3);
 
         CompletableFuture<Response> future = new CompletableFuture<>();

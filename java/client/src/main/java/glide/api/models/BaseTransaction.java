@@ -1,17 +1,21 @@
 package glide.api.models;
 
-import static glide.managers.RequestType.CUSTOM_COMMAND;
-import static glide.managers.RequestType.GET_STRING;
-import static glide.managers.RequestType.INFO;
-import static glide.managers.RequestType.PING;
-import static glide.managers.RequestType.SET_STRING;
+import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
+import static redis_request.RedisRequestOuterClass.RequestType.GetString;
+import static redis_request.RedisRequestOuterClass.RequestType.Info;
+import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.models.commands.InfoOptions;
+import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.commands.SetOptions;
+import glide.api.models.commands.SetOptions.ConditionalSet;
+import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
+import redis_request.RedisRequestOuterClass.RequestType;
 import redis_request.RedisRequestOuterClass.Transaction;
 
 /**
@@ -28,7 +32,7 @@ import redis_request.RedisRequestOuterClass.Transaction;
 @Getter
 public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /** Command class to send a single request to Redis. */
-    Transaction.Builder transactionBuilder = Transaction.newBuilder();
+    protected final Transaction.Builder transactionBuilder = Transaction.newBuilder();
 
     protected abstract T getThis();
 
@@ -50,13 +54,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return A response from Redis with an <code>Object</code>.
      */
     public T customCommand(String[] args) {
-        ArgsArray.Builder commandArgs = addAllArgs(args);
+        ArgsArray commandArgs = buildArgs(args);
 
-        transactionBuilder.addCommands(
-                Command.newBuilder()
-                        .setRequestType(CUSTOM_COMMAND.getProtobufMapping())
-                        .setArgsArray(commandArgs.build())
-                        .build());
+        transactionBuilder.addCommands(buildCommand(CustomCommand, commandArgs));
         return getThis();
     }
 
@@ -67,8 +67,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return A response from Redis with a <code>String</code>.
      */
     public T ping() {
-        transactionBuilder.addCommands(
-                Command.newBuilder().setRequestType(PING.getProtobufMapping()).build());
+        transactionBuilder.addCommands(buildCommand(Ping));
         return getThis();
     }
 
@@ -80,26 +79,21 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return A response from Redis with a <code>String</code>.
      */
     public T ping(String msg) {
-        ArgsArray.Builder commandArgs = addAllArgs(msg);
+        ArgsArray commandArgs = buildArgs(msg);
 
-        transactionBuilder.addCommands(
-                Command.newBuilder()
-                        .setRequestType(PING.getProtobufMapping())
-                        .setArgsArray(commandArgs.build())
-                        .build());
+        transactionBuilder.addCommands(buildCommand(Ping, commandArgs));
         return getThis();
     }
 
     /**
-     * Get information and statistics about the Redis server. No argument is provided, so the <code>
-     * DEFAULT</code> option is assumed.
+     * Get information and statistics about the Redis server. No argument is provided, so the {@link
+     * Section#DEFAULT} option is assumed.
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
      * @return A response from Redis with a <code>String</code>.
      */
     public T info() {
-        transactionBuilder.addCommands(
-                Command.newBuilder().setRequestType(INFO.getProtobufMapping()).build());
+        transactionBuilder.addCommands(buildCommand(Info));
         return getThis();
     }
 
@@ -107,18 +101,15 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Get information and statistics about the Redis server.
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
-     * @param options A list of InfoSection values specifying which sections of information to
-     *     retrieve. When no parameter is provided, the <code>DEFAULT</code> option is assumed.
-     * @return A response from Redis with a <code>String</code>.
+     * @param options A list of {@link Section} values specifying which sections of information to
+     *     retrieve. When no parameter is provided, the {@link Section#DEFAULT} option is assumed.
+     * @return Response from Redis with a <code>String</code> containing the requested {@link
+     *     Section}s.
      */
     public T info(InfoOptions options) {
-        ArgsArray.Builder commandArgs = addAllArgs(options.toArgs());
+        ArgsArray commandArgs = buildArgs(options.toArgs());
 
-        transactionBuilder.addCommands(
-                Command.newBuilder()
-                        .setRequestType(INFO.getProtobufMapping())
-                        .setArgsArray(commandArgs.build())
-                        .build());
+        transactionBuilder.addCommands(buildCommand(Info, commandArgs));
         return getThis();
     }
 
@@ -131,13 +122,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     key</code> as a String. Otherwise, return <code>null</code>.
      */
     public T get(String key) {
-        ArgsArray.Builder commandArgs = addAllArgs(key);
+        ArgsArray commandArgs = buildArgs(key);
 
-        transactionBuilder.addCommands(
-                Command.newBuilder()
-                        .setRequestType(GET_STRING.getProtobufMapping())
-                        .setArgsArray(commandArgs.build())
-                        .build());
+        transactionBuilder.addCommands(buildCommand(GetString, commandArgs));
         return getThis();
     }
 
@@ -150,13 +137,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return Response from Redis.
      */
     public T set(String key, String value) {
-        ArgsArray.Builder commandArgs = addAllArgs(key, value);
+        ArgsArray commandArgs = buildArgs(key, value);
 
-        transactionBuilder.addCommands(
-                Command.newBuilder()
-                        .setRequestType(SET_STRING.getProtobufMapping())
-                        .setArgsArray(commandArgs.build())
-                        .build());
+        transactionBuilder.addCommands(buildCommand(SetString, commandArgs));
         return getThis();
     }
 
@@ -168,30 +151,37 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param value The value to store with the given key.
      * @param options The Set options.
      * @return Response from Redis with a <code>String</code> or <code>null</code> response. The old
-     *     value as a <code>String</code> if <code>returnOldValue</code> is set. Otherwise, if the
-     *     value isn't set because of <code>onlyIfExists</code> or <code>
-     *      onlyIfDoesNotExist</code> conditions, return <code>null</code>. Otherwise, return <code>OK
-     *     </code>.
+     *     value as a <code>String</code> if {@link SetOptionsBuilder#returnOldValue(boolean)} is set.
+     *     Otherwise, if the value isn't set because of {@link ConditionalSet#ONLY_IF_EXISTS} or
+     *     {@link ConditionalSet#ONLY_IF_DOES_NOT_EXIST} conditions, return <code>null</code>.
+     *     Otherwise, return <code>OK</code>.
      */
     public T set(String key, String value, SetOptions options) {
-        ArgsArray.Builder commandArgs =
-                addAllArgs(ArrayUtils.addAll(new String[] {key, value}, options.toArgs()));
+        ArgsArray commandArgs =
+                buildArgs(ArrayUtils.addAll(new String[] {key, value}, options.toArgs()));
 
-        transactionBuilder.addCommands(
-                Command.newBuilder()
-                        .setRequestType(SET_STRING.getProtobufMapping())
-                        .setArgsArray(commandArgs.build())
-                        .build());
+        transactionBuilder.addCommands(buildCommand(SetString, commandArgs));
         return getThis();
     }
 
-    protected ArgsArray.Builder addAllArgs(String... stringArgs) {
+    /** Build protobuf {@link Command} object for given command and arguments. */
+    protected Command buildCommand(RequestType requestType) {
+        return Command.newBuilder().setRequestType(requestType).build();
+    }
+
+    /** Build protobuf {@link Command} object for given command and arguments. */
+    protected Command buildCommand(RequestType requestType, ArgsArray args) {
+        return Command.newBuilder().setRequestType(requestType).setArgsArray(args).build();
+    }
+
+    /** Build protobuf {@link ArgsArray} object for given arguments. */
+    protected ArgsArray buildArgs(String... stringArgs) {
         ArgsArray.Builder commandArgs = ArgsArray.newBuilder();
 
         for (String string : stringArgs) {
             commandArgs.addArgs(string);
         }
 
-        return commandArgs;
+        return commandArgs.build();
     }
 }

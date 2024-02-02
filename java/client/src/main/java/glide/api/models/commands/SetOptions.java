@@ -5,44 +5,54 @@ import glide.api.models.exceptions.RequestException;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import redis_request.RedisRequestOuterClass.Command;
 
 /**
- * Object builder to add optional arguments to {@link StringCommands#set(String, String,
- * SetOptions)}
+ * Optional arguments for {@link StringCommands#set(String, String, SetOptions)} command.
+ *
+ * @see <a href="https://redis.io/commands/set/">redis.io</a>
  */
 @Builder
-public class SetOptions {
+public final class SetOptions {
 
     /**
      * If <code>conditionalSet</code> is not set the value will be set regardless of prior value
      * existence. If value isn't set because of the condition, command will return <code>null</code>.
      */
-    private ConditionalSet conditionalSet;
+    private final ConditionalSet conditionalSet;
 
     /**
-     * Set command returns the old string stored at <code>key</code>, or <code>null</code> if <code>
+     * Set command to return the old string stored at <code>key</code>, or <code>null</code> if <code>
      * key</code> did not exist. An error is returned and <code>SET</code> aborted if the value stored
      * at <code>key
      * </code> is not a string. Equivalent to <code>GET</code> in the Redis API.
      */
-    private boolean returnOldValue;
+    private final boolean returnOldValue;
 
     /** If not set, no expiry time will be set for the value. */
-    private TimeToLive expiry;
+    private final TimeToLive expiry;
 
+    /** Conditions which define whether new value should be set or not. */
+    @RequiredArgsConstructor
+    @Getter
     public enum ConditionalSet {
         /**
-         * Only set the key if it does not already exist. Equivalent to <code>NX</code> in the Redis
+         * Only set the key if it does not already exist. Equivalent to <code>XX</code> in the Redis
          * API.
          */
-        ONLY_IF_EXISTS,
-        /** Only set the key if it already exists. Equivalent to <code>EX</code> in the Redis API. */
-        ONLY_IF_DOES_NOT_EXIST
+        ONLY_IF_EXISTS("XX"),
+        /** Only set the key if it already exists. Equivalent to <code>NX</code> in the Redis API. */
+        ONLY_IF_DOES_NOT_EXIST("NX");
+
+        private final String redisApi;
     }
 
+    /** Configuration of value lifetime. */
     @Builder
-    public static class TimeToLive {
+    public static final class TimeToLive {
         /** Expiry type for the time to live */
         @NonNull private TimeToLiveType type;
 
@@ -53,55 +63,50 @@ public class SetOptions {
         private Integer count;
     }
 
+    /** Types of value expiration configuration. */
+    @RequiredArgsConstructor
+    @Getter
     public enum TimeToLiveType {
         /**
          * Retain the time to live associated with the key. Equivalent to <code>KEEPTTL</code> in the
          * Redis API.
          */
-        KEEP_EXISTING,
+        KEEP_EXISTING("KEEPTTL"),
         /**
          * Set the specified expire time, in seconds. Equivalent to <code>EX</code> in the Redis API.
          */
-        SECONDS,
+        SECONDS("EX"),
         /**
          * Set the specified expire time, in milliseconds. Equivalent to <code>PX</code> in the Redis
          * API.
          */
-        MILLISECONDS,
+        MILLISECONDS("PX"),
         /**
          * Set the specified Unix time at which the key will expire, in seconds. Equivalent to <code>
          * EXAT</code> in the Redis API.
          */
-        UNIX_SECONDS,
+        UNIX_SECONDS("EXAT"),
         /**
          * Set the specified Unix time at which the key will expire, in milliseconds. Equivalent to
          * <code>PXAT</code> in the Redis API.
          */
-        UNIX_MILLISECONDS
+        UNIX_MILLISECONDS("PXAT");
+
+        private final String redisApi;
     }
 
-    public static String CONDITIONAL_SET_ONLY_IF_EXISTS = "XX";
-    public static String CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST = "NX";
+    /** String representation of {@link #returnOldValue} when set. */
     public static String RETURN_OLD_VALUE = "GET";
-    public static String TIME_TO_LIVE_KEEP_EXISTING = "KEEPTTL";
-    public static String TIME_TO_LIVE_SECONDS = "EX";
-    public static String TIME_TO_LIVE_MILLISECONDS = "PX";
-    public static String TIME_TO_LIVE_UNIX_SECONDS = "EXAT";
-    public static String TIME_TO_LIVE_UNIX_MILLISECONDS = "PXAT";
 
     /**
-     * Converts SetOptions into a String[]
+     * Converts SetOptions into a String[] to add to a {@link Command} arguments.
      *
      * @return String[]
      */
     public String[] toArgs() {
         List<String> optionArgs = new LinkedList<>();
         if (conditionalSet != null) {
-            if (conditionalSet == ConditionalSet.ONLY_IF_EXISTS) {
-                optionArgs.add(CONDITIONAL_SET_ONLY_IF_EXISTS);
-            } else if (conditionalSet == ConditionalSet.ONLY_IF_DOES_NOT_EXIST) {
-                optionArgs.add(CONDITIONAL_SET_ONLY_IF_DOES_NOT_EXIST);
-            }
+            optionArgs.add(conditionalSet.redisApi);
         }
 
         if (returnOldValue) {
@@ -109,26 +114,11 @@ public class SetOptions {
         }
 
         if (expiry != null) {
-            if (expiry.type == TimeToLiveType.KEEP_EXISTING) {
-                optionArgs.add(TIME_TO_LIVE_KEEP_EXISTING);
-            } else {
+            optionArgs.add(expiry.type.redisApi);
+            if (expiry.type != TimeToLiveType.KEEP_EXISTING) {
                 if (expiry.count == null) {
                     throw new RequestException(
-                            "Set command received expiry type " + expiry.type + "but count was not set.");
-                }
-                switch (expiry.type) {
-                    case SECONDS:
-                        optionArgs.add(TIME_TO_LIVE_SECONDS);
-                        break;
-                    case MILLISECONDS:
-                        optionArgs.add(TIME_TO_LIVE_MILLISECONDS);
-                        break;
-                    case UNIX_SECONDS:
-                        optionArgs.add(TIME_TO_LIVE_UNIX_SECONDS);
-                        break;
-                    case UNIX_MILLISECONDS:
-                        optionArgs.add(TIME_TO_LIVE_UNIX_MILLISECONDS);
-                        break;
+                            "Set command received expiry type " + expiry.type + ", but count was not set.");
                 }
                 optionArgs.add(expiry.count.toString());
             }
