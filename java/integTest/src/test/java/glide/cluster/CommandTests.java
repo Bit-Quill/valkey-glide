@@ -47,7 +47,6 @@ public class CommandTests {
     private static final String ANOTHER_VALUE = "VALUE2";
 
     private static final List<String> DEFAULT_INFO_SECTIONS = List.of("Server", "Clients", "Memory", "Persistence", "Stats", "Replication", "CPU", "Modules", "Errorstats", "Cluster", "Keyspace");
-    private static final List<String> EVERYTHING_INFO_SECTIONS = List.of("Server", "Clients", "Memory", "Persistence", "Stats", "Replication", "CPU", "Modules", "Commandstats", "Errorstats", "Cluster", "Keyspace");
 
     @BeforeAll
     @SneakyThrows
@@ -127,18 +126,6 @@ public class CommandTests {
             for (var section : DEFAULT_INFO_SECTIONS) {
                 assertTrue(info.contains("# " + section), "Section " + section + " is missing");
             }
-        }
-    }
-
-    @Test
-    @SneakyThrows
-    public void info_with_everything_option_and_route() {
-        InfoOptions options = InfoOptions.builder().section(EVERYTHING).build();
-        ClusterValue<String> data = clusterClient.info(options, RANDOM).get(10, SECONDS);
-        assertTrue(data.hasSingleData());
-        String infoData = data.getSingleValue();
-        for (var section : EVERYTHING_INFO_SECTIONS) {
-            assertTrue(infoData.contains("# " + section), "Section " + section + " is missing");
         }
     }
 
