@@ -8,7 +8,6 @@ import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.commands.ConnectionCommands;
 import glide.api.commands.StringCommands;
-import glide.api.models.Ok;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
 import glide.api.models.exceptions.RedisException;
@@ -29,6 +28,8 @@ import response.ResponseOuterClass.Response;
 /** Base Client class for Redis */
 @AllArgsConstructor
 public abstract class BaseClient implements AutoCloseable, StringCommands, ConnectionCommands {
+
+    public static final String OK = "OK";
 
     protected final ConnectionManager connectionManager;
     protected final CommandManager commandManager;
@@ -103,22 +104,6 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
     }
 
     /**
-     * Checks that the Response contains the simple-string Ok.
-     *
-     * @return An Ok response
-     * @throws RedisException if there's a type mismatch
-     */
-    protected Ok handleOkResponse(Response response) {
-        Object value = handleObjectResponse(response);
-        if (value == Ok.INSTANCE) {
-            return Ok.INSTANCE;
-        }
-        String className = (value == null) ? "null" : value.getClass().getSimpleName();
-        throw new RedisException(
-                "Unexpected return type from Redis: got " + className + " expected simple-string Ok");
-    }
-
-    /**
      * Extracts the response value from the Redis response and either throws an exception or returns
      * the value as a <code>String</code>.
      *
@@ -130,9 +115,6 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
         Object value = handleObjectResponse(response);
         if (value instanceof String || value == null) {
             return (String) value;
-        }
-        if (value instanceof Ok) {
-            return Ok.INSTANCE.toString();
         }
         throw new RedisException(
                 "Unexpected return type from Redis: got "
@@ -194,9 +176,9 @@ public abstract class BaseClient implements AutoCloseable, StringCommands, Conne
     }
 
     @Override
-    public CompletableFuture<Ok> set(String key, String value) {
+    public CompletableFuture<String> set(String key, String value) {
         return commandManager.submitNewCommand(
-                SetString, new String[] {key, value}, this::handleOkResponse);
+                SetString, new String[] {key, value}, this::handleStringResponse);
     }
 
     @Override
