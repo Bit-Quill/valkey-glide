@@ -183,10 +183,12 @@ public class ConnectionWithGlideMockTests extends RustCoreLibMockTestBase {
                     assertThrows(
                             ExecutionException.class, () -> client.customCommand(new String[0]).get(1, SECONDS));
             assertTrue(exception.getCause() instanceof RuntimeException);
+
             // Not a public class, can't import
-            assertEquals(
-                    "io.netty.channel.StacklessClosedChannelException",
-                    exception.getCause().getCause().getClass().getName());
+            var innerExceptionType = exception.getCause().getCause().getClass().getName();
+            assertTrue( // different native implementations throw different types of exception
+                    innerExceptionType.equals("io.netty.channel.StacklessClosedChannelException")
+                            || innerExceptionType.equals("io.netty.channel.unix.Errors$NativeIoException"));
 
         } finally {
             // restart mock to let other tests pass if this one failed
