@@ -7,6 +7,8 @@ repositories {
 }
 
 dependencies {
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+
     // client
     implementation project(':client')
 

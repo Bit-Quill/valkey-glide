@@ -2,7 +2,14 @@
 package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
+import static redis_request.RedisRequestOuterClass.RequestType.Decr;
+import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
+import static redis_request.RedisRequestOuterClass.RequestType.Incr;
+import static redis_request.RedisRequestOuterClass.RequestType.IncrBy;
+import static redis_request.RedisRequestOuterClass.RequestType.IncrByFloat;
+import static redis_request.RedisRequestOuterClass.RequestType.MGet;
+import static redis_request.RedisRequestOuterClass.RequestType.MSet;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
@@ -17,6 +24,8 @@ import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -125,6 +134,42 @@ public abstract class BaseClient
 
     /**
      * Extracts the response value from the Redis response and either throws an exception or returns
+     * the value as an <code>Long</code>.
+     *
+     * @param response Redis protobuf message
+     * @return Response as an <code>Long</code>
+     */
+    protected Long handleLongResponse(Response response) {
+        Object value = handleObjectResponse(response);
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        throw new RedisException(
+                "Unexpected return type from Redis: got "
+                        + value.getClass().getSimpleName()
+                        + " expected Long");
+    }
+
+    /**
+     * Extracts the response value from the Redis response and either throws an exception or returns
+     * the value as an <code>Double</code>.
+     *
+     * @param response Redis protobuf message
+     * @return Response as an <code>Double</code>
+     */
+    protected Double handleDoubleResponse(Response response) {
+        Object value = handleObjectResponse(response);
+        if (value instanceof Double) {
+            return (Double) value;
+        }
+        throw new RedisException(
+                "Unexpected return type from Redis: got "
+                        + value.getClass().getSimpleName()
+                        + " expected Double");
+    }
+
+    /**
+     * Extracts the response value from the Redis response and either throws an exception or returns
      * the value as an <code>Object[]</code>.
      *
      * @param response Redis protobuf message
@@ -186,5 +231,55 @@ public abstract class BaseClient
     public CompletableFuture<String> set(String key, String value, SetOptions options) {
         String[] arguments = ArrayUtils.addAll(new String[] {key, value}, options.toArgs());
         return commandManager.submitNewCommand(SetString, arguments, this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> decr(String key) {
+        return commandManager.submitNewCommand(Decr, new String[] {key}, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> decrBy(String key, long amount) {
+        return commandManager.submitNewCommand(
+                DecrBy, new String[] {key, Long.toString(amount)}, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> incr(String key) {
+        return commandManager.submitNewCommand(Incr, new String[] {key}, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> incrBy(String key, long amount) {
+        return commandManager.submitNewCommand(
+                IncrBy, new String[] {key, Long.toString(amount)}, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Double> incrByFloat(String key, double amount) {
+        return commandManager.submitNewCommand(
+                IncrByFloat, new String[] {key, Double.toString(amount)}, this::handleDoubleResponse);
+    }
+
+    @Override
+    public CompletableFuture<String[]> mget(String[] keys) {
+        return commandManager
+                .submitNewCommand(MGet, keys, this::handleArrayResponse)
+                .thenApply(
+                        objectsArray ->
+                                Arrays.stream(objectsArray).map(object -> (String) object).toArray(String[]::new));
+    }
+
+    @Override
+    public CompletableFuture<String> mset(HashMap<String, String> keyValueMap) {
+        String[] args = new String[keyValueMap.size() * 2];
+
+        int i = 0;
+        for (Map.Entry<String, String> entry : keyValueMap.entrySet()) {
+            args[i++] = entry.getKey();
+            args[i++] = entry.getValue();
+        }
+
+        return commandManager.submitNewCommand(MSet, args, this::handleStringResponse);
     }
 }
