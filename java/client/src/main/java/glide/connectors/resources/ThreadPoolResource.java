@@ -12,8 +12,8 @@ import lombok.NonNull;
  */
 @Getter
 public abstract class ThreadPoolResource {
-    private EventLoopGroup eventLoopGroup;
-    private Class<? extends DomainSocketChannel> domainSocketChannelClass;
+    private final EventLoopGroup eventLoopGroup;
+    private final Class<? extends DomainSocketChannel> domainSocketChannelClass;
 
     public ThreadPoolResource(
             @NonNull EventLoopGroup eventLoopGroup,

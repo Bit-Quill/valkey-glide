@@ -6,8 +6,11 @@ import glide.connectors.resources.ThreadPoolResource;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.unix.DomainSocketAddress;
 import java.util.concurrent.CompletableFuture;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import redis_request.RedisRequestOuterClass.RedisRequest;
 import response.ResponseOuterClass.Response;
 
@@ -15,9 +18,8 @@ import response.ResponseOuterClass.Response;
  * Class responsible for handling calls to/from a netty.io {@link Channel}. Uses a {@link
  * CallbackDispatcher} to record callbacks of every request sent.
  */
+@RequiredArgsConstructor
 public class ChannelHandler {
-
-    private static final String THREAD_POOL_NAME = "glide-channel";
 
     protected final Channel channel;
     protected final CallbackDispatcher callbackDispatcher;
@@ -41,6 +43,8 @@ public class ChannelHandler {
                         .channel(threadPoolResource.getDomainSocketChannelClass())
                         .handler(new ProtobufSocketChannelInitializer(callbackDispatcher))
                         .connect(new DomainSocketAddress(socketPath))
+                        // TODO    .addListener(new NettyFutureErrorHandler())
+                        //   we need to use connection promise here for that ^
                         .sync()
                         .channel();
         this.callbackDispatcher = callbackDispatcher;
@@ -58,9 +62,11 @@ public class ChannelHandler {
         request.setCallbackIdx(commandId.getKey());
 
         if (flush) {
-            channel.writeAndFlush(request.build());
+            channel
+                    .writeAndFlush(request.build())
+                    .addListener(new NettyFutureErrorHandler(commandId.getValue()));
         } else {
-            channel.write(request.build());
+            channel.write(request.build()).addListener(new NettyFutureErrorHandler(commandId.getValue()));
         }
         return commandId.getValue();
     }
@@ -73,7 +79,7 @@ public class ChannelHandler {
      */
     public CompletableFuture<Response> connect(ConnectionRequest request) {
         var future = callbackDispatcher.registerConnection();
-        channel.writeAndFlush(request);
+        channel.writeAndFlush(request).addListener(new NettyFutureErrorHandler(future));
         return future;
     }
 
@@ -81,5 +87,19 @@ public class ChannelHandler {
     public ChannelFuture close() {
         callbackDispatcher.shutdownGracefully();
         return channel.close();
+    }
+
+    /** Propagate an error from Netty's future into the future returned to user. */
+    @RequiredArgsConstructor
+    private static class NettyFutureErrorHandler implements ChannelFutureListener {
+
+        private final CompletableFuture<Response> promise;
+
+        @Override
+        public void operationComplete(@NonNull ChannelFuture channelFuture) throws Exception {
+            if (!channelFuture.isSuccess()) {
+                promise.completeExceptionally(channelFuture.cause());
+            }
+        }
     }
 }
