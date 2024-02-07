@@ -19,6 +19,7 @@ import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.SneakyThrows;
 import redis_request.RedisRequestOuterClass.RedisRequest;
@@ -175,10 +176,11 @@ public class RustCoreMock {
         return instance.socketPath;
     }
 
+    @SneakyThrows
     public static void stop() {
         if (instance != null) {
             instance.channel.close().syncUninterruptibly();
-            instance.group.shutdownGracefully();
+            instance.group.shutdownGracefully().get(5, TimeUnit.SECONDS);
             instance = null;
         }
     }
