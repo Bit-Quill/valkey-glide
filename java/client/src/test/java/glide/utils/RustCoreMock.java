@@ -177,7 +177,7 @@ public class RustCoreMock {
 
     public static void stop() {
         if (instance != null) {
-            instance.channel.close();
+            instance.channel.close().syncUninterruptibly();
             instance.group.shutdownGracefully();
             instance = null;
         }

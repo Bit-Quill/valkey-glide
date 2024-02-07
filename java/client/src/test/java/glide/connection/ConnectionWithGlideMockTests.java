@@ -178,8 +178,7 @@ public class ConnectionWithGlideMockTests extends RustCoreLibMockTestBase {
     public void rethrow_error_if_UDS_channel_closed() {
         var client = new TestClient(channelHandler);
         stopRustCoreLibMock();
-        // If we don't sleep, we will get an error on read (ReadHandler) - why?
-        // And error will be with another stack
+        // If we don't sleep, we will get another error - why?
         Thread.sleep(200);
         try {
             var exception =

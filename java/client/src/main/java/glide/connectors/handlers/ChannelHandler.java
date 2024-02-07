@@ -8,7 +8,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.unix.DomainSocketAddress;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -103,11 +102,8 @@ public class ChannelHandler {
             if (channelFuture.isCancelled()) {
                 promise.cancel(false);
             }
-            if (!channelFuture.isSuccess()) {
-                var cause = channelFuture.cause();
-                if (cause == null) {
-                    cause = new CancellationException();
-                }
+            var cause = channelFuture.cause();
+            if (cause != null) {
                 promise.completeExceptionally(cause);
             }
         }
