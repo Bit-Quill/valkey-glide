@@ -49,3 +49,7 @@ utils/tls_crts/
 
 # java compiled files.
 *.class
+
+# Go compilation files
+go/**/lib.h
+*.pb.go

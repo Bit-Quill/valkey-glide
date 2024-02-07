@@ -1,0 +1,84 @@
+name: Go CI
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - glide-core/**
+      - submodules/**
+      - go/**
+      - .github/workflows/go.yml
+  pull_request:
+    paths:
+      - glide-core/**
+      - submodules/**
+      - go/**
+      - .github/workflows/go.yml
+
+# Run only the latest job on a branch and cancel previous ones
+concurrency:
+  group: ${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test-go-client:
+    timeout-minutes: 25
+    strategy:
+      # Run all jobs
+      fail-fast: false
+      matrix:
+        go:
+          - '1.18'
+          - '1.21'
+        redis:
+          - 6.2.14
+          - 7.2.3
+        os:
+          - ubuntu-latest
+          - macos-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Go ${{ matrix.go }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: '^1.13.1'
+
+      - name: Install shared software dependencies
+        uses: ./.github/workflows/install-shared-dependencies
+        with:
+          os: ${{ matrix.os }}
+          target: ${{ matrix.os == 'ubuntu-latest' && 'x86_64-unknown-linux-gnu' || 'x86_64-apple-darwin' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install redis
+        # TODO: make this step macos compatible: https://github.com/aws/glide-for-redis/issues/781
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: ./.github/workflows/install-redis
+        with:
+          redis-version: ${{ matrix.redis }}
+
+      - name: Build glide-core
+        working-directory: ./glide-core
+        run: cargo build --release
+
+      - name: Build glide
+        working-directory: ./go/glide
+        run: cargo build --release
+
+      - name: Generate the Go protobuf files
+        run: |
+            go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+            mkdir go/glide/protobuf
+            protoc --proto_path=glide-core/src/protobuf \
+              --go_opt=Mconnection_request.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
+              --go_opt=Mredis_request.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
+              --go_opt=Mresponse.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
+              --go_out=go/glide/protobuf \
+              --go_opt=paths=source_relative \
+              glide-core/src/protobuf/*.proto
