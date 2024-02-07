@@ -1,0 +1,5 @@
+# Go compilation files
+lib.h
+*.pb.go
+
+reports

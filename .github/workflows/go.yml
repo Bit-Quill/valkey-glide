@@ -71,14 +71,58 @@ jobs:
         working-directory: ./go/glide
         run: cargo build --release
 
+      - name: Install client dependencies
+        working-directory: ./go/glide
+        run: |
+          go get .
+
       - name: Generate the Go protobuf files
         run: |
-            go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-            mkdir go/glide/protobuf
-            protoc --proto_path=glide-core/src/protobuf \
-              --go_opt=Mconnection_request.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
-              --go_opt=Mredis_request.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
-              --go_opt=Mresponse.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
-              --go_out=go/glide/protobuf \
-              --go_opt=paths=source_relative \
-              glide-core/src/protobuf/*.proto
+          mkdir go/glide/protobuf
+          protoc --proto_path=glide-core/src/protobuf \
+            --go_opt=Mconnection_request.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
+            --go_opt=Mredis_request.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
+            --go_opt=Mresponse.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
+            --go_out=go/glide/protobuf \
+            --go_opt=paths=source_relative \
+            glide-core/src/protobuf/*.proto
+
+      - name: Build client
+        working-directory: ./go/glide
+        run: |
+          go mod edit -go=${{ matrix.go }}
+          go build .
+
+      - name: Run go vet
+        working-directory: ./go/glide
+        run: go vet .
+
+      - name: Run staticcheck
+        working-directory: ./go/glide
+        run: go vet .
+
+      - name: Run unit tests
+        working-directory: ./go/glide
+        run: go test -json | go-test-report -o reports/unit-test-report.html
+
+      - name: Upload test reports
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-go-${{ matrix.go }}-redis-${{ matrix.redis }}-${{ matrix.os }}
+          path: |
+            go/glide/reports/unit-test-report.html
+
+  lint-rust:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: ./.github/workflows/lint-rust
+        with:
+          cargo-toml-folder: ./go/glide
+        name: lint go rust
