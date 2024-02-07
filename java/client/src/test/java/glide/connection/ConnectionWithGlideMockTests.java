@@ -178,6 +178,9 @@ public class ConnectionWithGlideMockTests extends RustCoreLibMockTestBase {
     public void rethrow_error_if_UDS_channel_closed() {
         var client = new TestClient(channelHandler);
         stopRustCoreLibMock();
+        // If we don't sleep, we will get an error on read (ReadHandler) - why?
+        // And error will be with another stack
+        Thread.sleep(200);
         try {
             var exception =
                     assertThrows(
@@ -185,11 +188,9 @@ public class ConnectionWithGlideMockTests extends RustCoreLibMockTestBase {
             assertTrue(exception.getCause() instanceof RuntimeException);
 
             // Not a public class, can't import
-            var innerExceptionType = exception.getCause().getCause().getClass().getName();
-            assertTrue( // different native implementations throw different types of exception
-                    innerExceptionType.equals("io.netty.channel.StacklessClosedChannelException")
-                            || innerExceptionType.equals("io.netty.channel.unix.Errors$NativeIoException"));
-
+            assertEquals(
+                    "io.netty.channel.StacklessClosedChannelException",
+                    exception.getCause().getCause().getClass().getName());
         } finally {
             // restart mock to let other tests pass if this one failed
             startRustCoreLibMock(null);
