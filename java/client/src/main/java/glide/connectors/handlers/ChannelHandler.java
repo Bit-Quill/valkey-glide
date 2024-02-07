@@ -8,6 +8,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.unix.DomainSocketAddress;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -88,7 +89,10 @@ public class ChannelHandler {
         return channel.close();
     }
 
-    /** Propagate an error from Netty's future into the future returned to user. */
+    /**
+     * Propagate an error from Netty's {@link ChannelFuture} and complete the {@link
+     * CompletableFuture} promise.
+     */
     @RequiredArgsConstructor
     private static class NettyFutureErrorHandler implements ChannelFutureListener {
 
@@ -96,8 +100,15 @@ public class ChannelHandler {
 
         @Override
         public void operationComplete(@NonNull ChannelFuture channelFuture) throws Exception {
+            if (channelFuture.isCancelled()) {
+                promise.cancel(false);
+            }
             if (!channelFuture.isSuccess()) {
-                promise.completeExceptionally(channelFuture.cause());
+                var cause = channelFuture.cause();
+                if (cause == null) {
+                    cause = new CancellationException();
+                }
+                promise.completeExceptionally(cause);
             }
         }
     }
