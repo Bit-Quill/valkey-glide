@@ -1,4 +1,4 @@
-package glide
+package tests
 
 import (
 	"testing"

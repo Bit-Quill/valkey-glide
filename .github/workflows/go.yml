@@ -63,49 +63,30 @@ jobs:
         with:
           redis-version: ${{ matrix.redis }}
 
-      - name: Build glide-core
-        working-directory: ./glide-core
-        run: cargo build --release
-
-      - name: Build glide
-        working-directory: ./go/glide
-        run: cargo build --release
+      - name: Install client dependencies
+        working-directory: ./go
+        run: make install-dependencies
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
 
-      - name: Install client dependencies
-        working-directory: ./go/glide
-        run: go install
-
-      - name: Generate the Go protobuf files
-        run: |
-          mkdir go/glide/protobuf
-          protoc --proto_path=glide-core/src/protobuf \
-            --go_opt=Mconnection_request.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
-            --go_opt=Mredis_request.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
-            --go_opt=Mresponse.proto=github.com/aws/glide-for-redis/go/glide/protobuf \
-            --go_out=go/glide/protobuf \
-            --go_opt=paths=source_relative \
-            glide-core/src/protobuf/*.proto
-
       - name: Build client
-        working-directory: ./go/glide
+        working-directory: ./go
         run: |
           go mod edit -go=${{ matrix.go }}
-          go build .
+          make build
 
-      - name: Run go vet
-        working-directory: ./go/glide
+      - name: Run go vet linter
+        working-directory: ./go
         run: go vet .
 
-      - name: Run staticcheck
-        working-directory: ./go/glide
+      - name: Run staticcheck linter
+        working-directory: ./go
         run: go staticcheck .
 
       - name: Run unit tests
-        working-directory: ./go/glide
-        run: go test -json | go-test-report -o reports/unit-test-report.html
+        working-directory: ./go
+        run: make unit-test-report
 
       - name: Upload test reports
         if: always()
@@ -114,7 +95,7 @@ jobs:
         with:
           name: test-reports-go-${{ matrix.go }}-redis-${{ matrix.redis }}-${{ matrix.os }}
           path: |
-            go/glide/reports/unit-test-report.html
+            go/reports/unit-test-report.html
 
   lint-rust:
     timeout-minutes: 15
@@ -126,5 +107,5 @@ jobs:
 
       - uses: ./.github/workflows/lint-rust
         with:
-          cargo-toml-folder: ./go/glide
+          cargo-toml-folder: ./go
         name: lint go rust
