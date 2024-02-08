@@ -13,6 +13,7 @@ build-glide-client:
 	cargo build --release
 
 generate-protobuf:
+	mkdir -p protobuf
 	protoc --proto_path=../glide-core/src/protobuf \
       	--go_opt=Mconnection_request.proto=github.com/aws/glide-for-redis/go/protobuf \
       	--go_opt=Mredis_request.proto=github.com/aws/glide-for-redis/go/protobuf \
@@ -26,4 +27,5 @@ lint:
 	staticcheck ./...
 
 unit-test-report:
+	mkdir -p reports
 	go test ./... -json | go-test-report -o reports/unit-test-report.html

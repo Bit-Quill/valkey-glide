@@ -67,9 +67,6 @@ jobs:
         working-directory: ./go
         run: make install-dependencies
 
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-
       - name: Build client
         working-directory: ./go
         run: |
@@ -82,7 +79,7 @@ jobs:
 
       - name: Run staticcheck linter
         working-directory: ./go
-        run: go staticcheck .
+        run: staticcheck .
 
       - name: Run unit tests
         working-directory: ./go
