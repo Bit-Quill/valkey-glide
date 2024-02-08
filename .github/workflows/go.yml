@@ -76,8 +76,7 @@ jobs:
 
       - name: Install client dependencies
         working-directory: ./go/glide
-        run: |
-          go get .
+        run: go install
 
       - name: Generate the Go protobuf files
         run: |
@@ -102,7 +101,7 @@ jobs:
 
       - name: Run staticcheck
         working-directory: ./go/glide
-        run: go vet .
+        run: go staticcheck .
 
       - name: Run unit tests
         working-directory: ./go/glide
