@@ -25,7 +25,6 @@ import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -134,25 +133,24 @@ public abstract class BaseClient
 
     /**
      * Extracts the response value from the Redis response and either throws an exception or returns
-     * the value as an <code>Long</code>.
+     * the value as a <code>Long</code>.
      *
      * @param response Redis protobuf message
-     * @return Response as an <code>Long</code>
+     * @return Response as a <code>Long</code>
      */
     protected Long handleLongResponse(Response response) {
         Object value = handleObjectResponse(response);
         if (value instanceof Long) {
             return (Long) value;
         }
+        String className = (value == null) ? "null" : value.getClass().getSimpleName();
         throw new RedisException(
-                "Unexpected return type from Redis: got "
-                        + value.getClass().getSimpleName()
-                        + " expected Long");
+                "Unexpected return type from Redis: got " + className + " expected Long");
     }
 
     /**
      * Extracts the response value from the Redis response and either throws an exception or returns
-     * the value as an <code>Double</code>.
+     * the value as a <code>Double</code>.
      *
      * @param response Redis protobuf message
      * @return Response as an <code>Double</code>
@@ -162,10 +160,9 @@ public abstract class BaseClient
         if (value instanceof Double) {
             return (Double) value;
         }
+        String className = (value == null) ? "null" : value.getClass().getSimpleName();
         throw new RedisException(
-                "Unexpected return type from Redis: got "
-                        + value.getClass().getSimpleName()
-                        + " expected Double");
+                "Unexpected return type from Redis: got " + className + " expected Double");
     }
 
     /**
@@ -271,7 +268,7 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<String> mset(HashMap<String, String> keyValueMap) {
+    public CompletableFuture<String> mset(Map<String, String> keyValueMap) {
         String[] args = new String[keyValueMap.size() * 2];
 
         int i = 0;

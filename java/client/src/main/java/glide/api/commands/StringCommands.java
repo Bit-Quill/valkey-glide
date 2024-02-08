@@ -4,7 +4,7 @@ package glide.api.commands;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -50,79 +50,79 @@ public interface StringCommands {
     CompletableFuture<String> set(String key, String value, SetOptions options);
 
     /**
-     * Increment the string representing a floating point number stored at <em>key</em> by
-     * <em>amount</em>. By using a negative increment value, the result is that the value stored at
-     * <em>key</em> is decremented. If <em>key</em> does not exist, it is set to 0 before performing
-     * the operation.
+     * Increment the string representing a floating point number stored at <code>key</code> by <code>
+     * amount</code>. By using a negative increment value, the result is that the value stored at
+     * <code>key</code> is decremented. If <code>key</code> does not exist, it is set to 0 before
+     * performing the operation.
      *
      * @see <a href="https://redis.io/commands/decr/">redis.io</a> for details.
      * @param key The key to increment its value.
-     * @return The value of <em>key</em> after the increment. An error is raised if <em>key</em>
-     *     contains a value of the wrong type, or the current key content is not parsable as a double
-     *     precision floating point number.
+     * @return The value of <code>key</code> after the increment. An error is raised if <code>key
+     *     </code> contains a value of the wrong type, or the current <code>key</code> content is not
+     *     parsable as a double precision floating point number.
      */
     CompletableFuture<Long> decr(String key);
 
     /**
-     * Decrements the number stored at <em>key</em> by <em>amount</em>. If <em>key</em> does not
-     * exist, it is set to 0 before performing the operation.
+     * Decrements the number stored at <code>key</code> by <code>amount</code>. If <code>key</code>
+     * does not exist, it is set to 0 before performing the operation.
      *
      * @see <a href="https://redis.io/commands/decrby/">redis.io</a> for details.
      * @param key The key to decrement its value.
      * @param amount The amount to decrement.
-     * @return The value of <em>key</em> after the decrement. An error is raised if <em>key</em>
-     *     contains a value of the wrong type or contains a string that can not be represented as
-     *     integer.
+     * @return The value of <code>key</code> after the decrement. An error is raised if <code>key
+     *     </code> contains a value of the wrong type or contains a string that can not be represented
+     *     as integer.
      */
     CompletableFuture<Long> decrBy(String key, long amount);
 
     /**
-     * Increments the number stored at <em>key</em> by one. If <em>key</em> does not exist, it is set
-     * to 0 before performing the operation.
+     * Increments the number stored at <code>key</code> by one. If <code>key</code> does not exist, it
+     * is set to 0 before performing the operation.
      *
      * @see <a href="https://redis.io/commands/incr/">redis.io</a> for details.
      * @param key The key to increment its value.
-     * @returns The value of <em>key</em> after the increment. An error is raised if <em>key</em>
-     *     contains a value of the wrong type or contains a string that can not be represented as
-     *     integer.
+     * @returns The value of <code>key</code> after the increment. An error is raised if <code>key
+     *     </code> contains a value of the wrong type or contains a string that can not be represented
+     *     as integer.
      */
     CompletableFuture<Long> incr(String key);
 
     /**
-     * Increments the number stored at <em>key</em> by <em>amount</em>. If <em>key</em> does not
-     * exist, it is set to 0 before performing the operation.
+     * Increments the number stored at <code>key</code> by <code>amount</code>. If <code>key</code>
+     * does not exist, it is set to 0 before performing the operation.
      *
      * @see <a href="https://redis.io/commands/incrby/">redis.io</a> for details.
      * @param key The key to increment its value.
      * @param amount The amount to increment.
-     * @return The value of <em>key</em> after the increment, An error is raised if <em>key</em>
-     *     contains a value of the wrong type or contains a string that can not be represented as
-     *     integer.
+     * @return The value of <code>key</code> after the increment, An error is raised if <code>key
+     *     </code> contains a value of the wrong type or contains a string that can not be represented
+     *     as integer.
      */
     CompletableFuture<Long> incrBy(String key, long amount);
 
     /**
-     * Increment the string representing a floating point number stored at <em>key</em> by
-     * <em>amount</em>. By using a negative increment value, the result is that the value stored at
-     * <em>key</em> is decremented. If <em>key</em> does not exist, it is set to 0 before performing
-     * the operation.
+     * Increment the string representing a floating point number stored at <code>key</code> by <code>
+     * amount</code>. By using a negative increment value, the result is that the value stored at
+     * <code>key</code> is decremented. If <code>key</code> does not exist, it is set to 0 before
+     * performing the operation.
      *
      * @see <a href="https://redis.io/commands/incrbyfloat/">redis.io</a> for details.
      * @param key The key to increment its value.
      * @param amount The amount to increment.
-     * @return The value of <em>key</em> after the increment. An error is raised if <em>key</em>
-     *     contains a value of the wrong type, or the current key content is not parsable as a double
-     *     precision floating point number.
+     * @return The value of <code>key</code> after the increment. An error is raised if <code>key
+     *     </code> contains a value of the wrong type, or the current key content is not parsable as a
+     *     double precision floating point number.
      */
     CompletableFuture<Double> incrByFloat(String key, double amount);
 
     /**
-     * Retrieve the values of multiple keys.
+     * Retrieve the values of multiple <code>keys</code>.
      *
      * @see <a href="https://redis.io/commands/mget/">redis.io</a> for details.
      * @param keys A list of keys to retrieve values for.
-     * @return A list of values corresponding to the provided keys. If a key is not found, its
-     *     corresponding value in the list will be null.
+     * @return A list of values corresponding to the provided <code>keys</code>. If a <code>key</code>
+     *     is not found, its corresponding value in the list will be <code>null</code>.
      */
     CompletableFuture<String[]> mget(String[] keys);
 
@@ -131,7 +131,7 @@ public interface StringCommands {
      *
      * @see <a href="https://redis.io/commands/mset/">redis.io</a> for details.
      * @param keyValueMap A key-value map consisting of keys and their respective values to set.
-     * @return Always "Ok".
+     * @return Always <code>"Ok"</code>.
      */
-    CompletableFuture<String> mset(HashMap<String, String> keyValueMap);
+    CompletableFuture<String> mset(Map<String, String> keyValueMap);
 }

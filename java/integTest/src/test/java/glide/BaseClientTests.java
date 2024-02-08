@@ -23,8 +23,8 @@ import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.exceptions.RequestException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -294,11 +294,11 @@ public class BaseClientTests {
         for (BaseClient client : clients) {
             assertEquals(OK, client.set(key, "10").get(10, SECONDS));
 
-            assertEquals(client.decr(key).get(10, SECONDS), 9);
-            assertEquals(client.get(key).get(10, SECONDS), "9");
+            assertEquals(9, client.decr(key).get(10, SECONDS));
+            assertEquals("9", client.get(key).get(10, SECONDS));
 
-            assertEquals(client.decrBy(key, 4).get(10, SECONDS), 5);
-            assertEquals(client.get(key).get(10, SECONDS), "5");
+            assertEquals(5, client.decrBy(key, 4).get(10, SECONDS));
+            assertEquals("5", client.get(key).get(10, SECONDS));
         }
     }
 
@@ -310,12 +310,12 @@ public class BaseClientTests {
 
         for (BaseClient client : clients) {
             assertNull(client.get(key1).get(10, SECONDS));
-            assertEquals(client.decr(key1).get(10, SECONDS), -1);
-            assertEquals(client.get(key1).get(10, SECONDS), "-1");
+            assertEquals(-1, client.decr(key1).get(10, SECONDS));
+            assertEquals("-1", client.get(key1).get(10, SECONDS));
 
             assertNull(client.get(key2).get(10, SECONDS));
-            assertEquals(client.decrBy(key2, 3).get(10, SECONDS), -3);
-            assertEquals(client.get(key2).get(10, SECONDS), "-3");
+            assertEquals(-3, client.decrBy(key2, 3).get(10, SECONDS));
+            assertEquals("-3", client.get(key2).get(10, SECONDS));
         }
     }
 
@@ -327,14 +327,14 @@ public class BaseClientTests {
         for (BaseClient client : clients) {
             assertEquals(OK, client.set(key, "10").get(10, SECONDS));
 
-            assertEquals(client.incr(key).get(10, SECONDS), 11);
-            assertEquals(client.get(key).get(10, SECONDS), "11");
+            assertEquals(11, client.incr(key).get(10, SECONDS));
+            assertEquals("11", client.get(key).get(10, SECONDS));
 
-            assertEquals(client.incrBy(key, 4).get(10, SECONDS), 15);
-            assertEquals(client.get(key).get(10, SECONDS), "15");
+            assertEquals(15, client.incrBy(key, 4).get(10, SECONDS));
+            assertEquals("15", client.get(key).get(10, SECONDS));
 
-            assertEquals(client.incrByFloat(key, 5.5).get(10, SECONDS), 20.5);
-            assertEquals(client.get(key).get(10, SECONDS), "20.5");
+            assertEquals(20.5, client.incrByFloat(key, 5.5).get(10, SECONDS));
+            assertEquals("20.5", client.get(key).get(10, SECONDS));
         }
     }
 
@@ -347,16 +347,16 @@ public class BaseClientTests {
 
         for (BaseClient client : clients) {
             assertNull(client.get(key1).get(10, SECONDS));
-            assertEquals(client.incr(key1).get(10, SECONDS), 1);
-            assertEquals(client.get(key1).get(10, SECONDS), "1");
+            assertEquals(1, client.incr(key1).get(10, SECONDS));
+            assertEquals("1", client.get(key1).get(10, SECONDS));
 
             assertNull(client.get(key2).get(10, SECONDS));
-            assertEquals(client.incrBy(key2, 3).get(10, SECONDS), 3);
-            assertEquals(client.get(key2).get(10, SECONDS), "3");
+            assertEquals(3, client.incrBy(key2, 3).get(10, SECONDS));
+            assertEquals("3", client.get(key2).get(10, SECONDS));
 
             assertNull(client.get(key3).get(10, SECONDS));
-            assertEquals(client.incrByFloat(key3, 0.5).get(10, SECONDS), 0.5);
-            assertEquals(client.get(key3).get(10, SECONDS), "0.5");
+            assertEquals(0.5, client.incrByFloat(key3, 0.5).get(10, SECONDS));
+            assertEquals("0.5", client.get(key3).get(10, SECONDS));
         }
     }
 
@@ -397,14 +397,7 @@ public class BaseClientTests {
         String key3 = RandomStringUtils.randomAlphabetic(10);
         String nonExisting = RandomStringUtils.randomAlphabetic(10);
         String value = RandomStringUtils.randomAlphabetic(10);
-        HashMap<String, String> keyValueMap =
-                new HashMap<>() {
-                    {
-                        put(key1, value);
-                        put(key2, value);
-                        put(key3, value);
-                    }
-                };
+        Map<String, String> keyValueMap = Map.of(key1, value, key2, value, key3, value);
 
         for (BaseClient client : clients) {
             assertEquals(OK, client.mset(keyValueMap).get(10, SECONDS));
