@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/DarkDrim/go-test-report v1.5.0
 	google.golang.org/protobuf v1.32.0
-	honnef.co/go/tools v0.4.6
+	honnef.co/go/tools v0.3.3
 )
 
 require (
