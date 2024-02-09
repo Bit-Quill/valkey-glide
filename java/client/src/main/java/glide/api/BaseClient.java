@@ -3,6 +3,8 @@ package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
+import static redis_request.RedisRequestOuterClass.RequestType.MGet;
+import static redis_request.RedisRequestOuterClass.RequestType.MSet;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
@@ -20,6 +22,8 @@ import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
@@ -149,8 +153,8 @@ public abstract class BaseClient
         return handleRedisResponse(String.class, true, response);
     }
 
-    protected Object[] handleArrayResponse(Response response) {
-        return handleRedisResponse(Object[].class, true, response);
+    protected Object[] handleArrayReponse(Response response) {
+        return handleRedisResponse(Object[].class, false, response);
     }
 
     @Override
@@ -180,5 +184,27 @@ public abstract class BaseClient
             @NonNull String key, @NonNull String value, @NonNull SetOptions options) {
         String[] arguments = ArrayUtils.addAll(new String[] {key, value}, options.toArgs());
         return commandManager.submitNewCommand(SetString, arguments, this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<String[]> mget(@NonNull String[] keys) {
+        return commandManager
+                .submitNewCommand(MGet, keys, this::handleArrayReponse)
+                .thenApply(
+                        objectsArray ->
+                                Arrays.stream(objectsArray).map(object -> (String) object).toArray(String[]::new));
+    }
+
+    @Override
+    public CompletableFuture<String> mset(@NonNull Map<String, String> keyValueMap) {
+        String[] args = new String[keyValueMap.size() * 2];
+
+        int i = 0;
+        for (Map.Entry<String, String> entry : keyValueMap.entrySet()) {
+            args[i++] = entry.getKey();
+            args[i++] = entry.getValue();
+        }
+
+        return commandManager.submitNewCommand(MSet, args, this::handleStringResponse);
     }
 }
