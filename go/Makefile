@@ -1,7 +1,5 @@
-install-dependencies:
-	go install github.com/DarkDrim/go-test-report@v1.5.0
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.32.0
-	go install honnef.co/go/tools/cmd/staticcheck@2022.1
+install-tools:
+	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
 
 build: build-glide-core build-glide-client generate-protobuf
 	go build ./...
