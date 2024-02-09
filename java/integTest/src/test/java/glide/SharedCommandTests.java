@@ -7,7 +7,6 @@ import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.Expiry.Milliseconds;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -263,9 +262,9 @@ public class SharedCommandTests {
         String value = RandomStringUtils.randomAlphabetic(10);
         Map<String, String> keyValueMap = Map.of(key1, value, key2, value, key3, value);
 
-        assertEquals(OK, client.mset(keyValueMap).get(10, SECONDS));
+        assertEquals(OK, client.mset(keyValueMap).get());
         assertArrayEquals(
                 new String[] {value, value, null, value},
-                client.mget(new String[] {key1, key2, nonExisting, key3}).get(10, SECONDS));
+                client.mget(new String[] {key1, key2, nonExisting, key3}).get());
     }
 }

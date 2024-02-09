@@ -276,8 +276,8 @@ public class RedisClientTest {
     @Test
     public void mget_returns_success() {
         // setup
-        String[] keys = {"Key1", "Key2"};
-        String[] values = {"Value1", "Value2"};
+        String[] keys = {"key1", null, "key2"};
+        String[] values = {"value1", null, "value2"};
 
         CompletableFuture testResponse = mock(CompletableFuture.class);
         when(testResponse.thenApply(any())).thenReturn(testResponse);

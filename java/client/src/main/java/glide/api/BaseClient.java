@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
@@ -153,7 +154,7 @@ public abstract class BaseClient
         return handleRedisResponse(String.class, true, response);
     }
 
-    protected Object[] handleArrayReponse(Response response) {
+    protected Object[] handleArrayReponse(Response response) throws RedisException {
         return handleRedisResponse(Object[].class, false, response);
     }
 
@@ -197,14 +198,10 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<String> mset(@NonNull Map<String, String> keyValueMap) {
-        String[] args = new String[keyValueMap.size() * 2];
-
-        int i = 0;
-        for (Map.Entry<String, String> entry : keyValueMap.entrySet()) {
-            args[i++] = entry.getKey();
-            args[i++] = entry.getValue();
-        }
-
+        String[] args =
+                keyValueMap.entrySet().stream()
+                        .flatMap(entry -> Stream.of(entry.getKey(), entry.getValue()))
+                        .toArray(String[]::new);
         return commandManager.submitNewCommand(MSet, args, this::handleStringResponse);
     }
 }
