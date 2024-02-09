@@ -7,6 +7,8 @@ repositories {
 }
 
 dependencies {
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+
     // client
     implementation project(':client')
 
@@ -15,6 +17,7 @@ dependencies {
     implementation group: 'io.netty', name: 'netty-transport-native-epoll', version: '4.1.100.Final', classifier: 'linux-x86_64'
     implementation group: 'io.netty', name: 'netty-transport-native-kqueue', version: '4.1.100.Final', classifier: 'osx-x86_64'
     implementation group: 'io.netty', name: 'netty-transport-native-kqueue', version: '4.1.100.Final', classifier: 'osx-aarch_64'
+    testImplementation 'junit:junit:4.13.1'
 
     // lombok
     testCompileOnly 'org.projectlombok:lombok:1.18.30'
