@@ -15,12 +15,12 @@ build-glide-client:
 generate-protobuf:
 	mkdir -p protobuf
 	protoc --proto_path=../glide-core/src/protobuf \
-      	--go_opt=Mconnection_request.proto=github.com/aws/glide-for-redis/go/protobuf \
-      	--go_opt=Mredis_request.proto=github.com/aws/glide-for-redis/go/protobuf \
-      	--go_opt=Mresponse.proto=github.com/aws/glide-for-redis/go/protobuf \
-      	--go_out=./protobuf \
-      	--go_opt=paths=source_relative \
-      	../glide-core/src/protobuf/*.proto
+		--go_opt=Mconnection_request.proto=github.com/aws/glide-for-redis/go/protobuf \
+		--go_opt=Mredis_request.proto=github.com/aws/glide-for-redis/go/protobuf \
+		--go_opt=Mresponse.proto=github.com/aws/glide-for-redis/go/protobuf \
+		--go_out=./protobuf \
+		--go_opt=paths=source_relative \
+		../glide-core/src/protobuf/*.proto
 
 lint:
 	go vet ./...

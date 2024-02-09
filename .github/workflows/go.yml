@@ -47,7 +47,7 @@ jobs:
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v5
         with:
-          go-version: '^1.13.1'
+          go-version: ${{ matrix.go }}
 
       - name: Install shared software dependencies
         uses: ./.github/workflows/install-shared-dependencies
@@ -143,13 +143,10 @@ jobs:
           export GOPATH=$HOME/go
           export PATH=$PATH:$GOPATH/bin
 
-      - name: Build rust part
-        working-directory: go
-        run: cargo build --release
-
-      - name: Build go part
-        working-directory: go
+      - name: Build client
+        working-directory: ./go
         run: |
+          cargo build --release
           go mod edit -go=${{ matrix.go }}
           make build
 
