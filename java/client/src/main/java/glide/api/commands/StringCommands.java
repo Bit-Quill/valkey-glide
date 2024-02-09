@@ -48,4 +48,44 @@ public interface StringCommands {
      *     is set, return the old value as a <code>String</code>.
      */
     CompletableFuture<String> set(String key, String value, SetOptions options);
+
+    /**
+     * Increments the number stored at <code>key</code> by one. If <code>key</code> does not exist, it
+     * is set to 0 before performing the operation.
+     *
+     * @see <a href="https://redis.io/commands/incr/">redis.io</a> for details.
+     * @param key The key to increment its value.
+     * @return The value of <code>key</code> after the increment. An error is raised if <code>key
+     *     </code> contains a value of the wrong type or contains a string that can not be represented
+     *     as integer.
+     */
+    CompletableFuture<Long> incr(String key);
+
+    /**
+     * Increments the number stored at <code>key</code> by <code>amount</code>. If <code>key</code>
+     * does not exist, it is set to 0 before performing the operation.
+     *
+     * @see <a href="https://redis.io/commands/incrby/">redis.io</a> for details.
+     * @param key The key to increment its value.
+     * @param amount The amount to increment.
+     * @return The value of <code>key</code> after the increment, An error is raised if <code>key
+     *     </code> contains a value of the wrong type or contains a string that cannot be represented
+     *     as integer.
+     */
+    CompletableFuture<Long> incrBy(String key, long amount);
+
+    /**
+     * Increment the string representing a floating point number stored at <code>key</code> by <code>
+     * amount</code>. By using a negative increment value, the result is that the value stored at
+     * <code>key</code> is decremented. If <code>key</code> does not exist, it is set to 0 before
+     * performing the operation.
+     *
+     * @see <a href="https://redis.io/commands/incrbyfloat/">redis.io</a> for details.
+     * @param key The key to increment its value.
+     * @param amount The amount to increment.
+     * @return The value of <code>key</code> after the increment. An error is raised if <code>key
+     *     </code> contains a value of the wrong type, or the current key content is not parsable as a
+     *     double precision floating point number.
+     */
+    CompletableFuture<Double> incrByFloat(String key, double amount);
 }
