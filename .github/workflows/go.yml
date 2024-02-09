@@ -65,7 +65,7 @@ jobs:
 
       - name: Install client dependencies
         working-directory: ./go
-        run: make install-dependencies
+        run: make install-tools
 
       - name: Build client
         working-directory: ./go
