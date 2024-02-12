@@ -154,8 +154,12 @@ public abstract class BaseClient
         return handleRedisResponse(String.class, true, response);
     }
 
-    protected Object[] handleArrayReponse(Response response) throws RedisException {
+    protected Object[] handleArrayResponse(Response response) throws RedisException {
         return handleRedisResponse(Object[].class, false, response);
+    }
+
+    protected Object[] handleArrayOrNullResponse(Response response) throws RedisException {
+        return handleRedisResponse(Object[].class, true, response);
     }
 
     @Override
@@ -190,7 +194,7 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<String[]> mget(@NonNull String[] keys) {
         return commandManager
-                .submitNewCommand(MGet, keys, this::handleArrayReponse)
+                .submitNewCommand(MGet, keys, this::handleArrayResponse)
                 .thenApply(
                         objectsArray ->
                                 Arrays.stream(objectsArray).map(object -> (String) object).toArray(String[]::new));

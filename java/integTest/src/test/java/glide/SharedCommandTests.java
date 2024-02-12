@@ -21,9 +21,9 @@ import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Timeout;
@@ -255,11 +255,11 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void mset_mget_existing_non_existing_key(BaseClient client) {
-        String key1 = RandomStringUtils.randomAlphabetic(10);
-        String key2 = RandomStringUtils.randomAlphabetic(10);
-        String key3 = RandomStringUtils.randomAlphabetic(10);
-        String nonExisting = RandomStringUtils.randomAlphabetic(10);
-        String value = RandomStringUtils.randomAlphabetic(10);
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String key3 = UUID.randomUUID().toString();
+        String nonExisting = UUID.randomUUID().toString();
+        String value = UUID.randomUUID().toString();
         Map<String, String> keyValueMap = Map.of(key1, value, key2, value, key3, value);
 
         assertEquals(OK, client.mset(keyValueMap).get());
