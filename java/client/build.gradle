@@ -29,6 +29,7 @@ dependencies {
     testImplementation group: 'org.mockito', name: 'mockito-inline', version: '3.12.4'
     testImplementation('org.junit.jupiter:junit-jupiter:5.6.2')
     testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.12.4'
+    testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.1'
 }
 
 tasks.register('protobuf', Exec) {

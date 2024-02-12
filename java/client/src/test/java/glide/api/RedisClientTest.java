@@ -5,6 +5,7 @@ import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
+import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -30,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.hamcrest.MockitoHamcrest;
 
 public class RedisClientTest {
 
@@ -300,15 +302,15 @@ public class RedisClientTest {
     @Test
     public void mset_returns_success() {
         // setup
-        Map<String, String> keyValueMap = Map.of("key1", "value1");
-
-        String[] flattenedKeyValueMap = {"key1", "value1"};
+        Map<String, String> keyValueMap = Map.of("key1", "value1", "key2", "value2");
+        String[] args = {"key1", "value1", "key2", "value2"};
 
         CompletableFuture testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(OK);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(MSet), eq(flattenedKeyValueMap), any()))
+        when(commandManager.<String>submitNewCommand(
+                        eq(MSet), MockitoHamcrest.argThat(arrayContainingInAnyOrder(args)), any()))
                 .thenReturn(testResponse);
 
         // exercise
