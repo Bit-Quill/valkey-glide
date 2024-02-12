@@ -26,4 +26,4 @@ lint:
 
 unit-test-report:
 	mkdir -p reports
-	go test ./... -json | go-test-report -o reports/unit-test-report.html
+	go test -race ./... -json | go-test-report -o reports/unit-test-report.html
