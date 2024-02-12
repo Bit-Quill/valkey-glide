@@ -153,14 +153,7 @@ public class ConnectionWithGlideMockTests extends RustCoreLibMockTestBase {
     @Test
     @SneakyThrows
     public void rethrow_error_on_read_when_malformed_packet_received() {
-        RustCoreMock.updateGlideMock(
-                new RustCoreMock.GlideMock() {
-
-                    @Override
-                    public byte[] handle(byte[] request) {
-                        return new byte[] {-1};
-                    }
-                });
+        RustCoreMock.updateGlideMock(request -> new byte[] {-1});
 
         var exception = assertThrows(ExecutionException.class, () -> testConnection().get(1, SECONDS));
         assertAll(

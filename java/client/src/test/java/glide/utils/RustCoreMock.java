@@ -28,17 +28,18 @@ import response.ResponseOuterClass.Response;
 
 public class RustCoreMock {
 
-    public abstract static class GlideMock {
-        protected boolean isRaw() {
+    @FunctionalInterface
+    public interface GlideMock {
+        default boolean isRaw() {
             return true;
         }
 
-        public abstract byte[] handle(byte[] request);
+        byte[] handle(byte[] request);
     }
 
-    public abstract static class GlideMockProtobuf extends GlideMock {
+    public abstract static class GlideMockProtobuf implements GlideMock {
         @Override
-        protected boolean isRaw() {
+        public boolean isRaw() {
             return false;
         }
 
