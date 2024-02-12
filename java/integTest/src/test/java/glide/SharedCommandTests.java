@@ -19,8 +19,10 @@ import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Timeout;
@@ -246,5 +248,38 @@ public class SharedCommandTests {
         SetOptions options = SetOptions.builder().returnOldValue(true).build();
         String data = client.set("another", ANOTHER_VALUE, options).get();
         assertNull(data);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void hset_hget_existing_fields_non_existing_fields(BaseClient client) {
+        String key = RandomStringUtils.randomAlphabetic(10);
+        String field1 = RandomStringUtils.randomAlphabetic(10);
+        String field2 = RandomStringUtils.randomAlphabetic(10);
+        String value = RandomStringUtils.randomAlphabetic(10);
+        Map<String, String> fieldValueMap = Map.of(field1, value, field2, value);
+
+        assertEquals(2, client.hset(key, fieldValueMap).get());
+        assertEquals(value, client.hget(key, field1).get());
+        assertEquals(value, client.hget(key, field2).get());
+        assertNull(client.hget(key, "non_existing_field").get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void hdel_multiple_existing_fields_non_existing_field_non_existing_key(BaseClient client) {
+        String key = RandomStringUtils.randomAlphabetic(10);
+        String field1 = RandomStringUtils.randomAlphabetic(10);
+        String field2 = RandomStringUtils.randomAlphabetic(10);
+        String field3 = RandomStringUtils.randomAlphabetic(10);
+        String value = RandomStringUtils.randomAlphabetic(10);
+        Map<String, String> fieldValueMap = Map.of(field1, value, field2, value, field3, value);
+
+        assertEquals(3, client.hset(key, fieldValueMap).get());
+        assertEquals(2, client.hdel(key, new String[] {field1, field2}).get());
+        assertEquals(0, client.hdel(key, new String[] {"non_existing_field"}).get());
+        assertEquals(0, client.hdel("non_existing_key", new String[] {field3}).get());
     }
 }

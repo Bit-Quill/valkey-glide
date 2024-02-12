@@ -4,6 +4,7 @@ package glide.api;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
+import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -13,6 +14,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
+import static redis_request.RedisRequestOuterClass.RequestType.HashDel;
+import static redis_request.RedisRequestOuterClass.RequestType.HashGet;
+import static redis_request.RedisRequestOuterClass.RequestType.HashSet;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
@@ -22,10 +26,12 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.hamcrest.MockitoHamcrest;
 
 public class RedisClientTest {
 
@@ -266,5 +272,75 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(testPayload, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void hget_success() {
+        // setup
+        String key = "testKey";
+        String field = "field";
+        String[] args = new String[] {key, field};
+        String value = "value";
+
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<String>submitNewCommand(eq(HashGet), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.hget(key, field);
+        String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void hset_success() {
+        // setup
+        String key = "testKey";
+        Map<String, String> fieldValueMap = Map.of("field1", "value1", "field2", "value2");
+        String[] args = new String[] {key, "field1", "value1", "field2", "value2"};
+        Long value = 2L;
+
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<Long>submitNewCommand(
+                        eq(HashSet), MockitoHamcrest.argThat(arrayContainingInAnyOrder(args)), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.hset(key, fieldValueMap);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void hdel_success() {
+        // setup
+        String key = "testKey";
+        String[] fields = {"testField1", "testField2"};
+        String[] args = {key, "testField1", "testField2"};
+        Long value = 2L;
+
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<Long>submitNewCommand(eq(HashDel), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.hdel(key, fields);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
     }
 }

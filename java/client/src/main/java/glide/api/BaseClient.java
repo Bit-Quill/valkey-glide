@@ -3,10 +3,14 @@ package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
+import static redis_request.RedisRequestOuterClass.RequestType.HashDel;
+import static redis_request.RedisRequestOuterClass.RequestType.HashGet;
+import static redis_request.RedisRequestOuterClass.RequestType.HashSet;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.commands.ConnectionManagementCommands;
+import glide.api.commands.HashCommands;
 import glide.api.commands.StringCommands;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
@@ -20,9 +24,11 @@ import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
@@ -32,7 +38,7 @@ import response.ResponseOuterClass.Response;
 /** Base Client class for Redis */
 @AllArgsConstructor
 public abstract class BaseClient
-        implements AutoCloseable, ConnectionManagementCommands, StringCommands {
+        implements AutoCloseable, ConnectionManagementCommands, StringCommands, HashCommands {
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
 
@@ -149,6 +155,10 @@ public abstract class BaseClient
         return handleRedisResponse(String.class, true, response);
     }
 
+    protected Long handleLongResponse(Response response) throws RedisException {
+        return handleRedisResponse(Long.class, false, response);
+    }
+
     protected Object[] handleArrayResponse(Response response) {
         return handleRedisResponse(Object[].class, true, response);
     }
@@ -180,5 +190,29 @@ public abstract class BaseClient
             @NonNull String key, @NonNull String value, @NonNull SetOptions options) {
         String[] arguments = ArrayUtils.addAll(new String[] {key, value}, options.toArgs());
         return commandManager.submitNewCommand(SetString, arguments, this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> hget(@NonNull String key, @NonNull String field) {
+        return commandManager.submitNewCommand(
+                HashGet, new String[] {key, field}, this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> hset(
+            @NonNull String key, @NonNull Map<String, String> fieldValueMap) {
+        String[] args =
+                Stream.concat(
+                                Stream.of(key),
+                                fieldValueMap.entrySet().stream()
+                                        .flatMap(entry -> Stream.of(entry.getKey(), entry.getValue())))
+                        .toArray(String[]::new);
+        return commandManager.submitNewCommand(HashSet, args, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> hdel(@NonNull String key, @NonNull String[] fields) {
+        String[] args = ArrayUtils.insert(0, fields, key);
+        return commandManager.submitNewCommand(HashDel, args, this::handleLongResponse);
     }
 }
