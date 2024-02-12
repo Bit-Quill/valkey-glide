@@ -189,12 +189,12 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> decr(String key) {
+    public CompletableFuture<Long> decr(@NonNull String key) {
         return commandManager.submitNewCommand(Decr, new String[] {key}, this::handleLongResponse);
     }
 
     @Override
-    public CompletableFuture<Long> decrBy(String key, long amount) {
+    public CompletableFuture<Long> decrBy(@NonNull String key, long amount) {
         return commandManager.submitNewCommand(
                 DecrBy, new String[] {key, Long.toString(amount)}, this::handleLongResponse);
     }
