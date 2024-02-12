@@ -73,10 +73,6 @@ jobs:
                     go mod edit -go=${{ matrix.go }}
                     make build
 
-            -   name: Run go vet linter
-                working-directory: ./go
-                run: go vet .
-
             -   name: Run linters
                 working-directory: ./go
                 run: make lint

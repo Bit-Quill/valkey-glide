@@ -2,8 +2,6 @@ module github.com/aws/glide-for-redis/go/glide
 
 go 1.21
 
-toolchain go1.21.6
-
 require (
 	github.com/DarkDrim/go-test-report v1.5.0
 	google.golang.org/protobuf v1.32.0
