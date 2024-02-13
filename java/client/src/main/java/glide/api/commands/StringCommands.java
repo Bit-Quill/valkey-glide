@@ -20,7 +20,7 @@ public interface StringCommands {
      * @param keys the keys we wanted to remove.
      * @returns the number of keys that were removed.
      */
-    CompletableFuture<Integer> del(String[] keys);
+    CompletableFuture<Long> del(String[] keys);
 
     /**
      * Get the value associated with the given <code>key</code>, or <code>null</code> if no such value

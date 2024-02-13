@@ -150,12 +150,12 @@ public abstract class BaseClient
         return handleRedisResponse(String.class, true, response);
     }
 
-    protected Object[] handleArrayResponse(Response response) {
-        return handleRedisResponse(Object[].class, true, response);
+    protected Long handleLongResponse(Response response) throws RedisException {
+        return handleRedisResponse(Long.class, false, response);
     }
 
-    protected Integer handleIntegerResponse(Response response) throws RedisException {
-        return handleRedisResponse(Integer.class, false, response);
+    protected Object[] handleArrayResponse(Response response) {
+        return handleRedisResponse(Object[].class, true, response);
     }
 
     @Override
@@ -169,8 +169,8 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Integer> del(@NonNull String[] keys) {
-        return commandManager.submitNewCommand(Del, keys, this::handleIntegerResponse);
+    public CompletableFuture<Long> del(@NonNull String[] keys) {
+        return commandManager.submitNewCommand(Del, keys, this::handleLongResponse);
     }
 
     @Override

@@ -120,16 +120,16 @@ public class SharedCommandTests {
         setResult = client.set(key3, value).get();
         assertEquals(OK, setResult);
 
-        Integer deletedKeysNum = client.del(new String[] {key1, key2, key3}).get();
-        assertEquals(3, deletedKeysNum);
+        Long deletedKeysNum = client.del(new String[] {key1, key2, key3}).get();
+        assertEquals(3L, deletedKeysNum);
     }
 
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getClients")
     public void del_non_existent_key(BaseClient client) {
-        Integer deletedKeysNum = client.del(new String[] {UUID.randomUUID().toString()}).get();
-        assertEquals(0, deletedKeysNum);
+        Long deletedKeysNum = client.del(new String[] {UUID.randomUUID().toString()}).get();
+        assertEquals(0L, deletedKeysNum);
     }
 
     @SneakyThrows

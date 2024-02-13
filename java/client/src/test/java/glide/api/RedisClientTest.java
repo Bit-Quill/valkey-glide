@@ -114,15 +114,14 @@ public class RedisClientTest {
     public void del_returns_integer_success() {
         // setup
         String[] keys = new String[] {"testKey1", "testKey2"};
-        Integer numberDeleted = 1;
-        CompletableFuture<Integer> testResponse = mock(CompletableFuture.class);
+        Long numberDeleted = 1L;
+        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(numberDeleted);
-        when(commandManager.<Integer>submitNewCommand(eq(Del), eq(keys), any()))
-                .thenReturn(testResponse);
+        when(commandManager.<Long>submitNewCommand(eq(Del), eq(keys), any())).thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Integer> response = service.del(keys);
-        Integer result = response.get();
+        CompletableFuture<Long> response = service.del(keys);
+        Long result = response.get();
 
         // verify
         assertEquals(testResponse, response);
