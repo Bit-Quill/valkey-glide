@@ -28,6 +28,7 @@ public class GlideAsyncClient implements AsyncClient<String> {
                                             .port(connectionSettings.port)
                                             .build())
                             .useTLS(connectionSettings.useSsl)
+                            .threadPoolResource(connectionSettings.threadPoolResource)
                             .build();
             try {
                 redisClient = RedisClusterClient.CreateClient(config).get();
@@ -44,6 +45,7 @@ public class GlideAsyncClient implements AsyncClient<String> {
                                             .port(connectionSettings.port)
                                             .build())
                             .useTLS(connectionSettings.useSsl)
+                            .threadPoolResource(connectionSettings.threadPoolResource)
                             .build();
 
             try {

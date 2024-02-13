@@ -5,6 +5,12 @@ import glide.benchmarks.BenchmarkingApp;
 import glide.benchmarks.clients.AsyncClient;
 import glide.benchmarks.clients.Client;
 import glide.benchmarks.clients.SyncClient;
+import glide.connectors.resources.EpollResource;
+import glide.connectors.resources.KQueuePoolResource;
+import glide.connectors.resources.Platform;
+import glide.connectors.resources.ThreadPoolResource;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -12,6 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.tuple.Pair;
@@ -107,6 +116,19 @@ public class Benchmarking {
     public static void testClientSetGet(
             Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
         for (int concurrentNum : config.concurrentTasks) {
+
+            int numberOfThreads = Runtime.getRuntime().availableProcessors();
+            ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+            ThreadPoolResource threadPoolResource;
+            if (Platform.getCapabilities().isKQueueAvailable()) {
+                threadPoolResource =
+                        new KQueuePoolResource(new KQueueEventLoopGroup(numberOfThreads, executor));
+            } else if (Platform.getCapabilities().isEPollAvailable()) {
+                threadPoolResource = new EpollResource(new EpollEventLoopGroup(numberOfThreads, executor));
+            } else {
+                throw new RuntimeException("Current platform supports no known thread pool resources");
+            }
+
             int iterations =
                     config.minimal ? 1000 : Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
             for (int clientCount : config.clientCount) {
@@ -117,7 +139,11 @@ public class Benchmarking {
                         Client newClient = clientCreator.get();
                         newClient.connectToRedis(
                                 new ConnectionSettings(
-                                        config.host, config.port, config.tls, config.clusterModeEnabled));
+                                        config.host,
+                                        config.port,
+                                        config.tls,
+                                        config.clusterModeEnabled,
+                                        threadPoolResource));
                         clients.add(newClient);
                     }
 
@@ -143,6 +169,7 @@ public class Benchmarking {
                                         clients,
                                         taskNumDebugging,
                                         iterations,
+                                        executor,
                                         config.debugLogging));
                     }
                     if (config.debugLogging) {
@@ -201,6 +228,10 @@ public class Benchmarking {
                     printResults(calculatedResults, (after - started) / NANO_TO_SECONDS, iterations);
                 }
             }
+            System.out.println("Shutting down executor");
+            executor.shutdownNow();
+            threadPoolResource.getEventLoopGroup().shutdownGracefully();
+            System.out.println("Shutdown");
         }
 
         System.out.println();
@@ -215,6 +246,7 @@ public class Benchmarking {
             List<Client> clients,
             int taskNumDebugging,
             int iterations,
+            Executor executor,
             boolean debugLogging) {
         return CompletableFuture.supplyAsync(
                 () -> {
@@ -243,7 +275,8 @@ public class Benchmarking {
                         taskActionResults.get(result.getLeft()).add(result.getRight());
                     }
                     return taskActionResults;
-                });
+                },
+                executor);
     }
 
     public static Map<ChosenAction, Operation> getActionMap(int dataSize, boolean async) {
