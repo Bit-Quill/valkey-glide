@@ -6,8 +6,11 @@ on:
             name:
                 required: false
                 type: string
-    # TODO: remove this
-    push:
+            run-glide-only:
+                description: "flag that tells the Benchmark to measure only GLIDE client"
+                required: false
+                default: true
+                type: boolean
 
 run-name: ${{ inputs.name == '' && format('{0} @ {1}', github.ref_name, github.sha) || inputs.name }}
 
@@ -21,6 +24,9 @@ jobs:
                 redis:
                     - 6.2.14
                     - 7.2.3
+                dotnet:
+                    - 6.0
+                    - 8.0
         runs-on: ubuntu-latest
 
         steps:
@@ -38,22 +44,22 @@ jobs:
               with:
                   version: "25.1"
 
-            - name: Set up dotnet
+            - name: Set up dotnet ${{ matrix.dotnet }}
               uses: actions/setup-dotnet@v4
               with:
-                  dotnet-version: 6.0.x
+                  dotnet-version: ${{ matrix.dotnet }}
 
             - name: benchmark
               uses: ./.github/workflows/test-benchmark
               with:
                   language-flag: -csharp
-                  run-glide-only: false # TODO - delete this line
+                  run-glide-only: ${{ inputs.run-glide-only }}
 
             - name: Upload test reports
               if: always()
               continue-on-error: true
               uses: actions/upload-artifact@v4
               with:
-                  name: test-reports-${{ matrix.redis }}
+                  name: test-reports-redis-${{ matrix.redis }}-dotnet-${{ matrix.dotnet }}
                   path: |
                       benchmarks/results/**
