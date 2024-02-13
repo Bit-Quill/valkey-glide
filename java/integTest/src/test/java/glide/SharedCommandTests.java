@@ -22,6 +22,7 @@ import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.exceptions.RequestException;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -257,7 +258,7 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void incr_commands_existing_key(BaseClient client) {
-        String key = RandomStringUtils.randomAlphabetic(10);
+        String key = UUID.randomUUID().toString();
 
         assertEquals(OK, client.set(key, "10").get(10, SECONDS));
 
@@ -275,9 +276,9 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void incr_commands_non_existing_key(BaseClient client) {
-        String key1 = RandomStringUtils.randomAlphabetic(10);
-        String key2 = RandomStringUtils.randomAlphabetic(10);
-        String key3 = RandomStringUtils.randomAlphabetic(10);
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String key3 = UUID.randomUUID().toString();
 
         assertNull(client.get(key1).get(10, SECONDS));
         assertEquals(1, client.incr(key1).get(10, SECONDS));
@@ -296,7 +297,7 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void test_incr_commands_type_error(BaseClient client) {
-        String key1 = RandomStringUtils.randomAlphabetic(10);
+        String key1 = UUID.randomUUID().toString();
 
         assertEquals(OK, client.set(key1, "foo").get(10, SECONDS));
 
