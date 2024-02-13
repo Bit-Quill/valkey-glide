@@ -228,12 +228,10 @@ public class Benchmarking {
                     printResults(calculatedResults, (after - started) / NANO_TO_SECONDS, iterations);
                 }
             }
-            System.out.println("Shutting down executor");
             executor.shutdownNow();
             threadPoolResource.getEventLoopGroup().shutdownGracefully();
-            System.out.println("Shutdown");
         }
-
+        
         System.out.println();
     }
 
