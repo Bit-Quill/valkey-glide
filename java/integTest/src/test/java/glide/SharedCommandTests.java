@@ -10,6 +10,7 @@ import static glide.api.models.commands.SetOptions.Expiry.Milliseconds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import glide.api.BaseClient;
 import glide.api.RedisClient;
@@ -18,7 +19,10 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
+import glide.api.models.exceptions.RequestException;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -246,5 +250,67 @@ public class SharedCommandTests {
         SetOptions options = SetOptions.builder().returnOldValue(true).build();
         String data = client.set("another", ANOTHER_VALUE, options).get();
         assertNull(data);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void incr_commands_existing_key(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+
+        assertEquals(OK, client.set(key, "10").get());
+
+        assertEquals(11, client.incr(key).get());
+        assertEquals("11", client.get(key).get());
+
+        assertEquals(15, client.incrBy(key, 4).get());
+        assertEquals("15", client.get(key).get());
+
+        assertEquals(20.5, client.incrByFloat(key, 5.5).get());
+        assertEquals("20.5", client.get(key).get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void incr_commands_non_existing_key(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String key3 = UUID.randomUUID().toString();
+
+        assertNull(client.get(key1).get());
+        assertEquals(1, client.incr(key1).get());
+        assertEquals("1", client.get(key1).get());
+
+        assertNull(client.get(key2).get());
+        assertEquals(3, client.incrBy(key2, 3).get());
+        assertEquals("3", client.get(key2).get());
+
+        assertNull(client.get(key3).get());
+        assertEquals(0.5, client.incrByFloat(key3, 0.5).get());
+        assertEquals("0.5", client.get(key3).get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void test_incr_commands_type_error(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+
+        assertEquals(OK, client.set(key1, "foo").get());
+
+        Exception incrException = assertThrows(ExecutionException.class, () -> client.incr(key1).get());
+        assertTrue(incrException.getCause() instanceof RequestException);
+        assertTrue(incrException.getCause().getMessage().contains("value is not an integer"));
+
+        Exception incrByException =
+                assertThrows(ExecutionException.class, () -> client.incrBy(key1, 3).get());
+        assertTrue(incrByException.getCause() instanceof RequestException);
+        assertTrue(incrByException.getCause().getMessage().contains("value is not an integer"));
+
+        Exception incrByFloatException =
+                assertThrows(ExecutionException.class, () -> client.incrByFloat(key1, 3.5).get());
+        assertTrue(incrByFloatException.getCause() instanceof RequestException);
+        assertTrue(incrByFloatException.getCause().getMessage().contains("value is not a valid float"));
     }
 }
