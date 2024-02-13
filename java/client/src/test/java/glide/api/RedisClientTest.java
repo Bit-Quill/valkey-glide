@@ -4,7 +4,6 @@ package glide.api;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -32,7 +31,6 @@ import java.util.concurrent.CompletableFuture;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.hamcrest.MockitoHamcrest;
 
 public class RedisClientTest {
 
@@ -311,8 +309,7 @@ public class RedisClientTest {
 
         CompletableFuture testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);
-        when(commandManager.<Long>submitNewCommand(
-                        eq(HashSet), MockitoHamcrest.argThat(arrayContainingInAnyOrder(args)), any()))
+        when(commandManager.<Long>submitNewCommand(eq(HashSet), eq(args), any()))
                 .thenReturn(testResponse);
 
         // exercise
