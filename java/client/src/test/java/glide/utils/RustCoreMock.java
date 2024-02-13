@@ -21,6 +21,7 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import redis_request.RedisRequestOuterClass.RedisRequest;
 import response.ResponseOuterClass.ConstantResponse;
@@ -118,49 +119,7 @@ public class RustCoreMock {
                                                 .addLast("frameDecoder", new ProtobufVarint32FrameDecoder())
                                                 .addLast("frameEncoder", new ProtobufVarint32LengthFieldPrepender())
                                                 .addLast("protobufEncoder", new ProtobufEncoder())
-                                                .addLast(
-                                                        new ChannelInboundHandlerAdapter() {
-
-                                                            // This works with only one connected client.
-                                                            // TODO Rework with `channelActive` override.
-                                                            private final AtomicBoolean anybodyConnected =
-                                                                    new AtomicBoolean(false);
-
-                                                            @Override
-                                                            public void channelRead(ChannelHandlerContext ctx, Object msg)
-                                                                    throws Exception {
-                                                                var buf = (ByteBuf) msg;
-                                                                var bytes = new byte[buf.readableBytes()];
-                                                                buf.readBytes(bytes);
-                                                                buf.release();
-                                                                if (messageProcessor.isRaw()) {
-                                                                    ch.writeAndFlush(
-                                                                            Unpooled.copiedBuffer(messageProcessor.handle(bytes)));
-                                                                    return;
-                                                                }
-                                                                var handler = (GlideMockProtobuf) messageProcessor;
-                                                                Response response = null;
-                                                                if (!anybodyConnected.get()) {
-                                                                    var connection = ConnectionRequest.parseFrom(bytes);
-                                                                    response = handler.connection(connection);
-                                                                    anybodyConnected.setPlain(true);
-                                                                } else {
-                                                                    var request = RedisRequest.parseFrom(bytes);
-                                                                    response = handler.redisRequestWithCallbackId(request);
-                                                                }
-                                                                if (response != null) {
-                                                                    ctx.writeAndFlush(response);
-                                                                }
-                                                            }
-
-                                                            @Override
-                                                            public void exceptionCaught(
-                                                                    ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                                                                cause.printStackTrace();
-                                                                ctx.close();
-                                                                failed.setPlain(true);
-                                                            }
-                                                        });
+                                                .addLast(new UdsServer(ch));
                                     }
                                 })
                         .bind(new DomainSocketAddress(socketPath))
@@ -183,6 +142,48 @@ public class RustCoreMock {
             instance.channel.close().syncUninterruptibly();
             instance.group.shutdownGracefully().get(5, TimeUnit.SECONDS);
             instance = null;
+        }
+    }
+
+    @RequiredArgsConstructor
+    private class UdsServer extends ChannelInboundHandlerAdapter {
+
+        private final Channel ch;
+
+        // This works with only one connected client.
+        // TODO Rework with `channelActive` override.
+        private final AtomicBoolean anybodyConnected = new AtomicBoolean(false);
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            var buf = (ByteBuf) msg;
+            var bytes = new byte[buf.readableBytes()];
+            buf.readBytes(bytes);
+            buf.release();
+            if (messageProcessor.isRaw()) {
+                ch.writeAndFlush(Unpooled.copiedBuffer(messageProcessor.handle(bytes)));
+                return;
+            }
+            var handler = (GlideMockProtobuf) messageProcessor;
+            Response response = null;
+            if (!anybodyConnected.get()) {
+                var connection = ConnectionRequest.parseFrom(bytes);
+                response = handler.connection(connection);
+                anybodyConnected.setPlain(true);
+            } else {
+                var request = RedisRequest.parseFrom(bytes);
+                response = handler.redisRequestWithCallbackId(request);
+            }
+            if (response != null) {
+                ctx.writeAndFlush(response);
+            }
+        }
+
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+            cause.printStackTrace();
+            ctx.close();
+            failed.setPlain(true);
         }
     }
 }
