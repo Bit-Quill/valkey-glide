@@ -111,7 +111,7 @@ public class RedisClientTest {
 
     @SneakyThrows
     @Test
-    public void del_returns_integer_success() {
+    public void del_returns_long_success() {
         // setup
         String[] keys = new String[] {"testKey1", "testKey2"};
         Long numberDeleted = 1L;
