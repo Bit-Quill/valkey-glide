@@ -2,6 +2,8 @@
 package glide.api.models;
 
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
+import static redis_request.RedisRequestOuterClass.RequestType.Decr;
+import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
@@ -13,6 +15,7 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
 import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
@@ -162,6 +165,41 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                 buildArgs(ArrayUtils.addAll(new String[] {key, value}, options.toArgs()));
 
         protobufTransaction.addCommands(buildCommand(SetString, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Decrements the number stored at <code>key</code> by one. If <code>key</code> does not exist, it
+     * is set to 0 before performing the operation.
+     *
+     * @see <a href="https://redis.io/commands/decr/">redis.io</a> for details.
+     * @param key The key to decrement its value.
+     * @return The value of <code>key</code> after the decrement. An error is raised if <code>key
+     *     </code> contains a value of the wrong type or contains a string that cannot be represented
+     *     as integer.
+     */
+    public T decr(@NonNull String key) {
+        ArgsArray commandArgs = buildArgs(key);
+
+        protobufTransaction.addCommands(buildCommand(Decr, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Decrements the number stored at <code>key</code> by <code>amount</code>. If <code>key</code>
+     * does not exist, it is set to 0 before performing the operation.
+     *
+     * @see <a href="https://redis.io/commands/decrby/">redis.io</a> for details.
+     * @param key The key to decrement its value.
+     * @param amount The amount to decrement.
+     * @return The value of <code>key</code> after the decrement. An error is raised if <code>key
+     *     </code> contains a value of the wrong type or contains a string that cannot be represented
+     *     as integer.
+     */
+    public T decrBy(@NonNull String key, long amount) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(amount));
+
+        protobufTransaction.addCommands(buildCommand(DecrBy, commandArgs));
         return getThis();
     }
 

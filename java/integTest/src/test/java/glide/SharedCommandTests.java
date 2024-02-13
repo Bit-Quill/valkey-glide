@@ -20,9 +20,9 @@ import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Timeout;
@@ -254,30 +254,30 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void decr_and_decrBy_existing_key(BaseClient client) {
-        String key = RandomStringUtils.randomAlphabetic(10);
+        String key = UUID.randomUUID().toString();
 
-        assertEquals(OK, client.set(key, "10").get(10, SECONDS));
+        assertEquals(OK, client.set(key, "10").get());
 
-        assertEquals(9, client.decr(key).get(10, SECONDS));
-        assertEquals("9", client.get(key).get(10, SECONDS));
+        assertEquals(9, client.decr(key).get());
+        assertEquals("9", client.get(key).get());
 
-        assertEquals(5, client.decrBy(key, 4).get(10, SECONDS));
-        assertEquals("5", client.get(key).get(10, SECONDS));
+        assertEquals(5, client.decrBy(key, 4).get());
+        assertEquals("5", client.get(key).get());
     }
 
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getClients")
     public void decr_and_decrBy_non_existing_key(BaseClient client) {
-        String key1 = RandomStringUtils.randomAlphabetic(10);
-        String key2 = RandomStringUtils.randomAlphabetic(10);
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
 
-        assertNull(client.get(key1).get(10, SECONDS));
-        assertEquals(-1, client.decr(key1).get(10, SECONDS));
-        assertEquals("-1", client.get(key1).get(10, SECONDS));
+        assertNull(client.get(key1).get());
+        assertEquals(-1, client.decr(key1).get());
+        assertEquals("-1", client.get(key1).get());
 
         assertNull(client.get(key2).get(10, SECONDS));
-        assertEquals(-3, client.decrBy(key2, 3).get(10, SECONDS));
-        assertEquals("-3", client.get(key2).get(10, SECONDS));
+        assertEquals(-3, client.decrBy(key2, 3).get());
+        assertEquals("-3", client.get(key2).get());
     }
 }
