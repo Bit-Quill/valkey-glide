@@ -5,6 +5,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.models.commands.InfoOptions;
@@ -13,11 +15,14 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
 import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
 import redis_request.RedisRequestOuterClass.RequestType;
 import redis_request.RedisRequestOuterClass.Transaction;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Base class encompassing shared commands for both standalone and cluster mode implementations in a
@@ -162,6 +167,57 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                 buildArgs(ArrayUtils.addAll(new String[] {key, value}, options.toArgs()));
 
         protobufTransaction.addCommands(buildCommand(SetString, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Add specified members to the set stored at <code>key</code>.
+     * Specified members that are already a member of this set are ignored.
+     * If <code>key</code> does not exist, a new set is created before adding <code>members</code>.
+     *
+     * @see <a href="https://redis.io/commands/sadd/">redis.io</a> for details.
+     * @param key The <code>key</code> where members will be added to its set.
+     * @param members A list of members to add to the set stored at <code>key</code>.
+     * @return A list of members to add to the set stored at <code>key</code>>.
+     * @remarks If <code>key</code> holds a value that is not a set, an error is returned.
+     *
+     * @example
+     *     <p><code>
+     *  int result = client.sadd("my_set", new String[]{"member1", "member2"}).get();
+     *  </code>
+     */
+    public T sadd(String key, String[] members) {
+        ArgsArray commandArgs =
+            buildArgs(ArrayUtils.addAll(new String[] {key}, members));
+
+        protobufTransaction.addCommands(buildCommand(SAdd, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Remove specified members from the set stored at <code>key</code>.
+     * Specified members that are not a member of this set are ignored.
+     *
+     * @see <a href="https://redis.io/commands/srem/">redis.io</a> for details.
+     * @param key The <code>key</code> from which members will be removed.
+     * @param members A list of members to remove from the set stored at <code>key</code>.
+     * @return The number of members that were removed from the set, excluding non-existing members.
+     * @remarks
+     *     <ul>
+     *       <li>If <code>key</code> does not exist, it is treated as an empty set and this command returns 0.
+     *       <li>If <code>key</code> holds a value that is not a set, an error is returned.
+     *     </ul>
+     *
+     * @example
+     *     <p><code>
+     *  int result = client.srem("my_set", new String[]{"member1", "member2"}).get();
+     *  </code>
+     */
+    public T srem(String key, String[] members) {
+        ArgsArray commandArgs =
+            buildArgs(ArrayUtils.addAll(new String[] {key}, members));
+
+        protobufTransaction.addCommands(buildCommand(SRem, commandArgs));
         return getThis();
     }
 

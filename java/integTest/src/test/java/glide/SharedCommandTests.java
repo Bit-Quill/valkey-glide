@@ -19,6 +19,7 @@ import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import java.util.List;
+
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -246,5 +247,22 @@ public class SharedCommandTests {
         SetOptions options = SetOptions.builder().returnOldValue(true).build();
         String data = client.set("another", ANOTHER_VALUE, options).get();
         assertNull(data);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void sadd_and_srem(BaseClient client) {
+        String key = KEY_NAME;
+        String member1 = "member1";
+        String member2 = "member2";
+        String[] members = new String[]{ member1, member2 };
+
+        assertEquals(members.length, client.sadd(key, members));
+        assertEquals(0, client.sadd(key, new String[]{member1}));
+
+        assertEquals(0, client.srem(key, new String[]{ "nonexistent_member" }));
+        assertEquals(members.length, client.srem(key, members));
+        assertEquals(0, client.srem(key, members));
     }
 }
