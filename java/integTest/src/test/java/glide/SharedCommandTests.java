@@ -20,9 +20,9 @@ import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Timeout;
@@ -254,10 +254,10 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void hset_hget_existing_fields_non_existing_fields(BaseClient client) {
-        String key = RandomStringUtils.randomAlphabetic(10);
-        String field1 = RandomStringUtils.randomAlphabetic(10);
-        String field2 = RandomStringUtils.randomAlphabetic(10);
-        String value = RandomStringUtils.randomAlphabetic(10);
+        String key = UUID.randomUUID().toString();
+        String field1 = UUID.randomUUID().toString();
+        String field2 = UUID.randomUUID().toString();
+        String value = UUID.randomUUID().toString();
         Map<String, String> fieldValueMap = Map.of(field1, value, field2, value);
 
         assertEquals(2, client.hset(key, fieldValueMap).get());
@@ -270,11 +270,11 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void hdel_multiple_existing_fields_non_existing_field_non_existing_key(BaseClient client) {
-        String key = RandomStringUtils.randomAlphabetic(10);
-        String field1 = RandomStringUtils.randomAlphabetic(10);
-        String field2 = RandomStringUtils.randomAlphabetic(10);
-        String field3 = RandomStringUtils.randomAlphabetic(10);
-        String value = RandomStringUtils.randomAlphabetic(10);
+        String key = UUID.randomUUID().toString();
+        String field1 = UUID.randomUUID().toString();
+        String field2 = UUID.randomUUID().toString();
+        String field3 = UUID.randomUUID().toString();
+        String value = UUID.randomUUID().toString();
         Map<String, String> fieldValueMap = Map.of(field1, value, field2, value, field3, value);
 
         assertEquals(3, client.hset(key, fieldValueMap).get());

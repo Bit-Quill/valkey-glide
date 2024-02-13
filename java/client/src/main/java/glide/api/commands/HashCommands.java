@@ -17,8 +17,8 @@ public interface HashCommands {
      * @see <a href="https://redis.io/commands/hget/">redis.io</a> for details.
      * @param key The key of the hash.
      * @param field The field in the hash stored at <code>key</code> to retrieve from the database.
-     * @return The value associated with <code>field</code>, or null when <code>field</code> is not
-     *     present in the hash or <code>key</code> does not exist.
+     * @return The value associated with <code>field</code>, or <code>null</code> when <code>field
+     *     </code> is not present in the hash or <code>key</code> does not exist.
      */
     CompletableFuture<String> hget(String key, String field);
 

@@ -212,7 +212,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Long> hdel(@NonNull String key, @NonNull String[] fields) {
-        String[] args = ArrayUtils.insert(0, fields, key);
+        String[] args = ArrayUtils.addFirst(fields, key);
         return commandManager.submitNewCommand(HashDel, args, this::handleLongResponse);
     }
 }

@@ -26,6 +26,7 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import lombok.SneakyThrows;
@@ -302,7 +303,9 @@ public class RedisClientTest {
     public void hset_success() {
         // setup
         String key = "testKey";
-        Map<String, String> fieldValueMap = Map.of("field1", "value1", "field2", "value2");
+        Map<String, String> fieldValueMap = new LinkedHashMap<>();
+        fieldValueMap.put("field1", "value1");
+        fieldValueMap.put("field2", "value2");
         String[] args = new String[] {key, "field1", "value1", "field2", "value2"};
         Long value = 2L;
 
