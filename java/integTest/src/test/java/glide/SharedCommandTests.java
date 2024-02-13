@@ -19,6 +19,7 @@ import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -101,6 +102,34 @@ public class SharedCommandTests {
     public void get_missing_value(BaseClient client) {
         String data = client.get("invalid").get();
         assertNull(data);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void del_multiple_keys(BaseClient client) {
+        String key1 = "{key}" + UUID.randomUUID();
+        String key2 = "{key}" + UUID.randomUUID();
+        String key3 = "{key}" + UUID.randomUUID();
+        String value = UUID.randomUUID().toString();
+
+        String setResult = client.set(key1, value).get();
+        assertEquals(OK, setResult);
+        setResult = client.set(key2, value).get();
+        assertEquals(OK, setResult);
+        setResult = client.set(key3, value).get();
+        assertEquals(OK, setResult);
+
+        Integer deletedKeysNum = client.del(new String[] {key1, key2, key3}).get();
+        assertEquals(3, deletedKeysNum);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void del_non_existent_key(BaseClient client) {
+        Integer deletedKeysNum = client.del(new String[] {UUID.randomUUID().toString()}).get();
+        assertEquals(0, deletedKeysNum);
     }
 
     @SneakyThrows

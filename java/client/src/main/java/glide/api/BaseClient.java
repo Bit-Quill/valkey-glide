@@ -2,6 +2,7 @@
 package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
+import static redis_request.RedisRequestOuterClass.RequestType.Del;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
@@ -153,6 +154,10 @@ public abstract class BaseClient
         return handleRedisResponse(Object[].class, true, response);
     }
 
+    protected Integer handleIntegerResponse(Response response) throws RedisException {
+        return handleRedisResponse(Integer.class, false, response);
+    }
+
     @Override
     public CompletableFuture<String> ping() {
         return commandManager.submitNewCommand(Ping, new String[0], this::handleStringResponse);
@@ -161,6 +166,11 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<String> ping(@NonNull String str) {
         return commandManager.submitNewCommand(Ping, new String[] {str}, this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<Integer> del(@NonNull String[] keys) {
+        return commandManager.submitNewCommand(Del, keys, this::handleIntegerResponse);
     }
 
     @Override
