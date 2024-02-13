@@ -6,6 +6,8 @@ on:
             name:
                 required: false
                 type: string
+    # TODO: remove this
+    push:
 
 run-name: ${{ inputs.name == '' && format('{0} @ {1}', github.ref_name, github.sha) || inputs.name }}
 
