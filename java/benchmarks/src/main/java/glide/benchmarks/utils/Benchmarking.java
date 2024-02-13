@@ -231,7 +231,7 @@ public class Benchmarking {
             executor.shutdownNow();
             threadPoolResource.getEventLoopGroup().shutdownGracefully();
         }
-        
+
         System.out.println();
     }
 
