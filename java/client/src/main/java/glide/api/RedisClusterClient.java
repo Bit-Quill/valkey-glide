@@ -1,6 +1,9 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static glide.utils.ArrayTransformUtils.convertMapToArgArray;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigSet;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
@@ -16,6 +19,7 @@ import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
@@ -131,5 +135,35 @@ public class RedisClusterClient extends BaseClient
                         route.isSingleNodeRoute()
                                 ? ClusterValue.of(handleStringResponse(response))
                                 : ClusterValue.of(handleMapResponse(response)));
+    }
+
+    @Override
+    public CompletableFuture<Map<String, String>> configGet(String[] parameters) {
+        return super.configGet(parameters);
+    }
+
+    @Override
+    public CompletableFuture<String> configSet(@NonNull Map<String, String> parameters) {
+        return super.configSet(parameters);
+    }
+
+    @Override
+    public CompletableFuture<ClusterValue<Map<String, String>>> configGet(
+            String[] parameters, @NonNull Route route) {
+        return commandManager.submitNewCommand(
+                ConfigGet,
+                parameters,
+                route,
+                response ->
+                        route.isSingleNodeRoute()
+                                ? ClusterValue.ofSingleValue(handleMapResponse(response))
+                                : ClusterValue.ofMultiValue(handleMapResponse(response)));
+    }
+
+    @Override
+    public CompletableFuture<String> configSet(
+            @NonNull Map<String, String> parameters, @NonNull Route route) {
+        return commandManager.submitNewCommand(
+                ConfigSet, convertMapToArgArray(parameters), route, this::handleStringResponse);
     }
 }

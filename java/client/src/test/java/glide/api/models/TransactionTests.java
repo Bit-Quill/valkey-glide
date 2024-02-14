@@ -3,6 +3,8 @@ package glide.api.models;
 
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigSet;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
 import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
@@ -24,6 +26,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +118,16 @@ public class TransactionTests {
 
         transaction.scard("key");
         results.add(Pair.of(SCard, ArgsArray.newBuilder().addArgs("key").build()));
+
+        transaction.configGet(new String[] {"Foster", "The", "Fluffy", "Dogster"});
+        results.add(Pair.of(ConfigGet, transaction.buildArgs("Foster", "The", "Fluffy", "Dogster")));
+
+        var configSetMap = new LinkedHashMap<String, String>();
+        configSetMap.put("Foster", "The");
+        configSetMap.put("Fluffy", "Dogster");
+
+        transaction.configSet(configSetMap);
+        results.add(Pair.of(ConfigSet, transaction.buildArgs("Foster", "The", "Fluffy", "Dogster")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

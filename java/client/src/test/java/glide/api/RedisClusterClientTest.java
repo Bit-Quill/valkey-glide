@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static glide.api.BaseClient.OK;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.ALL_NODES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.ALL_PRIMARIES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.RANDOM;
@@ -11,6 +12,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigSet;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 
@@ -118,7 +120,6 @@ public class RedisClusterClientTest {
             object = objectToReturn;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         protected <T> T handleRedisResponse(Class<T> classType, boolean isNullable, Response response) {
             return (T) object;
@@ -313,5 +314,52 @@ public class RedisClusterClientTest {
         var value = client.info(InfoOptions.builder().build(), ALL_NODES).get();
         assertAll(
                 () -> assertTrue(value.hasMultiData()), () -> assertEquals(data, value.getMultiValue()));
+    }
+
+    // TODO copy/move tests from RedisClientTest which have @inheritDoc for coverage
+
+    @Test
+    @SneakyThrows
+    // test checks that even a map returned as a single value when single node route is used
+    public void configGet_with_single_node_route_returns_single_value() {
+        var commandManager = new TestCommandManager(null);
+
+        var data = Map.of("key1", "value1", "key2", "value2");
+        var client = new TestClient(commandManager, data);
+
+        var value = client.configGet(TEST_ARGS, RANDOM).get();
+        assertAll(
+                () -> assertTrue(value.hasSingleData()), () -> assertEquals(data, value.getSingleValue()));
+    }
+
+    @Test
+    @SneakyThrows
+    public void configGet_with_multi_node_route_returns_multi_value() {
+        var commandManager = new TestCommandManager(null);
+
+        var data = Map.of("node1", Map.of("key1", "value1", "key2", "value2"));
+        var client = new TestClient(commandManager, data);
+
+        var value = client.configGet(TEST_ARGS, ALL_NODES).get();
+        assertAll(
+                () -> assertTrue(value.hasMultiData()), () -> assertEquals(data, value.getMultiValue()));
+    }
+
+    @SneakyThrows
+    @Test
+    public void configSet_with_route_returns_success() {
+        // setup
+        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(OK);
+        when(commandManager.<String>submitNewCommand(
+                        eq(ConfigSet), eq(new String[] {"value", "42"}), eq(RANDOM), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.configSet(Map.of("value", "42"), RANDOM);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(OK, response.get());
     }
 }

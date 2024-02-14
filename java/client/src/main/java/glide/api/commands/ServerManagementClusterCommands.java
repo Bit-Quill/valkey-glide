@@ -5,6 +5,7 @@ import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -12,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @see <a href="https://redis.io/commands/?group=server">Server Management Commands</a>
  */
-public interface ServerManagementClusterCommands {
+public interface ServerManagementClusterCommands extends ServerManagementBaseCommands {
 
     /**
      * Get information and statistics about the Redis server using the {@link Section#DEFAULT} option.
@@ -71,4 +72,37 @@ public interface ServerManagementClusterCommands {
      *     value is the information of the sections requested for the node.
      */
     CompletableFuture<ClusterValue<String>> info(InfoOptions options, Route route);
+
+    /** {@inheritDoc} The command will be sent to a random node. */
+    CompletableFuture<Map<String, String>> configGet(String[] parameters);
+
+    /** {@inheritDoc} The command will be sent to a random node. */
+    CompletableFuture<String> configSet(Map<String, String> parameters);
+
+    /**
+     * Read the configuration parameters of a running Redis server.
+     *
+     * @param parameters An <code>array</code> of configuration parameter names to retrieve values
+     *     for.
+     * @param route Routing configuration for the command. Client will route the command to the nodes
+     *     defined.
+     * @return A <code>map</code> of values corresponding to the configuration parameters.<br>
+     *     When specifying a route other than a single node, it returns a dictionary where each
+     *     address is the key and its corresponding node response is the value.
+     * @see <a href="https://redis.io/commands/config-get/">redis.io</a> for details.
+     */
+    CompletableFuture<ClusterValue<Map<String, String>>> configGet(String[] parameters, Route route);
+
+    /**
+     * Set configuration parameters to the specified values.
+     *
+     * @see <a href="https://redis.io/commands/config-set/">redis.io</a> for details.
+     * @param parameters A <code>map</code> consisting of configuration parameters and their
+     *     respective values to set.
+     * @param route Routing configuration for the command. Client will route the command to the nodes
+     *     defined.
+     * @return <code>OK</code> if all configurations have been successfully set. Otherwise, raises an
+     *     error.
+     */
+    CompletableFuture<String> configSet(Map<String, String> parameters, Route route);
 }
