@@ -175,7 +175,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     </code> multiple times, it will be counted multiple times.
      */
     public T exists(String[] keys) {
-        ArgsArray commandArgs = buildArgs(ArrayUtils.addAll(keys));
+        ArgsArray commandArgs = buildArgs(keys);
 
         protobufTransaction.addCommands(buildCommand(Exists, commandArgs));
         return getThis();
