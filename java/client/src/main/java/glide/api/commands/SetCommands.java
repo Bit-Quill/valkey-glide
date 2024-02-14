@@ -29,7 +29,7 @@ public interface SetCommands {
      *  int result = client.sadd("my_set", new String[]{"member1", "member2"}).get();
      *  </code>
      */
-    CompletableFuture<Long> sadd(String key, String[] members);
+    CompletableFuture<Long> sadd(String key, String... members);
 
     /**
      * Remove specified members from the set stored at <code>key</code>. Specified members that are

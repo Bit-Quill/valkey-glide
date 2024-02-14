@@ -187,7 +187,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *  int result = client.sadd("my_set", new String[]{"member1", "member2"}).get();
      *  </code>
      */
-    public T sadd(String key, String[] members) {
+    public T sadd(String key, String... members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addAll(new String[] {key}, members));
 
         protobufTransaction.addCommands(buildCommand(SAdd, commandArgs));
@@ -214,7 +214,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *  int result = client.srem("my_set", new String[]{"member1", "member2"}).get();
      *  </code>
      */
-    public T srem(String key, String[] members) {
+    public T srem(String key, String... members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addAll(new String[] {key}, members));
 
         protobufTransaction.addCommands(buildCommand(SRem, commandArgs));
