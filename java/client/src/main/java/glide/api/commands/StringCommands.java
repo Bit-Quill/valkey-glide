@@ -14,15 +14,6 @@ import java.util.concurrent.CompletableFuture;
 public interface StringCommands {
 
     /**
-     * Removes the specified <code>keys</code>. A key is ignored if it does not exist.
-     *
-     * @see <a href="https://redis.io/commands/del/">redis.io</a> for details.
-     * @param keys the keys we wanted to remove.
-     * @returns the number of keys that were removed.
-     */
-    CompletableFuture<Long> del(String[] keys);
-
-    /**
      * Get the value associated with the given <code>key</code>, or <code>null</code> if no such value
      * exists.
      *
