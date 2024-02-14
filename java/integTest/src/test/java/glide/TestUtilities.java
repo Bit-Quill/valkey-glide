@@ -16,8 +16,8 @@ public class TestUtilities {
         baseTransaction.set(key2, value2, SetOptions.builder().returnOldValue(true).build());
         baseTransaction.customCommand("MGET", key1, key2);
 
-        baseTransaction.sadd(key1, new String[]{value1, value2});
-        baseTransaction.srem(key1, new String[]{value1, value2});
+        baseTransaction.sadd(key1, new String[] {value1, value2});
+        baseTransaction.srem(key1, new String[] {value1, value2});
 
         return baseTransaction;
     }

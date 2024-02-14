@@ -1,9 +1,6 @@
-/**
- * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
- */
+/** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -13,8 +10,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface SetCommands {
     /**
-     * Add specified members to the set stored at <code>key</code>.
-     * Specified members that are already a member of this set are ignored.
+     * Add specified members to the set stored at <code>key</code>. Specified members that are already
+     * a member of this set are ignored.
      *
      * @see <a href="https://redis.io/commands/sadd/">redis.io</a> for details.
      * @param key The <code>key</code> where members will be added to its set.
@@ -22,7 +19,8 @@ public interface SetCommands {
      * @return The number of members that were added to the set, excluding members already present.
      * @remarks
      *     <ul>
-     *       <li>If <code>key</code> does not exist, a new set is created before adding <code>members</code>.
+     *       <li>If <code>key</code> does not exist, a new set is created before adding <code>members
+     *           </code>.
      *       <li>If <code>key</code> holds a value that is not a set, an error is returned.
      *     </ul>
      *
@@ -34,8 +32,8 @@ public interface SetCommands {
     CompletableFuture<Long> sadd(String key, String[] members);
 
     /**
-     * Remove specified members from the set stored at <code>key</code>.
-     * Specified members that are not a member of this set are ignored.
+     * Remove specified members from the set stored at <code>key</code>. Specified members that are
+     * not a member of this set are ignored.
      *
      * @see <a href="https://redis.io/commands/srem/">redis.io</a> for details.
      * @param key The <code>key</code> from which members will be removed.
@@ -43,7 +41,8 @@ public interface SetCommands {
      * @return The number of members that were removed from the set, excluding non-existing members.
      * @remarks
      *     <ul>
-     *       <li>If <code>key</code> does not exist, it is treated as an empty set and this command returns 0.
+     *       <li>If <code>key</code> does not exist, it is treated as an empty set and this command
+     *           returns 0.
      *       <li>If <code>key</code> holds a value that is not a set, an error is returned.
      *     </ul>
      *

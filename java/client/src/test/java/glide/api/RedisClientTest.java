@@ -276,7 +276,7 @@ public class RedisClientTest {
     public void sadd_returns_success() {
         // setup
         String key = "testKey";
-        String[] members = new String[]{ "testMember1", "testMember2" };
+        String[] members = new String[] {"testMember1", "testMember2"};
         String[] arguments = ArrayUtils.addAll(new String[] {key}, members);
         Long value = 2L;
 
@@ -285,7 +285,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(SAdd), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Long> response = service.sadd(key, members);
@@ -301,7 +301,7 @@ public class RedisClientTest {
     public void srem_returns_success() {
         // setup
         String key = "testKey";
-        String[] members = new String[]{ "testMember1", "testMember2" };
+        String[] members = new String[] {"testMember1", "testMember2"};
         String[] arguments = ArrayUtils.addAll(new String[] {key}, members);
         Long value = 2L;
 
@@ -310,7 +310,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(SRem), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Long> response = service.srem(key, members);
