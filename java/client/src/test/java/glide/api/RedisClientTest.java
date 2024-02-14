@@ -277,7 +277,7 @@ public class RedisClientTest {
         // setup
         String key = "testKey";
         String[] members = new String[] {"testMember1", "testMember2"};
-        String[] arguments = ArrayUtils.addAll(new String[] {key}, members);
+        String[] arguments = ArrayUtils.addFirst(members, key);
         Long value = 2L;
 
         CompletableFuture testResponse = mock(CompletableFuture.class);
@@ -302,7 +302,7 @@ public class RedisClientTest {
         // setup
         String key = "testKey";
         String[] members = new String[] {"testMember1", "testMember2"};
-        String[] arguments = ArrayUtils.addAll(new String[] {key}, members);
+        String[] arguments = ArrayUtils.addFirst(members, key);
         Long value = 2L;
 
         CompletableFuture testResponse = mock(CompletableFuture.class);

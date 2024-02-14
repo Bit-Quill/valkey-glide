@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.models.commands.InfoOptions;
@@ -56,6 +58,12 @@ public class ClusterTransactionTests {
                 Pair.of(
                         Info,
                         ArgsArray.newBuilder().addArgs(InfoOptions.Section.EVERYTHING.toString()).build()));
+
+        transaction.sadd("key", "value");
+        results.add(Pair.of(SAdd, ArgsArray.newBuilder().addArgs("key").addArgs("value").build()));
+
+        transaction.srem("key", "value");
+        results.add(Pair.of(SRem, ArgsArray.newBuilder().addArgs("key").addArgs("value").build()));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 
