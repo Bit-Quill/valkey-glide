@@ -19,6 +19,7 @@ import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -246,5 +247,30 @@ public class SharedCommandTests {
         SetOptions options = SetOptions.builder().returnOldValue(true).build();
         String data = client.set("another", ANOTHER_VALUE, options).get();
         assertNull(data);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void exists_multiple_keys(BaseClient client) {
+        String key1 = "{key}" + UUID.randomUUID();
+        String key2 = "{key}" + UUID.randomUUID();
+        String value = UUID.randomUUID().toString();
+
+        String setResult = client.set(key1, value).get();
+        assertEquals(OK, setResult);
+        setResult = client.set(key2, value).get();
+        assertEquals(OK, setResult);
+
+        Long existsKeysNum = client.exists(new String[] {key1, key2, key1}).get();
+        assertEquals(3L, existsKeysNum);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void del_non_existent_key(BaseClient client) {
+        Long existsKeysNum = client.exists(new String[] {UUID.randomUUID().toString()}).get();
+        assertEquals(0L, existsKeysNum);
     }
 }

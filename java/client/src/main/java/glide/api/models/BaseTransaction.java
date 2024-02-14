@@ -2,6 +2,7 @@
 package glide.api.models;
 
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
+import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
@@ -162,6 +163,21 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                 buildArgs(ArrayUtils.addAll(new String[] {key, value}, options.toArgs()));
 
         protobufTransaction.addCommands(buildCommand(SetString, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the number of keys in <code>keys</code> that exist in the database.
+     *
+     * @see @see <a href="https://redis.io/commands/exists/">redis.io</a> for details.
+     * @param keys The keys list to check.
+     * @returns the number of keys that exist. If the same existing key is mentioned in <code>keys
+     *     </code> multiple times, it will be counted multiple times.
+     */
+    public T exists(String[] keys) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addAll(keys));
+
+        protobufTransaction.addCommands(buildCommand(Exists, commandArgs));
         return getThis();
     }
 

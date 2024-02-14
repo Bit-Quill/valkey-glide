@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
+import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
@@ -202,6 +203,26 @@ public class RedisClientTest {
         // verify
         assertNotNull(response);
         assertEquals(value, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void exists_returns_long_success() {
+        // setup
+        String[] keys = new String[] {"testKey1", "testKey2"};
+        Long numberExisting = 1L;
+        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(numberExisting);
+        when(commandManager.<Long>submitNewCommand(eq(Exists), eq(keys), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.exists(keys);
+        Long result = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(numberExisting, result);
     }
 
     @SneakyThrows
