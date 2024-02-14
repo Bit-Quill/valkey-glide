@@ -440,4 +440,12 @@ public class SharedCommandTests {
         e = assertThrows(ExecutionException.class, () -> client.smembers(key).get());
         assertTrue(e.getCause() instanceof RequestException);
     }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void config_reset_stat(BaseClient client) {
+        String ok = client.configResetStat().get();
+        assertEquals(OK, ok);
+    }
 }

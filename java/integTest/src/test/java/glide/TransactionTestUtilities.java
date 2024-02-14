@@ -1,6 +1,8 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide;
 
+import static glide.api.BaseClient.OK;
+
 import glide.api.models.BaseTransaction;
 import glide.api.models.commands.SetOptions;
 import java.util.Map;
@@ -46,16 +48,18 @@ public class TransactionTestUtilities {
         baseTransaction.scard(key5);
         baseTransaction.smembers(key5);
 
+        baseTransaction.configResetStat();
+
         return baseTransaction;
     }
 
     public static Object[] transactionTestResult() {
         return new Object[] {
-            "OK",
+            OK,
             value1,
             null,
             new String[] {value1, value2},
-            "OK",
+            OK,
             new String[] {value2, value1},
             1L,
             3L,
@@ -69,6 +73,7 @@ public class TransactionTestUtilities {
             1L,
             1L,
             Set.of("baz"),
+            OK
         };
     }
 }

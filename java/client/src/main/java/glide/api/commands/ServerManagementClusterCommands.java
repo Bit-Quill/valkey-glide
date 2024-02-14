@@ -8,7 +8,7 @@ import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Server Management Commands interface.
+ * Server Management Commands interface for cluster client.
  *
  * @see <a href="https://redis.io/commands/?group=server">Server Management Commands</a>
  */
@@ -71,4 +71,44 @@ public interface ServerManagementClusterCommands {
      *     value is the information of the sections requested for the node.
      */
     CompletableFuture<ClusterValue<String>> info(InfoOptions options, Route route);
+
+    /**
+     * Rewrite the configuration file with the current configuration.
+     *
+     * @see <a href="https://redis.io/commands/config-rewrite/">redis.io</a> for details.
+     * @return <code>OK</code> when the configuration was rewritten properly, otherwise an error is
+     *     raised.
+     */
+    CompletableFuture<String> configRewrite();
+
+    /**
+     * Reset the statistics reported by Redis using the <code>INFO</code> and <code>LATENCY HISTOGRAM
+     * </code> commands.
+     *
+     * @see <a href="https://redis.io/commands/config-resetstat/">redis.io</a> for details.
+     * @return <code>OK</code> to confirm that the statistics were successfully reset.
+     */
+    CompletableFuture<String> configResetStat();
+
+    /**
+     * Rewrite the configuration file with the current configuration.
+     *
+     * @see <a href="https://redis.io/commands/config-rewrite/">redis.io</a> for details.
+     * @param route Routing configuration for the command. Client will route the command to the nodes
+     *     defined.
+     * @return <code>OK</code> when the configuration was rewritten properly, otherwise an error is
+     *     raised.
+     */
+    CompletableFuture<String> configRewrite(Route route);
+
+    /**
+     * Resets the statistics reported by Redis using the <code>INFO</code> and <code>LATENCY HISTOGRAM
+     * </code> commands.
+     *
+     * @see <a href="https://redis.io/commands/config-resetstat/">redis.io</a> for details.
+     * @param route Routing configuration for the command. Client will route the command to the nodes
+     *     defined.
+     * @return <code>OK</code> to confirm that the statistics were successfully reset.
+     */
+    CompletableFuture<String> configResetStat(Route route);
 }

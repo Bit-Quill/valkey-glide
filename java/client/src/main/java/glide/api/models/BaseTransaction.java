@@ -2,6 +2,8 @@
 package glide.api.models;
 
 import static glide.utils.ArrayTransformUtils.convertMapToArgArray;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigResetStat;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigRewrite;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
 import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
@@ -410,6 +412,30 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         ArgsArray commandArgs = buildArgs(key);
 
         protobufTransaction.addCommands(buildCommand(SCard, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Rewrite the configuration file with the current configuration.
+     *
+     * @see <a href="https://redis.io/commands/config-rewrite/">redis.io</a> for details.
+     * @return <code>OK</code> when the configuration was rewritten properly, otherwise an error is
+     *     raised.
+     */
+    public T configRewrite() {
+        protobufTransaction.addCommands(buildCommand(ConfigRewrite));
+        return getThis();
+    }
+
+    /**
+     * Reset the statistics reported by Redis using the <code>INFO</code> and <code>LATENCY HISTOGRAM
+     * </code> commands.
+     *
+     * @see <a href="https://redis.io/commands/config-resetstat/">redis.io</a> for details.
+     * @return <code>OK</code> to confirm that the statistics were successfully reset.
+     */
+    public T configResetStat() {
+        protobufTransaction.addCommands(buildCommand(ConfigResetStat));
         return getThis();
     }
 

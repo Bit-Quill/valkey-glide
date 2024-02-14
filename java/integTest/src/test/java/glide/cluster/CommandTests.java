@@ -3,6 +3,9 @@ package glide.cluster;
 
 import static glide.TestConfiguration.CLUSTER_PORTS;
 import static glide.TestConfiguration.REDIS_VERSION;
+import static glide.TestUtilities.getFirstEntryFromMultiValue;
+import static glide.TestUtilities.getValueFromInfo;
+import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.InfoOptions.Section.CLIENTS;
 import static glide.api.models.commands.InfoOptions.Section.CLUSTER;
 import static glide.api.models.commands.InfoOptions.Section.COMMANDSTATS;
@@ -10,6 +13,7 @@ import static glide.api.models.commands.InfoOptions.Section.CPU;
 import static glide.api.models.commands.InfoOptions.Section.EVERYTHING;
 import static glide.api.models.commands.InfoOptions.Section.MEMORY;
 import static glide.api.models.commands.InfoOptions.Section.REPLICATION;
+import static glide.api.models.commands.InfoOptions.Section.STATS;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.ALL_NODES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.ALL_PRIMARIES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.RANDOM;
@@ -259,5 +263,21 @@ public class CommandTests {
                         "Section " + section + " is missing");
             }
         }
+    }
+
+    @Test
+    @SneakyThrows
+    public void config_reset_stat() {
+        var data = clusterClient.info(InfoOptions.builder().section(STATS).build()).get();
+        String firstNodeInfo = getFirstEntryFromMultiValue(data);
+        int value_before = getValueFromInfo(firstNodeInfo, "total_net_input_bytes");
+
+        var result = clusterClient.configResetStat().get();
+        assertEquals(OK, result);
+
+        data = clusterClient.info(InfoOptions.builder().section(STATS).build()).get();
+        firstNodeInfo = getFirstEntryFromMultiValue(data);
+        int value_after = getValueFromInfo(firstNodeInfo, "total_net_input_bytes");
+        assertTrue(value_after < value_before);
     }
 }

@@ -4,6 +4,8 @@ package glide.api;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.convertMapToArgArray;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigResetStat;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigRewrite;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
 import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
@@ -24,6 +26,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.commands.ConnectionManagementCommands;
 import glide.api.commands.HashCommands;
+import glide.api.commands.ServerManagementBaseCommands;
 import glide.api.commands.SetCommands;
 import glide.api.commands.StringCommands;
 import glide.api.models.commands.SetOptions;
@@ -56,7 +59,8 @@ public abstract class BaseClient
                 ConnectionManagementCommands,
                 StringCommands,
                 HashCommands,
-                SetCommands {
+                SetCommands,
+                ServerManagementBaseCommands {
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
 
@@ -308,5 +312,17 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> scard(String key) {
         return commandManager.submitNewCommand(SCard, new String[] {key}, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> configRewrite() {
+        return commandManager.submitNewCommand(
+                ConfigRewrite, new String[0], this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> configResetStat() {
+        return commandManager.submitNewCommand(
+                ConfigResetStat, new String[0], this::handleStringResponse);
     }
 }

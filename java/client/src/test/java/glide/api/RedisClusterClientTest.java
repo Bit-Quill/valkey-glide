@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static glide.api.BaseClient.OK;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.ALL_NODES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.ALL_PRIMARIES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleRoute.RANDOM;
@@ -11,6 +12,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigResetStat;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigRewrite;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 
@@ -23,10 +26,17 @@ import glide.managers.RedisExceptionCheckedFunction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import redis_request.RedisRequestOuterClass.RedisRequest;
+import redis_request.RedisRequestOuterClass.RequestType;
 import response.ResponseOuterClass.ConstantResponse;
 import response.ResponseOuterClass.Response;
 
@@ -139,28 +149,6 @@ public class RedisClusterClientTest {
                 RedisRequest.Builder command, RedisExceptionCheckedFunction<Response, T> responseHandler) {
             return CompletableFuture.supplyAsync(() -> responseHandler.apply(response));
         }
-    }
-
-    @SneakyThrows
-    @Test
-    public void ping_returns_success() {
-        // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn("PONG");
-
-        Route route = ALL_NODES;
-
-        // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(Ping), eq(new String[0]), eq(route), any()))
-                .thenReturn(testResponse);
-
-        // exercise
-        CompletableFuture<String> response = service.ping(route);
-        String payload = response.get();
-
-        // verify
-        assertEquals(testResponse, response);
-        assertEquals("PONG", payload);
     }
 
     @SneakyThrows
@@ -313,5 +301,68 @@ public class RedisClusterClientTest {
         var value = client.info(InfoOptions.builder().build(), ALL_NODES).get();
         assertAll(
                 () -> assertTrue(value.hasMultiData()), () -> assertEquals(data, value.getMultiValue()));
+    }
+
+    private static Stream<Arguments> getCommandsWithoutArgs() {
+        return Map.<RequestType, Function<RedisClusterClient, CompletableFuture<String>>>of(
+                        ConfigRewrite, RedisClusterClient::configRewrite,
+                        ConfigResetStat, RedisClusterClient::configResetStat,
+                        Ping, RedisClusterClient::ping)
+                .entrySet()
+                .stream()
+                .map(e -> Arguments.of(e.getKey(), e.getValue()));
+    }
+
+    private static Stream<Arguments> getCommandsWithRouteWithoutArgs() {
+        return Map.<RequestType, BiFunction<RedisClusterClient, Route, CompletableFuture<String>>>of(
+                        ConfigRewrite, RedisClusterClient::configRewrite,
+                        ConfigResetStat, RedisClusterClient::configResetStat,
+                        Ping, RedisClusterClient::ping)
+                .entrySet()
+                .stream()
+                .map(e -> Arguments.of(e.getKey(), e.getValue()));
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(name = "{0} returns success")
+    @MethodSource("getCommandsWithoutArgs")
+    public void no_arg_command_returns_success(
+            RequestType requestType, Function<RedisClusterClient, CompletableFuture<String>> command) {
+        // setup
+        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(OK);
+        when(commandManager.<String>submitNewCommand(eq(requestType), eq(new String[0]), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = command.apply(service);
+        String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(OK, payload);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(name = "{0} returns success")
+    @MethodSource("getCommandsWithRouteWithoutArgs")
+    public void no_arg_command_with_route_returns_success(
+            RequestType requestType,
+            BiFunction<RedisClusterClient, Route, CompletableFuture<String>> command) {
+        // setup
+        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
+        var route = ALL_NODES;
+        when(testResponse.get()).thenReturn(OK);
+        when(commandManager.<String>submitNewCommand(
+                        eq(requestType), eq(new String[0]), eq(route), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = command.apply(service, route);
+        String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(OK, payload);
     }
 }

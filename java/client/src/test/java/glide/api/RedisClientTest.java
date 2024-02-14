@@ -12,6 +12,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigResetStat;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigRewrite;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
 import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
@@ -41,10 +43,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import redis_request.RedisRequestOuterClass.RequestType;
 
 public class RedisClientTest {
 
@@ -83,26 +91,6 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(value, payload);
-    }
-
-    @SneakyThrows
-    @Test
-    public void ping_returns_success() {
-        // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn("PONG");
-
-        // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(Ping), eq(new String[0]), any()))
-                .thenReturn(testResponse);
-
-        // exercise
-        CompletableFuture<String> response = service.ping();
-        String payload = response.get();
-
-        // verify
-        assertEquals(testResponse, response);
-        assertEquals("PONG", payload);
     }
 
     @SneakyThrows
@@ -225,25 +213,6 @@ public class RedisClientTest {
 
     @SneakyThrows
     @Test
-    public void info_returns_success() {
-        // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        String testPayload = "Key: Value";
-        when(testResponse.get()).thenReturn(testPayload);
-        when(commandManager.<String>submitNewCommand(eq(Info), eq(new String[0]), any()))
-                .thenReturn(testResponse);
-
-        // exercise
-        CompletableFuture<String> response = service.info();
-        String payload = response.get();
-
-        // verify
-        assertEquals(testResponse, response);
-        assertEquals(testPayload, payload);
-    }
-
-    @SneakyThrows
-    @Test
     public void info_with_multiple_InfoOptions_returns_success() {
         // setup
         String[] arguments =
@@ -328,6 +297,32 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<String> response = service.mset(keyValueMap);
+    }
+
+    private static Stream<Arguments> getCommandsWithoutArgs() {
+        return Map.<RequestType, Function<RedisClient, CompletableFuture<String>>>of(
+                        ConfigRewrite, RedisClient::configRewrite,
+                        ConfigResetStat, RedisClient::configResetStat,
+                        Info, RedisClient::info,
+                        Ping, RedisClient::ping)
+                .entrySet()
+                .stream()
+                .map(e -> Arguments.of(e.getKey(), e.getValue()));
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(name = "{0} returns success")
+    @MethodSource("getCommandsWithoutArgs")
+    public void no_arg_command_returns_success(
+            RequestType requestType, Function<RedisClient, CompletableFuture<String>> command) {
+        // setup
+        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(OK);
+        when(commandManager.<String>submitNewCommand(eq(requestType), eq(new String[0]), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = command.apply(service);
         String payload = response.get();
 
         // verify
