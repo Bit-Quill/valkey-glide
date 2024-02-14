@@ -257,11 +257,11 @@ public class SharedCommandTests {
         String member2 = "member2";
         String[] members = new String[] {member1, member2};
 
-        assertEquals(members.length, client.sadd(key, members));
-        assertEquals(0, client.sadd(key, new String[] {member1}));
+        assertEquals(members.length, client.sadd(key, members).get());
+        assertEquals(0, client.sadd(key, new String[] {member1}).get());
 
-        assertEquals(0, client.srem(key, new String[] {"nonexistent_member"}));
-        assertEquals(members.length, client.srem(key, members));
-        assertEquals(0, client.srem(key, members));
+        assertEquals(0, client.srem(key, new String[] {"nonexistent_member"}).get());
+        assertEquals(members.length, client.srem(key, members).get());
+        assertEquals(0, client.srem(key, members).get());
     }
 }
