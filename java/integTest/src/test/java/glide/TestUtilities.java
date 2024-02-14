@@ -23,6 +23,6 @@ public class TestUtilities {
     }
 
     public static Object[] transactionTestResult() {
-        return new Object[] {"OK", null, new String[] {"bar", "baz"}, 2, 2};
+        return new Object[] {"OK", null, new String[] {"bar", "baz"}, 2L, 2L};
     }
 }

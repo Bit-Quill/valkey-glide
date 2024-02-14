@@ -174,7 +174,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/sadd/">redis.io</a> for details.
      * @param key The <code>key</code> where members will be added to its set.
      * @param members A list of members to add to the set stored at <code>key</code>.
-     * @return CommandResponse - The number of members that were added to the set, excluding members already present.
+     * @return CommandResponse - The number of members that were added to the set, excluding members
+     *     already present.
      * @remarks
      *     <ul>
      *       <li>If <code>key</code> does not exist, a new set is created before adding <code>members
@@ -201,7 +202,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/srem/">redis.io</a> for details.
      * @param key The <code>key</code> from which members will be removed.
      * @param members A list of members to remove from the set stored at <code>key</code>.
-     * @return CommandResponse - The number of members that were removed from the set, excluding non-existing members.
+     * @return CommandResponse - The number of members that were removed from the set, excluding
+     *     non-existing members.
      * @remarks
      *     <ul>
      *       <li>If <code>key</code> does not exist, it is treated as an empty set and this command
