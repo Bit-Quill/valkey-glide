@@ -26,8 +26,6 @@ public interface SetCommands {
      *       <li>If <code>key</code> holds a value that is not a set, an error is returned.
      *     </ul>
      *
-     *
-     *
      * @example
      *     <p><code>
      *  int result = client.sadd("my_set", new String[]{"member1", "member2"}).get();

@@ -173,13 +173,16 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Add specified members to the set stored at <code>key</code>.
      * Specified members that are already a member of this set are ignored.
-     * If <code>key</code> does not exist, a new set is created before adding <code>members</code>.
      *
      * @see <a href="https://redis.io/commands/sadd/">redis.io</a> for details.
      * @param key The <code>key</code> where members will be added to its set.
      * @param members A list of members to add to the set stored at <code>key</code>.
-     * @return A list of members to add to the set stored at <code>key</code>>.
-     * @remarks If <code>key</code> holds a value that is not a set, an error is returned.
+     * @return The number of members that were added to the set, excluding members already present.
+     * @remarks
+     *     <ul>
+     *       <li>If <code>key</code> does not exist, a new set is created before adding <code>members</code>.
+     *       <li>If <code>key</code> holds a value that is not a set, an error is returned.
+     *     </ul>
      *
      * @example
      *     <p><code>
