@@ -15,7 +15,7 @@ public interface GenericBaseCommands {
      *
      * @see <a href="https://redis.io/commands/del/">redis.io</a> for details.
      * @param keys the keys we wanted to remove.
-     * @returns the number of keys that were removed.
+     * @return the number of keys that were removed.
      */
     CompletableFuture<Long> del(String[] keys);
 }
