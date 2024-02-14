@@ -252,7 +252,7 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void sadd_and_srem(BaseClient client) {
-        String key = KEY_NAME;
+        String key = "sadd_and_srem";
         String member1 = "member1";
         String member2 = "member2";
         String[] members = new String[] {member1, member2};
