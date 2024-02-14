@@ -19,6 +19,7 @@ import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -82,6 +83,34 @@ public class SharedCommandTests {
     public void ping_with_message(BaseClient client) {
         String data = client.ping("H3LL0").get();
         assertEquals("H3LL0", data);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void unlink_multiple_keys(BaseClient client) {
+        String key1 = "{key}" + UUID.randomUUID();
+        String key2 = "{key}" + UUID.randomUUID();
+        String key3 = "{key}" + UUID.randomUUID();
+        String value = UUID.randomUUID().toString();
+
+        String setResult = client.set(key1, value).get();
+        assertEquals(OK, setResult);
+        setResult = client.set(key2, value).get();
+        assertEquals(OK, setResult);
+        setResult = client.set(key3, value).get();
+        assertEquals(OK, setResult);
+
+        Long unlinkedKeysNum = client.unlink(new String[] {key1, key2, key3}).get();
+        assertEquals(3L, unlinkedKeysNum);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void unlink_non_existent_key(BaseClient client) {
+        Long unlinkedKeysNum = client.unlink(new String[] {UUID.randomUUID().toString()}).get();
+        assertEquals(0L, unlinkedKeysNum);
     }
 
     @SneakyThrows

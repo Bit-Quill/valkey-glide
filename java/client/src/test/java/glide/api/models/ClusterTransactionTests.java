@@ -7,6 +7,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
+import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
@@ -41,6 +42,9 @@ public class ClusterTransactionTests {
                                 .addArgs("value")
                                 .addArgs(RETURN_OLD_VALUE)
                                 .build()));
+
+        transaction.unlink(new String[] {"key1", "key2"});
+        results.add(Pair.of(Unlink, ArgsArray.newBuilder().addArgs("key1").addArgs("key2").build()));
 
         transaction.ping();
         results.add(Pair.of(Ping, ArgsArray.newBuilder().build()));
