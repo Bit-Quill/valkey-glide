@@ -9,7 +9,6 @@ import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.util.JedisClusterCRC16;
 
 /** A Jedis client with sync capabilities. See: https://github.com/redis/jedis */
 public class JedisClient implements SyncClient {
@@ -28,14 +27,6 @@ public class JedisClient implements SyncClient {
         return "Jedis";
     }
 
-    private Jedis getConnection(String key) {
-        if (isClusterMode) {
-            return new Jedis(jedisCluster.getConnectionFromSlot(JedisClusterCRC16.getSlot(key)));
-        } else {
-            return jedisPool.getResource();
-        }
-    }
-
     @Override
     public void connectToRedis(ConnectionSettings connectionSettings) {
         isClusterMode = connectionSettings.clusterMode;
@@ -51,15 +42,23 @@ public class JedisClient implements SyncClient {
 
     @Override
     public void set(String key, String value) {
-        try (Jedis jedis = getConnection(key)) {
-            jedis.set(key, value);
+        if (isClusterMode) {
+            jedisCluster.set(key, value);
+        } else {
+            try (Jedis jedis = jedisPool.getResource()) {
+                jedis.set(key, value);
+            }
         }
     }
 
     @Override
     public String get(String key) {
-        try (Jedis jedis = getConnection(key)) {
-            return jedis.get(key);
+        if (isClusterMode) {
+            return jedisCluster.get(key);
+        } else {
+            try (Jedis jedis = jedisPool.getResource()) {
+                return jedis.get(key);
+            }
         }
     }
 }
