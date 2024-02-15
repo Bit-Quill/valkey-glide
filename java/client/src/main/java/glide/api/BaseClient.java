@@ -212,7 +212,7 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Double> zaddIncr(
             @NonNull String key, @NonNull String member, double increment, @NonNull ZaddOptions options) {
-        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), "INCR", increment, member).flatMap(Stream::of).toArray(String[]::new);
+        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), new String[] { "INCR", Double.toString(increment), member }).flatMap(Stream::of).toArray(String[]::new);
         return commandManager.submitNewCommand(Zadd, arguments, this::handleDoubleOrNullResponse);
     }
 }

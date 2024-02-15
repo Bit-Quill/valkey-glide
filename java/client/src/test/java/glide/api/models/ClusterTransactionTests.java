@@ -75,6 +75,15 @@ public class ClusterTransactionTests {
             .addArgs("1.0")
             .addArgs("member1")
             .build()));
+        
+        transaction.zaddIncr("key", "member1", 3.0, ZaddOptions.builder().updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT).build());
+        results.add(Pair.of(Zadd, ArgsArray.newBuilder()
+            .addArgs("key")
+            .addArgs("LT")
+            .addArgs("INCR")
+            .addArgs("3.0")
+            .addArgs("member1")
+            .build()));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

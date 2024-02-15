@@ -186,7 +186,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     public T zaddIncr(@NonNull String key, @NonNull String member, double increment, @NonNull ZaddOptions options) {
-        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), "INCR", increment, member).flatMap(Stream::of).toArray(String[]::new);
+        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), new String[] { "INCR" }, new String[] { Double.toString(increment) }, new String[] { member }).flatMap(Stream::of).toArray(String[]::new);
         ArgsArray commandArgs = buildArgs(arguments);
 
         protobufTransaction.addCommands(buildCommand(Zadd, commandArgs));

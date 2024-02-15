@@ -301,4 +301,30 @@ public class RedisClientTest {
         assertEquals(testResponse, response);
         assertEquals(value, payload);
     }
+
+    @SneakyThrows
+    @Test
+    public void zaddIncr_returns_success() {
+        // setup
+        String key = "testKey";
+        String member = "member";
+        Double increment = 3.0d;
+        String[] arguments = new String[] { key, "INCR", Double.toString(increment), member };
+        Double value = 3.0d;
+
+        CompletableFuture<Double> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+
+        // match on protobuf request
+        when(commandManager.<Double>submitNewCommand(eq(Zadd), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Double> response = service.zaddIncr(key, member, increment, ZaddOptions.builder().build());
+        Double payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
 }

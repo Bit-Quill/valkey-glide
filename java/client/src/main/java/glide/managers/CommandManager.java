@@ -47,7 +47,10 @@ public class CommandManager {
             RedisExceptionCheckedFunction<Response, T> responseHandler) {
 
         RedisRequest.Builder command = prepareRedisRequest(requestType, arguments);
-        return submitCommandToChannel(command, responseHandler);
+        assert(command != null);
+        CompletableFuture<T> result = submitCommandToChannel(command, responseHandler);
+        assert(result != null);
+        return result;
     }
 
     /**
@@ -111,10 +114,12 @@ public class CommandManager {
             RedisRequest.Builder command, RedisExceptionCheckedFunction<Response, T> responseHandler) {
         // write command request to channel
         // when complete, convert the response to our expected type T using the given responseHandler
-        return channel
+        CompletableFuture<T> result = channel
                 .write(command, true)
                 .exceptionally(this::exceptionHandler)
                 .thenApplyAsync(responseHandler::apply);
+        assert(result != null);
+        return result;
     }
 
     /**
