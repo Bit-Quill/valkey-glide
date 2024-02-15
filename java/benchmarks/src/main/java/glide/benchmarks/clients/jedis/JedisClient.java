@@ -18,8 +18,12 @@ public class JedisClient implements SyncClient {
 
     @Override
     public void closeConnection() {
-        jedisPool.close();
-        jedisCluster.close();
+        if (jedisCluster != null) {
+            jedisCluster.close();
+        }
+        if (jedisPool != null) {
+            jedisPool.close();
+        }
     }
 
     @Override
