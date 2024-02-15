@@ -7,11 +7,15 @@ import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
+import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
+import glide.api.models.commands.ZaddOptions;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import redis_request.RedisRequestOuterClass.Command;
@@ -55,6 +59,20 @@ public class TransactionTests {
                 Pair.of(
                         Info,
                         ArgsArray.newBuilder().addArgs(InfoOptions.Section.EVERYTHING.toString()).build()));
+
+        Map<String, Double> membersScores = new HashMap<String, Double>();
+        membersScores.put("member1", 1.0d);
+        membersScores.put("member2", 2.0d);
+        transaction.zadd("key", membersScores, ZaddOptions.builder().updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT).build(), true);
+        results.add(Pair.of(Zadd, ArgsArray.newBuilder()
+            .addArgs("key")
+            .addArgs("LT")
+            .addArgs("CH")
+            .addArgs("2.0")
+            .addArgs("member2")
+            .addArgs("1.0")
+            .addArgs("member1")
+            .build()));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

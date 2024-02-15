@@ -16,16 +16,21 @@ import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
+import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
+import glide.api.models.commands.ZaddOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.Map;
+import java.util.stream.Stream;
 import java.util.concurrent.CompletableFuture;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.apache.commons.lang3.ArrayUtils;
 
 public class RedisClientTest {
 
@@ -266,5 +271,34 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(testPayload, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zadd_returns_success() {
+        // setup
+        String key = "testKey";
+        Map<String, Double> membersScores = Map.of("testMember1", 1.0, "testMember2", 2.0);
+        String[] membersScoresArgs = membersScores.entrySet()
+            .stream()
+            .flatMap(e -> Stream.of(e.getValue().toString(), e.getKey()))
+            .toArray(String[]::new);
+        String[] arguments = ArrayUtils.addFirst(membersScoresArgs, key);
+        Long value = 2L;
+
+        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(Zadd), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.zadd(key, membersScores, ZaddOptions.builder().build(), false);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
     }
 }

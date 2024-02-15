@@ -6,18 +6,23 @@ import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
+import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
+import glide.api.models.commands.ZaddOptions;
 import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
 import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
 import redis_request.RedisRequestOuterClass.RequestType;
 import redis_request.RedisRequestOuterClass.Transaction;
+import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Base class encompassing shared commands for both standalone and cluster mode implementations in a
@@ -162,6 +167,29 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                 buildArgs(ArrayUtils.addAll(new String[] {key, value}, options.toArgs()));
 
         protobufTransaction.addCommands(buildCommand(SetString, commandArgs));
+        return getThis();
+    }
+
+    public T zadd(@NonNull String key, @NonNull Map<String, Double> membersScoresMap, @NonNull ZaddOptions options, boolean changed) {
+        String[] changedArg = changed ? new String[] { "CH" } : new String[] {};
+
+        String[] membersScores = membersScoresMap.entrySet()
+            .stream()
+            .flatMap(e -> Stream.of(e.getValue().toString(), e.getKey()))
+            .toArray(String[]::new);
+
+        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), changedArg, membersScores).flatMap(Stream::of).toArray(String[]::new);
+        ArgsArray commandArgs = buildArgs(arguments);
+
+        protobufTransaction.addCommands(buildCommand(Zadd, commandArgs));
+        return getThis();
+    }
+
+    public T zaddIncr(@NonNull String key, @NonNull String member, double increment, @NonNull ZaddOptions options) {
+        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), "INCR", increment, member).flatMap(Stream::of).toArray(String[]::new);
+        ArgsArray commandArgs = buildArgs(arguments);
+
+        protobufTransaction.addCommands(buildCommand(Zadd, commandArgs));
         return getThis();
     }
 

@@ -5,10 +5,13 @@ import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
+import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 
 import glide.api.commands.ConnectionManagementCommands;
 import glide.api.commands.StringCommands;
+import glide.api.commands.SortedSetCommands;
 import glide.api.models.commands.SetOptions;
+import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
 import glide.api.models.exceptions.RedisException;
 import glide.connectors.handlers.CallbackDispatcher;
@@ -23,6 +26,8 @@ import glide.managers.ConnectionManager;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
+import java.util.Map;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
@@ -32,7 +37,7 @@ import response.ResponseOuterClass.Response;
 /** Base Client class for Redis */
 @AllArgsConstructor
 public abstract class BaseClient
-        implements AutoCloseable, ConnectionManagementCommands, StringCommands {
+        implements AutoCloseable, ConnectionManagementCommands, StringCommands, SortedSetCommands {
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
 
@@ -149,6 +154,14 @@ public abstract class BaseClient
         return handleRedisResponse(String.class, true, response);
     }
 
+    protected Long handleLongResponse(Response response) throws RedisException {
+        return handleRedisResponse(Long.class, false, response);
+    }
+
+    protected Double handleDoubleOrNullResponse(Response response) throws RedisException {
+        return handleRedisResponse(Double.class, true, response);
+    }
+
     protected Object[] handleArrayResponse(Response response) {
         return handleRedisResponse(Object[].class, true, response);
     }
@@ -180,5 +193,26 @@ public abstract class BaseClient
             @NonNull String key, @NonNull String value, @NonNull SetOptions options) {
         String[] arguments = ArrayUtils.addAll(new String[] {key, value}, options.toArgs());
         return commandManager.submitNewCommand(SetString, arguments, this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> zadd(
+            @NonNull String key, @NonNull Map<String, Double> membersScoresMap, @NonNull ZaddOptions options, boolean changed) {
+        String[] changedArg = changed ? new String[] { "CH" } : new String[] {};
+
+        String[] membersScores = membersScoresMap.entrySet()
+            .stream()
+            .flatMap(e -> Stream.of(e.getValue().toString(), e.getKey()))
+            .toArray(String[]::new);
+
+        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), changedArg, membersScores).flatMap(Stream::of).toArray(String[]::new);
+        return commandManager.submitNewCommand(Zadd, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Double> zaddIncr(
+            @NonNull String key, @NonNull String member, double increment, @NonNull ZaddOptions options) {
+        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), "INCR", increment, member).flatMap(Stream::of).toArray(String[]::new);
+        return commandManager.submitNewCommand(Zadd, arguments, this::handleDoubleOrNullResponse);
     }
 }
