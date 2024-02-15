@@ -26,8 +26,6 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import lombok.SneakyThrows;
@@ -331,7 +329,7 @@ public class RedisClientTest {
     public void smembers_returns_success() {
         // setup
         String key = "testKey";
-        Set<String> value = new HashSet<>(Arrays.asList("testMember"));
+        Set<String> value = Set.of("testMember");
 
         CompletableFuture testResponse = mock(CompletableFuture.class);
         when(testResponse.get()).thenReturn(value);

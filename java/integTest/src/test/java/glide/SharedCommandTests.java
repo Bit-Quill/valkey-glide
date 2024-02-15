@@ -19,8 +19,7 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
-import java.util.Arrays;
-import java.util.HashSet;
+import glide.api.models.exceptions.RequestException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -262,7 +261,7 @@ public class SharedCommandTests {
         assertEquals(4, client.sadd(key, "member1", "member2", "member3", "member4").get());
         assertEquals(1, client.srem(key, "member3", "nonExistingMember").get());
 
-        Set<String> expectedMembers = new HashSet<>(Arrays.asList("member1", "member2", "member4"));
+        Set<String> expectedMembers = Set.of("member1", "member2", "member4");
         assertEquals(expectedMembers, client.smembers(key).get());
         assertEquals(1, client.srem(key, "member1").get());
         assertEquals(2, client.scard(key).get());
@@ -274,7 +273,7 @@ public class SharedCommandTests {
     public void srem_scard_smembers_non_existing_key(BaseClient client) {
         assertEquals(0, client.srem("nonExistingKey", "member").get());
         assertEquals(0, client.scard("nonExistingKey").get());
-        assertEquals(new HashSet<String>(), client.smembers("nonExistingKey").get());
+        assertEquals(Set.of(), client.smembers("nonExistingKey").get());
     }
 
     @SneakyThrows
@@ -285,24 +284,28 @@ public class SharedCommandTests {
         assertEquals(OK, client.set(key, "foo").get());
 
         Exception e = assertThrows(ExecutionException.class, () -> client.sadd(key, "bar").get());
+        assertTrue(e.getCause() instanceof RequestException);
         assertTrue(
                 e.getCause()
                         .getMessage()
                         .contains("Operation against a key holding the wrong kind of value"));
 
         e = assertThrows(ExecutionException.class, () -> client.srem(key, "bar").get());
+        assertTrue(e.getCause() instanceof RequestException);
         assertTrue(
                 e.getCause()
                         .getMessage()
                         .contains("Operation against a key holding the wrong kind of value"));
 
         e = assertThrows(ExecutionException.class, () -> client.scard(key).get());
+        assertTrue(e.getCause() instanceof RequestException);
         assertTrue(
                 e.getCause()
                         .getMessage()
                         .contains("Operation against a key holding the wrong kind of value"));
 
         e = assertThrows(ExecutionException.class, () -> client.smembers(key).get());
+        assertTrue(e.getCause() instanceof RequestException);
         assertTrue(
                 e.getCause()
                         .getMessage()

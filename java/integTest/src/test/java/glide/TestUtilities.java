@@ -3,8 +3,7 @@ package glide;
 
 import glide.api.models.BaseTransaction;
 import glide.api.models.commands.SetOptions;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class TestUtilities {
@@ -27,8 +26,6 @@ public class TestUtilities {
     }
 
     public static Object[] transactionTestResult() {
-        return new Object[] {
-            "OK", null, new String[] {"bar", "baz"}, 2L, 1L, 1L, new HashSet<>(Arrays.asList("bar"))
-        };
+        return new Object[] {"OK", null, new String[] {"bar", "baz"}, 2L, 1L, 1L, Set.of("bar")};
     }
 }
