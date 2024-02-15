@@ -6,6 +6,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
+import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
+import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 
 import glide.api.commands.ConnectionManagementCommands;
 import glide.api.commands.StringCommands;
@@ -214,5 +216,16 @@ public abstract class BaseClient
             @NonNull String key, @NonNull String member, double increment, @NonNull ZaddOptions options) {
         String[] arguments = Stream.of(new String[] {key}, options.toArgs(), new String[] { "INCR", Double.toString(increment), member }).flatMap(Stream::of).toArray(String[]::new);
         return commandManager.submitNewCommand(Zadd, arguments, this::handleDoubleOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> zrem(
+            @NonNull String key, @NonNull String[] members) {
+        return commandManager.submitNewCommand(Zrem, ArrayUtils.addFirst(members, key), this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> zcard(@NonNull String key) {
+        return commandManager.submitNewCommand(Zcard, new String[] {key}, this::handleLongResponse);
     }
 }

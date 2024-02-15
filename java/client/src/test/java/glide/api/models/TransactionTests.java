@@ -8,6 +8,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
+import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
+import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
@@ -82,6 +84,12 @@ public class TransactionTests {
             .addArgs("3.0")
             .addArgs("member1")
             .build()));
+
+        transaction.zrem("key", new String[] { "member1", "member2" });
+        results.add(Pair.of(Zrem, ArgsArray.newBuilder().addArgs("key").addArgs("member1").addArgs("member2").build()));
+
+        transaction.zcard("key");
+        results.add(Pair.of(Zcard, ArgsArray.newBuilder().addArgs("key").build()));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

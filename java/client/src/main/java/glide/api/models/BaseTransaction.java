@@ -7,6 +7,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
+import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
+import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
@@ -190,6 +192,18 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         ArgsArray commandArgs = buildArgs(arguments);
 
         protobufTransaction.addCommands(buildCommand(Zadd, commandArgs));
+        return getThis();
+    }
+
+    public T zrem(@NonNull String key, @NonNull String[] members) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
+        protobufTransaction.addCommands(buildCommand(Zrem, commandArgs));
+        return getThis();
+    }
+
+    public T zcard(@NonNull String key) {
+        ArgsArray commandArgs = buildArgs(new String[] {key});
+        protobufTransaction.addCommands(buildCommand(Zcard, commandArgs));
         return getThis();
     }
 
