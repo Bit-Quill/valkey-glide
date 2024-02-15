@@ -258,22 +258,22 @@ public class SharedCommandTests {
     @MethodSource("getClients")
     public void sadd_srem_scard_smembers_existing_set(BaseClient client) {
         String key = UUID.randomUUID().toString();
-        assertEquals(4, client.sadd(key, "member1", "member2", "member3", "member4"));
-        assertEquals(1, client.srem(key, "member3", "nonExistingMember"));
+        assertEquals(4, client.sadd(key, "member1", "member2", "member3", "member4").get());
+        assertEquals(1, client.srem(key, "member3", "nonExistingMember").get());
 
         Set<String> expectedMembers = new HashSet<>(Arrays.asList("member1", "member2", "member4"));
-        assertEquals(expectedMembers, client.smembers(key));
-        assertEquals(1, client.srem(key, "member1"));
-        assertEquals(2, client.scard(key));
+        assertEquals(expectedMembers, client.smembers(key).get());
+        assertEquals(1, client.srem(key, "member1").get());
+        assertEquals(2, client.scard(key).get());
     }
 
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getClients")
     public void srem_scard_smembers_non_existing_key(BaseClient client) {
-        assertEquals(0, client.srem("nonExistingKey", "member"));
-        assertEquals(0, client.scard("nonExistingKey"));
-        assertEquals(new HashSet<String>(), client.smembers("nonExistingKey"));
+        assertEquals(0, client.srem("nonExistingKey", "member").get());
+        assertEquals(0, client.scard("nonExistingKey").get());
+        assertEquals(new HashSet<String>(), client.smembers("nonExistingKey").get());
     }
 
     @SneakyThrows
@@ -281,18 +281,18 @@ public class SharedCommandTests {
     @MethodSource("getClients")
     public void sadd_srem_scard_smembers_key_with_non_set_value(BaseClient client) {
         String key = UUID.randomUUID().toString();
-        assertEquals(OK, client.set(key, "foo"));
+        assertEquals(OK, client.set(key, "foo").get());
 
-        RedisException e = assertThrows(RedisException.class, () -> client.sadd(key, "bar"));
+        RedisException e = assertThrows(RedisException.class, () -> client.sadd(key, "bar").get());
         assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
 
-        e = assertThrows(RedisException.class, () -> client.srem(key, "bar"));
+        e = assertThrows(RedisException.class, () -> client.srem(key, "bar").get());
         assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
 
-        e = assertThrows(RedisException.class, () -> client.scard(key));
+        e = assertThrows(RedisException.class, () -> client.scard(key).get());
         assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
 
-        e = assertThrows(RedisException.class, () -> client.smembers(key));
+        e = assertThrows(RedisException.class, () -> client.smembers(key).get());
         assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
     }
 }
