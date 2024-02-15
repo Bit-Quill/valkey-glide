@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.Select;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.models.commands.InfoOptions;
@@ -55,6 +56,9 @@ public class TransactionTests {
                 Pair.of(
                         Info,
                         ArgsArray.newBuilder().addArgs(InfoOptions.Section.EVERYTHING.toString()).build()));
+
+        transaction.select(99L);
+        results.add(Pair.of(Select, ArgsArray.newBuilder().addArgs("99").build()));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 
