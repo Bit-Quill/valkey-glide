@@ -21,6 +21,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.tuple.Pair;
@@ -229,7 +231,11 @@ public class Benchmarking {
                 }
             }
             executor.shutdownNow();
-            threadPoolResource.getEventLoopGroup().shutdownGracefully();
+            try {
+                threadPoolResource.getEventLoopGroup().shutdownGracefully().get(10, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         System.out.println();
