@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
@@ -14,6 +15,12 @@ import static org.mockito.Mockito.when;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
+import static redis_request.RedisRequestOuterClass.RequestType.LLen;
+import static redis_request.RedisRequestOuterClass.RequestType.LPop;
+import static redis_request.RedisRequestOuterClass.RequestType.LPush;
+import static redis_request.RedisRequestOuterClass.RequestType.LRange;
+import static redis_request.RedisRequestOuterClass.RequestType.LRem;
+import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
@@ -266,5 +273,165 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(testPayload, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lpush_returns_success() {
+        // setup
+        String key = "testKey";
+        String[] elements = new String[] {"value1", "value2"};
+        String[] args = new String[] {key, "value1", "value2"};
+        Long value = 2L;
+
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<Long>submitNewCommand(eq(LPush), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.lpush(key, elements);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lpop_returns_success() {
+        // setup
+        String key = "testKey";
+        String value = "value";
+        String[] args = new String[] {key};
+
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<Long>submitNewCommand(eq(LPop), eq(args), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.lpop(key);
+        String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lpopCount_returns_success() {
+        // setup
+        String key = "testKey";
+        long count = 2L;
+        String[] args = new String[] {key, Long.toString(count)};
+        String[] value = new String[] {"value1", "value2"};
+
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.thenApply(any())).thenReturn(testResponse);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<String[]>submitNewCommand(eq(LPop), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String[]> response = service.lpopCount(key, count);
+        String[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lrange_returns_success() {
+        // setup
+        String key = "testKey";
+        long start = 2L;
+        long end = 4L;
+        String[] args = new String[] {key, Long.toString(start), Long.toString(end)};
+        String[] value = new String[] {"value1", "value2"};
+
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.thenApply(any())).thenReturn(testResponse);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<String[]>submitNewCommand(eq(LRange), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String[]> response = service.lrange(key, start, end);
+        String[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void llen_returns_success() {
+        // setup
+        String key = "testKey";
+        String[] args = new String[] {key};
+        long value = 2L;
+
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<Long>submitNewCommand(eq(LLen), eq(args), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.llen(key);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void ltrim_returns_success() {
+        // setup
+        String key = "testKey";
+        long start = 2L;
+        long end = 2L;
+        String[] args = new String[] {key, Long.toString(end), Long.toString(start)};
+
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn("OK");
+        when(commandManager.<String>submitNewCommand(eq(LTrim), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.ltrim(key, start, end);
+        String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(OK, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lrem_returns_success() {
+        // setup
+        String key = "testKey";
+        long count = 2L;
+        String element = "value";
+        String[] args = new String[] {key, Long.toString(count), element};
+        long value = 2L;
+
+        CompletableFuture testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+        when(commandManager.<Long>submitNewCommand(eq(LRem), eq(args), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.lrem(key, count, element);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
     }
 }

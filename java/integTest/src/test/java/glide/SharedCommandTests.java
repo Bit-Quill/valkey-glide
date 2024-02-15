@@ -7,9 +7,11 @@ import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.Expiry.Milliseconds;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import glide.api.BaseClient;
 import glide.api.RedisClient;
@@ -18,7 +20,10 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
+import glide.api.models.exceptions.RequestException;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -246,5 +251,105 @@ public class SharedCommandTests {
         SetOptions options = SetOptions.builder().returnOldValue(true).build();
         String data = client.set("another", ANOTHER_VALUE, options).get();
         assertNull(data);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void lpush_lpop_lrange_existing_non_existing_key(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String[] valueArray = new String[] {"value4", "value3", "value2", "value1"};
+
+        assertEquals(4, client.lpush(key, valueArray).get());
+        assertEquals("value1", client.lpop(key).get());
+        assertArrayEquals(new String[] {"value2", "value3", "value4"}, client.lrange(key, 0, -1).get());
+        assertArrayEquals(new String[] {"value2", "value3"}, client.lpopCount(key, 2).get());
+        assertArrayEquals(new String[] {}, client.lrange("non_existing_key", 0, -1).get());
+        assertNull(client.lpop("non_existing_key").get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void lpush_lpop_lrange_type_error(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+
+        assertEquals(OK, client.set(key, "foo").get());
+
+        Exception lpushException =
+                assertThrows(ExecutionException.class, () -> client.lpush(key, new String[] {"foo"}).get());
+        assertTrue(lpushException.getCause() instanceof RequestException);
+
+        Exception lpopException = assertThrows(ExecutionException.class, () -> client.lpop(key).get());
+        assertTrue(lpopException.getCause() instanceof RequestException);
+
+        Exception lrangeException =
+                assertThrows(ExecutionException.class, () -> client.lrange(key, 0, -1).get());
+        assertTrue(lrangeException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void llen_existing_non_existing_key_and_type_error(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String[] valueArray = new String[] {"value4", "value3", "value2", "value1"};
+
+        assertEquals(4, client.lpush(key1, valueArray).get());
+        assertEquals(4, client.llen(key1).get());
+        assertEquals(0, client.llen("non_existing_key").get());
+
+        assertEquals(OK, client.set(key2, "foo").get());
+
+        Exception lrangeException =
+                assertThrows(ExecutionException.class, () -> client.llen(key2).get());
+        assertTrue(lrangeException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void ltrim_existing_non_existing_key_and_type_error(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String[] valueArray = new String[] {"value4", "value3", "value2", "value1"};
+
+        assertEquals(4, client.lpush(key, valueArray).get());
+        assertEquals(OK, client.ltrim(key, 0, 1).get());
+        assertArrayEquals(new String[] {"value1", "value2"}, client.lrange(key, 0, -1).get());
+
+        // `start` is greater than `end` so the key will be removed.
+        assertEquals(OK, client.ltrim(key, 4, 2).get());
+        assertArrayEquals(new String[] {}, client.lrange(key, 0, -1).get());
+
+        assertEquals(OK, client.set(key, "foo").get());
+
+        Exception ltrimException =
+                assertThrows(ExecutionException.class, () -> client.ltrim(key, 0, 1).get());
+        assertTrue(ltrimException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void lrem_existing_non_existing_key_and_type_error(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String[] valueArray =
+                new String[] {
+                    "value1", "value2", "value1", "value1", "value2",
+                };
+
+        assertEquals(5, client.lpush(key, valueArray).get());
+        assertEquals(2, client.lrem(key, 2, "value1").get());
+        assertArrayEquals(
+                new String[] {
+                    "value2", "value2", "value1",
+                },
+                client.lrange(key, 0, -1).get());
+        assertEquals(1, client.lrem(key, -1, "value2").get());
+        assertArrayEquals(new String[] {"value2", "value1"}, client.lrange(key, 0, -1).get());
+        assertEquals(1, client.lrem(key, 0, "value2").get());
+        assertArrayEquals(new String[] {"value1"}, client.lrange(key, 0, -1).get());
+        assertEquals(0, client.lrem("non_existing_key", 0, "value").get());
     }
 }

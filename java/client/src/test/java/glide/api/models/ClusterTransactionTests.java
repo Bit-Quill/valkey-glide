@@ -5,6 +5,12 @@ import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
+import static redis_request.RedisRequestOuterClass.RequestType.LLen;
+import static redis_request.RedisRequestOuterClass.RequestType.LPop;
+import static redis_request.RedisRequestOuterClass.RequestType.LPush;
+import static redis_request.RedisRequestOuterClass.RequestType.LRange;
+import static redis_request.RedisRequestOuterClass.RequestType.LRem;
+import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
@@ -56,6 +62,34 @@ public class ClusterTransactionTests {
                 Pair.of(
                         Info,
                         ArgsArray.newBuilder().addArgs(InfoOptions.Section.EVERYTHING.toString()).build()));
+
+        transaction.lpush("key", new String[] {"element1", "element2"});
+        results.add(
+                Pair.of(
+                        LPush,
+                        ArgsArray.newBuilder().addArgs("key").addArgs("element1").addArgs("element2").build()));
+
+        transaction.lpop("key");
+        results.add(Pair.of(LPop, ArgsArray.newBuilder().addArgs("key").build()));
+
+        transaction.lpopCount("key", 2);
+        results.add(Pair.of(LPop, ArgsArray.newBuilder().addArgs("key").addArgs("2").build()));
+
+        transaction.lrange("key", 1, 2);
+        results.add(
+                Pair.of(LRange, ArgsArray.newBuilder().addArgs("key").addArgs("1").addArgs("2").build()));
+
+        transaction.llen("key");
+        results.add(Pair.of(LLen, ArgsArray.newBuilder().addArgs("key").build()));
+
+        transaction.ltrim("key", 1, 2);
+        results.add(
+                Pair.of(LTrim, ArgsArray.newBuilder().addArgs("key").addArgs("1").addArgs("2").build()));
+
+        transaction.lrem("key", 1, "element");
+        results.add(
+                Pair.of(
+                        LRem, ArgsArray.newBuilder().addArgs("key").addArgs("1").addArgs("element").build()));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

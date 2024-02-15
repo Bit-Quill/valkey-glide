@@ -2,11 +2,19 @@
 package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
+import static glide.utils.CommandUtils.objectArrayToTypedArray;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
+import static redis_request.RedisRequestOuterClass.RequestType.LLen;
+import static redis_request.RedisRequestOuterClass.RequestType.LPop;
+import static redis_request.RedisRequestOuterClass.RequestType.LPush;
+import static redis_request.RedisRequestOuterClass.RequestType.LRange;
+import static redis_request.RedisRequestOuterClass.RequestType.LRem;
+import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.commands.ConnectionManagementCommands;
+import glide.api.commands.ListCommands;
 import glide.api.commands.StringCommands;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
@@ -32,7 +40,7 @@ import response.ResponseOuterClass.Response;
 /** Base Client class for Redis */
 @AllArgsConstructor
 public abstract class BaseClient
-        implements AutoCloseable, ConnectionManagementCommands, StringCommands {
+        implements AutoCloseable, ConnectionManagementCommands, StringCommands, ListCommands {
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
 
@@ -149,7 +157,15 @@ public abstract class BaseClient
         return handleRedisResponse(String.class, true, response);
     }
 
+    protected Long handleLongResponse(Response response) throws RedisException {
+        return handleRedisResponse(Long.class, false, response);
+    }
+
     protected Object[] handleArrayResponse(Response response) {
+        return handleRedisResponse(Object[].class, false, response);
+    }
+
+    protected Object[] handleArrayOrNullResponse(Response response) {
         return handleRedisResponse(Object[].class, true, response);
     }
 
@@ -180,5 +196,54 @@ public abstract class BaseClient
             @NonNull String key, @NonNull String value, @NonNull SetOptions options) {
         String[] arguments = ArrayUtils.addAll(new String[] {key, value}, options.toArgs());
         return commandManager.submitNewCommand(SetString, arguments, this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> lpush(@NonNull String key, @NonNull String[] elements) {
+        String[] arguments = ArrayUtils.addFirst(elements, key);
+        return commandManager.submitNewCommand(LPush, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> lpop(@NonNull String key) {
+        return commandManager.submitNewCommand(
+                LPop, new String[] {key}, this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<String[]> lpopCount(@NonNull String key, long count) {
+        return commandManager
+                .submitNewCommand(
+                        LPop, new String[] {key, Long.toString(count)}, this::handleArrayOrNullResponse)
+                .thenApply(objectArray -> objectArrayToTypedArray(objectArray, String.class));
+    }
+
+    @Override
+    public CompletableFuture<String[]> lrange(@NonNull String key, long start, long end) {
+        return commandManager
+                .submitNewCommand(
+                        LRange,
+                        new String[] {key, Long.toString(start), Long.toString(end)},
+                        this::handleArrayResponse)
+                .thenApply(objectArray -> objectArrayToTypedArray(objectArray, String.class));
+    }
+
+    @Override
+    public CompletableFuture<Long> llen(@NonNull String key) {
+        return commandManager.submitNewCommand(LLen, new String[] {key}, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> ltrim(@NonNull String key, long start, long end) {
+        return commandManager.submitNewCommand(
+                LTrim,
+                new String[] {key, Long.toString(start), Long.toString(end)},
+                this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> lrem(@NonNull String key, long count, @NonNull String element) {
+        return commandManager.submitNewCommand(
+                LRem, new String[] {key, Long.toString(count), element}, this::handleLongResponse);
     }
 }
