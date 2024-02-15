@@ -92,8 +92,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Section#DEFAULT} option is assumed.
      *
      * @see <a href="https://redis.io/commands/info/">redis.io</a> for details.
-     * @apiNote Command Response - a <code>String</code> containing the information for the sections
-     *     requested.
+     * @return A response from Redis with a <code>String</code>.
      */
     public T info() {
         protobufTransaction.addCommands(buildCommand(Info));
@@ -122,7 +121,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * does not block the server, while <a href="https://redis.io/commands/del/">DEL</a> does.
      *
      * @see <a href="https://redis.io/commands/unlink/">redis.io</a> for details.
-     * @param keys - The <code>keys</code> we wanted to unlink.
+     * @param keys The <code>keys</code> we wanted to unlink.
      * @return the number of <code>keys</code> that were unlinked.
      */
     public T unlink(String[] keys) {
