@@ -7,6 +7,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.SCard;
+import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
@@ -63,6 +65,12 @@ public class TransactionTests {
 
         transaction.srem("key", "value");
         results.add(Pair.of(SRem, ArgsArray.newBuilder().addArgs("key").addArgs("value").build()));
+
+        transaction.smembers("key");
+        results.add(Pair.of(SMembers, ArgsArray.newBuilder().addArgs("key").build()));
+
+        transaction.scard("key");
+        results.add(Pair.of(SCard, ArgsArray.newBuilder().addArgs("key").build()));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

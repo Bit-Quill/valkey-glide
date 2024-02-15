@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -51,5 +52,38 @@ public interface SetCommands {
      *  int result = client.srem("my_set", new String[]{"member1", "member2"}).get();
      *  </code>
      */
-    CompletableFuture<Long> srem(String key, String[] members);
+    CompletableFuture<Long> srem(String key, String... members);
+
+    /**
+     * Retrieve all the members of the set value stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/smembers/">redis.io</a> for details.
+     * @param key The key from which to retrieve the set members.
+     * @return A set of all members of the set.
+     * @remarks
+     *     <ul>
+     *       <li>If <code>key</code> does not exist an empty list will be returned.
+     *       <li>If <code>key</code> holds a value that is not a set, an error is returned.
+     *     </ul>
+     *
+     * @example
+     *     <p><code>
+     *  {@literal Set<String>} result = client.smembers("my_set").get();
+     *  </code>
+     */
+    CompletableFuture<Set<String>> smembers(String key);
+
+    /**
+     * Retrieve the set cardinality (number of elements) of the set stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/scard/">redis.io</a> for details.
+     * @param key The key from which to retrieve the number of set members.
+     * @return The cardinality (number of elements) of the set, or 0 if the key does not exist.
+     * @remarks If <code>key</code> holds a value that is not a set, an error is returned.
+     * @example
+     *     <p><code>
+     *  int result = client.scard("my_set").get();
+     *  </code>
+     */
+    CompletableFuture<Long> scard(String key);
 }

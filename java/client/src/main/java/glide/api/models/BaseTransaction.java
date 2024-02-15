@@ -6,6 +6,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.SCard;
+import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
@@ -182,11 +184,6 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *           </code>.
      *       <li>If <code>key</code> holds a value that is not a set, the transaction fails.
      *     </ul>
-     *
-     * @example
-     *     <p><code>
-     *  int result = client.sadd("my_set", new String[]{"member1", "member2"}).get();
-     *  </code>
      */
     public T sadd(String key, String... members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
@@ -210,16 +207,45 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *           returns 0.
      *       <li>If <code>key</code> holds a value that is not a set, the transaction fails.
      *     </ul>
-     *
-     * @example
-     *     <p><code>
-     *  int result = client.srem("my_set", new String[]{"member1", "member2"}).get();
-     *  </code>
      */
     public T srem(String key, String... members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
 
         protobufTransaction.addCommands(buildCommand(SRem, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Retrieve all the members of the set value stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/smembers/">redis.io</a> for details.
+     * @param key The key from which to retrieve the set members.
+     * @return CommandResponse - A set of all members of the set.
+     * @remarks
+     *     <ul>
+     *       <li>If <code>key</code> does not exist an empty list will be returned.
+     *       <li>If <code>key</code> holds a value that is not a set, the transaction fails.
+     *     </ul>
+     */
+    public T smembers(String key) {
+        ArgsArray commandArgs = buildArgs(key);
+
+        protobufTransaction.addCommands(buildCommand(SMembers, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Retrieve the set cardinality (number of elements) of the set stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/scard/">redis.io</a> for details.
+     * @param key The key from which to retrieve the number of set members.
+     * @return The cardinality (number of elements) of the set, or 0 if the key does not exist.
+     * @remarks If <code>key</code> holds a value that is not a set, the transaction fails.
+     */
+    public T scard(String key) {
+        ArgsArray commandArgs = buildArgs(key);
+
+        protobufTransaction.addCommands(buildCommand(SCard, commandArgs));
         return getThis();
     }
 

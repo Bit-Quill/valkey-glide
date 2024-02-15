@@ -5,6 +5,8 @@ import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.SCard;
+import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
@@ -23,6 +25,7 @@ import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
@@ -160,6 +163,10 @@ public abstract class BaseClient
         return handleRedisResponse(Object[].class, true, response);
     }
 
+    protected Set<String> handleSetResponse(Response response) {
+        return handleRedisResponse(Set.class, false, response);
+    }
+
     @Override
     public CompletableFuture<String> ping() {
         return commandManager.submitNewCommand(Ping, new String[0], this::handleStringResponse);
@@ -199,5 +206,15 @@ public abstract class BaseClient
     public CompletableFuture<Long> srem(String key, String... members) {
         String[] arguments = ArrayUtils.addFirst(members, key);
         return commandManager.submitNewCommand(SRem, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Set<String>> smembers(String key) {
+        return commandManager.submitNewCommand(SMembers, new String[] {key}, this::handleSetResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> scard(String key) {
+        return commandManager.submitNewCommand(SCard, new String[] {key}, this::handleLongResponse);
     }
 }

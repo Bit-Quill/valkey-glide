@@ -18,7 +18,12 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
+import glide.api.models.exceptions.RedisException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -251,17 +256,43 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getClients")
-    public void sadd_and_srem(BaseClient client) {
-        String key = "sadd_and_srem";
-        String member1 = "member1";
-        String member2 = "member2";
-        String[] members = new String[] {member1, member2};
+    public void sadd_srem_scard_smembers_existing_set(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        assertEquals(4, client.sadd(key, "member1", "member2", "member3", "member4"));
+        assertEquals(1, client.srem(key, "member3", "nonExistingMember"));
 
-        assertEquals(members.length, client.sadd(key, members).get());
-        assertEquals(0, client.sadd(key, member1).get());
+        Set<String> expectedMembers = new HashSet<>(Arrays.asList("member1", "member2", "member4"));
+        assertEquals(expectedMembers, client.smembers(key));
+        assertEquals(1, client.srem(key, "member1"));
+        assertEquals(2, client.scard(key));
+    }
 
-        assertEquals(0, client.srem(key, "non_existent_member").get());
-        assertEquals(members.length, client.srem(key, members).get());
-        assertEquals(0, client.srem(key, members).get());
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void srem_scard_smembers_non_existing_key(BaseClient client) {
+        assertEquals(0, client.srem("nonExistingKey", "member"));
+        assertEquals(0, client.scard("nonExistingKey"));
+        assertEquals(new HashSet<String>(), client.smembers("nonExistingKey"));
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void sadd_srem_scard_smembers_key_with_non_set_value(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        assertEquals(OK, client.set(key, "foo"));
+
+        RedisException e = assertThrows(RedisException.class, () -> client.sadd(key, "bar"));
+        assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
+
+        e = assertThrows(RedisException.class, () -> client.srem(key, "bar"));
+        assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
+
+        e = assertThrows(RedisException.class, () -> client.scard(key));
+        assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
+
+        e = assertThrows(RedisException.class, () -> client.smembers(key));
+        assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
     }
 }
