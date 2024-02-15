@@ -3,6 +3,8 @@ package glide.api.models;
 
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static redis_request.RedisRequestOuterClass.RequestType.Expire;
+import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
 import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.Del;
@@ -20,6 +22,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.Incr;
 import static redis_request.RedisRequestOuterClass.RequestType.IncrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.IncrByFloat;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
+import static redis_request.RedisRequestOuterClass.RequestType.PExpire;
+import static redis_request.RedisRequestOuterClass.RequestType.PExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.MGet;
 import static redis_request.RedisRequestOuterClass.RequestType.MSet;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
@@ -28,8 +32,10 @@ import static redis_request.RedisRequestOuterClass.RequestType.SCard;
 import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
+import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 
+import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
 import java.util.LinkedList;
@@ -70,14 +76,8 @@ public class TransactionTests {
                                 .addArgs(RETURN_OLD_VALUE)
                                 .build()));
 
-        transaction.exists(new String[] {"key1", "key2"});
-        results.add(Pair.of(Exists, ArgsArray.newBuilder().addArgs("key1").addArgs("key2").build()));
-
         transaction.del(new String[] {"key1", "key2"});
         results.add(Pair.of(Del, ArgsArray.newBuilder().addArgs("key1").addArgs("key2").build()));
-
-        transaction.unlink(new String[] {"key1", "key2"});
-        results.add(Pair.of(Unlink, ArgsArray.newBuilder().addArgs("key1").addArgs("key2").build()));
 
         transaction.ping();
         results.add(Pair.of(Ping, ArgsArray.newBuilder().build()));
@@ -148,6 +148,75 @@ public class TransactionTests {
                 Pair.of(
                         HashIncrByFloat,
                         ArgsArray.newBuilder().addArgs("key").addArgs("field").addArgs("1.5").build()));
+
+        transaction.exists(new String[] {"key1", "key2"});
+        results.add(Pair.of(Exists, ArgsArray.newBuilder().addArgs("key1").addArgs("key2").build()));
+
+        transaction.unlink(new String[] {"key1", "key2"});
+        results.add(Pair.of(Unlink, ArgsArray.newBuilder().addArgs("key1").addArgs("key2").build()));
+
+        transaction.expire("key", 9L);
+        results.add(
+            Pair.of(Expire, ArgsArray.newBuilder().addArgs("key").addArgs(Long.toString(9L)).build()));
+
+        transaction.expire("key", 99L, ExpireOptions.NEW_EXPIRY_GREATER_THAN_CURRENT);
+        results.add(
+            Pair.of(
+                Expire,
+                ArgsArray.newBuilder()
+                    .addArgs("key")
+                    .addArgs(Long.toString(99L))
+                    .addArgs("GT")
+                    .build()));
+
+        transaction.expireAt("key", 999L);
+        results.add(
+            Pair.of(
+                ExpireAt, ArgsArray.newBuilder().addArgs("key").addArgs(Long.toString(999L)).build()));
+
+        transaction.expireAt("key", 9999L, ExpireOptions.NEW_EXPIRY_LESS_THAN_CURRENT);
+        results.add(
+            Pair.of(
+                ExpireAt,
+                ArgsArray.newBuilder()
+                    .addArgs("key")
+                    .addArgs(Long.toString(9999L))
+                    .addArgs("LT")
+                    .build()));
+
+        transaction.pexpire("key", 99999L);
+        results.add(
+            Pair.of(
+                PExpire, ArgsArray.newBuilder().addArgs("key").addArgs(Long.toString(99999L)).build()));
+
+        transaction.pexpire("key", 999999L, ExpireOptions.HAS_EXISTING_EXPIRY);
+        results.add(
+            Pair.of(
+                PExpire,
+                ArgsArray.newBuilder()
+                    .addArgs("key")
+                    .addArgs(Long.toString(999999L))
+                    .addArgs("XX")
+                    .build()));
+
+        transaction.pexpireAt("key", 9999999L);
+        results.add(
+            Pair.of(
+                PExpireAt,
+                ArgsArray.newBuilder().addArgs("key").addArgs(Long.toString(9999999L)).build()));
+
+        transaction.pexpireAt("key", 99999999L, ExpireOptions.HAS_NO_EXPIRY);
+        results.add(
+            Pair.of(
+                PExpireAt,
+                ArgsArray.newBuilder()
+                    .addArgs("key")
+                    .addArgs(Long.toString(99999999L))
+                    .addArgs("NX")
+                    .build()));
+
+        transaction.ttl("key");
+        results.add(Pair.of(TTL, ArgsArray.newBuilder().addArgs("key").build()));
 
         transaction.sadd("key", new String[] {"value"});
         results.add(Pair.of(SAdd, ArgsArray.newBuilder().addArgs("key").addArgs("value").build()));

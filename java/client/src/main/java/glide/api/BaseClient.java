@@ -2,6 +2,8 @@
 package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
+import static redis_request.RedisRequestOuterClass.RequestType.Expire;
+import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.convertMapToArgArray;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
@@ -9,6 +11,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.Del;
 import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
+import static redis_request.RedisRequestOuterClass.RequestType.PExpire;
+import static redis_request.RedisRequestOuterClass.RequestType.PExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.HashDel;
 import static redis_request.RedisRequestOuterClass.RequestType.HashExists;
 import static redis_request.RedisRequestOuterClass.RequestType.HashGet;
@@ -28,13 +32,16 @@ import static redis_request.RedisRequestOuterClass.RequestType.SCard;
 import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
+import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 
 import glide.api.commands.ConnectionManagementCommands;
 import glide.api.commands.GenericBaseCommands;
+import glide.api.commands.GenericBaseCommands;
 import glide.api.commands.HashCommands;
 import glide.api.commands.SetCommands;
 import glide.api.commands.StringCommands;
+import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
 import glide.api.models.exceptions.RedisException;
@@ -370,5 +377,68 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> unlink(@NonNull String[] keys) {
         return commandManager.submitNewCommand(Unlink, keys, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> expire(String key, long seconds) {
+        return commandManager.submitNewCommand(
+                Expire, new String[] {key, Long.toString(seconds)}, this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> expire(String key, long seconds, ExpireOptions expireOptions) {
+        String[] arguments =
+                ArrayUtils.addAll(new String[] {key, Long.toString(seconds)}, expireOptions.toArgs());
+        return commandManager.submitNewCommand(Expire, arguments, this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> expireAt(String key, long unixSeconds) {
+        return commandManager.submitNewCommand(
+                ExpireAt, new String[] {key, Long.toString(unixSeconds)}, this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> expireAt(
+            String key, long unixSeconds, ExpireOptions expireOptions) {
+        String[] arguments =
+                ArrayUtils.addAll(new String[] {key, Long.toString(unixSeconds)}, expireOptions.toArgs());
+        return commandManager.submitNewCommand(ExpireAt, arguments, this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> pexpire(String key, long milliseconds) {
+        return commandManager.submitNewCommand(
+                PExpire, new String[] {key, Long.toString(milliseconds)}, this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> pexpire(
+            String key, long milliseconds, ExpireOptions expireOptions) {
+        String[] arguments =
+                ArrayUtils.addAll(new String[] {key, Long.toString(milliseconds)}, expireOptions.toArgs());
+        return commandManager.submitNewCommand(PExpire, arguments, this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> pexpireAt(String key, long unixMilliseconds) {
+        return commandManager.submitNewCommand(
+                PExpireAt,
+                new String[] {key, Long.toString(unixMilliseconds)},
+                this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> pexpireAt(
+            String key, long unixMilliseconds, ExpireOptions expireOptions) {
+        String[] arguments =
+                ArrayUtils.addAll(
+                        new String[] {key, Long.toString(unixMilliseconds)}, expireOptions.toArgs());
+        return commandManager.submitNewCommand(PExpireAt, arguments, this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> ttl(String key) {
+        return commandManager.submitNewCommand(TTL, new String[] {key}, this::handleLongResponse);
     }
 }
