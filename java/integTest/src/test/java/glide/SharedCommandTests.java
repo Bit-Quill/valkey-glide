@@ -10,6 +10,7 @@ import static glide.api.models.commands.SetOptions.Expiry.Milliseconds;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import glide.api.BaseClient;
 import glide.api.RedisClient;
@@ -18,12 +19,12 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
-import glide.api.models.exceptions.RedisException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -283,16 +284,28 @@ public class SharedCommandTests {
         String key = UUID.randomUUID().toString();
         assertEquals(OK, client.set(key, "foo").get());
 
-        RedisException e = assertThrows(RedisException.class, () -> client.sadd(key, "bar").get());
-        assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
+        Exception e = assertThrows(ExecutionException.class, () -> client.sadd(key, "bar").get());
+        assertTrue(
+                e.getCause()
+                        .getMessage()
+                        .contains("Operation against a key holding the wrong kind of value"));
 
-        e = assertThrows(RedisException.class, () -> client.srem(key, "bar").get());
-        assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
+        e = assertThrows(ExecutionException.class, () -> client.srem(key, "bar").get());
+        assertTrue(
+                e.getCause()
+                        .getMessage()
+                        .contains("Operation against a key holding the wrong kind of value"));
 
-        e = assertThrows(RedisException.class, () -> client.scard(key).get());
-        assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
+        e = assertThrows(ExecutionException.class, () -> client.scard(key).get());
+        assertTrue(
+                e.getCause()
+                        .getMessage()
+                        .contains("Operation against a key holding the wrong kind of value"));
 
-        e = assertThrows(RedisException.class, () -> client.smembers(key).get());
-        assertEquals("Operation against a key holding the wrong kind of value", e.getMessage());
+        e = assertThrows(ExecutionException.class, () -> client.smembers(key).get());
+        assertTrue(
+                e.getCause()
+                        .getMessage()
+                        .contains("Operation against a key holding the wrong kind of value"));
     }
 }
