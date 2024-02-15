@@ -121,7 +121,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * does not block the server, while <a href="https://redis.io/commands/del/">DEL</a> does.
      *
      * @see <a href="https://redis.io/commands/unlink/">redis.io</a> for details.
-     * @param keys The <code>keys</code> we wanted to unlink.
+     * @param keys  The <code>keys</code> we wanted to unlink.
      * @return the number of <code>keys</code> that were unlinked.
      */
     public T unlink(String[] keys) {
