@@ -95,7 +95,7 @@ public class TransactionTests {
         Object[] expectedResult = transactionTestResult();
 
         transaction.select(0);
-        ArrayUtils.addFirst(expectedResult, OK);
+        expectedResult = ArrayUtils.add(expectedResult, OK);
 
         Object[] result = client.exec(transaction).get(10, TimeUnit.SECONDS);
         assertArrayEquals(expectedResult, result);
