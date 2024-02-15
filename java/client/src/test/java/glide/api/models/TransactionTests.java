@@ -60,10 +60,10 @@ public class TransactionTests {
                         Info,
                         ArgsArray.newBuilder().addArgs(InfoOptions.Section.EVERYTHING.toString()).build()));
 
-        transaction.sadd("key", "value");
+        transaction.sadd("key", new String[] {"value"});
         results.add(Pair.of(SAdd, ArgsArray.newBuilder().addArgs("key").addArgs("value").build()));
 
-        transaction.srem("key", "value");
+        transaction.srem("key", new String[] {"value"});
         results.add(Pair.of(SRem, ArgsArray.newBuilder().addArgs("key").addArgs("value").build()));
 
         transaction.smembers("key");

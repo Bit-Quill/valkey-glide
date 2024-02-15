@@ -197,13 +197,13 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> sadd(String key, String... members) {
+    public CompletableFuture<Long> sadd(String key, String[] members) {
         String[] arguments = ArrayUtils.addFirst(members, key);
         return commandManager.submitNewCommand(SAdd, arguments, this::handleLongResponse);
     }
 
     @Override
-    public CompletableFuture<Long> srem(String key, String... members) {
+    public CompletableFuture<Long> srem(String key, String[] members) {
         String[] arguments = ArrayUtils.addFirst(members, key);
         return commandManager.submitNewCommand(SRem, arguments, this::handleLongResponse);
     }

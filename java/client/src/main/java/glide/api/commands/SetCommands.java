@@ -30,7 +30,7 @@ public interface SetCommands {
      *  int result = client.sadd("my_set", new String[]{"member1", "member2"}).get();
      *  </code>
      */
-    CompletableFuture<Long> sadd(String key, String... members);
+    CompletableFuture<Long> sadd(String key, String[] members);
 
     /**
      * Remove specified members from the set stored at <code>key</code>. Specified members that are
@@ -52,17 +52,17 @@ public interface SetCommands {
      *  int result = client.srem("my_set", new String[]{"member1", "member2"}).get();
      *  </code>
      */
-    CompletableFuture<Long> srem(String key, String... members);
+    CompletableFuture<Long> srem(String key, String[] members);
 
     /**
      * Retrieve all the members of the set value stored at <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/smembers/">redis.io</a> for details.
      * @param key The key from which to retrieve the set members.
-     * @return A set of all members of the set.
+     * @return A <code>Set</code> of all members of the set.
      * @remarks
      *     <ul>
-     *       <li>If <code>key</code> does not exist an empty list will be returned.
+     *       <li>If <code>key</code> does not exist an empty set will be returned.
      *       <li>If <code>key</code> holds a value that is not a set, an error is returned.
      *     </ul>
      *

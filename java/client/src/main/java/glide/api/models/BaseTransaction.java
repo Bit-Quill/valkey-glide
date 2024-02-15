@@ -185,7 +185,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *       <li>If <code>key</code> holds a value that is not a set, the transaction fails.
      *     </ul>
      */
-    public T sadd(String key, String... members) {
+    public T sadd(String key, String[] members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
 
         protobufTransaction.addCommands(buildCommand(SAdd, commandArgs));
@@ -208,7 +208,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *       <li>If <code>key</code> holds a value that is not a set, the transaction fails.
      *     </ul>
      */
-    public T srem(String key, String... members) {
+    public T srem(String key, String[] members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
 
         protobufTransaction.addCommands(buildCommand(SRem, commandArgs));
@@ -220,10 +220,10 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/smembers/">redis.io</a> for details.
      * @param key The key from which to retrieve the set members.
-     * @return Command Response - A set of all members of the set.
+     * @return Command Response - A <code>Set</code> of all members of the set.
      * @remarks
      *     <ul>
-     *       <li>If <code>key</code> does not exist an empty list will be returned.
+     *       <li>If <code>key</code> does not exist an empty set will be returned.
      *       <li>If <code>key</code> holds a value that is not a set, the transaction fails.
      *     </ul>
      */

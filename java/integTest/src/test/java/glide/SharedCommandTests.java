@@ -258,12 +258,13 @@ public class SharedCommandTests {
     @MethodSource("getClients")
     public void sadd_srem_scard_smembers_existing_set(BaseClient client) {
         String key = UUID.randomUUID().toString();
-        assertEquals(4, client.sadd(key, "member1", "member2", "member3", "member4").get());
-        assertEquals(1, client.srem(key, "member3", "nonExistingMember").get());
+        assertEquals(
+                4, client.sadd(key, new String[] {"member1", "member2", "member3", "member4"}).get());
+        assertEquals(1, client.srem(key, new String[] {"member3", "nonExistingMember"}).get());
 
         Set<String> expectedMembers = Set.of("member1", "member2", "member4");
         assertEquals(expectedMembers, client.smembers(key).get());
-        assertEquals(1, client.srem(key, "member1").get());
+        assertEquals(1, client.srem(key, new String[] {"member1"}).get());
         assertEquals(2, client.scard(key).get());
     }
 
@@ -271,7 +272,7 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void srem_scard_smembers_non_existing_key(BaseClient client) {
-        assertEquals(0, client.srem("nonExistingKey", "member").get());
+        assertEquals(0, client.srem("nonExistingKey", new String[] {"member"}).get());
         assertEquals(0, client.scard("nonExistingKey").get());
         assertEquals(Set.of(), client.smembers("nonExistingKey").get());
     }
@@ -283,14 +284,15 @@ public class SharedCommandTests {
         String key = UUID.randomUUID().toString();
         assertEquals(OK, client.set(key, "foo").get());
 
-        Exception e = assertThrows(ExecutionException.class, () -> client.sadd(key, "bar").get());
+        Exception e =
+                assertThrows(ExecutionException.class, () -> client.sadd(key, new String[] {"bar"}).get());
         assertTrue(e.getCause() instanceof RequestException);
         assertTrue(
                 e.getCause()
                         .getMessage()
                         .contains("Operation against a key holding the wrong kind of value"));
 
-        e = assertThrows(ExecutionException.class, () -> client.srem(key, "bar").get());
+        e = assertThrows(ExecutionException.class, () -> client.srem(key, new String[] {"bar"}).get());
         assertTrue(e.getCause() instanceof RequestException);
         assertTrue(
                 e.getCause()
