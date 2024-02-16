@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
-import response.ResponseOuterClass;
+import response.ResponseOuterClass.Response;
 
 /**
  * Async (non-blocking) client for Redis in Cluster mode. Use {@link #CreateClient} to request a
@@ -59,7 +59,7 @@ public class RedisClusterClient extends BaseClient
     }
 
     protected ClusterValue<Object> handleCustomCommandResponse(
-            Route route, ResponseOuterClass.Response response) {
+            Route route, Response response) {
         if (route.isSingleNodeRoute()) {
             return ClusterValue.ofSingleValue(handleObjectOrNullResponse(response));
         }
