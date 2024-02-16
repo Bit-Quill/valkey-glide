@@ -172,6 +172,18 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
+    /** Adds members with their scores to the sorted set stored at `key`.
+     * If a member is already a part of the sorted set, its score is updated.
+     *
+     * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
+     * @param key - The key of the sorted set.
+     * @param membersScoresMap - A mapping of members to their corresponding scores.
+     * @param options - The Zadd options.
+     * @param changed - Modify the return value from the number of new elements added, to the total number of elements changed.
+     * @returns The number of elements added to the sorted set.
+     * If `changed` is set, returns the number of elements updated in the sorted set.
+     * If `key` holds a value that is not a sorted set, an error is returned.
+     */
     public T zadd(@NonNull String key, @NonNull Map<String, Double> membersScoresMap, @NonNull ZaddOptions options, boolean changed) {
         String[] changedArg = changed ? new String[] { "CH" } : new String[] {};
 
@@ -187,6 +199,19 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
+    /** Increments the score of member in the sorted set stored at `key` by `increment`.
+     * If `member` does not exist in the sorted set, it is added with `increment` as its score (as if its previous score was 0.0).
+     * If `key` does not exist, a new sorted set with the specified member as its sole member is created.
+     *
+     * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
+     * @param key - The key of the sorted set.
+     * @param member - A member in the sorted set to increment.
+     * @param increment - The score to increment the member.
+     * @param options - The Zadd options.
+     * @returns The score of the member.
+     * If there was a conflict with the options, the operation aborts and null is returned.
+     * If `key` holds a value that is not a sorted set, an error is returned.
+     */
     public T zaddIncr(@NonNull String key, @NonNull String member, double increment, @NonNull ZaddOptions options) {
         String[] arguments = Stream.of(new String[] {key}, options.toArgs(), new String[] { "INCR" }, new String[] { Double.toString(increment) }, new String[] { member }).flatMap(Stream::of).toArray(String[]::new);
         ArgsArray commandArgs = buildArgs(arguments);
@@ -195,12 +220,30 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
+    /** Removes the specified members from the sorted set stored at `key`.
+     * Specified members that are not a member of this set are ignored.
+     *
+     * @see <a href="https://redis.io/commands/zrem/">redis.io</a> for more details.
+     * @param key - The key of the sorted set.
+     * @param members - A list of members to remove from the sorted set.
+     * @returns The number of members that were removed from the sorted set, not including non-existing members.
+     * If `key` does not exist, it is treated as an empty sorted set, and this command returns 0.
+     * If `key` holds a value that is not a sorted set, an error is returned.
+     */
     public T zrem(@NonNull String key, @NonNull String[] members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
         protobufTransaction.addCommands(buildCommand(Zrem, commandArgs));
         return getThis();
     }
 
+    /** Returns the cardinality (number of elements) of the sorted set stored at `key`.
+     *
+     * @see <a href="https://redis.io/commands/zcard/">redis.io</a> for more details.
+     * @param key - The key of the sorted set.
+     * @returns The number of elements in the sorted set.
+     * If `key` does not exist, it is treated as an empty sorted set, and this command returns 0.
+     * If `key` holds a value that is not a sorted set, an error is returned.
+     */
     public T zcard(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(new String[] {key});
         protobufTransaction.addCommands(buildCommand(Zcard, commandArgs));

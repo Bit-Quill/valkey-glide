@@ -6,6 +6,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Optional arguments to {@link SortedSetCommands#zadd(String, Map, ZaddOptions, boolean) SortedSetCommands.zadd(String, Map&lt;String, Double&gt;, ZaddOptions, boolean)}
+ * and {@link SortedSetCommands#zaddIncr(String, String, Double, ZaddOptions)}
+ * @see <a href="https://redis.io/commands/zadd/">redis.io</a>
+ */
 @Builder
 public final class ZaddOptions {
     private final ConditionalChange conditionalChange;
