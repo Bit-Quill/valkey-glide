@@ -56,7 +56,7 @@ public final class ZaddOptions {
      */
     public String[] toArgs() {
         if (conditionalChange == ConditionalChange.ONLY_IF_DOES_NOT_EXIST && updateOptions != null) {
-            throw new RuntimeException("The GT, LT, and NX options are mutually exclusive. Cannot choose both " + updateOptions.redisApi + " and NX.");
+            throw new IllegalArgumentException("The GT, LT, and NX options are mutually exclusive. Cannot choose both " + updateOptions.redisApi + " and NX.");
         }
 
         List<String> optionArgs = new ArrayList<>();
