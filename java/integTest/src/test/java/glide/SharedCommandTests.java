@@ -7,6 +7,7 @@ import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.Expiry.Milliseconds;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -251,6 +252,36 @@ public class SharedCommandTests {
         SetOptions options = SetOptions.builder().returnOldValue(true).build();
         String data = client.set("another", ANOTHER_VALUE, options).get();
         assertNull(data);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void rpush_rpop_existing_non_existing_key(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String[] valueArray = new String[] {"value1", "value2", "value3", "value4"};
+
+        assertEquals(4, client.rpush(key, valueArray).get());
+        assertEquals("value4", client.rpop(key).get());
+
+        assertArrayEquals(new String[] {"value3", "value2"}, client.rpopCount(key, 2).get());
+        assertNull(client.rpop("non_existing_key").get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void rpush_rpop_type_error(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+
+        assertEquals(OK, client.set(key, "foo").get());
+
+        Exception rpushException =
+                assertThrows(ExecutionException.class, () -> client.rpush(key, new String[] {"foo"}).get());
+        assertTrue(rpushException.getCause() instanceof RequestException);
+
+        Exception rpopException = assertThrows(ExecutionException.class, () -> client.rpop(key).get());
+        assertTrue(rpopException.getCause() instanceof RequestException);
     }
 
     @SneakyThrows

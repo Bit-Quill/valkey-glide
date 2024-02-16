@@ -5,6 +5,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.RPop;
+import static redis_request.RedisRequestOuterClass.RequestType.RPush;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.SCard;
 import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
@@ -17,6 +19,7 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
 import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
@@ -166,6 +169,60 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                 buildArgs(ArrayUtils.addAll(new String[] {key, value}, options.toArgs()));
 
         protobufTransaction.addCommands(buildCommand(SetString, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Insert all the specified values at the tail of the list stored at <code>key</code>. <code>
+     * elements</code> are inserted one after the other to the tail of the list, from the leftmost
+     * element to the rightmost element. If <code>key</code> does not exist, it is created as an empty
+     * list before performing the push operations.
+     *
+     * @see <a href="https://redis.io/commands/rpush/">redis.io</a> for details.
+     * @param key The key of the list.
+     * @param elements The elements to insert at the tail of the list stored at <code>key</code>.
+     * @return Command Response - The length of the list after the push operations.<br>
+     *     If <code>key</code> holds a value that is not a list, an error is raised.<br>
+     */
+    public T rpush(@NonNull String key, @NonNull String[] elements) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(elements, key));
+
+        protobufTransaction.addCommands(buildCommand(RPush, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Removes and returns the last elements of the list stored at <code>key</code>. The command pops
+     * a single element from the end of the list.
+     *
+     * @see <a href="https://redis.io/commands/rpop/">redis.io</a> for details.
+     * @param key The key of the list.
+     * @return Command Response - The value of the last element.<br>
+     *     If <code>key</code> does not exist null will be returned.<br>
+     *     If <code>key</code> holds a value that is not a list, an error is raised.<br>
+     */
+    public T rpop(@NonNull String key) {
+        ArgsArray commandArgs = buildArgs(key);
+
+        protobufTransaction.addCommands(buildCommand(RPop, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Removes and returns up to <code>count</code> elements from the list stored at <code>key</code>,
+     * depending on the list's length.
+     *
+     * @see <a href="https://redis.io/commands/rpop/">redis.io</a> for details.
+     * @param count The count of the elements to pop from the list.
+     * @returns Command Response - An array of popped elements will be returned depending on the
+     *     list's length.<br>
+     *     If <code>key</code> does not exist null will be returned.<br>
+     *     If <code>key</code> holds a value that is not a list, an error is raised.<br>
+     */
+    public T rpopCount(@NonNull String key, long count) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(count));
+
+        protobufTransaction.addCommands(buildCommand(RPop, commandArgs));
         return getThis();
     }
 

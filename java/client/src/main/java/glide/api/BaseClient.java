@@ -2,8 +2,11 @@
 package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
+import static glide.utils.ArrayTransformUtils.castArray;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.RPop;
+import static redis_request.RedisRequestOuterClass.RequestType.RPush;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.SCard;
 import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
@@ -11,6 +14,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.commands.ConnectionManagementCommands;
+import glide.api.commands.ListCommands;
 import glide.api.commands.SetCommands;
 import glide.api.commands.StringCommands;
 import glide.api.models.commands.SetOptions;
@@ -38,7 +42,11 @@ import response.ResponseOuterClass.Response;
 /** Base Client class for Redis */
 @AllArgsConstructor
 public abstract class BaseClient
-        implements AutoCloseable, ConnectionManagementCommands, StringCommands, SetCommands {
+        implements AutoCloseable,
+                ConnectionManagementCommands,
+                StringCommands,
+                SetCommands,
+                ListCommands {
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
 
@@ -160,6 +168,10 @@ public abstract class BaseClient
     }
 
     protected Object[] handleArrayResponse(Response response) {
+        return handleRedisResponse(Object[].class, false, response);
+    }
+
+    protected Object[] handleArrayOrNullResponse(Response response) {
         return handleRedisResponse(Object[].class, true, response);
     }
 
@@ -194,6 +206,26 @@ public abstract class BaseClient
             @NonNull String key, @NonNull String value, @NonNull SetOptions options) {
         String[] arguments = ArrayUtils.addAll(new String[] {key, value}, options.toArgs());
         return commandManager.submitNewCommand(SetString, arguments, this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> rpush(@NonNull String key, @NonNull String[] elements) {
+        String[] arguments = ArrayUtils.addFirst(elements, key);
+        return commandManager.submitNewCommand(RPush, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> rpop(@NonNull String key) {
+        return commandManager.submitNewCommand(
+                RPop, new String[] {key}, this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<String[]> rpopCount(@NonNull String key, long count) {
+        return commandManager.submitNewCommand(
+                RPop,
+                new String[] {key, Long.toString(count)},
+                response -> castArray(handleArrayOrNullResponse(response), String.class));
     }
 
     @Override
