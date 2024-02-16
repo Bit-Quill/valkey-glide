@@ -329,7 +329,6 @@ public class RedisClientTest {
         String[] value = new String[] {"value1", "value2"};
 
         CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.thenApply(any())).thenReturn(testResponse);
         when(testResponse.get()).thenReturn(value);
         when(commandManager.<String[]>submitNewCommand(eq(LPop), eq(args), any()))
                 .thenReturn(testResponse);
@@ -354,7 +353,6 @@ public class RedisClientTest {
         String[] value = new String[] {"value1", "value2"};
 
         CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.thenApply(any())).thenReturn(testResponse);
         when(testResponse.get()).thenReturn(value);
         when(commandManager.<String[]>submitNewCommand(eq(LRange), eq(args), any()))
                 .thenReturn(testResponse);
