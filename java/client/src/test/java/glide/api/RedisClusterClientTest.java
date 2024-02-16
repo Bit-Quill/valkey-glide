@@ -27,6 +27,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import redis_request.RedisRequestOuterClass.RedisRequest;
+import response.ResponseOuterClass.ConstantResponse;
 import response.ResponseOuterClass.Response;
 
 public class RedisClusterClientTest {
@@ -99,6 +100,20 @@ public class RedisClusterClientTest {
                 () -> assertTrue(value.hasMultiData()), () -> assertEquals(data, value.getMultiValue()));
     }
 
+    @Test
+    @SneakyThrows
+    public void custom_command_returns_single_value_on_constant_response() {
+        var commandManager =
+                new TestCommandManager(
+                        Response.newBuilder().setConstantResponse(ConstantResponse.OK).build());
+
+        var client = new TestClient(commandManager, "OK");
+
+        var value = client.customCommand(TEST_ARGS, ALL_NODES).get();
+        assertAll(
+                () -> assertTrue(value.hasSingleData()), () -> assertEquals("OK", value.getSingleValue()));
+    }
+
     private static class TestClient extends RedisClusterClient {
 
         private final Object object;
@@ -109,8 +124,8 @@ public class RedisClusterClientTest {
         }
 
         @Override
-        protected Object handleObjectOrNullResponse(Response response) {
-            return object;
+        protected <T> T handleRedisResponse(Class<T> classType, boolean isNullable, Response response) {
+            return (T) object;
         }
     }
 
@@ -120,7 +135,7 @@ public class RedisClusterClientTest {
 
         public TestCommandManager(Response responseToReturn) {
             super(null);
-            response = responseToReturn;
+            response = responseToReturn != null ? responseToReturn : Response.newBuilder().build();
         }
 
         @Override
