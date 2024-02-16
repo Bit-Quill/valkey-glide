@@ -58,8 +58,7 @@ public class RedisClusterClient extends BaseClient
                 CustomCommand, args, route, response -> handleCustomCommandResponse(route, response));
     }
 
-    protected ClusterValue<Object> handleCustomCommandResponse(
-            Route route, Response response) {
+    protected ClusterValue<Object> handleCustomCommandResponse(Route route, Response response) {
         if (route.isSingleNodeRoute()) {
             return ClusterValue.ofSingleValue(handleObjectOrNullResponse(response));
         }
