@@ -161,11 +161,11 @@ public abstract class BaseClient
         return handleRedisResponse(Long.class, false, response);
     }
 
-    protected Object[] handleArrayResponse(Response response) {
+    protected Object[] handleArrayResponse(Response response) throws RedisException {
         return handleRedisResponse(Object[].class, false, response);
     }
 
-    protected Object[] handleArrayOrNullResponse(Response response) {
+    protected Object[] handleArrayOrNullResponse(Response response) throws RedisException {
         return handleRedisResponse(Object[].class, true, response);
     }
 
@@ -212,20 +212,18 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<String[]> lpopCount(@NonNull String key, long count) {
-        return commandManager
-                .submitNewCommand(
-                        LPop, new String[] {key, Long.toString(count)}, this::handleArrayOrNullResponse)
-                .thenApply(objectArray -> objectArrayToTypedArray(objectArray, String.class));
+        return commandManager.submitNewCommand(
+                LPop,
+                new String[] {key, Long.toString(count)},
+                response -> objectArrayToTypedArray(handleArrayOrNullResponse(response), String.class));
     }
 
     @Override
     public CompletableFuture<String[]> lrange(@NonNull String key, long start, long end) {
-        return commandManager
-                .submitNewCommand(
-                        LRange,
-                        new String[] {key, Long.toString(start), Long.toString(end)},
-                        this::handleArrayResponse)
-                .thenApply(objectArray -> objectArrayToTypedArray(objectArray, String.class));
+        return commandManager.submitNewCommand(
+                LRange,
+                new String[] {key, Long.toString(start), Long.toString(end)},
+                response -> objectArrayToTypedArray(handleArrayOrNullResponse(response), String.class));
     }
 
     @Override

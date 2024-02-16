@@ -14,7 +14,6 @@ public class TestUtilities {
     private static final String value1 = "{value}" + UUID.randomUUID();
     private static final String value2 = "{value}" + UUID.randomUUID();
 
-
     public static BaseTransaction transactionTest(BaseTransaction baseTransaction) {
         baseTransaction.set(key1, value1);
         baseTransaction.set(key2, value2, SetOptions.builder().returnOldValue(true).build());
