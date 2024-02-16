@@ -17,8 +17,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
-import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
+import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
@@ -27,12 +27,12 @@ import glide.api.models.commands.ZaddOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.Map;
-import java.util.stream.Stream;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.apache.commons.lang3.ArrayUtils;
 
 public class RedisClientTest {
 
@@ -281,10 +281,10 @@ public class RedisClientTest {
         // setup
         String key = "testKey";
         Map<String, Double> membersScores = Map.of("testMember1", 1.0, "testMember2", 2.0);
-        String[] membersScoresArgs = membersScores.entrySet()
-            .stream()
-            .flatMap(e -> Stream.of(e.getValue().toString(), e.getKey()))
-            .toArray(String[]::new);
+        String[] membersScoresArgs =
+                membersScores.entrySet().stream()
+                        .flatMap(e -> Stream.of(e.getValue().toString(), e.getKey()))
+                        .toArray(String[]::new);
         String[] arguments = ArrayUtils.addFirst(membersScoresArgs, key);
         Long value = 2L;
 
@@ -296,7 +296,8 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Long> response = service.zadd(key, membersScores, ZaddOptions.builder().build(), false);
+        CompletableFuture<Long> response =
+                service.zadd(key, membersScores, ZaddOptions.builder().build(), false);
         Long payload = response.get();
 
         // verify
@@ -311,7 +312,7 @@ public class RedisClientTest {
         String key = "testKey";
         String member = "member";
         Double increment = 3.0d;
-        String[] arguments = new String[] { key, "INCR", Double.toString(increment), member };
+        String[] arguments = new String[] {key, "INCR", Double.toString(increment), member};
         Double value = 3.0d;
 
         CompletableFuture<Double> testResponse = mock(CompletableFuture.class);
@@ -322,7 +323,8 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Double> response = service.zaddIncr(key, member, increment, ZaddOptions.builder().build());
+        CompletableFuture<Double> response =
+                service.zaddIncr(key, member, increment, ZaddOptions.builder().build());
         Double payload = response.get();
 
         // verify
@@ -335,7 +337,7 @@ public class RedisClientTest {
     public void zrem_returns_success() {
         // setup
         String key = "testKey";
-        String[] members = new String[] { "member1", "member2" };
+        String[] members = new String[] {"member1", "member2"};
         String[] arguments = ArrayUtils.addFirst(members, key);
         Long value = 2L;
 

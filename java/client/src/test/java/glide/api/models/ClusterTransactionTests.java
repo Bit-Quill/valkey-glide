@@ -8,16 +8,16 @@ import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
-import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
+import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.ZaddOptions;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import redis_request.RedisRequestOuterClass.Command;
@@ -67,28 +67,49 @@ public class ClusterTransactionTests {
         membersScores.put("member1", 1.0d);
         membersScores.put("member2", 2.0d);
 
-        transaction.zadd("key", membersScores, ZaddOptions.builder().updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT).build(), true);
-        results.add(Pair.of(Zadd, ArgsArray.newBuilder()
-            .addArgs("key")
-            .addArgs("LT")
-            .addArgs("CH")
-            .addArgs("2.0")
-            .addArgs("member2")
-            .addArgs("1.0")
-            .addArgs("member1")
-            .build()));
-        
-        transaction.zaddIncr("key", "member1", 3.0, ZaddOptions.builder().updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT).build());
-        results.add(Pair.of(Zadd, ArgsArray.newBuilder()
-            .addArgs("key")
-            .addArgs("LT")
-            .addArgs("INCR")
-            .addArgs("3.0")
-            .addArgs("member1")
-            .build()));
+        transaction.zadd(
+                "key",
+                membersScores,
+                ZaddOptions.builder()
+                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT)
+                        .build(),
+                true);
+        results.add(
+                Pair.of(
+                        Zadd,
+                        ArgsArray.newBuilder()
+                                .addArgs("key")
+                                .addArgs("LT")
+                                .addArgs("CH")
+                                .addArgs("2.0")
+                                .addArgs("member2")
+                                .addArgs("1.0")
+                                .addArgs("member1")
+                                .build()));
 
-        transaction.zrem("key", new String[] { "member1", "member2" });
-        results.add(Pair.of(Zrem, ArgsArray.newBuilder().addArgs("key").addArgs("member1").addArgs("member2").build()));
+        transaction.zaddIncr(
+                "key",
+                "member1",
+                3.0,
+                ZaddOptions.builder()
+                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT)
+                        .build());
+        results.add(
+                Pair.of(
+                        Zadd,
+                        ArgsArray.newBuilder()
+                                .addArgs("key")
+                                .addArgs("LT")
+                                .addArgs("INCR")
+                                .addArgs("3.0")
+                                .addArgs("member1")
+                                .build()));
+
+        transaction.zrem("key", new String[] {"member1", "member2"});
+        results.add(
+                Pair.of(
+                        Zrem,
+                        ArgsArray.newBuilder().addArgs("key").addArgs("member1").addArgs("member2").build()));
 
         transaction.zcard("key");
         results.add(Pair.of(Zcard, ArgsArray.newBuilder().addArgs("key").build()));

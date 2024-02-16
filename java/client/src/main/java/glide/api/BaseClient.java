@@ -6,12 +6,12 @@ import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
-import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
+import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.commands.ConnectionManagementCommands;
-import glide.api.commands.StringCommands;
 import glide.api.commands.SortedSetCommands;
+import glide.api.commands.StringCommands;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
@@ -25,10 +25,10 @@ import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
-import java.util.Map;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -199,29 +199,41 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Long> zadd(
-            @NonNull String key, @NonNull Map<String, Double> membersScoresMap, @NonNull ZaddOptions options, boolean changed) {
-        String[] changedArg = changed ? new String[] { "CH" } : new String[] {};
+            @NonNull String key,
+            @NonNull Map<String, Double> membersScoresMap,
+            @NonNull ZaddOptions options,
+            boolean changed) {
+        String[] changedArg = changed ? new String[] {"CH"} : new String[] {};
 
-        String[] membersScores = membersScoresMap.entrySet()
-            .stream()
-            .flatMap(e -> Stream.of(e.getValue().toString(), e.getKey()))
-            .toArray(String[]::new);
+        String[] membersScores =
+                membersScoresMap.entrySet().stream()
+                        .flatMap(e -> Stream.of(e.getValue().toString(), e.getKey()))
+                        .toArray(String[]::new);
 
-        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), changedArg, membersScores).flatMap(Stream::of).toArray(String[]::new);
+        String[] arguments =
+                Stream.of(new String[] {key}, options.toArgs(), changedArg, membersScores)
+                        .flatMap(Stream::of)
+                        .toArray(String[]::new);
         return commandManager.submitNewCommand(Zadd, arguments, this::handleLongResponse);
     }
 
     @Override
     public CompletableFuture<Double> zaddIncr(
             @NonNull String key, @NonNull String member, double increment, @NonNull ZaddOptions options) {
-        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), new String[] { "INCR", Double.toString(increment), member }).flatMap(Stream::of).toArray(String[]::new);
+        String[] arguments =
+                Stream.of(
+                                new String[] {key},
+                                options.toArgs(),
+                                new String[] {"INCR", Double.toString(increment), member})
+                        .flatMap(Stream::of)
+                        .toArray(String[]::new);
         return commandManager.submitNewCommand(Zadd, arguments, this::handleDoubleOrNullResponse);
     }
 
     @Override
-    public CompletableFuture<Long> zrem(
-            @NonNull String key, @NonNull String[] members) {
-        return commandManager.submitNewCommand(Zrem, ArrayUtils.addFirst(members, key), this::handleLongResponse);
+    public CompletableFuture<Long> zrem(@NonNull String key, @NonNull String[] members) {
+        return commandManager.submitNewCommand(
+                Zrem, ArrayUtils.addFirst(members, key), this::handleLongResponse);
     }
 
     @Override

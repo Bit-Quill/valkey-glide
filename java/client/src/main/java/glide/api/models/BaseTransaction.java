@@ -7,8 +7,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
-import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
+import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
@@ -16,6 +16,8 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import glide.api.models.commands.ZaddOptions;
+import java.util.Map;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
@@ -23,8 +25,6 @@ import redis_request.RedisRequestOuterClass.Command;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
 import redis_request.RedisRequestOuterClass.RequestType;
 import redis_request.RedisRequestOuterClass.Transaction;
-import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Base class encompassing shared commands for both standalone and cluster mode implementations in a
@@ -172,63 +172,85 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
-    /** Adds members with their scores to the sorted set stored at `key`.
-     * If a member is already a part of the sorted set, its score is updated.
+    /**
+     * Adds members with their scores to the sorted set stored at `key`. If a member is already a part
+     * of the sorted set, its score is updated.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
      * @param key - The key of the sorted set.
      * @param membersScoresMap - A mapping of members to their corresponding scores.
      * @param options - The Zadd options.
-     * @param changed - Modify the return value from the number of new elements added, to the total number of elements changed.
-     * @returns The number of elements added to the sorted set.
-     * If `changed` is set, returns the number of elements updated in the sorted set.
-     * If `key` holds a value that is not a sorted set, an error is returned.
+     * @param changed - Modify the return value from the number of new elements added, to the total
+     *     number of elements changed.
+     * @returns The number of elements added to the sorted set. If `changed` is set, returns the
+     *     number of elements updated in the sorted set. If `key` holds a value that is not a sorted
+     *     set, an error is returned.
      */
-    public T zadd(@NonNull String key, @NonNull Map<String, Double> membersScoresMap, @NonNull ZaddOptions options, boolean changed) {
-        String[] changedArg = changed ? new String[] { "CH" } : new String[] {};
+    public T zadd(
+            @NonNull String key,
+            @NonNull Map<String, Double> membersScoresMap,
+            @NonNull ZaddOptions options,
+            boolean changed) {
+        String[] changedArg = changed ? new String[] {"CH"} : new String[] {};
 
-        String[] membersScores = membersScoresMap.entrySet()
-            .stream()
-            .flatMap(e -> Stream.of(e.getValue().toString(), e.getKey()))
-            .toArray(String[]::new);
+        String[] membersScores =
+                membersScoresMap.entrySet().stream()
+                        .flatMap(e -> Stream.of(e.getValue().toString(), e.getKey()))
+                        .toArray(String[]::new);
 
-        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), changedArg, membersScores).flatMap(Stream::of).toArray(String[]::new);
+        String[] arguments =
+                Stream.of(new String[] {key}, options.toArgs(), changedArg, membersScores)
+                        .flatMap(Stream::of)
+                        .toArray(String[]::new);
         ArgsArray commandArgs = buildArgs(arguments);
 
         protobufTransaction.addCommands(buildCommand(Zadd, commandArgs));
         return getThis();
     }
 
-    /** Increments the score of member in the sorted set stored at `key` by `increment`.
-     * If `member` does not exist in the sorted set, it is added with `increment` as its score (as if its previous score was 0.0).
-     * If `key` does not exist, a new sorted set with the specified member as its sole member is created.
+    /**
+     * Increments the score of member in the sorted set stored at `key` by `increment`. If `member`
+     * does not exist in the sorted set, it is added with `increment` as its score (as if its previous
+     * score was 0.0). If `key` does not exist, a new sorted set with the specified member as its sole
+     * member is created.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
      * @param key - The key of the sorted set.
      * @param member - A member in the sorted set to increment.
      * @param increment - The score to increment the member.
      * @param options - The Zadd options.
-     * @returns The score of the member.
-     * If there was a conflict with the options, the operation aborts and null is returned.
-     * If `key` holds a value that is not a sorted set, an error is returned.
+     * @returns The score of the member. If there was a conflict with the options, the operation
+     *     aborts and null is returned. If `key` holds a value that is not a sorted set, an error is
+     *     returned.
      */
-    public T zaddIncr(@NonNull String key, @NonNull String member, double increment, @NonNull ZaddOptions options) {
-        String[] arguments = Stream.of(new String[] {key}, options.toArgs(), new String[] { "INCR" }, new String[] { Double.toString(increment) }, new String[] { member }).flatMap(Stream::of).toArray(String[]::new);
+    public T zaddIncr(
+            @NonNull String key, @NonNull String member, double increment, @NonNull ZaddOptions options) {
+        String[] arguments =
+                Stream.of(
+                                new String[] {key},
+                                options.toArgs(),
+                                new String[] {"INCR"},
+                                new String[] {Double.toString(increment)},
+                                new String[] {member})
+                        .flatMap(Stream::of)
+                        .toArray(String[]::new);
         ArgsArray commandArgs = buildArgs(arguments);
 
         protobufTransaction.addCommands(buildCommand(Zadd, commandArgs));
         return getThis();
     }
 
-    /** Removes the specified members from the sorted set stored at `key`.
-     * Specified members that are not a member of this set are ignored.
+    /**
+     * Removes the specified members from the sorted set stored at `key`. Specified members that are
+     * not a member of this set are ignored.
      *
      * @see <a href="https://redis.io/commands/zrem/">redis.io</a> for more details.
      * @param key - The key of the sorted set.
      * @param members - A list of members to remove from the sorted set.
-     * @returns The number of members that were removed from the sorted set, not including non-existing members.
-     * If `key` does not exist, it is treated as an empty sorted set, and this command returns 0.
-     * If `key` holds a value that is not a sorted set, an error is returned.
+     * @returns The number of members that were removed from the sorted set, not including
+     *     non-existing members. If `key` does not exist, it is treated as an empty sorted set, and
+     *     this command returns 0. If `key` holds a value that is not a sorted set, an error is
+     *     returned.
      */
     public T zrem(@NonNull String key, @NonNull String[] members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
@@ -236,13 +258,14 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
-    /** Returns the cardinality (number of elements) of the sorted set stored at `key`.
+    /**
+     * Returns the cardinality (number of elements) of the sorted set stored at `key`.
      *
      * @see <a href="https://redis.io/commands/zcard/">redis.io</a> for more details.
      * @param key - The key of the sorted set.
-     * @returns The number of elements in the sorted set.
-     * If `key` does not exist, it is treated as an empty sorted set, and this command returns 0.
-     * If `key` holds a value that is not a sorted set, an error is returned.
+     * @returns The number of elements in the sorted set. If `key` does not exist, it is treated as an
+     *     empty sorted set, and this command returns 0. If `key` holds a value that is not a sorted
+     *     set, an error is returned.
      */
     public T zcard(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(new String[] {key});

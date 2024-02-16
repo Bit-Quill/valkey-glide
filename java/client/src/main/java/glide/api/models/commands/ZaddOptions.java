@@ -1,3 +1,4 @@
+/** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands;
 
 import java.util.ArrayList;
@@ -7,8 +8,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Optional arguments to {@link SortedSetCommands#zadd(String, Map, ZaddOptions, boolean) SortedSetCommands.zadd(String, Map&lt;String, Double&gt;, ZaddOptions, boolean)}
- * and {@link SortedSetCommands#zaddIncr(String, String, Double, ZaddOptions)}
+ * Optional arguments to {@link SortedSetCommands#zadd(String, Map, ZaddOptions, boolean)
+ * SortedSetCommands.zadd(String, Map&lt;String, Double&gt;, ZaddOptions, boolean)} and {@link
+ * SortedSetCommands#zaddIncr(String, String, Double, ZaddOptions)}
+ *
  * @see <a href="https://redis.io/commands/zadd/">redis.io</a>
  */
 @Builder
@@ -21,11 +24,13 @@ public final class ZaddOptions {
     @Getter
     public enum ConditionalChange {
         /**
-         * Only update elements that already exist. Don't add new elements. Equivalent to `XX` in the Redis API.
+         * Only update elements that already exist. Don't add new elements. Equivalent to `XX` in the
+         * Redis API.
          */
         ONLY_IF_EXISTS("XX"),
         /**
-         * Only add new elements. Don't update already existing elements. Equivalent to `NX` in the Redis API.
+         * Only add new elements. Don't update already existing elements. Equivalent to `NX` in the
+         * Redis API.
          */
         ONLY_IF_DOES_NOT_EXIST("NX");
 
@@ -36,13 +41,13 @@ public final class ZaddOptions {
     @Getter
     public enum UpdateOptions {
         /**
-         * Only update existing elements if the new score is less than the current score.
-         * Equivalent to `LT` in the Redis API.
+         * Only update existing elements if the new score is less than the current score. Equivalent to
+         * `LT` in the Redis API.
          */
         SCORE_LESS_THAN_CURRENT("LT"),
         /**
-         * Only update existing elements if the new score is greater than the current score.
-         * Equivalent to `GT` in the Redis API.
+         * Only update existing elements if the new score is greater than the current score. Equivalent
+         * to `GT` in the Redis API.
          */
         SCORE_GREATER_THAN_CURRENT("GT");
 
@@ -56,11 +61,14 @@ public final class ZaddOptions {
      */
     public String[] toArgs() {
         if (conditionalChange == ConditionalChange.ONLY_IF_DOES_NOT_EXIST && updateOptions != null) {
-            throw new IllegalArgumentException("The GT, LT, and NX options are mutually exclusive. Cannot choose both " + updateOptions.redisApi + " and NX.");
+            throw new IllegalArgumentException(
+                    "The GT, LT, and NX options are mutually exclusive. Cannot choose both "
+                            + updateOptions.redisApi
+                            + " and NX.");
         }
 
         List<String> optionArgs = new ArrayList<>();
-        
+
         if (conditionalChange != null) {
             optionArgs.add(conditionalChange.redisApi);
         }
