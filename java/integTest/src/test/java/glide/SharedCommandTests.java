@@ -19,6 +19,7 @@ import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -258,8 +259,8 @@ public class SharedCommandTests {
         String key = UUID.randomUUID().toString();
         Map<String, Double> membersScores = Map.of("one", 1.0d, "two", 2.0d, "three", 3.0d);
 
-        assertEquals(client.zadd(key, membersScores, ZaddOptions.builder().build(), false).get(), 3);
-        assertEquals(client.zaddIncr(key, "one", 2.0d, ZaddOptions.builder().build()).get(), 3.0d);
+        assertEquals(3, client.zadd(key, membersScores, ZaddOptions.builder().build(), false).get());
+        assertEquals(3.0d, client.zaddIncr(key, "one", 2.0d, ZaddOptions.builder().build()).get());
     }
 
     @SneakyThrows
@@ -270,6 +271,7 @@ public class SharedCommandTests {
         Map<String, Double> membersScores = Map.of("one", 1.0d, "two", 2.0d, "three", 3.0d);
 
         assertEquals(
+                0,
                 client
                         .zadd(
                                 key,
@@ -278,9 +280,9 @@ public class SharedCommandTests {
                                         .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS)
                                         .build(),
                                 false)
-                        .get(),
-                0);
+                        .get());
         assertEquals(
+                3,
                 client
                         .zadd(
                                 key,
@@ -289,9 +291,9 @@ public class SharedCommandTests {
                                         .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
                                         .build(),
                                 false)
-                        .get(),
-                3);
+                        .get());
         assertEquals(
+                null,
                 client
                         .zaddIncr(
                                 key,
@@ -300,19 +302,18 @@ public class SharedCommandTests {
                                 ZaddOptions.builder()
                                         .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
                                         .build())
-                        .get(),
-                null);
+                        .get());
         assertEquals(
+                6.0d,
                 client
                         .zaddIncr(
                                 key,
                                 "one",
-                                6.0d,
+                                5.0d,
                                 ZaddOptions.builder()
                                         .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS)
                                         .build())
-                        .get(),
-                6.0d);
+                        .get());
     }
 
     @SneakyThrows
@@ -320,12 +321,16 @@ public class SharedCommandTests {
     @MethodSource("getClients")
     public void zadd_and_zaddIncr_with_GT_LT(BaseClient client) {
         String key = UUID.randomUUID().toString();
-        Map<String, Double> membersScores = Map.of("one", -3.0d, "two", 2.0d, "three", 3.0d);
+        Map<String, Double> membersScores = new HashMap<String, Double>();
+        membersScores.put("one", -3.0d);
+        membersScores.put("two", 2.0d);
+        membersScores.put("three", 3.0d);
 
-        assertEquals(client.zadd(key, membersScores, ZaddOptions.builder().build(), false).get(), 3);
+        assertEquals(3, client.zadd(key, membersScores, ZaddOptions.builder().build(), false).get());
         membersScores.put("one", 10.0d);
 
         assertEquals(
+                1,
                 client
                         .zadd(
                                 key,
@@ -334,9 +339,20 @@ public class SharedCommandTests {
                                         .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
                                         .build(),
                                 true)
-                        .get(),
-                3);
+                        .get());
         assertEquals(
+                0,
+                client
+                        .zadd(
+                                key,
+                                membersScores,
+                                ZaddOptions.builder()
+                                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT)
+                                        .build(),
+                                true)
+                        .get());
+        assertEquals(
+                7.0d,
                 client
                         .zaddIncr(
                                 key,
@@ -345,9 +361,9 @@ public class SharedCommandTests {
                                 ZaddOptions.builder()
                                         .updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT)
                                         .build())
-                        .get(),
-                7.0);
+                        .get());
         assertEquals(
+                null,
                 client
                         .zaddIncr(
                                 key,
@@ -356,8 +372,7 @@ public class SharedCommandTests {
                                 ZaddOptions.builder()
                                         .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
                                         .build())
-                        .get(),
-                null);
+                        .get());
     }
 
     @SneakyThrows
@@ -366,10 +381,10 @@ public class SharedCommandTests {
     public void zrem(BaseClient client) {
         String key = UUID.randomUUID().toString();
         Map<String, Double> membersScores = Map.of("one", 1.0d, "two", 2.0d, "three", 3.0d);
-        assertEquals(client.zadd(key, membersScores, ZaddOptions.builder().build(), false), 3);
-        assertEquals(client.zrem(key, new String[] {"one"}).get(), 1);
-        assertEquals(client.zrem(key, new String[] {"one", "two", "three"}).get(), 2);
-        assertEquals(client.zrem("non_existing_set", new String[] {"member"}).get(), 0);
+        assertEquals(3, client.zadd(key, membersScores, ZaddOptions.builder().build(), false).get());
+        assertEquals(1, client.zrem(key, new String[] {"one"}).get());
+        assertEquals(2, client.zrem(key, new String[] {"one", "two", "three"}).get());
+        assertEquals(0, client.zrem("non_existing_set", new String[] {"member"}).get());
     }
 
     @SneakyThrows
@@ -378,9 +393,9 @@ public class SharedCommandTests {
     public void zcard(BaseClient client) {
         String key = UUID.randomUUID().toString();
         Map<String, Double> membersScores = Map.of("one", 1.0d, "two", 2.0d, "three", 3.0d);
-        assertEquals(client.zadd(key, membersScores, ZaddOptions.builder().build(), false).get(), 3);
-        assertEquals(client.zcard(key).get(), 3);
-        assertEquals(client.zrem(key, new String[] {"one"}).get(), 1);
-        assertEquals(client.zcard(key).get(), 2);
+        assertEquals(3, client.zadd(key, membersScores, ZaddOptions.builder().build(), false).get());
+        assertEquals(3, client.zcard(key).get());
+        assertEquals(1, client.zrem(key, new String[] {"one"}).get());
+        assertEquals(2, client.zcard(key).get());
     }
 }
