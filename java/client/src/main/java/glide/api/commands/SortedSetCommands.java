@@ -75,7 +75,7 @@ public interface SortedSetCommands {
     CompletableFuture<Long> zrem(String key, String[] members);
 
     /**
-     * Returns the cardinality (number of elements) of the sorted set stored at `key`.
+     * Returns the cardinality (number of elements) of the sorted set stored at <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/zcard/">redis.io</a> for more details.
      * @param key - The key of the sorted set.
