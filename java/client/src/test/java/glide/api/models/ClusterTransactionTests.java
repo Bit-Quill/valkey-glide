@@ -63,6 +63,8 @@ public class ClusterTransactionTests {
                         Info,
                         ArgsArray.newBuilder().addArgs(InfoOptions.Section.EVERYTHING.toString()).build()));
 
+        // This cannot be replaced with Map.of because the order of mappings is unspecified
+        // and can change between test runs, which will cause these tests to be flaky.
         Map<String, Double> membersScores = new HashMap<String, Double>();
         membersScores.put("member1", 1.0d);
         membersScores.put("member2", 2.0d);
