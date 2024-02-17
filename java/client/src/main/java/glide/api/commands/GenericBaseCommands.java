@@ -57,13 +57,13 @@ public interface GenericBaseCommands {
     /**
      * Sets a timeout on <code>key</code> in seconds. After the timeout has expired, the <code>key
      * </code> will automatically be deleted. If <code>key</code> already has an existing <code>expire
-     * </code> set, the time to live is updated to the new value. If <code>seconds</code> is
+     * </code> set, the time to live is updated to the new value. If <code>seconds</code> is a
      * non-positive number, the <code>key</code> will be deleted rather than expired. The timeout will
      * only be cleared by commands that delete or overwrite the contents of <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/expire/">redis.io</a> for details.
-     * @param key - The key to set timeout on it.
-     * @param seconds - The timeout in seconds.
+     * @param key The key to set timeout on it.
+     * @param seconds The timeout in seconds.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. key doesn't exist, or operation skipped due to the provided arguments.
      */
@@ -72,14 +72,14 @@ public interface GenericBaseCommands {
     /**
      * Sets a timeout on <code>key</code> in seconds. After the timeout has expired, the <code>key
      * </code> will automatically be deleted. If <code>key</code> already has an existing <code>expire
-     * </code> set, the time to live is updated to the new value. If <code>seconds</code> is
+     * </code> set, the time to live is updated to the new value. If <code>seconds</code> is a
      * non-positive number, the <code>key</code> will be deleted rather than expired. The timeout will
      * only be cleared by commands that delete or overwrite the contents of <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/expire/">redis.io</a> for details.
-     * @param key - The key to set timeout on it.
-     * @param seconds - The timeout in seconds.
-     * @param expireOptions - The expire options.
+     * @param key The key to set timeout on it.
+     * @param seconds The timeout in seconds.
+     * @param expireOptions The expire options.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
@@ -95,8 +95,8 @@ public interface GenericBaseCommands {
      * delete or overwrite the contents of <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/expireat/">redis.io</a> for details.
-     * @param key - The key to set timeout on it.
-     * @param unixSeconds - The timeout in an absolute Unix timestamp.
+     * @param key The key to set timeout on it.
+     * @param unixSeconds The timeout in an absolute Unix timestamp.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
@@ -112,9 +112,9 @@ public interface GenericBaseCommands {
      * delete or overwrite the contents of <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/expireat/">redis.io</a> for details.
-     * @param key - The key to set timeout on it.
-     * @param unixSeconds - The timeout in an absolute Unix timestamp.
-     * @param expireOptions - The expire options.
+     * @param key The key to set timeout on it.
+     * @param unixSeconds The timeout in an absolute Unix timestamp.
+     * @param expireOptions The expire options.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
@@ -125,12 +125,12 @@ public interface GenericBaseCommands {
      * Sets a timeout on <code>key</code> in milliseconds. After the timeout has expired, the <code>
      * key</code> will automatically be deleted. If <code>key</code> already has an existing <code>
      * expire</code> set, the time to live is updated to the new value. If <code>milliseconds</code>
-     * is non-positive number, the <code>key</code> will be deleted rather than expired. The timeout
+     * is a non-positive number, the <code>key</code> will be deleted rather than expired. The timeout
      * will only be cleared by commands that delete or overwrite the contents of <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/pexpire/">redis.io</a> for details.
-     * @param key - The key to set timeout on it.
-     * @param milliseconds - The timeout in milliseconds.
+     * @param key The key to set timeout on it.
+     * @param milliseconds The timeout in milliseconds.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
@@ -140,14 +140,14 @@ public interface GenericBaseCommands {
     /**
      * Sets a timeout on <code>key</code> in milliseconds. After the timeout has expired, the <code>
      * key</code> will automatically be deleted. If <code>key</code> already has an existing expire
-     * set, the time to live is updated to the new value. If <code>milliseconds</code> is non-positive
-     * number, the <code>key</code> will be deleted rather than expired. The timeout will only be
-     * cleared by commands that delete or overwrite the contents of <code>key</code>.
+     * set, the time to live is updated to the new value. If <code>milliseconds</code> is a
+     * non-positive number, the <code>key</code> will be deleted rather than expired. The timeout will
+     * only be cleared by commands that delete or overwrite the contents of <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/pexpire/">redis.io</a> for details.
-     * @param key - The key to set timeout on it.
-     * @param milliseconds - The timeout in milliseconds.
-     * @param expireOptions - The expire options.
+     * @param key The key to set timeout on it.
+     * @param milliseconds The timeout in milliseconds.
+     * @param expireOptions The expire options.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
@@ -163,8 +163,8 @@ public interface GenericBaseCommands {
      * that delete or overwrite the contents of <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/pexpireat/">redis.io</a> for details.
-     * @param key - The <code>key</code> to set timeout on it.
-     * @param unixMilliseconds - The timeout in an absolute Unix timestamp.
+     * @param key The <code>key</code> to set timeout on it.
+     * @param unixMilliseconds The timeout in an absolute Unix timestamp.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
@@ -180,9 +180,9 @@ public interface GenericBaseCommands {
      * that delete or overwrite the contents of <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/pexpireat/">redis.io</a> for details.
-     * @param key - The <code>key</code> to set timeout on it.
-     * @param unixMilliseconds - The timeout in an absolute Unix timestamp.
-     * @param expireOptions - The expire option.
+     * @param key The <code>key</code> to set timeout on it.
+     * @param unixMilliseconds The timeout in an absolute Unix timestamp.
+     * @param expireOptions The expire option.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
@@ -194,8 +194,8 @@ public interface GenericBaseCommands {
      * Returns the remaining time to live of <code>key</code> that has a timeout.
      *
      * @see <a href="https://redis.io/commands/ttl/">redis.io</a> for details.
-     * @param key - The <code>key</code> to return its timeout.
-     * @returns TTL in seconds, -2 if <code>key</code> does not exist or -1 if <code>key</code> exists
+     * @param key The <code>key</code> to return its timeout.
+     * @return TTL in seconds, -2 if <code>key</code> does not exist, or -1 if <code>key</code> exists
      *     but has no associated expire.
      */
     CompletableFuture<Long> ttl(String key);

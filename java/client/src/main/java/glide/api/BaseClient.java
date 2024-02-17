@@ -380,48 +380,49 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Boolean> expire(String key, long seconds) {
+    public CompletableFuture<Boolean> expire(@NonNull String key, long seconds) {
         return commandManager.submitNewCommand(
                 Expire, new String[] {key, Long.toString(seconds)}, this::handleBooleanResponse);
     }
 
     @Override
-    public CompletableFuture<Boolean> expire(String key, long seconds, ExpireOptions expireOptions) {
+    public CompletableFuture<Boolean> expire(
+            @NonNull String key, long seconds, @NonNull ExpireOptions expireOptions) {
         String[] arguments =
                 ArrayUtils.addAll(new String[] {key, Long.toString(seconds)}, expireOptions.toArgs());
         return commandManager.submitNewCommand(Expire, arguments, this::handleBooleanResponse);
     }
 
     @Override
-    public CompletableFuture<Boolean> expireAt(String key, long unixSeconds) {
+    public CompletableFuture<Boolean> expireAt(@NonNull String key, long unixSeconds) {
         return commandManager.submitNewCommand(
                 ExpireAt, new String[] {key, Long.toString(unixSeconds)}, this::handleBooleanResponse);
     }
 
     @Override
     public CompletableFuture<Boolean> expireAt(
-            String key, long unixSeconds, ExpireOptions expireOptions) {
+            @NonNull String key, long unixSeconds, @NonNull ExpireOptions expireOptions) {
         String[] arguments =
                 ArrayUtils.addAll(new String[] {key, Long.toString(unixSeconds)}, expireOptions.toArgs());
         return commandManager.submitNewCommand(ExpireAt, arguments, this::handleBooleanResponse);
     }
 
     @Override
-    public CompletableFuture<Boolean> pexpire(String key, long milliseconds) {
+    public CompletableFuture<Boolean> pexpire(@NonNull String key, long milliseconds) {
         return commandManager.submitNewCommand(
                 PExpire, new String[] {key, Long.toString(milliseconds)}, this::handleBooleanResponse);
     }
 
     @Override
     public CompletableFuture<Boolean> pexpire(
-            String key, long milliseconds, ExpireOptions expireOptions) {
+            @NonNull String key, long milliseconds, @NonNull ExpireOptions expireOptions) {
         String[] arguments =
                 ArrayUtils.addAll(new String[] {key, Long.toString(milliseconds)}, expireOptions.toArgs());
         return commandManager.submitNewCommand(PExpire, arguments, this::handleBooleanResponse);
     }
 
     @Override
-    public CompletableFuture<Boolean> pexpireAt(String key, long unixMilliseconds) {
+    public CompletableFuture<Boolean> pexpireAt(@NonNull String key, long unixMilliseconds) {
         return commandManager.submitNewCommand(
                 PExpireAt,
                 new String[] {key, Long.toString(unixMilliseconds)},
@@ -430,7 +431,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Boolean> pexpireAt(
-            String key, long unixMilliseconds, ExpireOptions expireOptions) {
+            @NonNull String key, long unixMilliseconds, @NonNull ExpireOptions expireOptions) {
         String[] arguments =
                 ArrayUtils.addAll(
                         new String[] {key, Long.toString(unixMilliseconds)}, expireOptions.toArgs());
@@ -438,7 +439,7 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> ttl(String key) {
+    public CompletableFuture<Long> ttl(@NonNull String key) {
         return commandManager.submitNewCommand(TTL, new String[] {key}, this::handleLongResponse);
     }
 }
