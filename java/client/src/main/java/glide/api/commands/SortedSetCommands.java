@@ -47,7 +47,7 @@ public interface SortedSetCommands {
      * @param options - The Zadd options.
      * @returns The score of the member.
      * If there was a conflict with the options, the operation aborts and <code>null</code> is returned.
-     * If `key` holds a value that is not a sorted set, an error is returned.
+     * If <code>key</code> holds a value that is not a sorted set, an error is returned.
      *
      * @example
      * <p><code>
