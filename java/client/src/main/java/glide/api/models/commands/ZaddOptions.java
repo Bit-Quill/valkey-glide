@@ -24,7 +24,7 @@ public final class ZaddOptions {
     @Getter
     public enum ConditionalChange {
         /**
-         * Only update elements that already exist. Don't add new elements. Equivalent to `XX` in the
+         * Only update elements that already exist. Don't add new elements. Equivalent to <code>XX</code> in the
          * Redis API.
          */
         ONLY_IF_EXISTS("XX"),
