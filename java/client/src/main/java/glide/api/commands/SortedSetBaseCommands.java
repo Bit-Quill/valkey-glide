@@ -21,9 +21,9 @@ public interface SortedSetBaseCommands {
      * @param options - The Zadd options.
      * @param changed - Modify the return value from the number of new elements added, to the total
      *     number of elements changed.
-     * @returns The number of elements added to the sorted set. If `changed` is set, returns the
-     *     number of elements updated in the sorted set. If `key` holds a value that is not a sorted
-     *     set, an error is returned.
+     * @returns The number of elements added to the sorted set. If <code>changed</code> is set,
+     *     returns the number of elements updated in the sorted set. If <code>key</code> holds a value
+     *     that is not a sorted set, an error is returned.
      * @example
      *     <p><code>
      * client.zadd("mySortedSet", Map.of("member1", 10.5d, "member2", 8.2d), ZaddOptions.builder().build(), false).get();
