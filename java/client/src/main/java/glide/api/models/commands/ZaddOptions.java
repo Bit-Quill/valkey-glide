@@ -29,7 +29,7 @@ public final class ZaddOptions {
          */
         ONLY_IF_EXISTS("XX"),
         /**
-         * Only add new elements. Don't update already existing elements. Equivalent to `NX` in the
+         * Only add new elements. Don't update already existing elements. Equivalent to <code>NX</code> in the
          * Redis API.
          */
         ONLY_IF_DOES_NOT_EXIST("NX");
