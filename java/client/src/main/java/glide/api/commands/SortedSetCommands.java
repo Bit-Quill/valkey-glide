@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface SortedSetCommands {
     /**
-     * Adds members with their scores to the sorted set stored at `key`. If a member is already a part
+     * Adds members with their scores to the sorted set stored at <code>key</code>. If a member is already a part
      * of the sorted set, its score is updated.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
