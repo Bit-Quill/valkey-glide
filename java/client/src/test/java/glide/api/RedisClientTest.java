@@ -280,7 +280,7 @@ public class RedisClientTest {
     public void zadd_returns_success() {
         // setup
         String key = "testKey";
-        Map<String, Double> membersScores = Map.of("testMember1", 1.0, "testMember2", 2.0);
+        Map<String, Double> membersScores = Map.of("testMember1", 1.0d, "testMember2", 2.0d);
         String[] membersScoresArgs =
                 membersScores.entrySet().stream()
                         .flatMap(e -> Stream.of(e.getValue().toString(), e.getKey()))
