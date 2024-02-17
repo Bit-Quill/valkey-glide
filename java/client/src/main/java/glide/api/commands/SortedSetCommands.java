@@ -61,7 +61,7 @@ public interface SortedSetCommands {
             String key, String member, double increment, ZaddOptions options);
 
     /**
-     * Removes the specified members from the sorted set stored at `key`. Specified members that are
+     * Removes the specified members from the sorted set stored at <code>key</code>. Specified members that are
      * not a member of this set are ignored.
      *
      * @see <a href="https://redis.io/commands/zrem/">redis.io</a> for more details.
