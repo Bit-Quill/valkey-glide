@@ -219,7 +219,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param member - A member in the sorted set to increment.
      * @param increment - The score to increment the member.
      * @param options - The Zadd options.
-     * @returns The score of the member. If there was a conflict with the options, the operation
+     * @returns Command Response - The score of the member. If there was a conflict with the options, the operation
      *     aborts and null is returned. If `key` holds a value that is not a sorted set, an error is
      *     returned.
      */
