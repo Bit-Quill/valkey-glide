@@ -36,7 +36,7 @@ public interface SortedSetCommands {
     CompletableFuture<Long> zadd(
             String key, Map<String, Double> membersScoresMap, ZaddOptions options, boolean changed);
 
-    /** Increments the score of member in the sorted set stored at `key` by `increment`.
+    /** Increments the score of member in the sorted set stored at <code>key</code> by <code>increment</code>.
      * If `member` does not exist in the sorted set, it is added with `increment` as its score (as if its previous score was 0.0).
      * If `key` does not exist, a new sorted set with the specified member as its sole member is created.
      *
