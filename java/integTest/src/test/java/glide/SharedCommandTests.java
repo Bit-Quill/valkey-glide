@@ -270,50 +270,18 @@ public class SharedCommandTests {
         String key = UUID.randomUUID().toString();
         Map<String, Double> membersScores = Map.of("one", 1.0d, "two", 2.0d, "three", 3.0d);
 
-        assertEquals(
-                0,
-                client
-                        .zadd(
-                                key,
-                                membersScores,
-                                ZaddOptions.builder()
-                                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS)
-                                        .build(),
-                                false)
-                        .get());
-        assertEquals(
-                3,
-                client
-                        .zadd(
-                                key,
-                                membersScores,
-                                ZaddOptions.builder()
-                                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
-                                        .build(),
-                                false)
-                        .get());
-        assertEquals(
-                null,
-                client
-                        .zaddIncr(
-                                key,
-                                "one",
-                                5.0d,
-                                ZaddOptions.builder()
-                                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
-                                        .build())
-                        .get());
-        assertEquals(
-                6.0d,
-                client
-                        .zaddIncr(
-                                key,
-                                "one",
-                                5.0d,
-                                ZaddOptions.builder()
-                                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS)
-                                        .build())
-                        .get());
+        ZaddOptions onlyIfExistsOptions =
+                ZaddOptions.builder()
+                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS)
+                        .build();
+        ZaddOptions onlyIfDoesNotExistOptions =
+                ZaddOptions.builder()
+                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
+                        .build();
+        assertEquals(0, client.zadd(key, membersScores, onlyIfExistsOptions, false).get());
+        assertEquals(3, client.zadd(key, membersScores, onlyIfDoesNotExistOptions, false).get());
+        assertEquals(null, client.zaddIncr(key, "one", 5.0d, onlyIfDoesNotExistOptions).get());
+        assertEquals(6.0d, client.zaddIncr(key, "one", 5.0d, onlyIfExistsOptions).get());
     }
 
     @SneakyThrows
@@ -329,50 +297,18 @@ public class SharedCommandTests {
         assertEquals(3, client.zadd(key, membersScores, ZaddOptions.builder().build(), false).get());
         membersScores.put("one", 10.0d);
 
-        assertEquals(
-                1,
-                client
-                        .zadd(
-                                key,
-                                membersScores,
-                                ZaddOptions.builder()
-                                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
-                                        .build(),
-                                true)
-                        .get());
-        assertEquals(
-                0,
-                client
-                        .zadd(
-                                key,
-                                membersScores,
-                                ZaddOptions.builder()
-                                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT)
-                                        .build(),
-                                true)
-                        .get());
-        assertEquals(
-                7.0d,
-                client
-                        .zaddIncr(
-                                key,
-                                "one",
-                                -3.0,
-                                ZaddOptions.builder()
-                                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT)
-                                        .build())
-                        .get());
-        assertEquals(
-                null,
-                client
-                        .zaddIncr(
-                                key,
-                                "one",
-                                -3.0,
-                                ZaddOptions.builder()
-                                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
-                                        .build())
-                        .get());
+        ZaddOptions scoreGreaterThanOptions =
+                ZaddOptions.builder()
+                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
+                        .build();
+        ZaddOptions scoreLessThanOptions =
+                ZaddOptions.builder()
+                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT)
+                        .build();
+        assertEquals(1, client.zadd(key, membersScores, scoreGreaterThanOptions, true).get());
+        assertEquals(0, client.zadd(key, membersScores, scoreLessThanOptions, true).get());
+        assertEquals(7.0d, client.zaddIncr(key, "one", -3.0, scoreLessThanOptions).get());
+        assertEquals(null, client.zaddIncr(key, "one", -3.0, scoreGreaterThanOptions).get());
     }
 
     @SneakyThrows
