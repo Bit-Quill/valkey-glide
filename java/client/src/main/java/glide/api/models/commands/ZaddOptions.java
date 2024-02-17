@@ -47,7 +47,7 @@ public final class ZaddOptions {
         SCORE_LESS_THAN_CURRENT("LT"),
         /**
          * Only update existing elements if the new score is greater than the current score. Equivalent
-         * to `GT` in the Redis API.
+         * to <code>GT</code> in the Redis API.
          */
         SCORE_GREATER_THAN_CURRENT("GT");
 
