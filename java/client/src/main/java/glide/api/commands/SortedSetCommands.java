@@ -37,7 +37,7 @@ public interface SortedSetCommands {
             String key, Map<String, Double> membersScoresMap, ZaddOptions options, boolean changed);
 
     /** Increments the score of member in the sorted set stored at <code>key</code> by <code>increment</code>.
-     * If `member` does not exist in the sorted set, it is added with `increment` as its score (as if its previous score was 0.0).
+     * If <code>member</code> does not exist in the sorted set, it is added with <code>increment</code> as its score (as if its previous score was 0.0).
      * If `key` does not exist, a new sorted set with the specified member as its sole member is created.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
