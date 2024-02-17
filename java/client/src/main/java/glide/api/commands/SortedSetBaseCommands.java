@@ -10,10 +10,10 @@ import java.util.concurrent.CompletableFuture;
  *
  * @see <a href="https://redis.io/commands/?group=sorted-set">Sorted set Commands</a>
  */
-public interface SortedSetCommands {
+public interface SortedSetBaseCommands {
     /**
-     * Adds members with their scores to the sorted set stored at <code>key</code>. If a member is already a part
-     * of the sorted set, its score is updated.
+     * Adds members with their scores to the sorted set stored at <code>key</code>. If a member is
+     * already a part of the sorted set, its score is updated.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
      * @param key - The key of the sorted set.
@@ -61,16 +61,16 @@ public interface SortedSetCommands {
             String key, String member, double increment, ZaddOptions options);
 
     /**
-     * Removes the specified members from the sorted set stored at <code>key</code>. Specified members that are
-     * not a member of this set are ignored.
+     * Removes the specified members from the sorted set stored at <code>key</code>. Specified members
+     * that are not a member of this set are ignored.
      *
      * @see <a href="https://redis.io/commands/zrem/">redis.io</a> for more details.
      * @param key - The key of the sorted set.
      * @param members - A list of members to remove from the sorted set.
      * @returns The number of members that were removed from the sorted set, not including
-     *     non-existing members. If <code>key</code> does not exist, it is treated as an empty sorted set, and
-     *     this command returns <code>0</code>. If <code>key</code> holds a value that is not a sorted set, an error is
-     *     returned.
+     *     non-existing members. If <code>key</code> does not exist, it is treated as an empty sorted
+     *     set, and this command returns <code>0</code>. If <code>key</code> holds a value that is not
+     *     a sorted set, an error is returned.
      */
     CompletableFuture<Long> zrem(String key, String[] members);
 
@@ -79,9 +79,9 @@ public interface SortedSetCommands {
      *
      * @see <a href="https://redis.io/commands/zcard/">redis.io</a> for more details.
      * @param key - The key of the sorted set.
-     * @returns The number of elements in the sorted set. If <code>key</code> does not exist, it is treated as an
-     *     empty sorted set, and this command returns <code>0</code>. If <code>key</code> holds a value that is not a sorted
-     *     set, an error is returned.
+     * @returns The number of elements in the sorted set. If <code>key</code> does not exist, it is
+     *     treated as an empty sorted set, and this command returns <code>0</code>. If <code>key
+     *     </code> holds a value that is not a sorted set, an error is returned.
      */
     CompletableFuture<Long> zcard(String key);
 }

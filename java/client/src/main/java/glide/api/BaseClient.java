@@ -10,7 +10,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.commands.ConnectionManagementCommands;
-import glide.api.commands.SortedSetCommands;
+import glide.api.commands.SortedSetBaseCommands;
 import glide.api.commands.StringCommands;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.ZaddOptions;
@@ -39,7 +39,7 @@ import response.ResponseOuterClass.Response;
 /** Base Client class for Redis */
 @AllArgsConstructor
 public abstract class BaseClient
-        implements AutoCloseable, ConnectionManagementCommands, StringCommands, SortedSetCommands {
+        implements AutoCloseable, ConnectionManagementCommands, StringCommands, SortedSetBaseCommands {
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
 

@@ -8,9 +8,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Optional arguments to {@link SortedSetCommands#zadd(String, Map, ZaddOptions, boolean)
- * SortedSetCommands.zadd(String, Map&lt;String, Double&gt;, ZaddOptions, boolean)} and {@link
- * SortedSetCommands#zaddIncr(String, String, Double, ZaddOptions)}
+ * Optional arguments to {@link SortedSetBaseCommands#zadd(String, Map, ZaddOptions, boolean)
+ * SortedSetBaseCommands.zadd(String, Map&lt;String, Double&gt;, ZaddOptions, boolean)} and {@link
+ * SortedSetBaseCommands#zaddIncr(String, String, Double, ZaddOptions)}
  *
  * @see <a href="https://redis.io/commands/zadd/">redis.io</a>
  */
@@ -24,13 +24,13 @@ public final class ZaddOptions {
     @Getter
     public enum ConditionalChange {
         /**
-         * Only update elements that already exist. Don't add new elements. Equivalent to <code>XX</code> in the
-         * Redis API.
+         * Only update elements that already exist. Don't add new elements. Equivalent to <code>XX
+         * </code> in the Redis API.
          */
         ONLY_IF_EXISTS("XX"),
         /**
-         * Only add new elements. Don't update already existing elements. Equivalent to <code>NX</code> in the
-         * Redis API.
+         * Only add new elements. Don't update already existing elements. Equivalent to <code>NX</code>
+         * in the Redis API.
          */
         ONLY_IF_DOES_NOT_EXIST("NX");
 
