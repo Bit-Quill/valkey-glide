@@ -42,7 +42,7 @@ public final class ZaddOptions {
     public enum UpdateOptions {
         /**
          * Only update existing elements if the new score is less than the current score. Equivalent to
-         * `LT` in the Redis API.
+         * <code>LT</code> in the Redis API.
          */
         SCORE_LESS_THAN_CURRENT("LT"),
         /**
