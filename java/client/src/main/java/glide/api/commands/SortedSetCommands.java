@@ -79,7 +79,7 @@ public interface SortedSetCommands {
      *
      * @see <a href="https://redis.io/commands/zcard/">redis.io</a> for more details.
      * @param key - The key of the sorted set.
-     * @returns The number of elements in the sorted set. If `key` does not exist, it is treated as an
+     * @returns The number of elements in the sorted set. If <code>key</code> does not exist, it is treated as an
      *     empty sorted set, and this command returns 0. If `key` holds a value that is not a sorted
      *     set, an error is returned.
      */
