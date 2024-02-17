@@ -314,6 +314,41 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getClients")
+    public void zadd_illegal_arguments(BaseClient client) {
+        ZaddOptions existsGreaterThanOptions =
+                ZaddOptions.builder()
+                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
+                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
+                        .build();
+        assertThrows(IllegalArgumentException.class, () -> existsGreaterThanOptions.toArgs());
+        ZaddOptions existsLessThanOptions =
+                ZaddOptions.builder()
+                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
+                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT)
+                        .build();
+        assertThrows(IllegalArgumentException.class, () -> existsLessThanOptions.toArgs());
+        ZaddOptions options =
+                ZaddOptions.builder()
+                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
+                        .build();
+        options.toArgs();
+        options =
+                ZaddOptions.builder()
+                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS)
+                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
+                        .build();
+        options.toArgs();
+        options =
+                ZaddOptions.builder()
+                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS)
+                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT)
+                        .build();
+        options.toArgs();
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
     public void zrem(BaseClient client) {
         String key = UUID.randomUUID().toString();
         Map<String, Double> membersScores = Map.of("one", 1.0d, "two", 2.0d, "three", 3.0d);
