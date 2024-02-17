@@ -182,7 +182,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param options - The Zadd options.
      * @param changed - Modify the return value from the number of new elements added, to the total
      *     number of elements changed.
-     * @returns The number of elements added to the sorted set. If `changed` is set, returns the
+     * @returns Command Response - The number of elements added to the sorted set. If `changed` is set, returns the
      *     number of elements updated in the sorted set. If `key` holds a value that is not a sorted
      *     set, an error is returned.
      */
