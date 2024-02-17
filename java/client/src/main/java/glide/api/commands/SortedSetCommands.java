@@ -69,7 +69,7 @@ public interface SortedSetCommands {
      * @param members - A list of members to remove from the sorted set.
      * @returns The number of members that were removed from the sorted set, not including
      *     non-existing members. If <code>key</code> does not exist, it is treated as an empty sorted set, and
-     *     this command returns 0. If `key` holds a value that is not a sorted set, an error is
+     *     this command returns <code>0</code>. If <code>key</code> holds a value that is not a sorted set, an error is
      *     returned.
      */
     CompletableFuture<Long> zrem(String key, String[] members);
