@@ -55,7 +55,7 @@ public final class ZaddOptions {
     }
 
     /**
-     * Converts ZaddOptions into a String[] to add to a {@link Command} arguments.
+     * Converts ZaddOptions into a String[].
      *
      * @return String[]
      */
