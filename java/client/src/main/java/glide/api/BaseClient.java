@@ -218,6 +218,26 @@ public abstract class BaseClient
     }
 
     @Override
+    public CompletableFuture<Long> zadd(
+            @NonNull String key,
+            @NonNull Map<String, Double> membersScoresMap,
+            @NonNull ZaddOptions options) {
+        return this.zadd(key, membersScoresMap, options, false);
+    }
+
+    @Override
+    public CompletableFuture<Long> zadd(
+            @NonNull String key, @NonNull Map<String, Double> membersScoresMap, boolean changed) {
+        return this.zadd(key, membersScoresMap, ZaddOptions.builder().build(), changed);
+    }
+
+    @Override
+    public CompletableFuture<Long> zadd(
+            @NonNull String key, @NonNull Map<String, Double> membersScoresMap) {
+        return this.zadd(key, membersScoresMap, ZaddOptions.builder().build(), false);
+    }
+
+    @Override
     public CompletableFuture<Double> zaddIncr(
             @NonNull String key, @NonNull String member, double increment, @NonNull ZaddOptions options) {
         String[] arguments =
@@ -228,6 +248,11 @@ public abstract class BaseClient
                         .flatMap(Stream::of)
                         .toArray(String[]::new);
         return commandManager.submitNewCommand(Zadd, arguments, this::handleDoubleOrNullResponse);
+    }
+
+    public CompletableFuture<Double> zaddIncr(
+            @NonNull String key, @NonNull String member, double increment) {
+        return this.zaddIncr(key, member, increment, ZaddOptions.builder().build());
     }
 
     @Override

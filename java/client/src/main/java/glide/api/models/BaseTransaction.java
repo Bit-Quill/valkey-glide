@@ -209,6 +209,56 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
+     * Adds members with their scores to the sorted set stored at <code>key</code>. If a member is
+     * already a part of the sorted set, its score is updated.
+     *
+     * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
+     * @param key - The key of the sorted set.
+     * @param membersScoresMap - A mapping of members to their corresponding scores.
+     * @param options - The Zadd options.
+     * @returns Command Response - The number of elements added to the sorted set. If <code>key
+     *     </code> holds a value that is not a sorted set, an error is returned.
+     */
+    public T zadd(
+            @NonNull String key,
+            @NonNull Map<String, Double> membersScoresMap,
+            @NonNull ZaddOptions options) {
+        return getThis().zadd(key, membersScoresMap, options, false);
+    }
+
+    /**
+     * Adds members with their scores to the sorted set stored at <code>key</code>. If a member is
+     * already a part of the sorted set, its score is updated.
+     *
+     * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
+     * @param key - The key of the sorted set.
+     * @param membersScoresMap - A mapping of members to their corresponding scores.
+     * @param changed - Modify the return value from the number of new elements added, to the total
+     *     number of elements changed.
+     * @returns Command Response - The number of elements added to the sorted set. If <code>changed
+     *     </code> is set, returns the number of elements updated in the sorted set. If <code>key
+     *     </code> holds a value that is not a sorted set, an error is returned.
+     */
+    public T zadd(
+            @NonNull String key, @NonNull Map<String, Double> membersScoresMap, boolean changed) {
+        return getThis().zadd(key, membersScoresMap, ZaddOptions.builder().build(), changed);
+    }
+
+    /**
+     * Adds members with their scores to the sorted set stored at <code>key</code>. If a member is
+     * already a part of the sorted set, its score is updated.
+     *
+     * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
+     * @param key - The key of the sorted set.
+     * @param membersScoresMap - A mapping of members to their corresponding scores.
+     * @returns Command Response - The number of elements added to the sorted set. If <code>key
+     *     </code> holds a value that is not a sorted set, an error is returned.
+     */
+    public T zadd(@NonNull String key, @NonNull Map<String, Double> membersScoresMap) {
+        return getThis().zadd(key, membersScoresMap, ZaddOptions.builder().build(), false);
+    }
+
+    /**
      * Increments the score of member in the sorted set stored at <code>key</code> by <code>increment
      * </code>. If <code>member</code> does not exist in the sorted set, it is added with <code>
      * increment</code> as its score (as if its previous score was 0.0). If <code>key</code> does not
@@ -238,6 +288,23 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
         protobufTransaction.addCommands(buildCommand(Zadd, commandArgs));
         return getThis();
+    }
+
+    /**
+     * Increments the score of member in the sorted set stored at <code>key</code> by <code>increment
+     * </code>. If <code>member</code> does not exist in the sorted set, it is added with <code>
+     * increment</code> as its score (as if its previous score was 0.0). If <code>key</code> does not
+     * exist, a new sorted set with the specified member as its sole member is created.
+     *
+     * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
+     * @param key - The key of the sorted set.
+     * @param member - A member in the sorted set to increment.
+     * @param increment - The score to increment the member.
+     * @returns Command Response - The score of the member. If <code>key</code> holds a value that is
+     *     not a sorted set, an error is returned.
+     */
+    public T zaddIncr(@NonNull String key, @NonNull String member, double increment) {
+        return getThis().zaddIncr(key, member, increment, ZaddOptions.builder().build());
     }
 
     /**

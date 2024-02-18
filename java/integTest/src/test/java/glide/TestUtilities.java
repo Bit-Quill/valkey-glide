@@ -3,7 +3,6 @@ package glide;
 
 import glide.api.models.BaseTransaction;
 import glide.api.models.commands.SetOptions;
-import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,8 +18,8 @@ public class TestUtilities {
         baseTransaction.customCommand("MGET", key1, key2);
 
         Map<String, Double> membersScores = Map.of("baz", 1.0, "foo", 2.0);
-        baseTransaction.zadd(keySortedSet, membersScores, ZaddOptions.builder().build(), false);
-        baseTransaction.zaddIncr(keySortedSet, "baz", 2.0d, ZaddOptions.builder().build());
+        baseTransaction.zadd(keySortedSet, membersScores);
+        baseTransaction.zaddIncr(keySortedSet, "baz", 2.0d);
         baseTransaction.zrem(keySortedSet, new String[] {"foo"});
         baseTransaction.zcard(keySortedSet);
 
