@@ -431,7 +431,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/client-getname/">redis.io</a> for details.
      * @return Command response - The name of the client connection as a string if a name is set, or
-     *     null if no name is assigned.
+     *     <code>null</code> if no name is assigned.
      */
     public T clientGetName() {
         protobufTransaction.addCommands(buildCommand(ClientGetName));

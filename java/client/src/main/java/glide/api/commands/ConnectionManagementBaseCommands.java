@@ -40,8 +40,8 @@ public interface ConnectionManagementBaseCommands {
      * Get the name of the current connection.
      *
      * @see <a href="https://redis.io/commands/client-getname/">redis.io</a> for details.
-     * @return The name of the client connection as a string if a name is set, or null if no name is
-     *     assigned.
+     * @return The name of the client connection as a string if a name is set, or <code>null</code> if
+     *     no name is assigned.
      */
     CompletableFuture<String> clientGetName();
 }
