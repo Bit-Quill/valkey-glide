@@ -4,6 +4,8 @@ package glide.api;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.convertMapToArgArray;
+import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
+import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
 import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
@@ -22,7 +24,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
-import glide.api.commands.ConnectionManagementCommands;
+import glide.api.commands.ConnectionManagementBaseCommands;
 import glide.api.commands.HashCommands;
 import glide.api.commands.SetCommands;
 import glide.api.commands.StringCommands;
@@ -53,10 +55,11 @@ import response.ResponseOuterClass.Response;
 @AllArgsConstructor
 public abstract class BaseClient
         implements AutoCloseable,
-                ConnectionManagementCommands,
+                ConnectionManagementBaseCommands,
                 StringCommands,
                 HashCommands,
                 SetCommands {
+
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
 
@@ -188,7 +191,7 @@ public abstract class BaseClient
     /**
      * @param response A Protobuf response
      * @return A map of <code>String</code> to <code>V</code>
-     * @param <V> Value type could be even map too
+     * @param <V> Value type, could be even map too
      */
     @SuppressWarnings("unchecked") // raw Map cast to Map<String, V>
     protected <V> Map<String, V> handleMapResponse(Response response) throws RedisException {
@@ -308,5 +311,15 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> scard(String key) {
         return commandManager.submitNewCommand(SCard, new String[] {key}, this::handleLongResponse);
+    }
+
+    public CompletableFuture<Long> clientId() {
+        return commandManager.submitNewCommand(ClientId, new String[0], this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> clientGetName() {
+        return commandManager.submitNewCommand(
+                ClientGetName, new String[0], this::handleStringOrNullResponse);
     }
 }

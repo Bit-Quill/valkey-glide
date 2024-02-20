@@ -1,6 +1,8 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
+import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
@@ -53,7 +55,8 @@ public class RedisClusterClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<ClusterValue<Object>> customCommand(String[] args, Route route) {
+    public CompletableFuture<ClusterValue<Object>> customCommand(
+            @NonNull String[] args, @NonNull Route route) {
         return commandManager.submitNewCommand(
                 CustomCommand, args, route, response -> handleCustomCommandResponse(route, response));
     }
@@ -130,6 +133,42 @@ public class RedisClusterClient extends BaseClient
                 response ->
                         route.isSingleNodeRoute()
                                 ? ClusterValue.of(handleStringResponse(response))
+                                : ClusterValue.of(handleMapResponse(response)));
+    }
+
+    /** {@inheritDoc} The command will be routed a random node. */
+    @Override
+    public CompletableFuture<Long> clientId() {
+        return super.clientId();
+    }
+
+    /** {@inheritDoc} The command will be routed a random node. */
+    @Override
+    public CompletableFuture<String> clientGetName() {
+        return super.clientGetName();
+    }
+
+    @Override
+    public CompletableFuture<ClusterValue<Long>> clientId(@NonNull Route route) {
+        return commandManager.submitNewCommand(
+                ClientId,
+                new String[0],
+                route,
+                response ->
+                        route.isSingleNodeRoute()
+                                ? ClusterValue.of(handleLongResponse(response))
+                                : ClusterValue.of(handleMapResponse(response)));
+    }
+
+    @Override
+    public CompletableFuture<ClusterValue<String>> clientGetName(@NonNull Route route) {
+        return commandManager.submitNewCommand(
+                ClientGetName,
+                new String[0],
+                route,
+                response ->
+                        route.isSingleNodeRoute()
+                                ? ClusterValue.of(handleStringOrNullResponse(response))
                                 : ClusterValue.of(handleMapResponse(response)));
     }
 }

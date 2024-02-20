@@ -1,6 +1,8 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
+import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 
@@ -53,5 +55,16 @@ public class RedisClient extends BaseClient implements GenericCommands, ServerMa
     @Override
     public CompletableFuture<String> info(@NonNull InfoOptions options) {
         return commandManager.submitNewCommand(Info, options.toArgs(), this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> clientId() {
+        return commandManager.submitNewCommand(ClientId, new String[0], this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> clientGetName() {
+        return commandManager.submitNewCommand(
+                ClientGetName, new String[0], this::handleStringOrNullResponse);
     }
 }

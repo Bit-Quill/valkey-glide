@@ -4,11 +4,11 @@ package glide.api.commands;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Connection Management Commands interface.
+ * Connection Management Commands interface for both standalone and cluster clients.
  *
- * @see: <a href="https://redis.io/commands/?group=connection">Connection Management Commands</a>
+ * @see <a href="https://redis.io/commands/?group=connection">Connection Management Commands</a>
  */
-public interface ConnectionManagementCommands {
+public interface ConnectionManagementBaseCommands {
 
     /**
      * Ping the Redis server.
@@ -27,4 +27,21 @@ public interface ConnectionManagementCommands {
      *     str</code>.
      */
     CompletableFuture<String> ping(String str);
+
+    /**
+     * Get the current connection id.
+     *
+     * @see <a href="https://redis.io/commands/client-id/">redis.io</a> for details.
+     * @return The id of the client.
+     */
+    CompletableFuture<Long> clientId();
+
+    /**
+     * Get the name of the current connection.
+     *
+     * @see <a href="https://redis.io/commands/client-getname/">redis.io</a> for details.
+     * @return The name of the client connection as a string if a name is set, or null if no name is
+     *     assigned.
+     */
+    CompletableFuture<String> clientGetName();
 }
