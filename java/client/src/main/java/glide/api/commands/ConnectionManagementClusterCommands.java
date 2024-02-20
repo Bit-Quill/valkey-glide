@@ -18,7 +18,7 @@ public interface ConnectionManagementClusterCommands extends ConnectionManagemen
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
      * @param route Routing configuration for the command. Client will route the command to the nodes
      *     defined.
-     * @return Response from Redis containing a <code>String</code> with <code>PONG</code>.
+     * @return Response from Redis containing a <code>String</code> with "PONG".
      */
     CompletableFuture<String> ping(Route route);
 

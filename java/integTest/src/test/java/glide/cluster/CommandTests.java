@@ -277,7 +277,11 @@ public class CommandTests {
 
             var newClientId = newClient.clientId().get();
 
-            assertTrue(currentId < newClientId);
+            assertTrue(
+                    currentId < newClientId,
+                    String.format(
+                            "New client got ID smaller or equal that the old one. New ID : %d, old ID : %d",
+                            newClientId, currentId));
         }
     }
 
