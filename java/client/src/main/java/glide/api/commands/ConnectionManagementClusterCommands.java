@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @see <a href="https://redis.io/commands/?group=connection">Connection Management Commands</a>
  */
-public interface ConnectionManagementClusterCommands {
+public interface ConnectionManagementClusterCommands extends ConnectionManagementBaseCommands {
 
     /**
      * Ping the Redis server.
@@ -33,6 +33,12 @@ public interface ConnectionManagementClusterCommands {
      *     str</code>.
      */
     CompletableFuture<String> ping(String str, Route route);
+
+    /** {@inheritDoc} The command will be routed a random node. */
+    CompletableFuture<Long> clientId();
+
+    /** {@inheritDoc} The command will be routed a random node. */
+    CompletableFuture<String> clientGetName();
 
     /**
      * Get the current connection id.

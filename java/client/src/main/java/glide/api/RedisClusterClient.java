@@ -136,13 +136,11 @@ public class RedisClusterClient extends BaseClient
                                 : ClusterValue.of(handleMapResponse(response)));
     }
 
-    /** {@inheritDoc} The command will be routed a random node. */
     @Override
     public CompletableFuture<Long> clientId() {
         return super.clientId();
     }
 
-    /** {@inheritDoc} The command will be routed a random node. */
     @Override
     public CompletableFuture<String> clientGetName() {
         return super.clientGetName();
