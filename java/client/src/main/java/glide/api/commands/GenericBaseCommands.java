@@ -65,7 +65,8 @@ public interface GenericBaseCommands {
      * @param key The key to set timeout on it.
      * @param seconds The timeout in seconds.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
-     *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided arguments.
+     *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
+     *     arguments.
      */
     CompletableFuture<Boolean> expire(String key, long seconds);
 
