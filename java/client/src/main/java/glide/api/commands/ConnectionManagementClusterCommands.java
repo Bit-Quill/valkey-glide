@@ -35,7 +35,7 @@ public interface ConnectionManagementClusterCommands {
     CompletableFuture<String> ping(String str, Route route);
 
     /**
-     * Get the current connection id.<br>
+     * Gets the current connection id.<br>
      * The command will be routed a random node.
      *
      * @see <a href="https://redis.io/commands/client-id/">redis.io</a> for details.
@@ -49,22 +49,7 @@ public interface ConnectionManagementClusterCommands {
     CompletableFuture<Long> clientId();
 
     /**
-     * Get the name of the current connection.<br>
-     * The command will be routed a random node.
-     *
-     * @see <a href="https://redis.io/commands/client-getname/">redis.io</a> for details.
-     * @return The name of the client connection as a string if a name is set, or <code>null</code> if
-     *     no name is assigned.
-     * @example
-     *     <pre>
-     * String clientName = client.clientGetName().get();
-     * assert clientName != null
-     * </pre>
-     */
-    CompletableFuture<String> clientGetName();
-
-    /**
-     * Get the current connection id.
+     * Gets the current connection id.
      *
      * @see <a href="https://redis.io/commands/client-id/">redis.io</a> for details.
      * @param route Routing configuration for the command. Client will route the command to the nodes
@@ -87,7 +72,22 @@ public interface ConnectionManagementClusterCommands {
     CompletableFuture<ClusterValue<Long>> clientId(Route route);
 
     /**
-     * Get the name of the current connection.
+     * Gets the name of the current connection.<br>
+     * The command will be routed a random node.
+     *
+     * @see <a href="https://redis.io/commands/client-getname/">redis.io</a> for details.
+     * @return The name of the client connection as a string if a name is set, or <code>null</code> if
+     *     no name is assigned.
+     * @example
+     *     <pre>
+     * String clientName = client.clientGetName().get();
+     * assert clientName != null
+     * </pre>
+     */
+    CompletableFuture<String> clientGetName();
+
+    /**
+     * Gets the name of the current connection.
      *
      * @see <a href="https://redis.io/commands/client-getname/">redis.io</a> for details.
      * @param route Routing configuration for the command. Client will route the command to the nodes

@@ -29,7 +29,7 @@ public interface ConnectionManagementBaseCommands {
     CompletableFuture<String> ping(String str);
 
     /**
-     * Get the current connection id.
+     * Gets the current connection id.
      *
      * @see <a href="https://redis.io/commands/client-id/">redis.io</a> for details.
      * @return The id of the client.
@@ -42,7 +42,7 @@ public interface ConnectionManagementBaseCommands {
     CompletableFuture<Long> clientId();
 
     /**
-     * Get the name of the current connection.
+     * Gets the name of the current connection.
      *
      * @see <a href="https://redis.io/commands/client-getname/">redis.io</a> for details.
      * @return The name of the client connection as a string if a name is set, or <code>null</code> if

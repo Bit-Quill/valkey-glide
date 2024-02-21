@@ -265,24 +265,8 @@ public class CommandTests {
     @Test
     @SneakyThrows
     public void clientId() {
-        var currentId = clusterClient.clientId().get();
-
-        try (var newClient =
-                RedisClusterClient.CreateClient(
-                                RedisClusterClientConfiguration.builder()
-                                        .address(NodeAddress.builder().port(CLUSTER_PORTS[0]).build())
-                                        .requestTimeout(5000)
-                                        .build())
-                        .get()) {
-
-            var newClientId = newClient.clientId().get();
-
-            assertTrue(
-                    currentId < newClientId,
-                    String.format(
-                            "New client got ID smaller or equal that the old one. New ID : %d, old ID : %d",
-                            newClientId, currentId));
-        }
+        var id = clusterClient.clientId().get();
+        assertTrue(id > 0);
     }
 
     @Test

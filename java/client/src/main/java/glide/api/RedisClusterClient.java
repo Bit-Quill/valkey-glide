@@ -142,11 +142,6 @@ public class RedisClusterClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<String> clientGetName() {
-        return super.clientGetName();
-    }
-
-    @Override
     public CompletableFuture<ClusterValue<Long>> clientId(@NonNull Route route) {
         return commandManager.submitNewCommand(
                 ClientId,
@@ -156,6 +151,11 @@ public class RedisClusterClient extends BaseClient
                         route.isSingleNodeRoute()
                                 ? ClusterValue.of(handleLongResponse(response))
                                 : ClusterValue.of(handleMapResponse(response)));
+    }
+
+    @Override
+    public CompletableFuture<String> clientGetName() {
+        return super.clientGetName();
     }
 
     @Override
