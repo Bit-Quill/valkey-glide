@@ -141,14 +141,14 @@ public class RedisClusterClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<String> configResetStat() {
-        return super.configResetStat();
-    }
-
-    @Override
     public CompletableFuture<String> configRewrite(@NonNull Route route) {
         return commandManager.submitNewCommand(
                 ConfigRewrite, new String[0], route, this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> configResetStat() {
+        return super.configResetStat();
     }
 
     @Override

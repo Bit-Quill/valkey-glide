@@ -73,7 +73,7 @@ public interface ServerManagementClusterCommands {
     CompletableFuture<ClusterValue<String>> info(InfoOptions options, Route route);
 
     /**
-     * Rewrite the configuration file with the current configuration.<br>
+     * Rewrites the configuration file with the current configuration.<br>
      * The command will be routed automatically to all nodes.
      *
      * @see <a href="https://redis.io/commands/config-rewrite/">redis.io</a> for details.
@@ -88,23 +88,7 @@ public interface ServerManagementClusterCommands {
     CompletableFuture<String> configRewrite();
 
     /**
-     * Reset the statistics reported by Redis using the <a
-     * href="https://redis.io/commands/info/">INFO</a> and <a
-     * href="https://redis.io/commands/latency-histogram/">LATENCY HISTOGRAM </a> commands.<br>
-     * The command will be routed automatically to all nodes.
-     *
-     * @see <a href="https://redis.io/commands/config-resetstat/">redis.io</a> for details.
-     * @return <code>OK</code> to confirm that the statistics were successfully reset.
-     * @example
-     *     <pre>
-     * String response = client.configResetStat().get();
-     * assert response.equals("OK")
-     * </pre>
-     */
-    CompletableFuture<String> configResetStat();
-
-    /**
-     * Rewrite the configuration file with the current configuration.
+     * Rewrites the configuration file with the current configuration.
      *
      * @see <a href="https://redis.io/commands/config-rewrite/">redis.io</a> for details.
      * @param route Routing configuration for the command. Client will route the command to the nodes
@@ -120,7 +104,23 @@ public interface ServerManagementClusterCommands {
     CompletableFuture<String> configRewrite(Route route);
 
     /**
-     * Reset the statistics reported by Redis using the <a
+     * Resets the statistics reported by Redis using the <a
+     * href="https://redis.io/commands/info/">INFO</a> and <a
+     * href="https://redis.io/commands/latency-histogram/">LATENCY HISTOGRAM </a> commands.<br>
+     * The command will be routed automatically to all nodes.
+     *
+     * @see <a href="https://redis.io/commands/config-resetstat/">redis.io</a> for details.
+     * @return <code>OK</code> to confirm that the statistics were successfully reset.
+     * @example
+     *     <pre>
+     * String response = client.configResetStat().get();
+     * assert response.equals("OK")
+     * </pre>
+     */
+    CompletableFuture<String> configResetStat();
+
+    /**
+     * Resets the statistics reported by Redis using the <a
      * href="https://redis.io/commands/info/">INFO</a> and <a
      * href="https://redis.io/commands/latency-histogram/">LATENCY HISTOGRAM </a> commands.
      *

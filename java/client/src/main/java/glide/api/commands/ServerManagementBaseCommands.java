@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 public interface ServerManagementBaseCommands {
 
     /**
-     * Rewrite the configuration file with the current configuration.
+     * Rewrites the configuration file with the current configuration.
      *
      * @see <a href="https://redis.io/commands/config-rewrite/">redis.io</a> for details.
      * @return <code>OK</code> when the configuration was rewritten properly, otherwise an error is
@@ -25,9 +25,9 @@ public interface ServerManagementBaseCommands {
     CompletableFuture<String> configRewrite();
 
     /**
-     * Reset the statistics reported by Redis using the <a
+     * Resets the statistics reported by Redis using the <a
      * href="https://redis.io/commands/info/">INFO</a> and <a
-     * href="https://redis.io/commands/latency-histogram/">LATENCY HISTOGRAM </a> commands.
+     * href="https://redis.io/commands/latency-histogram/">LATENCY HISTOGRAM</a> commands.
      *
      * @see <a href="https://redis.io/commands/config-resetstat/">redis.io</a> for details.
      * @return <code>OK</code> to confirm that the statistics were successfully reset.
