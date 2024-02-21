@@ -24,7 +24,9 @@ func TestConnectionRequestProtobufGeneration_defaultStandaloneConfig_withConstru
 	assert.Equal(t, expected, result)
 }
 
-func TestConnectionRequestProtobufGeneration_defaultStandaloneConfig_withoutConstructor(t *testing.T) {
+func TestConnectionRequestProtobufGeneration_defaultStandaloneConfig_withoutConstructor(
+	t *testing.T,
+) {
 	config := RedisClientConfiguration{}
 	expected := &protobuf.ConnectionRequest{
 		TlsMode:            protobuf.TlsMode_NoTls,
