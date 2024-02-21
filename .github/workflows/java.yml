@@ -6,14 +6,22 @@ on:
         paths:
             - glide-core/**
             - submodules/**
-            - "java/**"
-            - ".github/workflows/java.yml"
+            - java/**
+            - .github/workflows/java.yml
+            - .github/workflows/install-shared-dependencies/action.yml
+            - .github/workflows/install-redis
+            - .github/workflows/test-benchmark
+            - .github/workflows/lint-rust
     pull_request:
         paths:
             - glide-core/**
             - submodules/**
-            - "java/**"
-            - ".github/workflows/java.yml"
+            - java/**
+            - .github/workflows/java.yml
+            - .github/workflows/install-shared-dependencies/action.yml
+            - .github/workflows/install-redis
+            - .github/workflows/test-benchmark
+            - .github/workflows/lint-rust
 
 jobs:
     build-and-test-java-client:
