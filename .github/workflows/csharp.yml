@@ -36,8 +36,8 @@ jobs:
                     - 6.2.14
                     - 7.2.3
                 dotnet:
-                    - 6.0
-                    - 8.0
+                    - '6.0'
+                    - '8.0'
                 os:
                     - ubuntu-latest
                     - macos-latest
@@ -76,7 +76,7 @@ jobs:
               run: redis-server &
 
             - name: Test dotnet ${{ matrix.dotnet }}
-              working-directory: ./csharp/tests
+              working-directory: ./csharp
               run: |
                 dotnet --version
                 dotnet test --version
@@ -87,9 +87,10 @@ jobs:
                 echo ' ====== '
                 dotnet test --help
                 echo ' ====== '
-                echo "dotnet test --framework net${{ matrix.dotnet }} tests.csproj"
+                echo "dotnet test --framework net${{ matrix.dotnet }}"
               
-              # "-l:html;LogFileName=TestReport.html" --results-directory . 
+              # "-l:html;LogFileName=TestReport.html" --results-directory .
+              # tests.csproj              
 
             - uses: ./.github/workflows/test-benchmark
               with:
