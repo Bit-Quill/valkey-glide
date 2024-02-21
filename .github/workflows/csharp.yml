@@ -81,11 +81,15 @@ jobs:
                 dotnet --version
                 dotnet test --version
                 echo ' ====== '
+                dotnet --info
+                echo ' ====== '
                 dotnet --help
                 echo ' ====== '
                 dotnet test --help
                 echo ' ====== '
-                dotnet test --framework net${{ matrix.dotnet }} tests.csproj "-l:html;LogFileName=TestReport.html" --results-directory . 
+                echo "dotnet test --framework net${{ matrix.dotnet }} tests.csproj"
+              
+              # "-l:html;LogFileName=TestReport.html" --results-directory . 
 
             - uses: ./.github/workflows/test-benchmark
               with:
