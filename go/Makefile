@@ -1,5 +1,9 @@
 install-tools:
-	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
+	go install github.com/vakenbolt/go-test-report@v0.9.3
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.32.0
+	go install honnef.co/go/tools/cmd/staticcheck@v0.4.6
+	go install mvdan.cc/gofumpt@v0.6.0
+	go install golang.org/x/tools/cmd/goimports@v0.18.0
 
 build: build-glide-core build-glide-client generate-protobuf
 	go build ./...
@@ -23,8 +27,9 @@ generate-protobuf:
 lint:
 	go vet ./...
 	staticcheck ./...
-	if [ "$(gofumpt -l . | wc -l)" -gt 0 ]; then return 1; fi
-	if [ "$(golines -l --shorten-comments -m 127 . | wc -l)" -gt 0 ]; then return 1; fi
+	if [ "$$(gofumpt -l . | wc -l)" -gt 0 ]; then exit 1; fi
+	if [ "$$(golines -l --shorten-comments -m 127 . | wc -l)" -gt 0 ]; then exit 1; fi
+	if [ "$$(goimports -l . | wc -l)" -gt 0 ]; then exit 1; fi
 
 format:
 	golines -w --shorten-comments -m 127 .
