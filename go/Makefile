@@ -23,7 +23,8 @@ generate-protobuf:
 lint:
 	go vet ./...
 	staticcheck ./...
-	if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then return 1; fi
+	if [ "$(gofumpt -l . | wc -l)" -gt 0 ]; then return 1; fi
+	if [ "$(golines -l --shorten-comments -m 100 . | wc -l)" -gt 0 ]; then return 1; fi
 
 unit-test-report:
 	mkdir -p reports
