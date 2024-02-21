@@ -16,15 +16,26 @@ public interface ServerManagementBaseCommands {
      * @see <a href="https://redis.io/commands/config-rewrite/">redis.io</a> for details.
      * @return <code>OK</code> when the configuration was rewritten properly, otherwise an error is
      *     raised.
+     * @example
+     *     <pre>
+     * String response = client.configRewrite().get();
+     * assert response.equals("OK")
+     * </pre>
      */
     CompletableFuture<String> configRewrite();
 
     /**
-     * Reset the statistics reported by Redis using the <code>INFO</code> and <code>LATENCY HISTOGRAM
-     * </code> commands.
+     * Reset the statistics reported by Redis using the <a
+     * href="https://redis.io/commands/info/">INFO</a> and <a
+     * href="https://redis.io/commands/latency-histogram/">LATENCY HISTOGRAM </a> commands.
      *
      * @see <a href="https://redis.io/commands/config-resetstat/">redis.io</a> for details.
      * @return <code>OK</code> to confirm that the statistics were successfully reset.
+     * @example
+     *     <pre>
+     * String response = client.configResetStat().get();
+     * assert response.equals("OK")
+     * </pre>
      */
     CompletableFuture<String> configResetStat();
 }

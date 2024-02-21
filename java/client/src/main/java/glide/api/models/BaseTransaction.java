@@ -428,8 +428,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Reset the statistics reported by Redis using the <code>INFO</code> and <code>LATENCY HISTOGRAM
-     * </code> commands.
+     * Reset the statistics reported by Redis using the <a
+     * href="https://redis.io/commands/info/">INFO</a> and <a
+     * href="https://redis.io/commands/latency-histogram/">LATENCY HISTOGRAM </a> commands.
      *
      * @see <a href="https://redis.io/commands/config-resetstat/">redis.io</a> for details.
      * @return <code>OK</code> to confirm that the statistics were successfully reset.
