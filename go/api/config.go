@@ -194,9 +194,7 @@ func (config *RedisClientConfiguration) toProtobufConnRequest() (*protobuf.Conne
 //	        Host: "sample-address-0001.use1.cache.amazonaws.com", Port: 6379}).
 //	    WithAddress(&NodeAddress{
 //	        Host: "sample-address-0002.use1.cache.amazonaws.com", Port: 6379})
-func (config *RedisClientConfiguration) WithAddress(
-	address *NodeAddress,
-) *RedisClientConfiguration {
+func (config *RedisClientConfiguration) WithAddress(address *NodeAddress) *RedisClientConfiguration {
 	config.addresses = append(config.addresses, *address)
 	return config
 }
@@ -211,9 +209,7 @@ func (config *RedisClientConfiguration) WithUseTLS(useTLS bool) *RedisClientConf
 
 // WithCredentials sets the credentials for the authentication process. If none are set, the client will not authenticate
 // itself with the server.
-func (config *RedisClientConfiguration) WithCredentials(
-	credentials *RedisCredentials,
-) *RedisClientConfiguration {
+func (config *RedisClientConfiguration) WithCredentials(credentials *RedisCredentials) *RedisClientConfiguration {
 	config.credentials = credentials
 	return config
 }
@@ -228,18 +224,14 @@ func (config *RedisClientConfiguration) WithReadFrom(readFrom ReadFrom) *RedisCl
 // encompasses sending the request, awaiting for a response from the server, and any required reconnections or retries. If the
 // specified timeout is exceeded for a pending request, it will result in a timeout error. If not set, a default value will be
 // used.
-func (config *RedisClientConfiguration) WithRequestTimeout(
-	requestTimeout uint32,
-) *RedisClientConfiguration {
+func (config *RedisClientConfiguration) WithRequestTimeout(requestTimeout uint32) *RedisClientConfiguration {
 	config.requestTimeout = &requestTimeout
 	return config
 }
 
 // WithReconnectStrategy sets the [BackoffStrategy] used to determine how and when to reconnect, in case of connection
 // failures. If not set, a default backoff strategy will be used.
-func (config *RedisClientConfiguration) WithReconnectStrategy(
-	strategy *BackoffStrategy,
-) *RedisClientConfiguration {
+func (config *RedisClientConfiguration) WithReconnectStrategy(strategy *BackoffStrategy) *RedisClientConfiguration {
 	config.reconnectStrategy = strategy
 	return config
 }
@@ -285,9 +277,7 @@ func (config *RedisClusterClientConfiguration) toProtobufConnRequest() (*protobu
 //	        Host: "sample-address-0001.use1.cache.amazonaws.com", Port: 6379}).
 //	    WithAddress(&NodeAddress{
 //	        Host: "sample-address-0002.use1.cache.amazonaws.com", Port: 6379})
-func (config *RedisClusterClientConfiguration) WithAddress(
-	address NodeAddress,
-) *RedisClusterClientConfiguration {
+func (config *RedisClusterClientConfiguration) WithAddress(address NodeAddress) *RedisClusterClientConfiguration {
 	config.addresses = append(config.addresses, address)
 	return config
 }
@@ -295,9 +285,7 @@ func (config *RedisClusterClientConfiguration) WithAddress(
 // WithUseTLS configures the TLS settings for this configuration. Set to true if communication with the cluster should use
 // Transport Level Security. This setting should match the TLS configuration of the server/cluster, otherwise the connection
 // attempt will fail.
-func (config *RedisClusterClientConfiguration) WithUseTLS(
-	useTLS bool,
-) *RedisClusterClientConfiguration {
+func (config *RedisClusterClientConfiguration) WithUseTLS(useTLS bool) *RedisClusterClientConfiguration {
 	config.useTLS = useTLS
 	return config
 }
@@ -312,9 +300,7 @@ func (config *RedisClusterClientConfiguration) WithCredentials(
 }
 
 // WithReadFrom sets the client's [ReadFrom] strategy. If not set, [Primary] will be used.
-func (config *RedisClusterClientConfiguration) WithReadFrom(
-	readFrom ReadFrom,
-) *RedisClusterClientConfiguration {
+func (config *RedisClusterClientConfiguration) WithReadFrom(readFrom ReadFrom) *RedisClusterClientConfiguration {
 	config.readFrom = readFrom
 	return config
 }
@@ -323,9 +309,7 @@ func (config *RedisClusterClientConfiguration) WithReadFrom(
 // encompasses sending the request, awaiting for a response from the server, and any required reconnections or retries. If the
 // specified timeout is exceeded for a pending request, it will result in a timeout error. If not set, a default value will be
 // used.
-func (config *RedisClusterClientConfiguration) WithRequestTimeout(
-	requestTimeout uint32,
-) *RedisClusterClientConfiguration {
+func (config *RedisClusterClientConfiguration) WithRequestTimeout(requestTimeout uint32) *RedisClusterClientConfiguration {
 	config.requestTimeout = &requestTimeout
 	return config
 }

@@ -32,8 +32,9 @@ lint:
 	if [ "$$(goimports -l . | wc -l)" -gt 0 ]; then exit 1; fi
 
 format:
-	golines -w --shorten-comments -m 127 .
 	gofumpt -w .
+	golines -w --shorten-comments -m 127 .
+	goimports -w .
 
 unit-test-report:
 	mkdir -p reports
