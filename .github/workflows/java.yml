@@ -67,6 +67,10 @@ jobs:
               working-directory: java
               run: ./gradlew spotlessDiagnose | grep 'All formatters are well behaved for all files'
 
+            - uses: ./.github/workflows/test-benchmark
+              with:
+                  language-flag: -java
+
             - name: Upload test reports
               if: always()
               continue-on-error: true
@@ -77,6 +81,7 @@ jobs:
                       java/client/build/reports/**
                       java/integTest/build/reports/**
                       utils/clusters/**
+                      benchmarks/results/**
 
     build-amazonlinux-latest:
         if: github.repository_owner == 'aws'
