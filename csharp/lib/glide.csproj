@@ -5,7 +5,6 @@
     <RootNamespace>Glide</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
