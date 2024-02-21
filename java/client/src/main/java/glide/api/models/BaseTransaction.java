@@ -201,25 +201,6 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Insert all the specified values at the tail of the list stored at <code>key</code>. <code>
-     * elements</code> are inserted one after the other to the tail of the list, from the leftmost
-     * element to the rightmost element. If <code>key</code> does not exist, it is created as an empty
-     * list before performing the push operations.
-     *
-     * @see <a href="https://redis.io/commands/rpush/">redis.io</a> for details.
-     * @param key The key of the list.
-     * @param elements The elements to insert at the tail of the list stored at <code>key</code>.
-     * @return Command Response - The length of the list after the push operations.<br>
-     *     If <code>key</code> holds a value that is not a list, an error is raised.<br>
-     */
-    public T rpush(@NonNull String key, @NonNull String[] elements) {
-        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(elements, key));
-
-        protobufTransaction.addCommands(buildCommand(RPush, commandArgs));
-        return getThis();
-    }
-
-    /**
      * Retrieve the values of multiple <code>keys</code>.
      *
      * @see <a href="https://redis.io/commands/mget/">redis.io</a> for details.
@@ -384,6 +365,25 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
+     * Insert all the specified values at the tail of the list stored at <code>key</code>. <code>
+     * elements</code> are inserted one after the other to the tail of the list, from the leftmost
+     * element to the rightmost element. If <code>key</code> does not exist, it is created as an empty
+     * list before performing the push operations.
+     *
+     * @see <a href="https://redis.io/commands/rpush/">redis.io</a> for details.
+     * @param key The key of the list.
+     * @param elements The elements to insert at the tail of the list stored at <code>key</code>.
+     * @return Command Response - The length of the list after the push operations.<br>
+     *     If <code>key</code> holds a value that is not a list, an error is raised.<br>
+     */
+    public T rpush(@NonNull String key, @NonNull String[] elements) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(elements, key));
+
+        protobufTransaction.addCommands(buildCommand(RPush, commandArgs));
+        return getThis();
+    }
+
+    /**
      * Removes and returns the last elements of the list stored at <code>key</code>. The command pops
      * a single element from the end of the list.
      *
@@ -391,7 +391,6 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key The key of the list.
      * @return Command Response - The value of the last element.<br>
      *     If <code>key</code> does not exist null will be returned.<br>
-     *     If <code>key</code> holds a value that is not a list, an error is raised.<br>
      */
     public T rpop(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
@@ -409,7 +408,6 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @returns Command Response - An array of popped elements will be returned depending on the
      *     list's length.<br>
      *     If <code>key</code> does not exist null will be returned.<br>
-     *     If <code>key</code> holds a value that is not a list, an error is raised.<br>
      */
     public T rpopCount(@NonNull String key, long count) {
         ArgsArray commandArgs = buildArgs(key, Long.toString(count));

@@ -4,11 +4,11 @@ package glide.api.commands;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * List Commands interface.
+ * List Commands interface for both standalone and cluster clients.
  *
  * @see <a href="https://redis.io/commands/?group=list">List Commands</a>
  */
-public interface ListCommands {
+public interface ListBaseCommands {
     /**
      * Insert all the specified values at the tail of the list stored at <code>key</code>. <code>
      * elements</code> are inserted one after the other to the tail of the list, from the leftmost
@@ -19,7 +19,13 @@ public interface ListCommands {
      * @param key The key of the list.
      * @param elements The elements to insert at the tail of the list stored at <code>key</code>.
      * @return The length of the list after the push operations.<br>
-     *     If <code>key</code> holds a value that is not a list, an error is raised.<br>
+     * @example
+     *     <pre>
+     * Long pushCount1 = client.rpush("my_list", new String[] {"value1", "value2"}).get()
+     * assert pushCount1 == 2L
+     * Long pushCount2 = client.rpush("nonexistent_list", new String[] {"new_value"}).get()
+     * assert pushCount2 == 1
+     * </pre>
      */
     CompletableFuture<Long> rpush(String key, String[] elements);
 
@@ -31,7 +37,13 @@ public interface ListCommands {
      * @param key The key of the list.
      * @return The value of the last element.<br>
      *     If <code>key</code> does not exist null will be returned.<br>
-     *     If <code>key</code> holds a value that is not a list, an error is raised.<br>
+     * @example
+     *     <pre>
+     * String value1 = client.rpop("my_list").get()
+     * assert value1 === "value1"
+     * String value2 = client.rpop("non_exiting_key").get()
+     * assert value2 === null
+     * </pre>
      */
     CompletableFuture<String> rpop(String key);
 
@@ -43,7 +55,13 @@ public interface ListCommands {
      * @param count The count of the elements to pop from the list.
      * @returns An array of popped elements will be returned depending on the list's length.<br>
      *     If <code>key</code> does not exist null will be returned.<br>
-     *     If <code>key</code> holds a value that is not a list, an error is raised.<br>
+     * @example
+     *     <pre>
+     * String[] values1 = client.rpop("my_list", 2).get()
+     * assert values1 == new String[] {"value1", "value2"}
+     * String[] values2 = client.rpop("non_exiting_key" , 7).get()
+     * assert values2 == null
+     * </pre>
      */
     CompletableFuture<String[]> rpopCount(String key, long count);
 }

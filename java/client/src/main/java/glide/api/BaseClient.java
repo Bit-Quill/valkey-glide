@@ -3,7 +3,6 @@ package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.castArray;
-import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.convertMapToArgArray;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
 import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
@@ -28,9 +27,9 @@ import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 
 import glide.api.commands.ConnectionManagementCommands;
-import glide.api.commands.ListCommands;
 import glide.api.commands.GenericBaseCommands;
 import glide.api.commands.HashCommands;
+import glide.api.commands.ListBaseCommands;
 import glide.api.commands.SetCommands;
 import glide.api.commands.StringCommands;
 import glide.api.models.commands.SetOptions;
@@ -64,7 +63,7 @@ public abstract class BaseClient
                 ConnectionManagementCommands,
                 StringCommands,
                 HashCommands,
-                ListCommands,
+                ListBaseCommands,
                 SetCommands {
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
