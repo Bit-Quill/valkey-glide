@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface ListBaseCommands {
     /**
-     * Insert all the specified values at the tail of the list stored at <code>key</code>. <code>
+     * Inserts all the specified values at the tail of the list stored at <code>key</code>. <code>
      * elements</code> are inserted one after the other to the tail of the list, from the leftmost
      * element to the rightmost element. If <code>key</code> does not exist, it is created as an empty
      * list before performing the push operations.
@@ -40,9 +40,9 @@ public interface ListBaseCommands {
      * @example
      *     <pre>
      * String value1 = client.rpop("my_list").get()
-     * assert value1 === "value1"
+     * assert value1.equals("value1")
      * String value2 = client.rpop("non_exiting_key").get()
-     * assert value2 === null
+     * assert value2.equals(null)
      * </pre>
      */
     CompletableFuture<String> rpop(String key);
