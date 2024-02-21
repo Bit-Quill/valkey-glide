@@ -5,9 +5,10 @@
 package api
 
 import (
+	"testing"
+
 	"github.com/aws/glide-for-redis/go/glide/protobuf"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestConnectionRequestProtobufGeneration_defaultStandaloneConfig_withConstructor(t *testing.T) {

@@ -24,7 +24,11 @@ lint:
 	go vet ./...
 	staticcheck ./...
 	if [ "$(gofumpt -l . | wc -l)" -gt 0 ]; then return 1; fi
-	if [ "$(golines -l --shorten-comments -m 100 . | wc -l)" -gt 0 ]; then return 1; fi
+	if [ "$(golines -l --shorten-comments -m 127 . | wc -l)" -gt 0 ]; then return 1; fi
+
+format:
+	golines -w --shorten-comments -m 127 .
+	gofumpt -w .
 
 unit-test-report:
 	mkdir -p reports
