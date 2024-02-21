@@ -316,7 +316,7 @@ public class RedisClusterClientTest {
                 () -> assertTrue(value.hasMultiData()), () -> assertEquals(data, value.getMultiValue()));
     }
 
-    // TODO copy/move tests from RedisClientTest which have @inheritDoc for coverage
+    // TODO copy/move tests from RedisClientTest which call super for coverage
 
     @Test
     @SneakyThrows
