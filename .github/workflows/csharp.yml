@@ -88,6 +88,7 @@ jobs:
                 dotnet test --help
                 echo ' ====== '
                 echo "dotnet test --framework net${{ matrix.dotnet }}"
+                dotnet test --framework net${{ matrix.dotnet }}
               
               # "-l:html;LogFileName=TestReport.html" --results-directory .
               # tests.csproj              
