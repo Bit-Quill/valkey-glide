@@ -33,7 +33,7 @@ type baseClientConfiguration struct {
 	useTLS         bool
 	credentials    *RedisCredentials
 	readFrom       ReadFrom
-	requestTimeout int32
+	requestTimeout *uint32
 }
 
 func (config *baseClientConfiguration) toProtobufConnRequest() *protobuf.ConnectionRequest {
@@ -62,8 +62,8 @@ func (config *baseClientConfiguration) toProtobufConnRequest() *protobuf.Connect
 	}
 
 	request.ReadFrom = mapReadFrom(config.readFrom)
-	if config.requestTimeout > 0 {
-		request.RequestTimeout = uint32(config.requestTimeout)
+	if config.requestTimeout != nil {
+		request.RequestTimeout = *config.requestTimeout
 	}
 
 	return &request
@@ -100,7 +100,7 @@ type BackoffStrategy struct {
 type RedisClientConfiguration struct {
 	baseClientConfiguration
 	reconnectStrategy *BackoffStrategy
-	databaseId        int32
+	databaseId        *uint32
 }
 
 // NewRedisClientConfiguration returns a [RedisClientConfiguration] with default configuration
@@ -122,8 +122,8 @@ func (config *RedisClientConfiguration) toProtobufConnRequest() *protobuf.Connec
 		}
 	}
 
-	if config.databaseId >= 0 {
-		request.DatabaseId = uint32(config.databaseId)
+	if config.databaseId != nil {
+		request.DatabaseId = *config.databaseId
 	}
 
 	return request
@@ -171,7 +171,7 @@ func (config *RedisClientConfiguration) WithReadFrom(readFrom ReadFrom) *RedisCl
 // and any required reconnections or retries. If the specified timeout is exceeded for a pending
 // request, it will result in a timeout error. If not set, a default value will be used.
 func (config *RedisClientConfiguration) WithRequestTimeout(requestTimeout uint32) *RedisClientConfiguration {
-	config.requestTimeout = int32(requestTimeout)
+	config.requestTimeout = &requestTimeout
 	return config
 }
 
@@ -184,7 +184,7 @@ func (config *RedisClientConfiguration) WithReconnectStrategy(strategy *BackoffS
 
 // WithDatabaseId sets the index of the logical database to connect to.
 func (config *RedisClientConfiguration) WithDatabaseId(id uint32) *RedisClientConfiguration {
-	config.databaseId = int32(id)
+	config.databaseId = &id
 	return config
 }
 
@@ -252,6 +252,6 @@ func (config *RedisClusterClientConfiguration) WithReadFrom(readFrom ReadFrom) *
 // and any required reconnections or retries. If the specified timeout is exceeded for a pending
 // request, it will result in a timeout error. If not set, a default value will be used.
 func (config *RedisClusterClientConfiguration) WithRequestTimeout(requestTimeout uint32) *RedisClusterClientConfiguration {
-	config.requestTimeout = int32(requestTimeout)
+	config.requestTimeout = &requestTimeout
 	return config
 }
