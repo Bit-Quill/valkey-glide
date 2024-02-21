@@ -1,9 +1,12 @@
 install-tools:
-	go install github.com/vakenbolt/go-test-report@v0.9.3
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.32.0
-	go install honnef.co/go/tools/cmd/staticcheck@v0.4.6
-	go install mvdan.cc/gofumpt@v0.6.0
-	go install golang.org/x/tools/cmd/goimports@v0.18.0
+	#go install github.com/vakenbolt/go-test-report@v0.9.3
+	#go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.32.0
+	#go install mvdan.cc/gofumpt@v0.6.0
+	#go install golang.org/x/tools/cmd/goimports@v0.18.0
+	#echo $$(go version | sed 's/.* go\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\2/')
+	go_minor=$$(go version | sed 's/.* go\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\2/'); \
+	if [ "$$go_minor" -eq 18 ]; then staticcheck_version=v0.3.3; else staticcheck_version=latest; fi; \
+	go install honnef.co/go/tools/cmd/staticcheck@$$staticcheck_version
 
 build: build-glide-core build-glide-client generate-protobuf
 	go build ./...
