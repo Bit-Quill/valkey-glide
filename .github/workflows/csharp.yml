@@ -72,10 +72,8 @@ jobs:
               run: dotnet format --verify-no-changes --verbosity diagnostic
 
             - name: Test dotnet ${{ matrix.dotnet }}
-              working-directory: ./csharp
-              run: |
-                dotnet --info
-                dotnet test --framework net${{ matrix.dotnet }} "-l:html;LogFileName=TestReport.html" --results-directory .
+              working-directory: ./csharp/tests
+              run: dotnet test tests.csproj --framework net${{ matrix.dotnet }} "-l:html;LogFileName=TestReport.html" --results-directory .
 
             - uses: ./.github/workflows/test-benchmark
               with:
