@@ -85,7 +85,7 @@ jobs:
                 echo ' ====== '
                 dotnet test --help
                 echo ' ====== '
-                dotnet test tests.csproj "-l:html;LogFileName=TestReport.html" --results-directory .
+                dotnet test --framework net${{ matrix.dotnet }} tests.csproj "-l:html;LogFileName=TestReport.html" --results-directory . 
 
             - uses: ./.github/workflows/test-benchmark
               with:
