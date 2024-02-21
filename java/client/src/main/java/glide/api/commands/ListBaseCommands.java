@@ -58,9 +58,9 @@ public interface ListBaseCommands {
      * @example
      *     <pre>
      * String[] values1 = client.rpop("my_list", 2).get()
-     * assert values1 == new String[] {"value1", "value2"}
+     * assert values1.equals(new String[] {"value1", "value2"})
      * String[] values2 = client.rpop("non_exiting_key" , 7).get()
-     * assert values2 == null
+     * assert values2.equals(null)
      * </pre>
      */
     CompletableFuture<String[]> rpopCount(String key, long count);
