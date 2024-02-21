@@ -1,31 +1,41 @@
+/**
+ * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+ */
+
 package api
 
 import "github.com/aws/glide-for-redis/go/glide/protobuf"
 
 // NodeAddress represents the host address and port of a node in the cluster.
 type NodeAddress struct {
-	Host string
-	Port uint32
+	Host *string // Optional: if not supplied, "localhost" will be used.
+	Port *uint32 // Optional: if not supplied, 6379 will be used.
 }
 
 // RedisCredentials represents the credentials for connecting to a Redis server.
 type RedisCredentials struct {
-	// The username that will be used for authenticating connections to the Redis servers. If not
-	// supplied, "default" will be used.
-	Username string
-	// The password that will be used for authenticating connections to the Redis servers.
-	Password string
+	// Optional: the username that will be used for authenticating connections to the Redis servers.
+	// If not supplied, "default" will be used.
+	Username *string
+	// Required: the password that will be used for authenticating connections to the Redis servers.
+	Password *string
+}
+
+func (credentials *RedisCredentials) validate() error {
+	if credentials.Password == nil {
+		return &RedisError{"RedisCredentials.Password evaluated to nil. Password must be non-nil to authenticate with credentials."}
+	}
+
+	return nil
 }
 
 // ReadFrom represents the client's read from strategy.
 type ReadFrom int
 
 const (
-	// Always get from primary, in order to get the freshest data.
-	PRIMARY ReadFrom = 0
-	// Spread the requests between all replicas in a round robin manner. If no replica is available,
-	// route the requests to the primary.
-	PREFER_REPLICA ReadFrom = 1
+	Primary       ReadFrom = 0 // Always get from primary, in order to get the freshest data.
+	PreferReplica ReadFrom = 1 // Spread the requests between all replicas in a round-robin manner.
+	// If no replica is available, route the requests to the primary.
 )
 
 type baseClientConfiguration struct {
@@ -36,12 +46,22 @@ type baseClientConfiguration struct {
 	requestTimeout *uint32
 }
 
-func (config *baseClientConfiguration) toProtobufConnRequest() *protobuf.ConnectionRequest {
+func (config *baseClientConfiguration) toProtobufConnRequest() (*protobuf.ConnectionRequest, error) {
 	request := protobuf.ConnectionRequest{}
 	for _, address := range config.addresses {
+		if address.Host == nil {
+			defaultHost := "localhost"
+			address.Host = &defaultHost
+		}
+
+		if address.Port == nil {
+			defaultPort := uint32(6379)
+			address.Port = &defaultPort
+		}
+
 		nodeAddress := &protobuf.NodeAddress{
-			Host: address.Host,
-			Port: address.Port,
+			Host: *address.Host,
+			Port: *address.Port,
 		}
 		request.Addresses = append(request.Addresses, nodeAddress)
 	}
@@ -53,11 +73,15 @@ func (config *baseClientConfiguration) toProtobufConnRequest() *protobuf.Connect
 	}
 
 	if config.credentials != nil {
-		authInfo := protobuf.AuthenticationInfo{}
-		if config.credentials.Username != "" {
-			authInfo.Username = config.credentials.Username
+		if err := config.credentials.validate(); err != nil {
+			return nil, err
 		}
-		authInfo.Password = config.credentials.Password
+
+		authInfo := protobuf.AuthenticationInfo{}
+		if config.credentials.Username != nil {
+			authInfo.Username = *config.credentials.Username
+		}
+		authInfo.Password = *config.credentials.Password
 		request.AuthenticationInfo = &authInfo
 	}
 
@@ -66,11 +90,11 @@ func (config *baseClientConfiguration) toProtobufConnRequest() *protobuf.Connect
 		request.RequestTimeout = *config.requestTimeout
 	}
 
-	return &request
+	return &request, nil
 }
 
 func mapReadFrom(readFrom ReadFrom) protobuf.ReadFrom {
-	if readFrom == PREFER_REPLICA {
+	if readFrom == PreferReplica {
 		return protobuf.ReadFrom_PreferReplica
 	}
 
@@ -84,14 +108,30 @@ func mapReadFrom(readFrom ReadFrom) protobuf.ReadFrom {
 // Once the maximum value is reached, that will remain the time between retry attempts until a
 // reconnect attempt is successful. The client will attempt to reconnect indefinitely.
 type BackoffStrategy struct {
-	// Number of retry attempts that the client should perform when disconnected from the server,
+	// Required: number of retry attempts that the client should perform when disconnected from the server,
 	// where the time between retries increases. Once the retries have reached the maximum value,
 	// the time between retries will remain constant until a reconnect attempt is successful.
-	NumOfRetries uint32
-	// The multiplier that will be applied to the waiting time between each retry.
-	Factor uint32
-	// The exponent base configured for the strategy.
-	ExponentBase uint32
+	NumOfRetries *uint32
+	// Required: the multiplier that will be applied to the waiting time between each retry.
+	Factor *uint32
+	// Required: the exponent base configured for the strategy.
+	ExponentBase *uint32
+}
+
+func (strategy *BackoffStrategy) validate() error {
+	if strategy.NumOfRetries == nil {
+		return &RedisError{"BackoffStrategy.NumOfRetries evaluated to nil. NumOfRetries must be non-nil to use a BackoffStrategy."}
+	}
+
+	if strategy.Factor == nil {
+		return &RedisError{"BackoffStrategy.Factor evaluated to nil. Factor must be non-nil to use a BackoffStrategy."}
+	}
+
+	if strategy.ExponentBase == nil {
+		return &RedisError{"BackoffStrategy.ExponentBase evaluated to nil. ExponentBase must be non-nil to use a BackoffStrategy."}
+	}
+
+	return nil
 }
 
 // RedisClientConfiguration represents the configuration settings for a Standalone Redis client.
@@ -106,19 +146,25 @@ type RedisClientConfiguration struct {
 // NewRedisClientConfiguration returns a [RedisClientConfiguration] with default configuration
 // settings. For further configuration, use the [RedisClientConfiguration] With* methods.
 func NewRedisClientConfiguration() *RedisClientConfiguration {
-	return &RedisClientConfiguration{
-		baseClientConfiguration: baseClientConfiguration{readFrom: PRIMARY},
-	}
+	return &RedisClientConfiguration{}
 }
 
-func (config *RedisClientConfiguration) toProtobufConnRequest() *protobuf.ConnectionRequest {
-	request := config.baseClientConfiguration.toProtobufConnRequest()
+func (config *RedisClientConfiguration) toProtobufConnRequest() (*protobuf.ConnectionRequest, error) {
+	request, err := config.baseClientConfiguration.toProtobufConnRequest()
+	if err != nil {
+		return nil, err
+	}
+
 	request.ClusterModeEnabled = false
 	if config.reconnectStrategy != nil {
+		if err = config.reconnectStrategy.validate(); err != nil {
+			return nil, err
+		}
+
 		request.ConnectionRetryStrategy = &protobuf.ConnectionRetryStrategy{
-			NumberOfRetries: config.reconnectStrategy.NumOfRetries,
-			Factor:          config.reconnectStrategy.Factor,
-			ExponentBase:    config.reconnectStrategy.ExponentBase,
+			NumberOfRetries: *config.reconnectStrategy.NumOfRetries,
+			Factor:          *config.reconnectStrategy.Factor,
+			ExponentBase:    *config.reconnectStrategy.ExponentBase,
 		}
 	}
 
@@ -126,7 +172,7 @@ func (config *RedisClientConfiguration) toProtobufConnRequest() *protobuf.Connec
 		request.DatabaseId = *config.databaseId
 	}
 
-	return request
+	return request, nil
 }
 
 // WithAddress adds an address for a known node in the cluster to this configuration's list of
@@ -160,7 +206,7 @@ func (config *RedisClientConfiguration) WithCredentials(credentials *RedisCreden
 	return config
 }
 
-// WithReadFrom sets the client's [ReadFrom] strategy. If not set, [PRIMARY] will be used.
+// WithReadFrom sets the client's [ReadFrom] strategy. If not set, [Primary] will be used.
 func (config *RedisClientConfiguration) WithReadFrom(readFrom ReadFrom) *RedisClientConfiguration {
 	config.readFrom = readFrom
 	return config
@@ -204,10 +250,14 @@ func NewRedisClusterClientConfiguration() *RedisClusterClientConfiguration {
 	}
 }
 
-func (config *RedisClusterClientConfiguration) toProtobufConnRequest() *protobuf.ConnectionRequest {
-	request := config.baseClientConfiguration.toProtobufConnRequest()
+func (config *RedisClusterClientConfiguration) toProtobufConnRequest() (*protobuf.ConnectionRequest, error) {
+	request, err := config.baseClientConfiguration.toProtobufConnRequest()
+	if err != nil {
+		return nil, err
+	}
+
 	request.ClusterModeEnabled = true
-	return request
+	return request, nil
 }
 
 // WithAddress adds an address for a known node in the cluster to this configuration's list of
@@ -241,7 +291,7 @@ func (config *RedisClusterClientConfiguration) WithCredentials(credentials *Redi
 	return config
 }
 
-// WithReadFrom sets the client's [ReadFrom] strategy. If not set, [PRIMARY] will be used.
+// WithReadFrom sets the client's [ReadFrom] strategy. If not set, [Primary] will be used.
 func (config *RedisClusterClientConfiguration) WithReadFrom(readFrom ReadFrom) *RedisClusterClientConfiguration {
 	config.readFrom = readFrom
 	return config
