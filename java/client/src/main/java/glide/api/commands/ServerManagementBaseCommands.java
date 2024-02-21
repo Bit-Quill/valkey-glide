@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 public interface ServerManagementBaseCommands {
 
     /**
-     * Read the configuration parameters of a running Redis server.
+     * Reads the configuration parameters of a running Redis server.
      *
      * @see <a href="https://redis.io/commands/config-get/">redis.io</a> for details.
      * @param parameters An <code>array</code> of configuration parameter names to retrieve values
@@ -24,7 +24,7 @@ public interface ServerManagementBaseCommands {
     CompletableFuture<Map<String, String>> configGet(String[] parameters);
 
     /**
-     * Set configuration parameters to the specified values.
+     * Sets configuration parameters to the specified values.
      *
      * @see <a href="https://redis.io/commands/config-set/">redis.io</a> for details.
      * @param parameters A <code>map</code> consisting of configuration parameters and their

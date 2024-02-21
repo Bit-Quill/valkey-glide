@@ -74,7 +74,7 @@ public interface ServerManagementClusterCommands {
     CompletableFuture<ClusterValue<String>> info(InfoOptions options, Route route);
 
     /**
-     * Read the configuration parameters of a running Redis server.<br>
+     * Reads the configuration parameters of a running Redis server.<br>
      * The command will be sent to a random node.
      *
      * @see <a href="https://redis.io/commands/config-get/">redis.io</a> for details.
@@ -92,24 +92,7 @@ public interface ServerManagementClusterCommands {
     CompletableFuture<Map<String, String>> configGet(String[] parameters);
 
     /**
-     * Set configuration parameters to the specified values.<br>
-     * The command will be sent to a random node.
-     *
-     * @see <a href="https://redis.io/commands/config-set/">redis.io</a> for details.
-     * @param parameters A <code>map</code> consisting of configuration parameters and their
-     *     respective values to set.
-     * @return <code>OK</code> if all configurations have been successfully set. Otherwise, raises an
-     *     error.
-     * @example
-     *     <pre>
-     * String response = client.configSet(Map.of("syslog-enabled", "yes")).get();
-     * assert response.equals("OK")
-     * </pre>
-     */
-    CompletableFuture<String> configSet(Map<String, String> parameters);
-
-    /**
-     * Read the configuration parameters of a running Redis server.
+     * Reads the configuration parameters of a running Redis server.
      *
      * @see <a href="https://redis.io/commands/config-get/">redis.io</a> for details.
      * @param parameters An <code>array</code> of configuration parameter names to retrieve values
@@ -135,7 +118,24 @@ public interface ServerManagementClusterCommands {
     CompletableFuture<ClusterValue<Map<String, String>>> configGet(String[] parameters, Route route);
 
     /**
-     * Set configuration parameters to the specified values.
+     * Sets configuration parameters to the specified values.<br>
+     * The command will be sent to a random node.
+     *
+     * @see <a href="https://redis.io/commands/config-set/">redis.io</a> for details.
+     * @param parameters A <code>map</code> consisting of configuration parameters and their
+     *     respective values to set.
+     * @return <code>OK</code> if all configurations have been successfully set. Otherwise, raises an
+     *     error.
+     * @example
+     *     <pre>
+     * String response = client.configSet(Map.of("syslog-enabled", "yes")).get();
+     * assert response.equals("OK")
+     * </pre>
+     */
+    CompletableFuture<String> configSet(Map<String, String> parameters);
+
+    /**
+     * Sets configuration parameters to the specified values.
      *
      * @see <a href="https://redis.io/commands/config-set/">redis.io</a> for details.
      * @param parameters A <code>map</code> consisting of configuration parameters and their

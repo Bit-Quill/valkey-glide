@@ -143,11 +143,6 @@ public class RedisClusterClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<String> configSet(@NonNull Map<String, String> parameters) {
-        return super.configSet(parameters);
-    }
-
-    @Override
     public CompletableFuture<ClusterValue<Map<String, String>>> configGet(
             String[] parameters, @NonNull Route route) {
         return commandManager.submitNewCommand(
@@ -158,6 +153,11 @@ public class RedisClusterClient extends BaseClient
                         route.isSingleNodeRoute()
                                 ? ClusterValue.ofSingleValue(handleMapResponse(response))
                                 : ClusterValue.ofMultiValue(handleMapResponse(response)));
+    }
+
+    @Override
+    public CompletableFuture<String> configSet(@NonNull Map<String, String> parameters) {
+        return super.configSet(parameters);
     }
 
     @Override
