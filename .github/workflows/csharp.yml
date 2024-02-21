@@ -71,9 +71,13 @@ jobs:
               working-directory: ./csharp
               run: dotnet format --verify-no-changes --verbosity diagnostic
 
+              # TODO: run redis by testing framework, not by CI
+            - name: Start redis server
+              run: redis-server &
+
             - name: Test dotnet ${{ matrix.dotnet }}
-              working-directory: ./csharp/tests
-              run: dotnet test tests.csproj
+              working-directory: ./csharp
+              run: dotnet test --framework net${{ matrix.dotnet }} "-l:html;LogFileName=TestReport.html" --results-directory .
 
             - uses: ./.github/workflows/test-benchmark
               with:
