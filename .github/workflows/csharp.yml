@@ -77,21 +77,7 @@ jobs:
 
             - name: Test dotnet ${{ matrix.dotnet }}
               working-directory: ./csharp
-              run: |
-                dotnet --version
-                dotnet test --version
-                echo ' ====== '
-                dotnet --info
-                echo ' ====== '
-                dotnet --help
-                echo ' ====== '
-                dotnet test --help
-                echo ' ====== '
-                echo "dotnet test --framework net${{ matrix.dotnet }}"
-                dotnet test --framework net${{ matrix.dotnet }}
-              
-              # "-l:html;LogFileName=TestReport.html" --results-directory .
-              # tests.csproj              
+              run: dotnet test --framework net${{ matrix.dotnet }} "-l:html;LogFileName=TestReport.html" --results-directory .        
 
             - uses: ./.github/workflows/test-benchmark
               with:
@@ -104,7 +90,7 @@ jobs:
               with:
                   name: test-reports-dotnet-${{ matrix.dotnet }}-redis-${{ matrix.redis }}-${{ matrix.os }}
                   path: |
-                      csharp/tests/TestReport.html
+                      csharp/TestReport.html
 
     lint-rust:
         timeout-minutes: 10
