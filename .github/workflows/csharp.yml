@@ -73,7 +73,7 @@ jobs:
 
             - name: Test dotnet ${{ matrix.dotnet }}
               working-directory: ./csharp/tests
-              run: dotnet test tests.csproj --framework net${{ matrix.dotnet }} "-l:html;LogFileName=TestReport.html" --results-directory .
+              run: dotnet test tests.csproj
 
             - uses: ./.github/workflows/test-benchmark
               with:
