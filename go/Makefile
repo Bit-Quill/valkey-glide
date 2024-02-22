@@ -3,6 +3,7 @@ install-tools-go1.18:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.32.0
 	go install mvdan.cc/gofumpt@v0.4.0
 	go install golang.org/x/tools/cmd/goimports@v0.18.0
+	go install github.com/segmentio/golines@v0.11.0
 	go install honnef.co/go/tools/cmd/staticcheck@v0.3.3
 
 install-tools:
@@ -10,6 +11,7 @@ install-tools:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.32.0
 	go install mvdan.cc/gofumpt@v0.6.0
 	go install golang.org/x/tools/cmd/goimports@v0.18.0
+	go install github.com/segmentio/golines@v0.12.2
 	go install honnef.co/go/tools/cmd/staticcheck@v0.4.6
 
 build: build-glide-core build-glide-client generate-protobuf
