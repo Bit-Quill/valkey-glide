@@ -83,9 +83,9 @@ jobs:
               working-directory: ./go
               run: make lint
 
-            - name: Run unit tests
+            - name: Run tests
               working-directory: ./go
-              run: make unit-test-report
+              run: make test-and-report
 
             - name: Upload test reports
               if: always()
@@ -94,7 +94,7 @@ jobs:
               with:
                   name: test-reports-go-${{ matrix.go }}-redis-${{ matrix.redis }}-${{ matrix.os }}
                   path: |
-                      go/reports/unit-test-report.html
+                      go/reports/test-report.html
 
     build-amazonlinux-latest:
         if: github.repository_owner == 'aws'
@@ -164,9 +164,9 @@ jobs:
               working-directory: ./go
               run: make lint
 
-            - name: Run unit tests
+            - name: Run tests
               working-directory: ./go
-              run: make unit-test-report
+              run: make test-and-report
 
             - name: Upload test reports
               if: always()
@@ -174,7 +174,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: test-reports-go-${{ matrix.go }}-amazon-linux-latest
-                  path: go/reports/unit-test-report.html
+                  path: go/reports/test-report.html
 
     lint-rust:
         timeout-minutes: 15

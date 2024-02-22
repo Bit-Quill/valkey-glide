@@ -1,16 +1,21 @@
-install-tools-go1.18:
-	go install github.com/vakenbolt/go-test-report@v0.9.3
+install-build-tools:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.32.0
+
+install-dev-tools-go1.18:
+	go install github.com/vakenbolt/go-test-report@v0.9.3
 	go install mvdan.cc/gofumpt@v0.4.0
 	go install github.com/segmentio/golines@v0.11.0
 	go install honnef.co/go/tools/cmd/staticcheck@v0.3.3
 
-install-tools:
+install-dev-tools:
 	go install github.com/vakenbolt/go-test-report@v0.9.3
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.32.0
-	go install mvdan.cc/gofumpt@v0.6.0
-	go install github.com/segmentio/golines@v0.12.2
-	go install honnef.co/go/tools/cmd/staticcheck@v0.4.6
+	go install mvdan.cc/gofumpt@v0.4.0
+	go install github.com/segmentio/golines@v0.11.0
+	go install honnef.co/go/tools/cmd/staticcheck@v0.3.3
+
+install-tools-go1.18: install-build-tools install-dev-tools-go1.18
+
+install-tools: install-build-tools install-dev-tools
 
 build: build-glide-core build-glide-client generate-protobuf
 	go build ./...
@@ -41,6 +46,9 @@ format:
 	gofumpt -w .
 	golines -w --shorten-comments -m 127 .
 
-unit-test-report:
+test:
+	go test -race ./...
+
+test-and-report:
 	mkdir -p reports
-	go test -race ./... -json | go-test-report -o reports/unit-test-report.html
+	go test -race ./... -json | go-test-report -o reports/test-report.html
