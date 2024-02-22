@@ -9,10 +9,11 @@ to develop this Java wrapper.
 
 The Java client contains the following parts:
 
-1. `client`: A Java-wrapper around the rust-core client.
-2. `examples`: An examples app to test the client against a Redis localhost
-3. `benchmark`: A dedicated benchmarking tool designed to evaluate and compare the performance of GLIDE for Redis and other Java clients.
-4. `integTest`: An integration test sub-project for API and E2E testing
+1. `src`: A rust part of the Java client and corresponding tests.
+2. `client`: A Java-wrapper around the [GLIDE core rust library](../glide-core/README.md) and unit tests for it.
+3. `examples`: An examples app to test the client against a Redis localhost.
+4. `benchmark`: A dedicated benchmarking tool designed to evaluate and compare the performance of GLIDE for Redis and other Java clients.
+5. `integTest`: An integration test sub-project for API and E2E testing.
 
 ## Installation and Setup
 
@@ -29,27 +30,49 @@ Software Dependencies:
 - protoc (protobuf compiler)
 - Rust
 
+Please also consider installing the following packages to build [GLIDE core rust library](../glide-core/README.md):
+
+- GCC
+- pkg-config
+- openssl
+- openssl-dev
+
 #### Prerequisites
 
+**Protoc installation**
+
+Download a binary matching your system from the [official release page](https://github.com/protocolbuffers/protobuf/releases/tag/v25.1) and make it accessible in your $PATH by moving it or creating a symlink.
+For example, on Linux you can copy it to `/usr/bin`:
+
+```bash
+sudo cp protoc /usr/bin/
+```
+
 **Dependencies installation for Ubuntu**
+
 ```bash
 sudo apt update -y
-sudo apt install -y protobuf-compiler openjdk-11-jdk openssl gcc
+sudo apt install -y openjdk-11-jdk openssl gcc
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source "$HOME/.cargo/env"
 ```
 
-**Dependencies for MacOS**
+**Dependencies installation for MacOS**
+
+```bash
+brew update
+brew install git gcc pkgconfig openssl openjdk@11
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+```
+
+**Java version check**
 
 Ensure that you have a minimum Java version of JDK 11 installed on your system:
-```bash
- $ echo $JAVA_HOME
-/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
 
-$ java -version
- openjdk version "11.0.1" 2018-10-16
- OpenJDK Runtime Environment 18.9 (build 11.0.1+13)
- OpenJDK 64-Bit Server VM 18.9 (build 11.0.1+13, mixed mode)
+```bash
+echo $JAVA_HOME
+java -version
 ```
 
 #### Building and installation steps
