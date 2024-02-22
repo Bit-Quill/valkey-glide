@@ -17,24 +17,46 @@ TODO: examples, UT, design docs
 
 ### Build from source
 
-#### Prerequisites
+Software Dependencies:
 
-Software Dependencies
-
-- .net sdk 6 or later
+- .Net SDK 6 or later
 - git
+- rustup
+
+Please also consider installing the following packages to build [GLIDE core rust library](../glide-core/README.md):
+
 - GCC
+- protoc (protobuf compiler)
 - pkg-config
 - openssl
 - openssl-dev
-- rustup
 
-Visit https://dotnet.microsoft.com/en-us/download/dotnet to download .net installer
+#### Prerequisites
+
+**.Net**
+
+It is recommended to visit https://dotnet.microsoft.com/en-us/download/dotnet to download .Net installer.
+You can also use a package manager to install the .Net SDK:
+
+```bash
+brew install dotnet@6         # MacOS
+sudo apt-get install dotnet6  # Linux
+```
+
+**Protoc installation**
+
+Download a binary matching your system from the [official release page](https://github.com/protocolbuffers/protobuf/releases/tag/v25.1) and make it accessible in your $PATH by moving it or creating a symlink.
+For example, on Linux you can copy it to `/usr/bin`:
+
+```bash
+sudo cp protoc /usr/bin/
+```
 
 **Dependencies installation for Ubuntu**
+
 ```bash
-sudo apt update -y
-sudo apt install -y openssl openssl-dev gcc
+sudo apt-get update -y
+sudo apt-get install -y openssl openssl-dev gcc
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source "$HOME/.cargo/env"
 ```
