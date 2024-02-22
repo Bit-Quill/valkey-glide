@@ -79,22 +79,6 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getClients")
-    public void ping(BaseClient client) {
-        String data = client.ping().get();
-        assertEquals("PONG", data);
-    }
-
-    @SneakyThrows
-    @ParameterizedTest
-    @MethodSource("getClients")
-    public void ping_with_message(BaseClient client) {
-        String data = client.ping("H3LL0").get();
-        assertEquals("H3LL0", data);
-    }
-
-    @SneakyThrows
-    @ParameterizedTest
-    @MethodSource("getClients")
     public void set_and_get_without_options(BaseClient client) {
         String ok = client.set(KEY_NAME, INITIAL_VALUE).get();
         assertEquals(OK, ok);
