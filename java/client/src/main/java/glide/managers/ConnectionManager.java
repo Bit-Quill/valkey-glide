@@ -98,7 +98,7 @@ public class ConnectionManager {
                 .setReadFrom(mapReadFromEnum(configuration.getReadFrom()));
 
         if (configuration.getCredentials() != null) {
-            AuthenticationInrfo.Builder authenticationInfoBuilder = AuthenticationInfo.newBuilder();
+            AuthenticationInfo.Builder authenticationInfoBuilder = AuthenticationInfo.newBuilder();
             if (configuration.getCredentials().getUsername() != null) {
                 authenticationInfoBuilder.setUsername(configuration.getCredentials().getUsername());
             }
