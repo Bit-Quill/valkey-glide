@@ -12,6 +12,11 @@ type NodeAddress struct {
 	Port *uint32 // Optional: if not supplied, 6379 will be used.
 }
 
+const (
+	defaultHost = "localhost"
+	defaultPort = uint32(6379)
+)
+
 // RedisCredentials represents the credentials for connecting to a Redis server.
 type RedisCredentials struct {
 	// Optional: the username that will be used for authenticating connections to the Redis servers. If not supplied, "default"
@@ -54,13 +59,13 @@ func (config *baseClientConfiguration) toProtobufConnRequest() (*protobuf.Connec
 	request := protobuf.ConnectionRequest{}
 	for _, address := range config.addresses {
 		if address.Host == nil {
-			defaultHost := "localhost"
-			address.Host = &defaultHost
+			host := defaultHost
+			address.Host = &host
 		}
 
 		if address.Port == nil {
-			defaultPort := uint32(6379)
-			address.Port = &defaultPort
+			port := defaultPort
+			address.Port = &port
 		}
 
 		nodeAddress := &protobuf.NodeAddress{
