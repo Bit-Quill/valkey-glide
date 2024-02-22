@@ -164,6 +164,7 @@ Development on the Go wrapper may involve changes in either the Go or Rust code.
 
 **Go:**
 
+-   go vet
 -   gofumpt
 -   staticcheck
 -   golines
