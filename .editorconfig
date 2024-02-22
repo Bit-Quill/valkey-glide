@@ -15,6 +15,11 @@ indent_size = 2
 # C# files
 [*.cs]
 
+[*.go]
+indent_style = tab
+indent_size = 8
+tab_width = 8
+
 #### Core EditorConfig Options ####
 
 # Indentation and spacing
