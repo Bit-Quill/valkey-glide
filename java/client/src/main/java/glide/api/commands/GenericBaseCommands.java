@@ -67,6 +67,11 @@ public interface GenericBaseCommands {
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
+     * @example
+     *     <pre>
+     * Boolean isSet = client.expire("my_key", 60).get()
+     * assert isSet //Indicates that a timeout of 60 seconds has been set for "my_key."
+     * </pre>
      */
     CompletableFuture<Boolean> expire(String key, long seconds);
 
@@ -84,6 +89,11 @@ public interface GenericBaseCommands {
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
+     * @example
+     *     <pre>
+     * Boolean isSet = client.expire("my_key", 60, ExpireOptions.HAS_NO_EXPIRY).get()
+     * assert isSet //Indicates that a timeout of 60 seconds has been set for "my_key."
+     * </pre>
      */
     CompletableFuture<Boolean> expire(String key, long seconds, ExpireOptions expireOptions);
 
@@ -101,6 +111,11 @@ public interface GenericBaseCommands {
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
+     * @example
+     *     <pre>
+     * Boolean isSet = client.expireAt("my_key", 1672531200).get()
+     * assert isSet
+     * </pre>
      */
     CompletableFuture<Boolean> expireAt(String key, long unixSeconds);
 
@@ -119,6 +134,11 @@ public interface GenericBaseCommands {
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
+     * @example
+     *     <pre>
+     * Boolean isSet = client.expireAt("my_key", 1672531200, ExpireOptions.HasNoExpiry).get()
+     * assert isSet
+     * </pre>
      */
     CompletableFuture<Boolean> expireAt(String key, long unixSeconds, ExpireOptions expireOptions);
 
@@ -135,6 +155,11 @@ public interface GenericBaseCommands {
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
+     * @example
+     *     <pre>
+     * Boolean isSet = client.pexpire("my_key", 60000).get()
+     * assert isSet
+     * </pre>
      */
     CompletableFuture<Boolean> pexpire(String key, long milliseconds);
 
@@ -152,6 +177,11 @@ public interface GenericBaseCommands {
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
+     * @example
+     *     <pre>
+     * Boolean isSet = client.pexpire("my_key", 60000, ExpireOptions.HasNoExpiry).get()
+     * assert isSet
+     * </pre>
      */
     CompletableFuture<Boolean> pexpire(String key, long milliseconds, ExpireOptions expireOptions);
 
@@ -169,6 +199,11 @@ public interface GenericBaseCommands {
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
+     * @example
+     *     <pre>
+     * Boolean isSet = client.pexpireAt("my_key", 1672531200000).get()
+     * assert isSet
+     * </pre>
      */
     CompletableFuture<Boolean> pexpireAt(String key, long unixMilliseconds);
 
@@ -187,6 +222,11 @@ public interface GenericBaseCommands {
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
+     * @example
+     *     <pre>
+     * Boolean isSet = client.pexpireAt("my_key", 1672531200000, ExpireOptions.HasNoExpiry).get()
+     * assert isSet
+     * </pre>
      */
     CompletableFuture<Boolean> pexpireAt(
         String key, long unixMilliseconds, ExpireOptions expireOptions);
@@ -198,6 +238,13 @@ public interface GenericBaseCommands {
      * @param key The <code>key</code> to return its timeout.
      * @return TTL in seconds, -2 if <code>key</code> does not exist, or -1 if <code>key</code> exists
      *     but has no associated expire.
+     * @example
+     *     <pre>
+     * Long timeRemaining = client.ttl("my_key").get()
+     * assert timeRemaining == 3600L //Indicates that "my_key" has a remaining time to live of 3600 seconds.
+     * Long timeRemaining = client.ttl("nonexistent_key").get()
+     * assert timeRemaining == -2L //Returns -2 for a non-existing key.
+     * </pre>
      */
     CompletableFuture<Long> ttl(String key);
 }
