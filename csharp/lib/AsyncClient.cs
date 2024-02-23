@@ -25,14 +25,16 @@ public class AsyncClient : IDisposable
     public async Task SetAsync(string key, string value)
     {
         var message = messageContainer.GetMessageForCall(key, value);
-        SetFfi(clientPointer, (ulong)message.Index, message.KeyPtr, message.ValuePtr);
+        Command(clientPointer, (ulong)message.Index, RequestType.SetString, 2UL, new IntPtr[] { message.KeyPtr, message.ValuePtr });
+        //SetFfi(clientPointer, (ulong)message.Index, );
         await message;
     }
 
     public async Task<string?> GetAsync(string key)
     {
         var message = messageContainer.GetMessageForCall(key, null);
-        GetFfi(clientPointer, (ulong)message.Index, message.KeyPtr);
+        //GetFfi(clientPointer, (ulong)message.Index, message.KeyPtr);
+        Command(clientPointer, (ulong)message.Index, RequestType.GetString, 1UL, new IntPtr[] { message.KeyPtr });
         return await message;
     }
 
@@ -54,6 +56,7 @@ public class AsyncClient : IDisposable
     private void SuccessCallback(ulong index, IntPtr str)
     {
         var result = str == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(str);
+        Console.WriteLine($" - SuccessCallback {result}");
         // Work needs to be offloaded from the calling thread, because otherwise we might starve the client's thread pool.
         Task.Run(() =>
         {
@@ -64,6 +67,7 @@ public class AsyncClient : IDisposable
 
     private void FailureCallback(ulong index)
     {
+        Console.WriteLine(" - FailureCallback");
         // Work needs to be offloaded from the calling thread, because otherwise we might starve the client's thread pool.
         Task.Run(() =>
         {
@@ -94,6 +98,16 @@ public class AsyncClient : IDisposable
 
     #region FFI function declarations
 
+    public enum RequestType : uint
+    {
+        // copied from redis_request.proto
+        CustomCommand = 1,
+        GetString = 2,
+        SetString = 3,
+        Ping = 4,
+        Info = 5,
+    }
+
     private delegate void StringAction(ulong index, IntPtr str);
     private delegate void FailureAction(ulong index);
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "get")]
@@ -101,6 +115,9 @@ public class AsyncClient : IDisposable
 
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "set")]
     private static extern void SetFfi(IntPtr client, ulong index, IntPtr key, IntPtr value);
+
+    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "command")]
+    private static extern void Command(IntPtr client, ulong index, RequestType requestType, ulong argCount, IntPtr[] args);
 
     private delegate void IntAction(IntPtr arg);
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_client")]

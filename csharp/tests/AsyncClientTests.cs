@@ -12,7 +12,7 @@ public class AsyncClientTests
     [OneTimeSetUp]
     public void Setup()
     {
-        Glide.Logger.SetLoggerConfig(Glide.Level.Info);
+        //Glide.Logger.SetLoggerConfig(Glide.Level.Info);
     }
 
     private async Task GetAndSetRandomValues(AsyncClient client)
