@@ -236,8 +236,8 @@ public interface GenericBaseCommands {
      *
      * @see <a href="https://redis.io/commands/ttl/">redis.io</a> for details.
      * @param key The <code>key</code> to return its timeout.
-     * @return TTL in seconds, <code>-2</code> if <code>key</code> does not exist, or <code>-1</code> if <code>key</code> exists
-     *     but has no associated expire.
+     * @return TTL in seconds, <code>-2</code> if <code>key</code> does not exist, or <code>-1</code>
+     *     if <code>key</code> exists but has no associated expire.
      * @example
      *     <pre>
      * Long timeRemaining = client.ttl("my_key").get()
