@@ -12,64 +12,33 @@ The GLIDE for Redis Python wrapper consists of both Python and Rust code. Rust b
 
 Software Dependencies
 
--   python3 virtualenv
--   git
--   GCC
--   pkg-config
--   protoc (protobuf compiler) >= v3.20.0
--   openssl
--   openssl-dev
--   rustup
+- python3
+- python3 packages: pip & virtualenv
+- [GLIDE core library](../glide-core/README.md) dependencies
 
 **Dependencies installation for Ubuntu**
 
 ```bash
 sudo apt update -y
-sudo apt install -y python3 python3-venv git gcc pkg-config openssl libssl-dev unzip
-# Install rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-# Check that the Rust compiler is installed
-rustc --version
-# Install protobuf compiler
-PB_REL="https://github.com/protocolbuffers/protobuf/releases"
-curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
-unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
-export PATH="$PATH:$HOME/.local/bin"
-# Check that the protobuf compiler is installed
-protoc --version
+sudo apt install -y python3 python3-venv python3-pip
+pip3 install -r requirements.txt
 ```
 
 **Dependencies installation for CentOS**
 
 ```bash
 sudo yum update -y
-sudo yum install -y python3 git gcc pkgconfig openssl openssl-devel unzip
-pip3 install virtualenv
-# Install rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-# Check that the Rust compiler is installed
-rustc --version
-# Install protobuf compiler
-PB_REL="https://github.com/protocolbuffers/protobuf/releases"
-curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
-unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
-export PATH="$PATH:$HOME/.local/bin"
-# Check that the protobuf compiler is installed
-protoc --version
+sudo yum install -y python3
+pip3 install -r requirements.txt
 ```
 
 **Dependencies installation for MacOS**
 
 ```bash
 brew update
-brew install python3 git gcc pkgconfig protobuf@3 openssl
+brew install python3
 pip3 install virtualenv
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-# Check that the Rust compiler is installed
-rustc --version
+pip3 install -r requirements.txt
 ```
 
 #### Building and installation steps
@@ -102,7 +71,7 @@ Before starting this step, make sure you've installed all software requirments.
     ```
 6. Install requirements:
     ```bash
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     ```
 7. Build the Python wrapper in release mode:
     ```
@@ -121,7 +90,7 @@ Before starting this step, make sure you've installed all software requirments.
 -   Install Python development requirements with:
 
     ```bash
-    pip install -r python/dev_requirements.txt
+    pip3 install -r python/dev_requirements.txt
     ```
 
 -   For a fast build, execute `maturin develop` without the release flag. This will perform an unoptimized build, which is suitable for developing tests. Keep in mind that performance is significantly affected in an unoptimized build, so it's required to include the "--release" flag when measuring performance.

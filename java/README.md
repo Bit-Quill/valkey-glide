@@ -25,31 +25,31 @@ At the moment, the Java client must be built from source.
 Software Dependencies:
 
 - JDK 11+
-- git
-- protoc (protobuf compiler)
-- Rust
+- [GLIDE core library](../glide-core/README.md) dependencies
 
 #### Prerequisites
 
 **Dependencies installation for Ubuntu**
+
 ```bash
 sudo apt update -y
-sudo apt install -y protobuf-compiler openjdk-11-jdk openssl gcc
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
+sudo apt install -y openjdk-11-jdk
 ```
 
-**Dependencies for MacOS**
+**Dependencies installation for MacOS**
+
+```bash
+brew update
+brew install openjdk@11
+```
+
+**Java version check**
 
 Ensure that you have a minimum Java version of JDK 11 installed on your system:
-```bash
- $ echo $JAVA_HOME
-/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
 
-$ java -version
- openjdk version "11.0.1" 2018-10-16
- OpenJDK Runtime Environment 18.9 (build 11.0.1+13)
- OpenJDK 64-Bit Server VM 18.9 (build 11.0.1+13, mixed mode)
+```bash
+echo $JAVA_HOME
+java -version
 ```
 
 #### Building and installation steps

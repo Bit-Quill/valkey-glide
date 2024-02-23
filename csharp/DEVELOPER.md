@@ -12,25 +12,13 @@ The GLIDE C# wrapper consists of both C# and Rust code.
 
 Software Dependencies
 
--   .net sdk 6 or later
--   git
--   GCC
--   pkg-config
--   protoc (protobuf compiler)
--   openssl
--   openssl-dev
--   rustup
+- .Net SDK 6 or later
+- [GLIDE core library](../glide-core/README.md) dependencies
 
 **Dependencies installation for MacOS**
 
 visit https://dotnet.microsoft.com/en-us/download/dotnet
 to download .net installer
-```bash
-brew update
-brew install git gcc pkgconfig protobuf openssl
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-```
 
 #### Building and installation steps
 

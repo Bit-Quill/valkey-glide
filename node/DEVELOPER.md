@@ -14,43 +14,31 @@ Software Dependencies
 
 > Note: Currently, we only support npm major version 8. f you have a later version installed, you can downgrade it with `npm i -g npm@8`.
 
--   npm v8
--   git
--   GCC
--   pkg-config
--   protoc (protobuf compiler)
--   openssl
--   openssl-dev
--   rustup
+- npm v8
+- [GLIDE core library](../glide-core/README.md) dependencies
 
 **Dependencies installation for Ubuntu**
 
 ```bash
 sudo apt update -y
-sudo apt install -y nodejs npm git gcc pkg-config protobuf-compiler openssl libssl-dev
+sudo apt install -y nodejs npm
 npm i -g npm@8
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
 ```
 
 **Dependencies installation for CentOS**
 
 ```bash
 sudo yum update -y
-sudo yum install -y nodejs git gcc pkgconfig protobuf-compiler openssl openssl-devel gettext
+sudo yum install -y nodejs gettext
 npm i -g npm@8
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
 ```
 
 **Dependencies installation for MacOS**
 
 ```bash
 brew update
-brew install nodejs git gcc pkgconfig protobuf openssl
+brew install nodejs
 npm i -g npm@8
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
 ```
 
 #### Building and installation steps
