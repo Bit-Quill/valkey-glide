@@ -24,7 +24,7 @@ public interface ListBaseCommands {
      * Long pushCount1 = client.rpush("my_list", new String[] {"value1", "value2"}).get()
      * assert pushCount1 == 2L
      * Long pushCount2 = client.rpush("nonexistent_list", new String[] {"new_value"}).get()
-     * assert pushCount2 == 1
+     * assert pushCount2 == 1L
      * </pre>
      */
     CompletableFuture<Long> rpush(String key, String[] elements);
@@ -57,9 +57,9 @@ public interface ListBaseCommands {
      *     If <code>key</code> does not exist null will be returned.<br>
      * @example
      *     <pre>
-     * String[] values1 = client.rpop("my_list", 2).get()
+     * String[] values1 = client.rpopCount("my_list", 2).get()
      * assert values1.equals(new String[] {"value1", "value2"})
-     * String[] values2 = client.rpop("non_exiting_key" , 7).get()
+     * String[] values2 = client.rpopCount("non_exiting_key" , 7).get()
      * assert values2.equals(null)
      * </pre>
      */
