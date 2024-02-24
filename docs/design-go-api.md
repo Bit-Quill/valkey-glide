@@ -16,25 +16,27 @@ This document presents the high-level user API for the Go-Wrapper client library
 ### Case 1: Create Redis client and connect
 
 ```go
-var config *StandaloneClientConfiguration = glide.NewClientConfiguration()
-    WithAddress(glide.AddressInfo{Host: host, Port: port}).
-    WithUseTLS(true)
+host := "some_host"
+port := 1234
+var config *api.RedisClientConfiguration = api.NewRedisClientConfiguration().
+	WithAddress(&api.NodeAddress{&host, &port}).
+	WithUseTLS(true)
 
 // Create a client and connect
-var client *glide.RedisClient
+var client *api.RedisClient
 var err error
-client, err = glide.CreateClient(config)
+client, err = api.CreateClient(config)
 ```
 
 ### Case 2: Connection to Redis fails with ClosingError
 ```go
-var client *glide.RedisClient
+var client *api.RedisClient
 var err error
-client, err := glide.CreateClient(config)
+client, err := api.CreateClient(config)
 
 // User can check specifically for a ClosingError:
 if err != nil {
-    closingErr, isClosingErr := err.(glide.ClosingError)
+    closingErr, isClosingErr := err.(api.ClosingError)
     if isClosingErr {  
         log.Fatal("Failed to connect to Redis: " + closingErr.Error())
     }
@@ -44,9 +46,9 @@ if err != nil {
 ### Case 3: Connect to Redis with deferred cleanup
 ```go
 func connectAndGet(key string) string {
-    var client *glide.RedisClient
+    var client *api.RedisClient
     var err error
-    client, err = glide.CreateClient(config)
+    client, err = api.CreateClient(config)
     if err != nil {
         log.Fatal("Redis client failed with: " + err.Error())
     }
@@ -68,15 +70,19 @@ func connectAndGet(key string) string {
 
 ### Case 4: Connect to Redis cluster
 ```go
-var config *glide.ClusterClientConfiguration
-config = glide.NewClusterClientConfiguration().
-    WithAddress(glide.AddressInfo{Host: host1, Port: port1}).
-    WithAddress(glide.AddressInfo{Host: host2, Port: port2}).
+host1 := "host1"
+host2 := "host2"
+port1 := 1234
+port2 := 5678
+var config *api.RedisClusterClientConfiguration
+config = api.NewRedisClusterClientConfiguration().
+    WithAddress(&api.NodeAddress{Host: &host1, Port: &port1}).
+    WithAddress(&api.NodeAddress{Host: &host2, Port: &port2}).
     WithUseTLS(true)
 
-var client *glide.RedisClusterClient
+var client *api.RedisClusterClient
 var err error
-client, err = glide.CreateClusterClient(config)
+client, err = api.CreateClusterClient(config)
 ```
 
 ### Case 5: Get(key) from connected RedisClient
@@ -91,18 +97,18 @@ fmt.Println("The value associated with 'apples' is: " + result)
 err := client.Set("apples", "oranges")
 
 // With setOptions
-var setOptions *glide.SetOptions
-setOptions = glide.NewSetOptions().
+var setOptions *api.SetOptions
+setOptions = api.NewSetOptions().
     WithReturnOldValue(true)
 oldValue, err := client.SetWithOptions("apples", "oranges", setOptions)
 ```
 
 ### Case 7: Get(key) from a disconnected RedisClient
-Return a glide.ConnectionError if the RedisClient fails to connect to Redis
+Return a api.ConnectionError if the RedisClient fails to connect to Redis
 ```go
 result, err := client.Get("apples")
 if err != nil {
-    connErr, isConnErr := err.(glide.ConnectionError)
+    connErr, isConnErr := err.(api.ConnectionError)
     if isConnErr {  
         log.Fatal("RedisClient get failed with: " + connErr.Error())
     }
@@ -127,7 +133,7 @@ if !isString {
 
 ### Case 9: Send transaction to RedisClient
 ```go
-transaction := glide.NewTransaction()
+transaction := api.NewTransaction()
 transaction.Get("apples")
 transaction.Get("pears")
 transaction.Set("cherries", "Bing")
@@ -146,15 +152,17 @@ thirdResponse := result[2]  // evaluates to nil
 
 ### Case 10: Send Get request to a RedisClusterClient with one address
 ```go
-var config *glide.ClusterClientConfiguration
-config = glide.NewClusterClientConfiguration().
-    WithAddress(glide.AddressInfo{Host: host, Port: port}).
+host := "some_host"
+port := 1234
+var config *api.ClusterClientConfiguration
+config = api.NewClusterClientConfiguration().
+    WithAddress(&api.NodeAddress{Host: &host, Port: &port}).
     WithUseTLS(true)
 
 // Create a client and connect
-var client *glide.RedisClusterClient
+var client *api.RedisClusterClient
 var err error
-client, err = glide.CreateClusterClient(config)
+client, err = api.CreateClusterClient(config)
 if err != nil {
     log.Fatal("Redis client failed with: " + err.Error())
 }
@@ -164,16 +172,20 @@ result, err := client.Get("apples")
 
 ### Case 11: Send Ping request to a RedisClusterClient with multiple addresses
 ```go
-var config *glide.ClusterClientConfiguration
-config = glide.NewClusterClientConfiguration().
-    WithAddress(glide.AddressInfo{Host: host1, Port: port1}).
-    WithAddress(glide.AddressInfo{Host: host2, Port: port2}).
+host1 := "host1"
+host2 := "host2"
+port1 := 1234
+port2 := 5678
+var config *api.ClusterClientConfiguration
+config = api.NewClusterClientConfiguration().
+    WithAddress(&api.NodeAddress{Host: &host1, Port: &port1}).
+    WithAddress(&api.NodeAddress{Host: &host2, Port: &port2}).
     WithUseTLS(true)
 
 // Create a client and connect
-var client *glide.RedisClusterClient
+var client *api.RedisClusterClient
 var err error
-client, err = glide.CreateClusterClient(config)
+client, err = api.CreateClusterClient(config)
 if err != nil {
     log.Fatal("Redis client failed with: " + err.Error())
 }
@@ -185,17 +197,17 @@ result, err := client.Ping()
 result, err := client.PingWithMessage("Ping received")
 
 // With route
-result, err := client.PingWithRoute(glide.NewRoute(glide.AllNodes))
+result, err := client.PingWithRoute(api.NewRoute(api.AllNodes))
 
 // With message and route
-result, err := client.PingWithMessageAndRoute("Ping received", glide.NewRoute(glide.AllNodes))
+result, err := client.PingWithMessageAndRoute("Ping received", api.NewRoute(api.AllNodes))
 ```
 
 ### Case 12: Get(key) encounters a TimeoutError
 ```go
 result, err := client.Get("apples")
 if err != nil {
-    timeoutErr, isTimeoutErr := err.(glide.TimeoutError)
+    timeoutErr, isTimeoutErr := err.(api.TimeoutError)
     if isTimeoutErr {  
         // Handle error as desired
     }
@@ -206,7 +218,7 @@ if err != nil {
 ```go
 result, err := client.Get("apples")
 if err != nil {
-    connErr, isConnErr := err.(glide.ConnectionError)
+    connErr, isConnErr := err.(api.ConnectionError)
     if isConnErr {  
         // Handle error as desired
     }
