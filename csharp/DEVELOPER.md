@@ -23,7 +23,7 @@ Software Dependencies:
 - git
 - rustup
 
-Please also consider installing the following packages to build [GLIDE core rust library](../glide-core/README.md):
+Please also install the following packages to build [GLIDE core rust library](../glide-core/README.md):
 
 - GCC
 - protoc (protobuf compiler)
@@ -88,7 +88,7 @@ cd glide-for-redis
 git submodule update --init --recursive
 ```
 
-3. Build the c# wrapper
+3. Build the C# wrapper
 
 Choose a build option from the following and run it from the `csharp` folder.
 
