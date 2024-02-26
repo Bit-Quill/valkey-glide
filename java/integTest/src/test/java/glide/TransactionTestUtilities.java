@@ -13,6 +13,7 @@ public class TransactionTestUtilities {
     private static final String key3 = "{key}" + UUID.randomUUID();
     private static final String key4 = "{key}" + UUID.randomUUID();
     private static final String key5 = "{key}" + UUID.randomUUID();
+    private static final String key6 = "{key}" + UUID.randomUUID();
     private static final String value1 = UUID.randomUUID().toString();
     private static final String value2 = UUID.randomUUID().toString();
     private static final String field1 = UUID.randomUUID().toString();
@@ -63,6 +64,9 @@ public class TransactionTestUtilities {
         baseTransaction.scard(key5);
         baseTransaction.smembers(key5);
 
+        baseTransaction.zadd(key6, Map.of("one", 1.0, "two", 2.0, "three", 3.0));
+        baseTransaction.zaddIncr(key6, "one", 3);
+
         return baseTransaction;
     }
 
@@ -97,6 +101,8 @@ public class TransactionTestUtilities {
             1L,
             1L,
             Set.of("baz"),
+            3L,
+            4.0,
         };
     }
 }
