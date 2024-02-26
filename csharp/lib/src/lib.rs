@@ -265,6 +265,7 @@ fn get_command(request_type: RequestType) -> Option<Cmd> {
         RequestType::XGroupCreate => Some(get_two_word_command("XGROUP", "CREATE")),
         RequestType::XGroupDestroy => Some(get_two_word_command("XGROUP", "DESTROY")),
         RequestType::XTrim => Some(cmd("XTRIM")),
+        _ => None,
     }
 }
 
@@ -306,7 +307,6 @@ pub extern "C" fn command(
     client.runtime.spawn(async move {
 
         let mut cmd = get_command(command_type).unwrap(); // TODO check cmd
-        //print!("{:?}", cmd.args);
         cmd.arg(arg_vec);
 
         let result = client_clone.send_command(&cmd, None).await;
