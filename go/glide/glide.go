@@ -139,6 +139,21 @@ func failureCallback(channelPtr C.uintptr_t, errMessage *C.char) {
     resultChannel <- payload{value: "", errMessage: fmt.Errorf("error at redis operation: %s", goMessage)}
 }
 
+func stringsToCStrings(args []string) []*C.char {
+    cArgs := make([]*C.char, len(args))
+    for index, string := range args {
+        cString := C.CString(string)
+        cArgs[index] = cString
+    }
+    return cArgs
+}
+
+func freeCStrings(cArgs []*C.char) {
+    for _, arg := range cArgs {
+        C.free(unsafe.Pointer(arg))
+    }
+}
+
 func (glideRedisClient *GlideRedisClient) ConnectToRedis(host string, port int, useSSL bool, clusterModeEnabled bool) error {
     caddress := C.CString(host)
     defer C.free(unsafe.Pointer(caddress))
@@ -162,14 +177,10 @@ func (glideRedisClient *GlideRedisClient) Set(key string, value interface{}) err
     resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
 
     args := []string{key, strValue}
-    argv := make([]*C.char, len(args))
-    for index, string := range args {
-        cString := C.CString(string)
-        defer C.free(unsafe.Pointer(cString))
-        argv[index] = cString
-    }
+    cArgs := stringsToCStrings(args)
+    defer freeCStrings(cArgs)
     requestType := C.uint32_t(SetString)
-    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(2), &argv[0])
+    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(2), &cArgs[0])
 
     resultPayload := <-resultChannel
 
@@ -184,14 +195,10 @@ func (glideRedisClient *GlideRedisClient) Get(key string) (string, error) {
     resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
 
     args := []string{key}
-    argv := make([]*C.char, len(args))
-    for index, string := range args {
-        cString := C.CString(string)
-        defer C.free(unsafe.Pointer(cString))
-        argv[index] = cString
-    }
+    cArgs := stringsToCStrings(args)
+    defer freeCStrings(cArgs)
     requestType := C.uint32_t(GetString)
-    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(1), &argv[0])
+    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(1), &cArgs[0])
     resultPayload := <-resultChannel
 
     return resultPayload.value, nil
@@ -201,15 +208,9 @@ func (glideRedisClient *GlideRedisClient) Ping() (string, error) {
     resultChannel := make(chan payload)
     resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
 
-    args := []string{}
-    argv := make([]*C.char, len(args))
-    for index, string := range args {
-        cString := C.CString(string)
-        defer C.free(unsafe.Pointer(cString))
-        argv[index] = cString
-    }
+    cArgs := []*C.char{}
     requestType := C.uint32_t(Ping)
-    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(0), &argv[0])
+    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(0), &cArgs[0])
     resultPayload := <-resultChannel
 
     return resultPayload.value, resultPayload.errMessage
@@ -219,15 +220,9 @@ func (glideRedisClient *GlideRedisClient) Info() (string, error) {
     resultChannel := make(chan payload)
     resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
 
-    args := []string{}
-    argv := make([]*C.char, len(args))
-    for index, string := range args {
-        cString := C.CString(string)
-        defer C.free(unsafe.Pointer(cString))
-        argv[index] = cString
-    }
+    cArgs := []*C.char{}
     requestType := C.uint32_t(Info)
-    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(0), &argv[0])
+    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(0), &cArgs[0])
     resultPayload := <-resultChannel
 
     return resultPayload.value, resultPayload.errMessage
