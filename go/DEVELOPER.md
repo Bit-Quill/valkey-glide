@@ -4,9 +4,11 @@ This document describes how to set up your development environment to build and 
 
 ### Development Overview
 
+We're excited to share that the GLIDE Go client is currently in development! However, it's important to note that this client is a work in progress and is not yet complete or fully tested. Your contributions and feedback are highly encouraged as we work towards refining and improving this implementation. Thank you for your interest and understanding as we continue to develop this Go wrapper.
+
 The GLIDE for Redis Go wrapper consists of both Go and Rust code. The Go and Rust components communicate in two ways:
-1. using the [protobuf](https://github.com/protocolbuffers/protobuf) protocol.
-2. using shared C objects. [cgo](https://pkg.go.dev/cmd/cgo) is used to interact with the C objects from Go code.
+1. Using the [protobuf](https://github.com/protocolbuffers/protobuf) protocol.
+2. Using shared C objects. [cgo](https://pkg.go.dev/cmd/cgo) is used to interact with the C objects from Go code.
 
 ### Build from source
 
@@ -112,8 +114,7 @@ Before starting this step, make sure you've installed all software requirements.
         ```bash
         go test -race ./...
         ```
-
--   Install Go development tools with:
+6. Install Go development tools with:
 
     ```bash
     make install-dev-tools
