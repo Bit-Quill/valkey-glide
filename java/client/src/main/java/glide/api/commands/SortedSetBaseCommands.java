@@ -12,8 +12,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface SortedSetBaseCommands {
     /**
-     * Adds members with their scores to the sorted set stored at <code>key</code>. If a member is
-     * already a part of the sorted set, its score is updated.
+     * Adds members with their scores to the sorted set stored at <code>key</code>.<br>
+     * If a member is already a part of the sorted set, its score is updated.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
      * @param key The key of the sorted set.
@@ -36,8 +36,8 @@ public interface SortedSetBaseCommands {
             String key, Map<String, Double> membersScoresMap, ZaddOptions options, boolean changed);
 
     /**
-     * Adds members with their scores to the sorted set stored at <code>key</code>. If a member is
-     * already a part of the sorted set, its score is updated.
+     * Adds members with their scores to the sorted set stored at <code>key</code>.<br>
+     * If a member is already a part of the sorted set, its score is updated.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
      * @param key The key of the sorted set.
@@ -56,8 +56,8 @@ public interface SortedSetBaseCommands {
             String key, Map<String, Double> membersScoresMap, ZaddOptions options);
 
     /**
-     * Adds members with their scores to the sorted set stored at <code>key</code>. If a member is
-     * already a part of the sorted set, its score is updated.
+     * Adds members with their scores to the sorted set stored at <code>key</code>.<br>
+     * If a member is already a part of the sorted set, its score is updated.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
      * @param key The key of the sorted set.
@@ -76,8 +76,8 @@ public interface SortedSetBaseCommands {
     CompletableFuture<Long> zadd(String key, Map<String, Double> membersScoresMap, boolean changed);
 
     /**
-     * Adds members with their scores to the sorted set stored at <code>key</code>. If a member is
-     * already a part of the sorted set, its score is updated.
+     * Adds members with their scores to the sorted set stored at <code>key</code>.<br>
+     * If a member is already a part of the sorted set, its score is updated.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
      * @param key The key of the sorted set.
@@ -93,9 +93,11 @@ public interface SortedSetBaseCommands {
 
     /**
      * Increments the score of member in the sorted set stored at <code>key</code> by <code>increment
-     * </code>. If <code>member</code> does not exist in the sorted set, it is added with <code>
-     * increment</code> as its score (as if its previous score was 0.0). If <code>key</code> does not
-     * exist, a new sorted set with the specified member as its sole member is created.
+     * </code>.<br>
+     * If <code>member</code> does not exist in the sorted set, it is added with <code>
+     * increment</code> as its score (as if its previous score was 0.0).<br>
+     * If <code>key</code> does not exist, a new sorted set with the specified member as its sole
+     * member is created.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
      * @param key The key of the sorted set.
@@ -118,9 +120,11 @@ public interface SortedSetBaseCommands {
 
     /**
      * Increments the score of member in the sorted set stored at <code>key</code> by <code>increment
-     * </code>. If <code>member</code> does not exist in the sorted set, it is added with <code>
-     * increment</code> as its score (as if its previous score was 0.0). If <code>key</code> does not
-     * exist, a new sorted set with the specified member as its sole member is created.
+     * </code>.<br>
+     * If <code>member</code> does not exist in the sorted set, it is added with <code>
+     * increment</code> as its score (as if its previous score was 0.0).<br>
+     * If <code>key</code> does not exist, a new sorted set with the specified member as its sole
+     * member is created.
      *
      * @see <a href="https://redis.io/commands/zadd/">redis.io</a> for more details.
      * @param key The key of the sorted set.
