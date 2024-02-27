@@ -415,7 +415,7 @@ impl From<Level> for logger_core::Level {
 #[allow(improper_ctypes_definitions)]
 /// # Safety
 /// Unsafe function because creating string from pointer
-pub unsafe extern "C" fn log(
+pub unsafe extern "C" fn log_ffi(
     log_level: Level,
     log_identifier: *const c_char,
     message: *const c_char,

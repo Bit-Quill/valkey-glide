@@ -136,7 +136,7 @@ void command(const void *client_ptr,
  * # Safety
  * Unsafe function because creating string from pointer
  */
-void log(struct Level log_level, const char *log_identifier, const char *message);
+void log_ffi(struct Level log_level, const char *log_identifier, const char *message);
 
 /**
  * # Safety
