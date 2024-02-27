@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -30,7 +29,6 @@ public final class ZaddOptions {
     private final UpdateOptions updateOptions;
 
     @RequiredArgsConstructor
-    @Getter
     public enum ConditionalChange {
         /**
          * Only update elements that already exist. Don't add new elements. Equivalent to <code>XX
@@ -47,7 +45,6 @@ public final class ZaddOptions {
     }
 
     @RequiredArgsConstructor
-    @Getter
     public enum UpdateOptions {
         /**
          * Only update existing elements if the new score is less than the current score. Equivalent to
