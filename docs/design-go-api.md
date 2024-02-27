@@ -16,10 +16,8 @@ This document presents the high-level user API for the Go-Wrapper client library
 ### Case 1: Create Redis client and connect
 
 ```go
-host := "some_host"
-port := 1234
 var config *api.RedisClientConfiguration = api.NewRedisClientConfiguration().
-	WithAddress(&api.NodeAddress{&host, &port}).
+	WithAddress(&api.NodeAddress{"some_host", 1234}).
 	WithUseTLS(true)
 
 // Create a client and connect
@@ -45,7 +43,7 @@ if err != nil {
 
 ### Case 3: Connect to Redis with deferred cleanup
 ```go
-func connectAndGet(key string) string {
+func connectAndGet(config *RedisClientConfiguration, key string) string {
     var client *api.RedisClient
     var err error
     client, err = api.CreateClient(config)
@@ -70,14 +68,10 @@ func connectAndGet(key string) string {
 
 ### Case 4: Connect to Redis cluster
 ```go
-host1 := "host1"
-host2 := "host2"
-port1 := 1234
-port2 := 5678
 var config *api.RedisClusterClientConfiguration
 config = api.NewRedisClusterClientConfiguration().
-    WithAddress(&api.NodeAddress{Host: &host1, Port: &port1}).
-    WithAddress(&api.NodeAddress{Host: &host2, Port: &port2}).
+    WithAddress(&api.NodeAddress{Host: "host1", Port: 1234}).
+    WithAddress(&api.NodeAddress{Host: "host2", Port: 1234}).
     WithUseTLS(true)
 
 var client *api.RedisClusterClient
@@ -152,11 +146,9 @@ thirdResponse := result[2]  // evaluates to nil
 
 ### Case 10: Send Get request to a RedisClusterClient with one address
 ```go
-host := "some_host"
-port := 1234
 var config *api.ClusterClientConfiguration
 config = api.NewClusterClientConfiguration().
-    WithAddress(&api.NodeAddress{Host: &host, Port: &port}).
+    WithAddress(&api.NodeAddress{Host: "some_host", Port: 1234}).
     WithUseTLS(true)
 
 // Create a client and connect
@@ -172,14 +164,10 @@ result, err := client.Get("apples")
 
 ### Case 11: Send Ping request to a RedisClusterClient with multiple addresses
 ```go
-host1 := "host1"
-host2 := "host2"
-port1 := 1234
-port2 := 5678
 var config *api.ClusterClientConfiguration
 config = api.NewClusterClientConfiguration().
-    WithAddress(&api.NodeAddress{Host: &host1, Port: &port1}).
-    WithAddress(&api.NodeAddress{Host: &host2, Port: &port2}).
+    WithAddress(&api.NodeAddress{Host: "host1", Port: 1234}).
+    WithAddress(&api.NodeAddress{Host: "host2", Port: 1234}).
     WithUseTLS(true)
 
 // Create a client and connect
