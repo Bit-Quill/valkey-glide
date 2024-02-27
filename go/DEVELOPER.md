@@ -25,7 +25,11 @@ Software Dependencies
 -   openssl
 -   openssl-dev
 -   rustup
+-   redis
 
+**Redis installation**
+
+To install redis-server and redis-cli on your host, follow the [Redis Installation Guide](https://redis.io/docs/install/install-redis/).
 
 **Dependencies installation for Ubuntu**
 
