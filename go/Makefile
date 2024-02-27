@@ -15,7 +15,7 @@ install-dev-tools-go1.22:
 
 install-tools-go1.18: install-build-tools install-dev-tools-go1.18
 
-install-tools: install-build-tools install-dev-tools
+install-tools-go1.22: install-build-tools install-dev-tools-go1.22
 
 build: build-glide-core build-glide-client generate-protobuf
 	go build ./...
