@@ -10,6 +10,7 @@ import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -883,6 +884,7 @@ public class RedisClientTest {
         String key = "testKey";
         ZaddOptions options =
                 ZaddOptions.builder()
+                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS)
                         .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
                         .build();
         Map<String, Double> membersScores = new LinkedHashMap<>();
@@ -907,6 +909,24 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zadd_withIllegalArgument_throws_exception() {
+        // setup
+        String key = "testKey";
+        ZaddOptions options =
+                ZaddOptions.builder()
+                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
+                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
+                        .build();
+        Map<String, Double> membersScores = new LinkedHashMap<>();
+        membersScores.put("testMember1", 1.0);
+        membersScores.put("testMember2", 2.0);
+
+        assertThrows(
+                IllegalArgumentException.class, () -> service.zadd(key, membersScores, options, false));
     }
 
     @SneakyThrows
