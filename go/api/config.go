@@ -1,39 +1,54 @@
-/**
- * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
- */
+// Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
 
 package api
 
 import "github.com/aws/glide-for-redis/go/glide/protobuf"
 
-// NodeAddress represents the host address and port of a node in the cluster.
-type NodeAddress struct {
-	Host *string // Optional: if not supplied, "localhost" will be used.
-	Port *uint32 // Optional: if not supplied, 6379 will be used.
-}
-
 const (
 	defaultHost = "localhost"
-	defaultPort = uint32(6379)
+	defaultPort = 6379
 )
+
+// NodeAddress represents the host address and port of a node in the cluster.
+type NodeAddress struct {
+	Host string // Optional: if not supplied, "localhost" will be used.
+	Port int    // Optional: if not supplied, 6379 will be used.
+}
+
+func (addr *NodeAddress) toProtobuf() *protobuf.NodeAddress {
+	if addr.Host == "" {
+		addr.Host = defaultHost
+	}
+
+	if addr.Port == 0 {
+		addr.Port = defaultPort
+	}
+
+	return &protobuf.NodeAddress{Host: addr.Host, Port: uint32(addr.Port)}
+}
 
 // RedisCredentials represents the credentials for connecting to a Redis server.
 type RedisCredentials struct {
 	// Optional: the username that will be used for authenticating connections to the Redis servers. If not supplied, "default"
 	// will be used.
-	Username *string
+	username string
 	// Required: the password that will be used for authenticating connections to the Redis servers.
-	Password *string
+	password string
 }
 
-func (credentials *RedisCredentials) validate() error {
-	if credentials.Password == nil {
-		return &RedisError{
-			"RedisCredentials.Password evaluated to nil. Password must be non-nil to authenticate with credentials.",
-		}
-	}
+// NewRedisCredentials returns a new RedisCredentials struct with the given username and password.
+func NewRedisCredentials(username string, password string) *RedisCredentials {
+	return &RedisCredentials{username, password}
+}
 
-	return nil
+// NewRedisCredentialsWithDefaultUsername returns a new RedisCredentials struct with a default username of "default" and the
+// given password.
+func NewRedisCredentialsWithDefaultUsername(password string) *RedisCredentials {
+	return &RedisCredentials{password: password}
+}
+
+func (creds *RedisCredentials) toProtobuf() *protobuf.AuthenticationInfo {
+	return &protobuf.AuthenticationInfo{Username: creds.username, Password: creds.password}
 }
 
 // ReadFrom represents the client's read from strategy.
@@ -47,32 +62,26 @@ const (
 	PreferReplica ReadFrom = 1
 )
 
+func mapReadFrom(readFrom ReadFrom) protobuf.ReadFrom {
+	if readFrom == PreferReplica {
+		return protobuf.ReadFrom_PreferReplica
+	}
+
+	return protobuf.ReadFrom_Primary
+}
+
 type baseClientConfiguration struct {
 	addresses      []NodeAddress
 	useTLS         bool
 	credentials    *RedisCredentials
 	readFrom       ReadFrom
-	requestTimeout *uint32
+	requestTimeout int
 }
 
-func (config *baseClientConfiguration) toProtobufConnRequest() (*protobuf.ConnectionRequest, error) {
+func (config *baseClientConfiguration) toProtobuf() *protobuf.ConnectionRequest {
 	request := protobuf.ConnectionRequest{}
 	for _, address := range config.addresses {
-		if address.Host == nil {
-			host := defaultHost
-			address.Host = &host
-		}
-
-		if address.Port == nil {
-			port := defaultPort
-			address.Port = &port
-		}
-
-		nodeAddress := &protobuf.NodeAddress{
-			Host: *address.Host,
-			Port: *address.Port,
-		}
-		request.Addresses = append(request.Addresses, nodeAddress)
+		request.Addresses = append(request.Addresses, address.toProtobuf())
 	}
 
 	if config.useTLS {
@@ -82,32 +91,15 @@ func (config *baseClientConfiguration) toProtobufConnRequest() (*protobuf.Connec
 	}
 
 	if config.credentials != nil {
-		if err := config.credentials.validate(); err != nil {
-			return nil, err
-		}
-
-		authInfo := protobuf.AuthenticationInfo{}
-		if config.credentials.Username != nil {
-			authInfo.Username = *config.credentials.Username
-		}
-		authInfo.Password = *config.credentials.Password
-		request.AuthenticationInfo = &authInfo
+		request.AuthenticationInfo = config.credentials.toProtobuf()
 	}
 
 	request.ReadFrom = mapReadFrom(config.readFrom)
-	if config.requestTimeout != nil {
-		request.RequestTimeout = *config.requestTimeout
+	if config.requestTimeout != 0 {
+		request.RequestTimeout = uint32(config.requestTimeout)
 	}
 
-	return &request, nil
-}
-
-func mapReadFrom(readFrom ReadFrom) protobuf.ReadFrom {
-	if readFrom == PreferReplica {
-		return protobuf.ReadFrom_PreferReplica
-	}
-
-	return protobuf.ReadFrom_Primary
+	return &request
 }
 
 // BackoffStrategy represents the strategy used to determine how and when to reconnect, in case of connection failures. The
@@ -123,33 +115,24 @@ type BackoffStrategy struct {
 	// Required: number of retry attempts that the client should perform when disconnected from the server, where the time
 	// between retries increases. Once the retries have reached the maximum value, the time between retries will remain
 	// constant until a reconnect attempt is successful.
-	NumOfRetries *uint32
+	numOfRetries int
 	// Required: the multiplier that will be applied to the waiting time between each retry.
-	Factor *uint32
+	factor int
 	// Required: the exponent base configured for the strategy.
-	ExponentBase *uint32
+	exponentBase int
 }
 
-func (strategy *BackoffStrategy) validate() error {
-	if strategy.NumOfRetries == nil {
-		return &RedisError{
-			"BackoffStrategy.NumOfRetries evaluated to nil. NumOfRetries must be non-nil to use a BackoffStrategy.",
-		}
-	}
+// NewBackoffStrategy returns a new BackoffStrategy with the given configuration parameters.
+func NewBackoffStrategy(numOfRetries int, factor int, exponentBase int) *BackoffStrategy {
+	return &BackoffStrategy{numOfRetries, factor, exponentBase}
+}
 
-	if strategy.Factor == nil {
-		return &RedisError{
-			"BackoffStrategy.Factor evaluated to nil. Factor must be non-nil to use a BackoffStrategy.",
-		}
+func (strategy *BackoffStrategy) toProtobuf() *protobuf.ConnectionRetryStrategy {
+	return &protobuf.ConnectionRetryStrategy{
+		NumberOfRetries: uint32(strategy.numOfRetries),
+		Factor:          uint32(strategy.factor),
+		ExponentBase:    uint32(strategy.exponentBase),
 	}
-
-	if strategy.ExponentBase == nil {
-		return &RedisError{
-			"BackoffStrategy.ExponentBase evaluated to nil. ExponentBase must be non-nil to use a BackoffStrategy.",
-		}
-	}
-
-	return nil
 }
 
 // RedisClientConfiguration represents the configuration settings for a Standalone Redis client. baseClientConfiguration is an
@@ -157,7 +140,7 @@ func (strategy *BackoffStrategy) validate() error {
 type RedisClientConfiguration struct {
 	baseClientConfiguration
 	reconnectStrategy *BackoffStrategy
-	databaseId        *uint32
+	databaseId        int
 }
 
 // NewRedisClientConfiguration returns a [RedisClientConfiguration] with default configuration settings. For further
@@ -166,30 +149,18 @@ func NewRedisClientConfiguration() *RedisClientConfiguration {
 	return &RedisClientConfiguration{}
 }
 
-func (config *RedisClientConfiguration) toProtobufConnRequest() (*protobuf.ConnectionRequest, error) {
-	request, err := config.baseClientConfiguration.toProtobufConnRequest()
-	if err != nil {
-		return nil, err
-	}
-
+func (config *RedisClientConfiguration) toProtobuf() *protobuf.ConnectionRequest {
+	request := config.baseClientConfiguration.toProtobuf()
 	request.ClusterModeEnabled = false
 	if config.reconnectStrategy != nil {
-		if err = config.reconnectStrategy.validate(); err != nil {
-			return nil, err
-		}
-
-		request.ConnectionRetryStrategy = &protobuf.ConnectionRetryStrategy{
-			NumberOfRetries: *config.reconnectStrategy.NumOfRetries,
-			Factor:          *config.reconnectStrategy.Factor,
-			ExponentBase:    *config.reconnectStrategy.ExponentBase,
-		}
+		request.ConnectionRetryStrategy = config.reconnectStrategy.toProtobuf()
 	}
 
-	if config.databaseId != nil {
-		request.DatabaseId = *config.databaseId
+	if config.databaseId != 0 {
+		request.DatabaseId = uint32(config.databaseId)
 	}
 
-	return request, nil
+	return request
 }
 
 // WithAddress adds an address for a known node in the cluster to this configuration's list of addresses. WithAddress can be
@@ -232,8 +203,8 @@ func (config *RedisClientConfiguration) WithReadFrom(readFrom ReadFrom) *RedisCl
 // encompasses sending the request, awaiting for a response from the server, and any required reconnections or retries. If the
 // specified timeout is exceeded for a pending request, it will result in a timeout error. If not set, a default value will be
 // used.
-func (config *RedisClientConfiguration) WithRequestTimeout(requestTimeout uint32) *RedisClientConfiguration {
-	config.requestTimeout = &requestTimeout
+func (config *RedisClientConfiguration) WithRequestTimeout(requestTimeout int) *RedisClientConfiguration {
+	config.requestTimeout = requestTimeout
 	return config
 }
 
@@ -245,8 +216,8 @@ func (config *RedisClientConfiguration) WithReconnectStrategy(strategy *BackoffS
 }
 
 // WithDatabaseId sets the index of the logical database to connect to.
-func (config *RedisClientConfiguration) WithDatabaseId(id uint32) *RedisClientConfiguration {
-	config.databaseId = &id
+func (config *RedisClientConfiguration) WithDatabaseId(id int) *RedisClientConfiguration {
+	config.databaseId = id
 	return config
 }
 
@@ -265,14 +236,10 @@ func NewRedisClusterClientConfiguration() *RedisClusterClientConfiguration {
 	}
 }
 
-func (config *RedisClusterClientConfiguration) toProtobufConnRequest() (*protobuf.ConnectionRequest, error) {
-	request, err := config.baseClientConfiguration.toProtobufConnRequest()
-	if err != nil {
-		return nil, err
-	}
-
+func (config *RedisClusterClientConfiguration) toProtobuf() *protobuf.ConnectionRequest {
+	request := config.baseClientConfiguration.toProtobuf()
 	request.ClusterModeEnabled = true
-	return request, nil
+	return request
 }
 
 // WithAddress adds an address for a known node in the cluster to this configuration's list of addresses. WithAddress can be
@@ -285,8 +252,8 @@ func (config *RedisClusterClientConfiguration) toProtobufConnRequest() (*protobu
 //	        Host: "sample-address-0001.use1.cache.amazonaws.com", Port: 6379}).
 //	    WithAddress(&NodeAddress{
 //	        Host: "sample-address-0002.use1.cache.amazonaws.com", Port: 6379})
-func (config *RedisClusterClientConfiguration) WithAddress(address NodeAddress) *RedisClusterClientConfiguration {
-	config.addresses = append(config.addresses, address)
+func (config *RedisClusterClientConfiguration) WithAddress(address *NodeAddress) *RedisClusterClientConfiguration {
+	config.addresses = append(config.addresses, *address)
 	return config
 }
 
@@ -317,7 +284,7 @@ func (config *RedisClusterClientConfiguration) WithReadFrom(readFrom ReadFrom) *
 // encompasses sending the request, awaiting for a response from the server, and any required reconnections or retries. If the
 // specified timeout is exceeded for a pending request, it will result in a timeout error. If not set, a default value will be
 // used.
-func (config *RedisClusterClientConfiguration) WithRequestTimeout(requestTimeout uint32) *RedisClusterClientConfiguration {
-	config.requestTimeout = &requestTimeout
+func (config *RedisClusterClientConfiguration) WithRequestTimeout(requestTimeout int) *RedisClusterClientConfiguration {
+	config.requestTimeout = requestTimeout
 	return config
 }

@@ -1,17 +1,16 @@
-/**
- * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
- */
+// Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
 
 package api
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aws/glide-for-redis/go/glide/protobuf"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConnectionRequestProtobufGeneration_defaultStandaloneConfig_withConstructor(t *testing.T) {
+func TestDefaultStandaloneConfig(t *testing.T) {
 	config := NewRedisClientConfiguration()
 	expected := &protobuf.ConnectionRequest{
 		TlsMode:            protobuf.TlsMode_NoTls,
@@ -19,29 +18,12 @@ func TestConnectionRequestProtobufGeneration_defaultStandaloneConfig_withConstru
 		ReadFrom:           protobuf.ReadFrom_Primary,
 	}
 
-	result, err := config.toProtobufConnRequest()
+	result := config.toProtobuf()
 
-	assert.Nil(t, err)
 	assert.Equal(t, expected, result)
 }
 
-func TestConnectionRequestProtobufGeneration_defaultStandaloneConfig_withoutConstructor(
-	t *testing.T,
-) {
-	config := RedisClientConfiguration{}
-	expected := &protobuf.ConnectionRequest{
-		TlsMode:            protobuf.TlsMode_NoTls,
-		ClusterModeEnabled: false,
-		ReadFrom:           protobuf.ReadFrom_Primary,
-	}
-
-	result, err := config.toProtobufConnRequest()
-
-	assert.Nil(t, err)
-	assert.Equal(t, expected, result)
-}
-
-func TestConnectionRequestProtobufGeneration_defaultClusterConfig_withConstructor(t *testing.T) {
+func TestDefaultClusterConfig(t *testing.T) {
 	config := NewRedisClusterClientConfiguration()
 	expected := &protobuf.ConnectionRequest{
 		TlsMode:            protobuf.TlsMode_NoTls,
@@ -49,41 +31,26 @@ func TestConnectionRequestProtobufGeneration_defaultClusterConfig_withConstructo
 		ReadFrom:           protobuf.ReadFrom_Primary,
 	}
 
-	result, err := config.toProtobufConnRequest()
+	result := config.toProtobuf()
 
-	assert.Nil(t, err)
 	assert.Equal(t, expected, result)
 }
 
-func TestConnectionRequestProtobufGeneration_defaultClusterConfig_withoutConstructor(t *testing.T) {
-	config := RedisClusterClientConfiguration{}
-	expected := &protobuf.ConnectionRequest{
-		TlsMode:            protobuf.TlsMode_NoTls,
-		ClusterModeEnabled: true,
-		ReadFrom:           protobuf.ReadFrom_Primary,
-	}
-
-	result, err := config.toProtobufConnRequest()
-
-	assert.Nil(t, err)
-	assert.Equal(t, expected, result)
-}
-
-func TestConnectionRequestProtobufGeneration_allFieldsSet(t *testing.T) {
+func TestConfig_allFieldsSet(t *testing.T) {
 	hosts := []string{"host1", "host2"}
-	ports := []uint32{1234, 5678}
+	ports := []int{1234, 5678}
 	username := "username"
 	password := "password"
-	var timeout uint32 = 3
-	var retries, factor, base uint32 = 5, 10, 50
-	var databaseId uint32 = 1
+	timeout := 3
+	retries, factor, base := 5, 10, 50
+	databaseId := 1
 
 	config := NewRedisClientConfiguration().
 		WithUseTLS(true).
 		WithReadFrom(PreferReplica).
-		WithCredentials(&RedisCredentials{&username, &password}).
+		WithCredentials(NewRedisCredentials(username, password)).
 		WithRequestTimeout(timeout).
-		WithReconnectStrategy(&BackoffStrategy{&retries, &factor, &base}).
+		WithReconnectStrategy(NewBackoffStrategy(retries, factor, base)).
 		WithDatabaseId(databaseId)
 
 	expected := &protobuf.ConnectionRequest{
@@ -91,70 +58,69 @@ func TestConnectionRequestProtobufGeneration_allFieldsSet(t *testing.T) {
 		ReadFrom:           protobuf.ReadFrom_PreferReplica,
 		ClusterModeEnabled: false,
 		AuthenticationInfo: &protobuf.AuthenticationInfo{Username: username, Password: password},
-		RequestTimeout:     timeout,
+		RequestTimeout:     uint32(timeout),
 		ConnectionRetryStrategy: &protobuf.ConnectionRetryStrategy{
-			NumberOfRetries: retries,
-			Factor:          factor,
-			ExponentBase:    base,
+			NumberOfRetries: uint32(retries),
+			Factor:          uint32(factor),
+			ExponentBase:    uint32(base),
 		},
-		DatabaseId: databaseId,
+		DatabaseId: uint32(databaseId),
 	}
 
 	assert.Equal(t, len(hosts), len(ports))
 	for i := 0; i < len(hosts); i++ {
-		config.WithAddress(&NodeAddress{&hosts[i], &ports[i]})
+		config.WithAddress(&NodeAddress{hosts[i], ports[i]})
 		expected.Addresses = append(
 			expected.Addresses,
-			&protobuf.NodeAddress{Host: hosts[i], Port: ports[i]},
+			&protobuf.NodeAddress{Host: hosts[i], Port: uint32(ports[i])},
 		)
 	}
 
-	result, err := config.toProtobufConnRequest()
+	result := config.toProtobuf()
 
-	assert.Nil(t, err)
 	assert.Equal(t, expected, result)
 }
 
-func TestConnectionRequestProtobufGeneration_invalidCredentials(t *testing.T) {
-	username := "username"
-	config := NewRedisClientConfiguration().
-		WithCredentials(&RedisCredentials{Username: &username})
+func TestNodeAddress(t *testing.T) {
+	parameters := []struct {
+		input    NodeAddress
+		expected *protobuf.NodeAddress
+	}{
+		{NodeAddress{}, &protobuf.NodeAddress{Host: defaultHost, Port: defaultPort}},
+		{NodeAddress{Host: "host"}, &protobuf.NodeAddress{Host: "host", Port: defaultPort}},
+		{NodeAddress{Port: 1234}, &protobuf.NodeAddress{Host: defaultHost, Port: 1234}},
+		{NodeAddress{"host", 1234}, &protobuf.NodeAddress{Host: "host", Port: 1234}},
+	}
 
-	result, err := config.toProtobufConnRequest()
+	for i, parameter := range parameters {
+		t.Run(fmt.Sprintf("Testing [%v]", i), func(t *testing.T) {
+			result := parameter.input.toProtobuf()
 
-	assert.Nil(t, result)
-	assert.NotNil(t, err)
-	assert.IsType(t, &RedisError{}, err)
+			assert.Equal(t, parameter.expected, result)
+		})
+	}
 }
 
-func TestConnectionRequestProtobufGeneration_invalidBackoffStrategy(t *testing.T) {
-	numRetries := uint32(1)
-	factor := uint32(1)
-	exponentBase := uint32(1)
-
-	missingNumOfRetries := BackoffStrategy{
-		Factor:       &factor,
-		ExponentBase: &exponentBase,
+func TestRedisCredentials(t *testing.T) {
+	parameters := []struct {
+		input    *RedisCredentials
+		expected *protobuf.AuthenticationInfo
+	}{
+		{
+			NewRedisCredentials("username", "password"),
+			&protobuf.AuthenticationInfo{Username: "username", Password: "password"},
+		},
+		{
+			NewRedisCredentialsWithDefaultUsername("password"),
+			&protobuf.AuthenticationInfo{Password: "password"},
+		},
 	}
 
-	missingFactor := BackoffStrategy{
-		NumOfRetries: &numRetries,
-		ExponentBase: &exponentBase,
-	}
+	for i, parameter := range parameters {
+		t.Run(fmt.Sprintf("Testing [%v]", i), func(t *testing.T) {
+			result := parameter.input.toProtobuf()
 
-	missingExponentBase := BackoffStrategy{
-		NumOfRetries: &numRetries,
-		Factor:       &factor,
-	}
-
-	invalidStrategies := [3]BackoffStrategy{missingNumOfRetries, missingFactor, missingExponentBase}
-	for _, strategy := range invalidStrategies {
-		config := NewRedisClientConfiguration().WithReconnectStrategy(&strategy)
-
-		result, err := config.toProtobufConnRequest()
-
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, &RedisError{}, err)
+			assert.Equal(t, parameter.expected, result)
+		})
 	}
 }
