@@ -13,9 +13,13 @@ install-dev-tools-go1.22:
 	go install github.com/segmentio/golines@v0.12.2
 	go install honnef.co/go/tools/cmd/staticcheck@v0.4.6
 
-install-tools-go1.18: install-build-tools install-dev-tools-go1.18
+install-dev-tools: install-dev-tools-go1.22
 
-install-tools-go1.22: install-build-tools install-dev-tools-go1.22
+install-tools-go1.18.10: install-build-tools install-dev-tools-go1.18
+
+install-tools-go1.22.0: install-build-tools install-dev-tools-go1.22
+
+install-tools: install-tools-go1.22.0
 
 build: build-glide-core build-glide-client generate-protobuf
 	go build ./...
