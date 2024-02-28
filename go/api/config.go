@@ -56,10 +56,10 @@ type ReadFrom int
 
 const (
 	// Primary - Always get from primary, in order to get the freshest data.
-	Primary ReadFrom = 0
+	Primary ReadFrom = iota
 	// PreferReplica - Spread the requests between all replicas in a round-robin manner. If no replica is available, route the
 	// requests to the primary.
-	PreferReplica ReadFrom = 1
+	PreferReplica
 )
 
 func mapReadFrom(readFrom ReadFrom) protobuf.ReadFrom {

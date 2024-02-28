@@ -49,7 +49,7 @@ PB_REL="https://github.com/protocolbuffers/protobuf/releases"
 curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
 unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
 export PATH="$PATH:$HOME/.local/bin"
-# Check that the protobuf compiler is installed
+# Check that the protobuf compiler is installed. A minimum version of 3.20.0 is required.
 protoc --version
 ```
 
@@ -73,7 +73,7 @@ PB_REL="https://github.com/protocolbuffers/protobuf/releases"
 curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
 unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
 export PATH="$PATH:$HOME/.local/bin"
-# Check that the protobuf compiler is installed
+# Check that the protobuf compiler is installed. A minimum version of 3.20.0 is required.
 protoc --version
 ```
 
@@ -85,6 +85,8 @@ brew install go make git gcc pkgconfig protobuf@3 openssl
 export PATH="$PATH:$HOME/go/bin"
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source "$HOME/.cargo/env"
+# Check that the protobuf compiler is installed. A minimum version of 3.20.0 is required.
+protoc --version
 # Check that the Rust compiler is installed
 rustc --version
 ```
