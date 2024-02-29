@@ -62,12 +62,27 @@ public class AsyncClient : IDisposable
         });
     }
 
-    private void FailureCallback(ulong index)
+    private void FailureCallback(ulong index, IntPtr error)
     {
         // Work needs to be offloaded from the calling thread, because otherwise we might starve the client's thread pool.
-        Task.Run(() =>
+        _ = Task.Run(() =>
         {
             var message = messageContainer.GetMessage((int)index);
+            if (error != IntPtr.Zero)
+            {
+                var data = Marshal.PtrToStructure(error, typeof(RedisErrorFFI));
+                if (data != null)
+                {
+                    RedisErrorFFI redis_error = (RedisErrorFFI)data;
+
+                    var text = Marshal.PtrToStringAnsi(redis_error.message);
+                    Console.Error.WriteLine($"FailureCallback : {redis_error.error_type} : {text}");
+                    FreeError(error);
+                    message.SetException(new Exception($"{redis_error.error_type} : {text}"));
+                }
+                return;
+            }
+            Console.Error.WriteLine($"FailureCallback : NULLLLLL");
             message.SetException(new Exception("Operation failed"));
         });
     }
@@ -95,7 +110,7 @@ public class AsyncClient : IDisposable
     #region FFI function declarations
 
     private delegate void StringAction(ulong index, IntPtr str);
-    private delegate void FailureAction(ulong index);
+    private delegate void FailureAction(ulong index, IntPtr error);
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "get")]
     private static extern void GetFfi(IntPtr client, ulong index, IntPtr key);
 
@@ -108,6 +123,25 @@ public class AsyncClient : IDisposable
 
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "close_client")]
     private static extern void CloseClientFfi(IntPtr client);
+
+    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "free_error")]
+    private static extern void FreeError(IntPtr error);
+
+    enum ErrorType : uint
+    {
+        ClosingError = 0,
+        TimeoutError = 1,
+        ExecAbortError = 2,
+        ConnectionError = 3,
+        Unspecified = 4 // TODO rename
+    }
+
+    struct RedisErrorFFI
+    {
+        public IntPtr message;
+        //error_type: *const c_char,
+        public ErrorType error_type;
+    }
 
     #endregion
 }

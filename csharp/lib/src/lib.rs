@@ -3,7 +3,7 @@
  */
 use glide_core::connection_request;
 use glide_core::{client::Client as GlideClient, connection_request::NodeAddress};
-use redis::{Cmd, FromRedisValue, RedisResult};
+use redis::{Cmd, FromRedisValue, RedisError, RedisResult};
 use std::{
     ffi::{c_void, CStr, CString},
     os::raw::c_char,
@@ -19,10 +19,26 @@ pub enum Level {
     Trace = 4,
 }
 
+#[repr(C)]
+pub struct RedisErrorFFI {
+    message: *const c_char,
+    //error_type: *const c_char,
+    error_type: ErrorType,
+}
+
+#[repr(u32)]
+pub enum ErrorType {
+    ClosingError = 0,
+    TimeoutError = 1,
+    ExecAbortError = 2,
+    ConnectionError = 3,
+    Unspecified = 4 // TODO rename
+}
+
 pub struct Client {
     client: GlideClient,
     success_callback: unsafe extern "C" fn(usize, *const c_char) -> (),
-    failure_callback: unsafe extern "C" fn(usize) -> (), // TODO - add specific error codes
+    failure_callback: unsafe extern "C" fn(usize, *const RedisErrorFFI) -> (),
     runtime: Runtime,
 }
 
@@ -52,7 +68,7 @@ fn create_client_internal(
     port: u32,
     use_tls: bool,
     success_callback: unsafe extern "C" fn(usize, *const c_char) -> (),
-    failure_callback: unsafe extern "C" fn(usize) -> (),
+    failure_callback: unsafe extern "C" fn(usize, *const RedisErrorFFI) -> (),
 ) -> RedisResult<Client> {
     let host_cstring = unsafe { CStr::from_ptr(host as *mut c_char) };
     let host_string = host_cstring.to_str()?.to_string();
@@ -78,7 +94,7 @@ pub extern "C" fn create_client(
     port: u32,
     use_tls: bool,
     success_callback: unsafe extern "C" fn(usize, *const c_char) -> (),
-    failure_callback: unsafe extern "C" fn(usize) -> (),
+    failure_callback: unsafe extern "C" fn(usize, *const RedisErrorFFI) -> (),
 ) -> *const c_void {
     match create_client_internal(host, port, use_tls, success_callback, failure_callback) {
         Err(_) => std::ptr::null(), // TODO - log errors
@@ -118,7 +134,7 @@ pub extern "C" fn set(
             let client = Box::leak(Box::from_raw(ptr_address as *mut Client));
             match result {
                 Ok(_) => (client.success_callback)(callback_index, std::ptr::null()), // TODO - should return "OK" string.
-                Err(_) => (client.failure_callback)(callback_index), // TODO - report errors
+                Err(err) => (client.failure_callback)(callback_index, redis_error_to_ffi_error(err))
             };
         }
     });
@@ -142,8 +158,8 @@ pub extern "C" fn get(client_ptr: *const c_void, callback_index: usize, key: *co
         let client = unsafe { Box::leak(Box::from_raw(ptr_address as *mut Client)) };
         let value = match result {
             Ok(value) => value,
-            Err(_) => {
-                unsafe { (client.failure_callback)(callback_index) }; // TODO - report errors,
+            Err(err) => {
+                unsafe { (client.failure_callback)(callback_index, redis_error_to_ffi_error(err)) };
                 return;
             }
         };
@@ -153,10 +169,41 @@ pub extern "C" fn get(client_ptr: *const c_void, callback_index: usize, key: *co
             match result {
                 Ok(None) => (client.success_callback)(callback_index, std::ptr::null()),
                 Ok(Some(c_str)) => (client.success_callback)(callback_index, c_str.as_ptr()),
-                Err(_) => (client.failure_callback)(callback_index), // TODO - report errors
+                Err(err) => (client.failure_callback)(callback_index, redis_error_to_ffi_error(err))
             };
         }
     });
+}
+
+fn redis_error_to_ffi_error(err : RedisError) -> *const RedisErrorFFI {
+    logger_core::log_error("=== err", format!("{}, kind {:?}, code {:?}, category {:?}, detail {:?}", err, err.kind(), err.code(), err.category(), err.detail()));
+
+    let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
+    let error_type =
+        if err.is_connection_dropped() {
+            ErrorType::ConnectionError
+        } else if err.is_timeout() {
+            ErrorType::TimeoutError
+        } else if err.kind() == redis::ErrorKind::ExecAbortError {
+            ErrorType::ExecAbortError
+        } else {
+            ErrorType::Unspecified
+        };
+    // TODO Closing error when
+    //  - unknown request type
+    //  - failed to parse args
+    //  - failed to parse route
+    //  - empty request
+    //Box::into_raw(Box::new(RedisErrorFFI { message: c_err_str.as_ptr(), error_type })) // as *const c_void
+    Box::into_raw(Box::new(RedisErrorFFI { message: c_err_str.into_raw(), error_type })) // as *const c_void
+}
+
+#[no_mangle]
+pub extern "C" fn free_error(ptr: *const RedisErrorFFI) -> () {
+    unsafe {
+        let err = Box::from_raw(ptr as *mut RedisErrorFFI);
+        let _ = CString::from_raw(err.message as *mut c_char);
+    }
 }
 
 impl From<logger_core::Level> for Level {
