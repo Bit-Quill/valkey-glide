@@ -1,8 +1,9 @@
+use glide_core::client::Client as GlideClient;
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
 use glide_core::connection_request;
-use glide_core::{client::Client as GlideClient, connection_request::NodeAddress};
+use protobuf::Message;
 use redis::{cmd, Cmd, FromRedisValue, RedisResult, Value};
 use std::{
     ffi::{c_void, CStr, CString},
@@ -52,37 +53,13 @@ pub struct Client {
     runtime: Runtime,
 }
 
-fn create_connection_request(
-    host: String,
-    port: u32,
-    use_tls: bool,
-) -> connection_request::ConnectionRequest {
-    let mut address_info = NodeAddress::new();
-    address_info.host = host.to_string().into();
-    address_info.port = port;
-    let addresses_info = vec![address_info];
-    let mut connection_request = connection_request::ConnectionRequest::new();
-    connection_request.addresses = addresses_info;
-    connection_request.tls_mode = if use_tls {
-        connection_request::TlsMode::SecureTls
-    } else {
-        connection_request::TlsMode::NoTls
-    }
-    .into();
-
-    connection_request
-}
-
 fn create_client_internal(
-    host: *const c_char,
-    port: u32,
-    use_tls: bool,
+    connection_request_bytes: &[u8],
     success_callback: SuccessCallback,
     failure_callback: FailureCallback,
 ) -> RedisResult<Client> {
-    let host_cstring = unsafe { CStr::from_ptr(host as *mut c_char) };
-    let host_string = host_cstring.to_str()?.to_string();
-    let request = create_connection_request(host_string, port, use_tls);
+    let request =
+        connection_request::ConnectionRequest::parse_from_bytes(connection_request_bytes).unwrap();
     let runtime = Builder::new_multi_thread()
         .enable_all()
         .thread_name("GLIDE for Redis Go thread")
@@ -100,13 +77,13 @@ fn create_client_internal(
 /// Creates a new client to the given address. The success callback needs to copy the given string synchronously, since it will be dropped by Rust once the callback returns. All callbacks should be offloaded to separate threads in order not to exhaust the client's thread pool.
 #[no_mangle]
 pub extern "C" fn create_client(
-    host: *const c_char,
-    port: u32,
-    use_tls: bool,
+    connection_request: *const u8,
+    request_len: usize,
     success_callback: SuccessCallback,
     failure_callback: FailureCallback,
-) -> ConnectionResponse {
-    match create_client_internal(host, port, use_tls, success_callback, failure_callback) {
+) -> *const ConnectionResponse {
+    let request_bytes = unsafe { std::slice::from_raw_parts(connection_request, request_len) };
+    let response = match create_client_internal(request_bytes, success_callback, failure_callback) {
         Err(err) => {
             let message_cstring = CString::new(err.to_string()).unwrap();
             ConnectionResponse {
@@ -121,7 +98,8 @@ pub extern "C" fn create_client(
             conn_ptr: Box::into_raw(Box::new(client)) as *const c_void,
             error: std::ptr::null(),
         },
-    }
+    };
+    Box::into_raw(Box::new(response))
 }
 
 #[no_mangle]

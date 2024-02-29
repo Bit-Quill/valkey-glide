@@ -15,6 +15,8 @@ import "C"
 import (
     "fmt"
     "unsafe"
+    "github.com/aws/glide-for-redis/go/glide/protobuf"
+    "github.com/golang/protobuf/proto"
 )
 
 type GlideRedisClient struct {
@@ -154,13 +156,17 @@ func freeCStrings(cArgs []*C.char) {
     }
 }
 
-func (glideRedisClient *GlideRedisClient) ConnectToRedis(host string, port int, useSSL bool, clusterModeEnabled bool) error {
-    caddress := C.CString(host)
-    defer C.free(unsafe.Pointer(caddress))
-
-    response := (C.struct_ConnectionResponse)(C.create_client(caddress, C.uint32_t(port), C._Bool(useSSL), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback))))
+func (glideRedisClient *GlideRedisClient) ConnectToRedis(request *protobuf.ConnectionRequest) error {
+    marshalledRequest, err := proto.Marshal(request)
+    if err != nil {
+        return fmt.Errorf("Failed to encode connection request:", err)
+    }
+    byteCount := len(marshalledRequest)
+    requestBytes := C.CBytes(marshalledRequest)
+    response := (*C.struct_ConnectionResponse)(C.create_client((*C.uchar)(requestBytes), C.uintptr_t(byteCount), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback))))
+    defer C.free(unsafe.Pointer(response))
     if response.error != nil {
-        return fmt.Errorf("Connection error: ", C.GoString(response.error.message))
+        return fmt.Errorf(C.GoString(response.error.message))
     }
     glideRedisClient.coreClient = response.conn_ptr
     return nil
