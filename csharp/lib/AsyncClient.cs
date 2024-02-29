@@ -75,10 +75,10 @@ public class AsyncClient : IDisposable
                 {
                     RedisErrorFFI redis_error = (RedisErrorFFI)data;
 
-                    var text = Marshal.PtrToStringAnsi(redis_error.message);
-                    Console.Error.WriteLine($"FailureCallback : {redis_error.error_type} : {text}");
+                    var text = Marshal.PtrToStringAnsi(redis_error.Message);
+                    Console.Error.WriteLine($"FailureCallback : {redis_error.Error_type} : {text}");
                     FreeError(error);
-                    message.SetException(new Exception($"{redis_error.error_type} : {text}"));
+                    message.SetException(new Exception($"{redis_error.Error_type} : {text}"));
                 }
                 return;
             }
@@ -138,9 +138,13 @@ public class AsyncClient : IDisposable
 
     struct RedisErrorFFI
     {
-        public IntPtr message;
+        public IntPtr Message = IntPtr.Zero;
         //error_type: *const c_char,
-        public ErrorType error_type;
+        public ErrorType Error_type = ErrorType.Unspecified;
+
+        public RedisErrorFFI()
+        {
+        }
     }
 
     #endregion
