@@ -22,9 +22,10 @@ public class ChannelHandler {
 
     protected final Channel channel;
     protected final CallbackDispatcher callbackDispatcher;
+    private boolean isClosed = false;
 
     public boolean isClosed() {
-        return !channel.isOpen();
+        return this.isClosed;
     }
 
     /**
@@ -88,6 +89,7 @@ public class ChannelHandler {
 
     /** Closes the UDS connection and frees corresponding resources. */
     public ChannelFuture close() {
+        this.isClosed = true;
         callbackDispatcher.shutdownGracefully();
         return channel.close();
     }
