@@ -23,6 +23,10 @@ public class ChannelHandler {
     protected final Channel channel;
     protected final CallbackDispatcher callbackDispatcher;
 
+    public boolean isClosed() {
+        return !channel.isOpen();
+    }
+
     /**
      * Open a new channel for a new client and running it on the provided EventLoopGroup.
      *

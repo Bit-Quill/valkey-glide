@@ -129,7 +129,14 @@ public class CallbackDispatcher {
     }
 
     public void shutdownGracefully() {
-        responses.values().forEach(future -> future.cancel(false));
+        responses
+                .values()
+                .forEach(
+                        future ->
+                                future.completeExceptionally(
+                                        new ClosingException(
+                                                "Operation terminated: The closing process has been initiated for the"
+                                                        + " resource.")));
         responses.clear();
     }
 }
