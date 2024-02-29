@@ -42,6 +42,7 @@ func TestConfig_allFieldsSet(t *testing.T) {
 	username := "username"
 	password := "password"
 	timeout := 3
+	clientName := "client name"
 	retries, factor, base := 5, 10, 50
 	databaseId := 1
 
@@ -50,6 +51,7 @@ func TestConfig_allFieldsSet(t *testing.T) {
 		WithReadFrom(PreferReplica).
 		WithCredentials(NewRedisCredentials(username, password)).
 		WithRequestTimeout(timeout).
+		WithClientName(clientName).
 		WithReconnectStrategy(NewBackoffStrategy(retries, factor, base)).
 		WithDatabaseId(databaseId)
 
@@ -59,6 +61,7 @@ func TestConfig_allFieldsSet(t *testing.T) {
 		ClusterModeEnabled: false,
 		AuthenticationInfo: &protobuf.AuthenticationInfo{Username: username, Password: password},
 		RequestTimeout:     uint32(timeout),
+		ClientName:         clientName,
 		ConnectionRetryStrategy: &protobuf.ConnectionRetryStrategy{
 			NumberOfRetries: uint32(retries),
 			Factor:          uint32(factor),

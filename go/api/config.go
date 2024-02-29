@@ -76,6 +76,7 @@ type baseClientConfiguration struct {
 	credentials    *RedisCredentials
 	readFrom       ReadFrom
 	requestTimeout int
+	clientName     string
 }
 
 func (config *baseClientConfiguration) toProtobuf() *protobuf.ConnectionRequest {
@@ -97,6 +98,10 @@ func (config *baseClientConfiguration) toProtobuf() *protobuf.ConnectionRequest 
 	request.ReadFrom = mapReadFrom(config.readFrom)
 	if config.requestTimeout != 0 {
 		request.RequestTimeout = uint32(config.requestTimeout)
+	}
+
+	if config.clientName != "" {
+		request.ClientName = config.clientName
 	}
 
 	return &request
@@ -208,6 +213,13 @@ func (config *RedisClientConfiguration) WithRequestTimeout(requestTimeout int) *
 	return config
 }
 
+// WithClientName sets the client name to be used for the client. Will be used with CLIENT SETNAME command during connection
+// establishment.
+func (config *RedisClientConfiguration) WithClientName(clientName string) *RedisClientConfiguration {
+	config.clientName = clientName
+	return config
+}
+
 // WithReconnectStrategy sets the [BackoffStrategy] used to determine how and when to reconnect, in case of connection
 // failures. If not set, a default backoff strategy will be used.
 func (config *RedisClientConfiguration) WithReconnectStrategy(strategy *BackoffStrategy) *RedisClientConfiguration {
@@ -286,5 +298,12 @@ func (config *RedisClusterClientConfiguration) WithReadFrom(readFrom ReadFrom) *
 // used.
 func (config *RedisClusterClientConfiguration) WithRequestTimeout(requestTimeout int) *RedisClusterClientConfiguration {
 	config.requestTimeout = requestTimeout
+	return config
+}
+
+// WithClientName sets the client name to be used for the client. Will be used with CLIENT SETNAME command during connection
+// establishment.
+func (config *RedisClusterClientConfiguration) WithClientName(clientName string) *RedisClusterClientConfiguration {
+	config.clientName = clientName
 	return config
 }
