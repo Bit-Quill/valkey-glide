@@ -21,13 +21,12 @@ public class ClientTests {
                 RedisClusterClient.CreateClient(
                                 RedisClusterClientConfiguration.builder()
                                         .address(NodeAddress.builder().port(CLUSTER_PORTS[0]).build())
-                                        .requestTimeout(5000)
                                         .build())
                         .get();
 
         client.close();
         ExecutionException executionException =
-                assertThrows(ExecutionException.class, () -> client.set("foo", "bar"));
+                assertThrows(ExecutionException.class, () -> client.set("foo", "bar").get());
         assertTrue(executionException.getCause() instanceof ClosingException);
     }
 }
