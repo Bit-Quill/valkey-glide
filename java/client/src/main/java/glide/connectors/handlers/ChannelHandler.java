@@ -9,6 +9,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.unix.DomainSocketAddress;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import redis_request.RedisRequestOuterClass.RedisRequest;
@@ -22,10 +23,10 @@ public class ChannelHandler {
 
     protected final Channel channel;
     protected final CallbackDispatcher callbackDispatcher;
-    private boolean isClosed = false;
+    private AtomicBoolean isClosed = new AtomicBoolean(false);
 
     public boolean isClosed() {
-        return this.isClosed;
+        return this.isClosed.get() || !this.channel.isOpen();
     }
 
     /**
@@ -89,7 +90,7 @@ public class ChannelHandler {
 
     /** Closes the UDS connection and frees corresponding resources. */
     public ChannelFuture close() {
-        this.isClosed = true;
+        this.isClosed.set(true);
         callbackDispatcher.shutdownGracefully();
         return channel.close();
     }
