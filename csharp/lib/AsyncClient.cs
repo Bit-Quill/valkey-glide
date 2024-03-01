@@ -62,28 +62,15 @@ public class AsyncClient : IDisposable
         });
     }
 
-    private void FailureCallback(ulong index, IntPtr error)
+    private void FailureCallback(ulong index, ErrorType error_type, IntPtr ptr)
     {
+        var error = ptr == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(ptr);
         // Work needs to be offloaded from the calling thread, because otherwise we might starve the client's thread pool.
         _ = Task.Run(() =>
         {
+            Console.Error.WriteLine($"FailureCallback : {error_type} : {error}");
             var message = messageContainer.GetMessage((int)index);
-            if (error != IntPtr.Zero)
-            {
-                var data = Marshal.PtrToStructure(error, typeof(RedisErrorFFI));
-                if (data != null)
-                {
-                    RedisErrorFFI redis_error = (RedisErrorFFI)data;
-
-                    var text = Marshal.PtrToStringAnsi(redis_error.Message);
-                    Console.Error.WriteLine($"FailureCallback : {redis_error.Error_type} : {text}");
-                    FreeError(error);
-                    message.SetException(new Exception($"{redis_error.Error_type} : {text}"));
-                }
-                return;
-            }
-            Console.Error.WriteLine($"FailureCallback : NULLLLLL");
-            message.SetException(new Exception("Operation failed"));
+            message.SetException(new Exception($"{error_type} : {error}"));
         });
     }
 
@@ -110,7 +97,7 @@ public class AsyncClient : IDisposable
     #region FFI function declarations
 
     private delegate void StringAction(ulong index, IntPtr str);
-    private delegate void FailureAction(ulong index, IntPtr error);
+    private delegate void FailureAction(ulong index, ErrorType error_type, IntPtr error);
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "get")]
     private static extern void GetFfi(IntPtr client, ulong index, IntPtr key);
 
@@ -124,9 +111,6 @@ public class AsyncClient : IDisposable
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "close_client")]
     private static extern void CloseClientFfi(IntPtr client);
 
-    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "free_error")]
-    private static extern void FreeError(IntPtr error);
-
     enum ErrorType : uint
     {
         ClosingError = 0,
@@ -134,17 +118,6 @@ public class AsyncClient : IDisposable
         ExecAbortError = 2,
         ConnectionError = 3,
         Unspecified = 4 // TODO rename
-    }
-
-    struct RedisErrorFFI
-    {
-        public IntPtr Message = IntPtr.Zero;
-        //error_type: *const c_char,
-        public ErrorType Error_type = ErrorType.Unspecified;
-
-        public RedisErrorFFI()
-        {
-        }
     }
 
     #endregion
