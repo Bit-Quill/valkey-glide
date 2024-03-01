@@ -2,7 +2,7 @@ name: C# tests
 
 on:
     push:
-#        branches: ["main"]
+        branches: ["main"]
         paths:
             - csharp/**
             - glide-core/src/**
@@ -73,10 +73,7 @@ jobs:
 
             - name: Test dotnet ${{ matrix.dotnet }}
               working-directory: ./csharp
-              run: 
-                redis-cli ping
-                redis-cli info server
-                dotnet test --framework net${{ matrix.dotnet }} "-l:html;LogFileName=TestReport.html" --results-directory . -warnaserror
+              run: dotnet test --framework net${{ matrix.dotnet }} "-l:html;LogFileName=TestReport.html" --results-directory . -warnaserror
 
             - uses: ./.github/workflows/test-benchmark
               with:
