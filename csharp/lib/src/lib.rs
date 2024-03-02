@@ -1,15 +1,18 @@
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
+
+pub(crate) mod connection;
+pub use connection::*;
+
 use glide_core::connection_request;
-use glide_core::{client::Client as GlideClient, connection_request::NodeAddress};
+use glide_core::{client::Client as GlideClient};
 use redis::{Cmd, FromRedisValue, RedisResult};
 use std::{
     ffi::{c_void, CStr, CString},
     os::raw::c_char,
 };
-use tokio::runtime::Builder;
-use tokio::runtime::Runtime;
+use tokio::runtime::{Builder, Runtime};
 
 pub enum Level {
     Error = 0,
@@ -26,37 +29,75 @@ pub struct Client {
     runtime: Runtime,
 }
 
-fn create_connection_request(
-    host: String,
-    port: u32,
-    use_tls: bool,
+pub unsafe fn node_addresses_to_proto(
+    data: *const *const NodeAddress,
+    len: usize,
+) -> Vec<connection_request::NodeAddress> {
+    Vec::from_raw_parts(data as *mut NodeAddress, len, len).iter().map(|addr| {
+        let mut address_info = connection_request::NodeAddress::new();
+        address_info.host = CStr::from_ptr(addr.host).to_str().unwrap().into();
+        address_info.port = addr.port;
+        address_info
+    }).collect()
+/*
+    from_raw_parts(data, len)
+        .iter()
+        .map(|ptr| Box::leak(Box::from_raw(*ptr as *mut NodeAddress)))
+        .collect()
+ */
+}
+
+unsafe fn create_connection_request(
+    config: *const ConnectionRequest,
 ) -> connection_request::ConnectionRequest {
-    let mut address_info = NodeAddress::new();
-    address_info.host = host.to_string().into();
-    address_info.port = port;
-    let addresses_info = vec![address_info];
     let mut connection_request = connection_request::ConnectionRequest::new();
-    connection_request.addresses = addresses_info;
-    connection_request.tls_mode = if use_tls {
-        connection_request::TlsMode::SecureTls
-    } else {
-        connection_request::TlsMode::NoTls
+
+    connection_request.addresses = node_addresses_to_proto((*config).addresses, (*config).address_count as usize);
+
+    connection_request.tls_mode = match (*config).tls_mode {
+        TlsMode::SecureTls => connection_request::TlsMode::SecureTls,
+        TlsMode::InsecureTls => connection_request::TlsMode::InsecureTls,
+        TlsMode::NoTls => connection_request::TlsMode::NoTls,
     }
     .into();
+
+    connection_request.cluster_mode_enabled = (*config).cluster_mode;
+    connection_request.request_timeout = (*config).request_timeout;
+
+    connection_request.read_from = match (*config).read_from {
+        ReadFrom::AZAffinity => connection_request::ReadFrom::AZAffinity,
+        ReadFrom::PreferReplica => connection_request::ReadFrom::PreferReplica,
+        ReadFrom::Primary => connection_request::ReadFrom::Primary,
+        ReadFrom::LowestLatency => connection_request::ReadFrom::LowestLatency,
+    }.into();
+
+    let mut retry_strategy = connection_request::ConnectionRetryStrategy::new();
+    retry_strategy.number_of_retries = (*config).connection_retry_strategy.number_of_retries;
+    retry_strategy.factor = (*config).connection_retry_strategy.factor;
+    retry_strategy.exponent_base = (*config).connection_retry_strategy.exponent_base;
+    connection_request.connection_retry_strategy = Some(retry_strategy).into();
+
+    let mut auth_info = connection_request::AuthenticationInfo::new();
+    auth_info.username = CStr::from_ptr((*config).authentication_info.username).to_str().unwrap().into();
+    auth_info.password = CStr::from_ptr((*config).authentication_info.password).to_str().unwrap().into();
+    connection_request.authentication_info = Some(auth_info).into();
+
+    connection_request.protocol = match (*config).protocol {
+        ProtocolVersion::RESP2 => connection_request::ProtocolVersion::RESP2,
+        ProtocolVersion::RESP3 => connection_request::ProtocolVersion::RESP3,
+    }.into();
+
+    connection_request.client_name = CStr::from_ptr((*config).client_name).to_str().unwrap().into();
 
     connection_request
 }
 
 fn create_client_internal(
-    host: *const c_char,
-    port: u32,
-    use_tls: bool,
+    config: *const ConnectionRequest,
     success_callback: unsafe extern "C" fn(usize, *const c_char) -> (),
     failure_callback: unsafe extern "C" fn(usize) -> (),
 ) -> RedisResult<Client> {
-    let host_cstring = unsafe { CStr::from_ptr(host as *mut c_char) };
-    let host_string = host_cstring.to_str()?.to_string();
-    let request = create_connection_request(host_string, port, use_tls);
+    let request = unsafe { create_connection_request(config) };
     let runtime = Builder::new_multi_thread()
         .enable_all()
         .thread_name("GLIDE for Redis C# thread")
@@ -74,13 +115,11 @@ fn create_client_internal(
 /// Creates a new client to the given address. The success callback needs to copy the given string synchronously, since it will be dropped by Rust once the callback returns. All callbacks should be offloaded to separate threads in order not to exhaust the client's thread pool.
 #[no_mangle]
 pub extern "C" fn create_client(
-    host: *const c_char,
-    port: u32,
-    use_tls: bool,
+    config: *const ConnectionRequest,
     success_callback: unsafe extern "C" fn(usize, *const c_char) -> (),
     failure_callback: unsafe extern "C" fn(usize) -> (),
 ) -> *const c_void {
-    match create_client_internal(host, port, use_tls, success_callback, failure_callback) {
+    match create_client_internal(config, success_callback, failure_callback) {
         Err(_) => std::ptr::null(), // TODO - log errors
         Ok(client) => Box::into_raw(Box::new(client)) as *const c_void,
     }
