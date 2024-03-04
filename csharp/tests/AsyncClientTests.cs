@@ -6,6 +6,8 @@ namespace tests;
 
 using Glide;
 
+using static Glide.ConnectionConfiguration;
+
 // TODO - need to start a new redis server for each test?
 public class AsyncClientTests
 {
@@ -24,10 +26,16 @@ public class AsyncClientTests
         Assert.That(result, Is.EqualTo(value));
     }
 
+    private StandaloneClientConfiguration GetConfig()
+    {
+        return new StandaloneClientConfigurationBuilder()
+            .WithAddress("localhost", 6379).Build();
+    }
+
     [Test]
     public async Task GetReturnsLastSet()
     {
-        using (var client = new AsyncClient("localhost", 6379, false))
+        using (var client = new AsyncClient(GetConfig()))
         {
             await GetAndSetRandomValues(client);
         }
@@ -36,7 +44,7 @@ public class AsyncClientTests
     [Test]
     public async Task GetAndSetCanHandleNonASCIIUnicode()
     {
-        using (var client = new AsyncClient("localhost", 6379, false))
+        using (var client = new AsyncClient(GetConfig()))
         {
             var key = Guid.NewGuid().ToString();
             var value = "שלום hello 汉字";
@@ -49,7 +57,7 @@ public class AsyncClientTests
     [Test]
     public async Task GetReturnsNull()
     {
-        using (var client = new AsyncClient("localhost", 6379, false))
+        using (var client = new AsyncClient(GetConfig()))
         {
             var result = await client.GetAsync(Guid.NewGuid().ToString());
             Assert.That(result, Is.EqualTo(null));
@@ -59,7 +67,7 @@ public class AsyncClientTests
     [Test]
     public async Task GetReturnsEmptyString()
     {
-        using (var client = new AsyncClient("localhost", 6379, false))
+        using (var client = new AsyncClient(GetConfig()))
         {
             var key = Guid.NewGuid().ToString();
             var value = "";
@@ -72,7 +80,7 @@ public class AsyncClientTests
     [Test]
     public async Task HandleVeryLargeInput()
     {
-        using (var client = new AsyncClient("localhost", 6379, false))
+        using (var client = new AsyncClient(GetConfig()))
         {
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid().ToString();
@@ -92,7 +100,7 @@ public class AsyncClientTests
     [Test]
     public void ConcurrentOperationsWork()
     {
-        using (var client = new AsyncClient("localhost", 6379, false))
+        using (var client = new AsyncClient(GetConfig()))
         {
             var operations = new List<Task>();
 

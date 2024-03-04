@@ -29,67 +29,74 @@ pub struct Client {
     runtime: Runtime,
 }
 
+unsafe fn ptr_to_str(ptr: *const c_char) -> &'static str {
+    if ptr as i64 != 0 {
+        CStr::from_ptr(ptr).to_str().unwrap()
+    } else {
+        ""
+    }
+}
+
 pub unsafe fn node_addresses_to_proto(
     data: *const *const NodeAddress,
     len: usize,
 ) -> Vec<connection_request::NodeAddress> {
-    Vec::from_raw_parts(data as *mut NodeAddress, len, len).iter().map(|addr| {
+    std::slice::from_raw_parts(data as *mut NodeAddress, len).iter().map(|addr| {
+        //dbg!();
         let mut address_info = connection_request::NodeAddress::new();
-        address_info.host = CStr::from_ptr(addr.host).to_str().unwrap().into();
+        address_info.host = ptr_to_str(addr.host).into();
         address_info.port = addr.port;
+        //dbg!(address_info)
         address_info
     }).collect()
-/*
-    from_raw_parts(data, len)
-        .iter()
-        .map(|ptr| Box::leak(Box::from_raw(*ptr as *mut NodeAddress)))
-        .collect()
- */
 }
 
 unsafe fn create_connection_request(
     config: *const ConnectionRequest,
 ) -> connection_request::ConnectionRequest {
+    //dbg!();
     let mut connection_request = connection_request::ConnectionRequest::new();
-
+    //dbg!();
     connection_request.addresses = node_addresses_to_proto((*config).addresses, (*config).address_count as usize);
-
+    //dbg!();
     connection_request.tls_mode = match (*config).tls_mode {
         TlsMode::SecureTls => connection_request::TlsMode::SecureTls,
         TlsMode::InsecureTls => connection_request::TlsMode::InsecureTls,
         TlsMode::NoTls => connection_request::TlsMode::NoTls,
     }
     .into();
-
+    //dbg!("tls {}", connection_request.tls_mode);
     connection_request.cluster_mode_enabled = (*config).cluster_mode;
     connection_request.request_timeout = (*config).request_timeout;
-
+    //dbg!("cluster {}, timeout {}", connection_request.cluster_mode_enabled, connection_request.request_timeout);
     connection_request.read_from = match (*config).read_from {
         ReadFrom::AZAffinity => connection_request::ReadFrom::AZAffinity,
         ReadFrom::PreferReplica => connection_request::ReadFrom::PreferReplica,
         ReadFrom::Primary => connection_request::ReadFrom::Primary,
         ReadFrom::LowestLatency => connection_request::ReadFrom::LowestLatency,
     }.into();
-
+    //dbg!("read {}", connection_request.read_from);
     let mut retry_strategy = connection_request::ConnectionRetryStrategy::new();
     retry_strategy.number_of_retries = (*config).connection_retry_strategy.number_of_retries;
     retry_strategy.factor = (*config).connection_retry_strategy.factor;
     retry_strategy.exponent_base = (*config).connection_retry_strategy.exponent_base;
     connection_request.connection_retry_strategy = Some(retry_strategy).into();
-
+    //dbg!("strategy {}", connection_request.connection_retry_strategy.clone());
     let mut auth_info = connection_request::AuthenticationInfo::new();
-    auth_info.username = CStr::from_ptr((*config).authentication_info.username).to_str().unwrap().into();
-    auth_info.password = CStr::from_ptr((*config).authentication_info.password).to_str().unwrap().into();
+    auth_info.username = ptr_to_str((*config).authentication_info.username).into();
+    auth_info.password = ptr_to_str((*config).authentication_info.password).into();
     connection_request.authentication_info = Some(auth_info).into();
-
+    //dbg!("auth {}", connection_request.authentication_info.clone());
+    connection_request.database_id = (*config).database_id;
     connection_request.protocol = match (*config).protocol {
         ProtocolVersion::RESP2 => connection_request::ProtocolVersion::RESP2,
         ProtocolVersion::RESP3 => connection_request::ProtocolVersion::RESP3,
     }.into();
 
-    connection_request.client_name = CStr::from_ptr((*config).client_name).to_str().unwrap().into();
+    connection_request.client_name = ptr_to_str((*config).client_name).into();
 
-    connection_request
+    dbg!(connection_request)
+    //connection_request
 }
 
 fn create_client_internal(
