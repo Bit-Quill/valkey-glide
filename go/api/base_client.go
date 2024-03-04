@@ -2,9 +2,15 @@
 
 package api
 
-// #cgo LDFLAGS: -L./target/release -lglide-rs
-// #include "lib.h"
+/*
+#cgo LDFLAGS: -L../target/release -lglide_rs
+#include "lib.h"
+
+void successCallback(uintptr_t channelPtr, char *message);
+void failureCallback(uintptr_t channelPtr, char *errMessage);
+*/
 import "C"
+
 import (
 	"github.com/aws/glide-for-redis/go/glide/protobuf"
 	"google.golang.org/protobuf/proto"
@@ -12,12 +18,14 @@ import (
 )
 
 //export successCallback
-func successCallback() {
+func successCallback(channelPtr C.uintptr_t, message *C.char) {
+	// TODO: Implement this function when command logic is added
 	return
 }
 
 //export failureCallback
-func failureCallback() {
+func failureCallback(channelPtr C.uintptr_t, errMessage *C.char) {
+	// TODO: Implement this function when command logic is added
 	return
 }
 
@@ -26,7 +34,7 @@ type connectionRequestConverter interface {
 }
 
 type baseClient struct {
-	connectionPtr unsafe.Pointer
+	coreClient unsafe.Pointer
 }
 
 func createClient(converter connectionRequestConverter) (unsafe.Pointer, error) {
@@ -36,21 +44,23 @@ func createClient(converter connectionRequestConverter) (unsafe.Pointer, error) 
 		return nil, err
 	}
 
-	CResponse := C.create_connection(
-		(*C.uint8_t)(&msg[0]),
-		C.uint(len(msg)),
-		(C.SuccessCallback)(unsafe.Pointer(C.successCallback)),
-		(C.FailureCallback)(unsafe.Pointer(C.failureCallback)))
-	defer C.free(CResponse)
+	byteCount := len(msg)
+	requestBytes := C.CBytes(msg)
+	CResponse := (*C.struct_ConnectionResponse)(C.create_client((*C.uchar)(requestBytes), C.uintptr_t(byteCount), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback))))
+	defer C.free(unsafe.Pointer(CResponse))
 
-	CErr := CResponse._err
+	CErr := CResponse.error
 	if CErr != nil {
-		msg := C.GoString((*CErr)._msg)
-		C.free((*CErr)._msg)
-		C.free((*CErr)._errorType)
-		C.free(CErr)
+		CMsg := (*CErr).message
+		msg := C.GoString(CMsg)
+		C.free(unsafe.Pointer(CMsg))
+		C.free(unsafe.Pointer(CErr))
 		return nil, &RedisError{msg}
 	}
 
-	return CResponse.connPtr, nil
+	return CResponse.conn_ptr, nil
+}
+
+func (client *baseClient) close() {
+	C.close_client(client.coreClient)
 }

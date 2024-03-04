@@ -16,17 +16,17 @@ func main() {
 		panic(err)
 	}
 
-	err = client.Set("FOO", "BAR")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("SET FOO : BAR")
-
-	val, err := client.Get("FOO")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("GET FOO :", val)
+	//err = client.Set("FOO", "BAR")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Println("SET FOO : BAR")
+	//
+	//val, err := client.Get("FOO")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Println("GET FOO :", val)
 
 	client.Close()
 
