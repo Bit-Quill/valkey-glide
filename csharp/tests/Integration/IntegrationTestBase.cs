@@ -54,8 +54,7 @@ public class IntegrationTestBase
 
         string path = TestContext.CurrentContext.WorkDirectory;
         if (Path.GetFileName(path) != "csharp")
-            // Probably '-- NUnit.WorkDirectory=<path>' is missing in 'dotnet test' command line or .runsettings
-            throw new FileNotFoundException("`WorkDirectory` is incorrect or not defined.");
+            throw new FileNotFoundException("`WorkDirectory` is incorrect or not defined. Please ensure the WorkDirectory was set by passing `-- NUnit.WorkDirectory=<path>` to the `dotnet test` command.");
 
         scriptDir = Path.Combine(path, "..", "utils");
     }
