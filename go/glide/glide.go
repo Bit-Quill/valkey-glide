@@ -30,91 +30,6 @@ type payload struct {
 
 type RequestType uint32
 
-const (
-    _ = iota
-    CustomCommand RequestType = iota
-    GetString
-    SetString
-    Ping
-    Info
-    Del
-    Select
-    ConfigGet
-    ConfigSet
-    ConfigResetStat
-    ConfigRewrite
-    ClientGetName
-    ClientGetRedir
-    ClientId
-    ClientInfo
-    ClientKill
-    ClientList
-    ClientNoEvict
-    ClientNoTouch
-    ClientPause
-    ClientReply
-    ClientSetInfo
-    ClientSetName
-    ClientUnblock
-    ClientUnpause
-    Expire
-    HashSet
-    HashGet
-    HashDel
-    HashExists
-    MGet
-    MSet
-    Incr
-    IncrBy
-    Decr
-    IncrByFloat
-    DecrBy
-    HashGetAll
-    HashMSet
-    HashMGet
-    HashIncrBy
-    HashIncrByFloat
-    LPush
-    LPop
-    RPush
-    RPop
-    LLen
-    LRem
-    LRange
-    LTrim
-    SAdd
-    SRem
-    SMembers
-    SCard
-    PExpireAt
-    PExpire
-    ExpireAt
-    Exists
-    Unlink
-    TTL
-    Zadd
-    Zrem
-    Zrange
-    Zcard
-    Zcount
-    ZIncrBy
-    ZScore
-    Type
-    HLen
-    Echo
-    ZPopMin
-    Strlen
-    Lindex
-    ZPopMax
-    XRead
-    XAdd
-    XReadGroup
-    XAck
-    XTrim
-    XGroupCreate
-    XGroupDestroy
-)
-
 type ErrorType uint32
 
 const (
@@ -141,21 +56,6 @@ func failureCallback(channelPtr C.uintptr_t, errMessage *C.char) {
     resultChannel <- payload{value: "", errMessage: fmt.Errorf("error at redis operation: %s", goMessage)}
 }
 
-func stringsToCStrings(args []string) []*C.char {
-    cArgs := make([]*C.char, len(args))
-    for index, string := range args {
-        cString := C.CString(string)
-        cArgs[index] = cString
-    }
-    return cArgs
-}
-
-func freeCStrings(cArgs []*C.char) {
-    for _, arg := range cArgs {
-        C.free(unsafe.Pointer(arg))
-    }
-}
-
 func (glideRedisClient *GlideRedisClient) ConnectToRedis(request *protobuf.ConnectionRequest) error {
     marshalledRequest, err := proto.Marshal(request)
     if err != nil {
@@ -170,68 +70,6 @@ func (glideRedisClient *GlideRedisClient) ConnectToRedis(request *protobuf.Conne
     }
     glideRedisClient.coreClient = response.conn_ptr
     return nil
-}
-
-func (glideRedisClient *GlideRedisClient) Set(key string, value interface{}) error {
-    strValue := fmt.Sprintf("%v", value)
-    ckey := C.CString(key)
-    cval := C.CString(strValue)
-    defer C.free(unsafe.Pointer(ckey))
-    defer C.free(unsafe.Pointer(cval))
-
-    resultChannel := make(chan payload)
-    resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
-
-    args := []string{key, strValue}
-    cArgs := stringsToCStrings(args)
-    defer freeCStrings(cArgs)
-    requestType := C.uint32_t(SetString)
-    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(2), &cArgs[0])
-
-    resultPayload := <-resultChannel
-
-    return resultPayload.errMessage
-}
-
-func (glideRedisClient *GlideRedisClient) Get(key string) (string, error) {
-    ckey := C.CString(key)
-    defer C.free(unsafe.Pointer(ckey))
-
-    resultChannel := make(chan payload)
-    resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
-
-    args := []string{key}
-    cArgs := stringsToCStrings(args)
-    defer freeCStrings(cArgs)
-    requestType := C.uint32_t(GetString)
-    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(1), &cArgs[0])
-    resultPayload := <-resultChannel
-
-    return resultPayload.value, nil
-}
-
-func (glideRedisClient *GlideRedisClient) Ping() (string, error) {
-    resultChannel := make(chan payload)
-    resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
-
-    cArgs := []*C.char{}
-    requestType := C.uint32_t(Ping)
-    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(0), &cArgs[0])
-    resultPayload := <-resultChannel
-
-    return resultPayload.value, resultPayload.errMessage
-}
-
-func (glideRedisClient *GlideRedisClient) Info() (string, error) {
-    resultChannel := make(chan payload)
-    resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
-
-    cArgs := []*C.char{}
-    requestType := C.uint32_t(Info)
-    C.command(glideRedisClient.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(0), &cArgs[0])
-    resultPayload := <-resultChannel
-
-    return resultPayload.value, resultPayload.errMessage
 }
 
 func (glideRedisClient *GlideRedisClient) CloseClient() {

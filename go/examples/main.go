@@ -27,18 +27,6 @@ func main() {
 		return
 	}
 
-	err = client.Set("FOO", "BAR")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("SET FOO : BAR")
-
-	val, err := client.Get("FOO")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("GET FOO :", val)
-
 	client.CloseClient()
 
 	fmt.Println("Disconnected from Redis")
