@@ -296,7 +296,7 @@ public static class MainClass
             {
                 var config = new StandaloneClientConfigurationBuilder()
                     .WithAddress(host, PORT)
-                    .WithTlsMode(useTLS ? TlsMode.InsecureTls : TlsMode.SecureTls)
+                    .WithTlsMode(useTLS ? TlsMode.InsecureTls : TlsMode.NoTls)
                     .Build();
                 var glide_client = new AsyncClient(config);
                 return Task.FromResult<(Func<string, Task<string?>>, Func<string, string, Task>, Action)>(
