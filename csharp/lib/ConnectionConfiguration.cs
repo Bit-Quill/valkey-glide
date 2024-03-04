@@ -85,7 +85,7 @@ public abstract class ConnectionConfiguration
     }
 
     private static readonly string DEFAULT_HOST = "localhost";
-    private static readonly uint DEFAULT_PORT = 6379;
+    private static readonly ushort DEFAULT_PORT = 6379;
 
     public sealed class StandaloneClientConfiguration : ConnectionConfiguration
     {
@@ -120,7 +120,7 @@ public abstract class ConnectionConfiguration
         #region address
         private readonly List<NodeAddress> addresses = new();
 
-        public (string? host, uint? port) Address
+        public (string? host, ushort? port) Address
         {
             set
             {
@@ -132,25 +132,25 @@ public abstract class ConnectionConfiguration
             }
         }
 
-        public T WithAddress((string? host, uint? port) address)
+        public T WithAddress((string? host, ushort? port) address)
         {
             Address = (address.host, address.port);
             return (T)this;
         }
 
-        public T WithAddress((string host, uint port) address)
+        public T WithAddress((string host, ushort port) address)
         {
             Address = (address.host, address.port);
             return (T)this;
         }
 
-        public T WithAddress(string? host, uint? port)
+        public T WithAddress(string? host, ushort? port)
         {
             Address = (host, port);
             return (T)this;
         }
 
-        public T WithAddress(string host, uint port)
+        public T WithAddress(string host, ushort port)
         {
             Address = (host, port);
             return (T)this;
@@ -162,7 +162,7 @@ public abstract class ConnectionConfiguration
             return (T)this;
         }
 
-        public T WithAddress(uint port)
+        public T WithAddress(ushort port)
         {
             Address = (DEFAULT_HOST, port);
             return (T)this;
@@ -177,13 +177,13 @@ public abstract class ConnectionConfiguration
                 this.owner = owner;
             }
 
-            public static AddressBuilder operator +(AddressBuilder builder, (string? host, uint? port) address)
+            public static AddressBuilder operator +(AddressBuilder builder, (string? host, ushort? port) address)
             {
                 builder.owner.WithAddress(address);
                 return builder;
             }
 
-            public static AddressBuilder operator +(AddressBuilder builder, (string host, uint port) address)
+            public static AddressBuilder operator +(AddressBuilder builder, (string host, ushort port) address)
             {
                 builder.owner.WithAddress(address);
                 return builder;
@@ -195,7 +195,7 @@ public abstract class ConnectionConfiguration
                 return builder;
             }
 
-            public static AddressBuilder operator +(AddressBuilder builder, uint port)
+            public static AddressBuilder operator +(AddressBuilder builder, ushort port)
             {
                 builder.owner.WithAddress(port);
                 return builder;

@@ -14,6 +14,8 @@ using LinqStatistics;
 
 using StackExchange.Redis;
 
+using static Glide.ConnectionConfiguration;
+
 public static class MainClass
 {
     private enum ChosenAction { GET_NON_EXISTING, GET_EXISTING, SET };
@@ -292,7 +294,11 @@ public static class MainClass
         {
             var clients = await createClients(clientCount, () =>
             {
-                var glide_client = new AsyncClient(host, PORT, useTLS);
+                var config = new StandaloneClientConfigurationBuilder()
+                    .WithAddress(host, PORT)
+                    .WithTlsMode(useTLS ? TlsMode.InsecureTls : TlsMode.SecureTls)
+                    .Build();
+                var glide_client = new AsyncClient(config);
                 return Task.FromResult<(Func<string, Task<string?>>, Func<string, string, Task>, Action)>(
                     (async (key) => await glide_client.GetAsync(key),
                      async (key, value) => await glide_client.SetAsync(key, value),
