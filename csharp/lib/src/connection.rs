@@ -1,28 +1,28 @@
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
-
 use std::ffi::c_char;
 
 #[repr(C)]
-pub struct ConnectionRequest {
-    pub address_count : u32,
-    pub addresses : *const *const NodeAddress,
-    pub tls_mode : TlsMode,
-    pub cluster_mode : bool,
-    pub request_timeout : u32,
-    pub read_from : ReadFrom,
-    pub connection_retry_strategy : ConnectionRetryStrategy,
-    pub authentication_info : AuthenticationInfo,
-    pub database_id : u32,
-    pub protocol : ProtocolVersion,
-    pub client_name : *const c_char,
+pub struct ConnectionConfig {
+    pub address_count: usize,
+    /// Pointer to an array.
+    pub addresses: *const *const NodeAddress,
+    pub tls_mode: TlsMode,
+    pub cluster_mode: bool,
+    pub request_timeout: u32,
+    pub read_from: ReadFrom,
+    pub connection_retry_strategy: ConnectionRetryStrategy,
+    pub authentication_info: AuthenticationInfo,
+    pub database_id: u32,
+    pub protocol: ProtocolVersion,
+    pub client_name: *const c_char,
 }
 
 #[repr(C)]
 pub struct NodeAddress {
-    pub host : *const c_char,
-    pub port : u32
+    pub host: *const c_char,
+    pub port: u16,
 }
 
 #[repr(C)]
@@ -49,8 +49,8 @@ pub struct ConnectionRetryStrategy {
 
 #[repr(C)]
 pub struct AuthenticationInfo {
-    pub username : *const c_char,
-    pub password : *const c_char
+    pub username: *const c_char,
+    pub password: *const c_char,
 }
 
 #[repr(C)]

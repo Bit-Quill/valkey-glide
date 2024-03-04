@@ -11,7 +11,7 @@ public abstract class ConnectionConfiguration
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     internal struct ConnectionRequest
     {
-        public uint address_count;
+        public nuint address_count;
         public IntPtr addresses; // ** NodeAddress - array pointer
         public TlsMode tls_mode;
         public bool cluster_mode;
@@ -23,7 +23,6 @@ public abstract class ConnectionConfiguration
         public ProtocolVersion protocol;
         [MarshalAs(UnmanagedType.LPStr)]
         public string? client_name;
-
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -31,7 +30,7 @@ public abstract class ConnectionConfiguration
     {
         [MarshalAs(UnmanagedType.LPStr)]
         public string host;
-        public uint port;
+        public ushort port;
     }
 
     [StructLayout(LayoutKind.Sequential)]
