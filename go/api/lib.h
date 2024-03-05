@@ -30,7 +30,7 @@ typedef void (*FailureCallback)(uintptr_t channel_address, const char *err_messa
  * Creates a new client to the given address. The success callback needs to copy the given string synchronously, since it will be dropped by Rust once the callback returns. All callbacks should be offloaded to separate threads in order not to exhaust the client's thread pool.
  */
 const struct ConnectionResponse *create_client(const uint8_t *connection_request,
-                                               uintptr_t request_len,
+                                               uintptr_t connection_request_len,
                                                SuccessCallback success_callback,
                                                FailureCallback failure_callback);
 
