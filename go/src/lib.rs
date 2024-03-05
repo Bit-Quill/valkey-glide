@@ -1,7 +1,7 @@
-use glide_core::client::Client as GlideClient;
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
+use glide_core::client::Client as GlideClient;
 use glide_core::connection_request;
 use protobuf::Message;
 use redis::RedisResult;
@@ -12,18 +12,13 @@ use std::{
 use tokio::runtime::Builder;
 use tokio::runtime::Runtime;
 
+/// Success callback that is called when a Redis command succeeds.
 pub type SuccessCallback =
     unsafe extern "C" fn(channel_address: usize, message: *const c_char) -> ();
-pub type FailureCallback =
-    unsafe extern "C" fn(channel_address: usize, err_message: *const c_char) -> ();
 
-pub enum Level {
-    Error = 0,
-    Warn = 1,
-    Info = 2,
-    Debug = 3,
-    Trace = 4,
-}
+/// Failure callback that is called when a Redis command fails.
+pub type FailureCallback =
+    unsafe extern "C" fn(channel_address: usize, error: *const RedisErrorFFI) -> ();
 
 #[repr(C)]
 pub struct ConnectionResponse {
@@ -75,15 +70,23 @@ fn create_client_internal(
 }
 
 /// Creates a new client to the given address. The success callback needs to copy the given string synchronously, since it will be dropped by Rust once the callback returns. All callbacks should be offloaded to separate threads in order not to exhaust the client's thread pool.
+///
+/// # Panics
+/// `create_client` will panic if the given `connection_request_bytes` fail to parse into a protobuf `ConnectionRequest`.
+///
+/// # Safety
+///
+/// * `connection_request_bytes` must point to `connection_request_len` consecutive properly initialized bytes.
+/// * `connection_request_len` must not be greater than `isize::MAX`. See the safety documentation of [`std::slice::from_raw_parts`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html).
 #[no_mangle]
 pub unsafe extern "C" fn create_client(
-    connection_request: *const u8,
+    connection_request_bytes: *const u8,
     connection_request_len: usize,
     success_callback: SuccessCallback,
     failure_callback: FailureCallback,
 ) -> *const ConnectionResponse {
     let request_bytes =
-        unsafe { std::slice::from_raw_parts(connection_request, connection_request_len) };
+        unsafe { std::slice::from_raw_parts(connection_request_bytes, connection_request_len) };
     let response = match create_client_internal(request_bytes, success_callback, failure_callback) {
         Err(err) => {
             let message_cstring = CString::new(err.to_string()).unwrap();
@@ -103,8 +106,14 @@ pub unsafe extern "C" fn create_client(
     Box::into_raw(Box::new(response))
 }
 
+/// Closes the given client, deallocating it from the heap.
+///
+/// # Safety
+///
+/// * `client_ptr` must be able to be safely casted to a valid `Box<Client>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
+/// * `client_ptr` must not be null.
 #[no_mangle]
-pub extern "C" fn close_client(client_ptr: *const c_void) {
+pub unsafe extern "C" fn close_client(client_ptr: *const c_void) {
     let client_ptr = unsafe { Box::from_raw(client_ptr as *mut Client) };
     let _runtime_handle = client_ptr.runtime.enter();
     drop(client_ptr);

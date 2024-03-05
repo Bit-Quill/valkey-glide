@@ -13,6 +13,7 @@ func main() {
 	fmt.Println("Starting go-glide client...")
 	client := glide.GlideRedisClient{}
 
+	// TODO: Update when configuration is implemented
 	request := &protobuf.ConnectionRequest{
 		TlsMode:            protobuf.TlsMode_NoTls,
 		ClusterModeEnabled: false,
