@@ -27,7 +27,7 @@ public class Benchmarking {
     static final int SIZE_SET_KEYSPACE = 3000000;
     public static final double NANO_TO_SECONDS = 1e9;
 
-    static final int NUM_OF_THREADS_TO_EXECUTE = 8;
+    static final int NUM_OF_THREADS_TO_EXECUTE = 12;
 
     private static ChosenAction randomAction() {
         if (Math.random() > PROB_GET) {
