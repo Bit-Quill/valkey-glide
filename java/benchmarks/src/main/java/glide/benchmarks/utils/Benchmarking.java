@@ -112,7 +112,7 @@ public class Benchmarking {
     public static void testClientSetGet(
             Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
         for (int concurrentNum : config.concurrentTasks) {
-            ExecutorService executor = Executors.newFixedThreadPool(NUM_OF_THREADS_TO_EXECUTE);
+            ExecutorService executor = Executors.newCachedThreadPool();
             int iterations =
                     config.minimal ? 1000 : Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
             for (int clientCount : config.clientCount) {
