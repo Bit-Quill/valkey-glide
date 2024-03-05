@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.tuple.Pair;
@@ -23,6 +26,8 @@ public class Benchmarking {
     static final int SIZE_GET_KEYSPACE = 3750000;
     static final int SIZE_SET_KEYSPACE = 3000000;
     public static final double NANO_TO_SECONDS = 1e9;
+
+    static final int NUM_OF_THREADS_TO_EXECUTE = 4;
 
     private static ChosenAction randomAction() {
         if (Math.random() > PROB_GET) {
@@ -107,6 +112,7 @@ public class Benchmarking {
     public static void testClientSetGet(
             Supplier<Client> clientCreator, BenchmarkingApp.RunConfiguration config, boolean async) {
         for (int concurrentNum : config.concurrentTasks) {
+            ExecutorService executor = Executors.newFixedThreadPool(NUM_OF_THREADS_TO_EXECUTE);
             int iterations =
                     config.minimal ? 1000 : Math.min(Math.max(100000, concurrentNum * 10000), 10000000);
             for (int clientCount : config.clientCount) {
@@ -143,6 +149,7 @@ public class Benchmarking {
                                         clients,
                                         taskNumDebugging,
                                         iterations,
+                                        executor,
                                         config.debugLogging));
                     }
                     if (config.debugLogging) {
@@ -201,6 +208,7 @@ public class Benchmarking {
                     printResults(calculatedResults, (after - started) / NANO_TO_SECONDS, iterations);
                 }
             }
+            executor.shutdownNow();
         }
 
         System.out.println();
@@ -215,6 +223,7 @@ public class Benchmarking {
             List<Client> clients,
             int taskNumDebugging,
             int iterations,
+            Executor executor,
             boolean debugLogging) {
         return CompletableFuture.supplyAsync(
                 () -> {
@@ -243,7 +252,7 @@ public class Benchmarking {
                         taskActionResults.get(result.getLeft()).add(result.getRight());
                     }
                     return taskActionResults;
-                });
+                }, executor);
     }
 
     public static Map<ChosenAction, Operation> getActionMap(int dataSize, boolean async) {
