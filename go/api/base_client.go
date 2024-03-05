@@ -59,6 +59,6 @@ func createClient(converter connectionRequestConverter) (unsafe.Pointer, error) 
 	return CResponse.conn_ptr, nil
 }
 
-func (client *baseClient) close() {
+func (client *baseClient) Close() {
 	C.close_client(client.coreClient)
 }

@@ -18,7 +18,3 @@ func CreateClient(converter connectionRequestConverter) (*RedisClient, error) {
 
 	return &RedisClient{baseClient{connPtr}}, nil
 }
-
-func (client *RedisClient) Close() {
-	client.baseClient.close()
-}

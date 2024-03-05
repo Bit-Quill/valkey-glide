@@ -14,7 +14,3 @@ func CreateClusterClient(converter connectionRequestConverter) (*RedisClusterCli
 
 	return &RedisClusterClient{baseClient{connPtr}}, nil
 }
-
-func (client *RedisClusterClient) Close() {
-	client.baseClient.close()
-}
