@@ -23,7 +23,7 @@ type GlideTestSuite struct {
 func (suite *GlideTestSuite) SetupSuite() {
 	// Stop cluster in case previous test run was interrupted or crashed and didn't stop.
 	// If an error occurs, we ignore it in case the servers actually were stopped before running this.
-	_ = exec.Command("python3", "../../utils/cluster_manager.py", "stop", "--prefix", "redis-cluster", "--keep-folder").Run()
+	_ = exec.Command("python3", "../../utils/cluster_manager.py", "stop", "--prefix", "redis-cluster").Run()
 
 	// Delete dirs if stop failed due to https://github.com/aws/glide-for-redis/issues/849
 	err := os.RemoveAll("../../utils/clusters")

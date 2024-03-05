@@ -2,13 +2,11 @@
 
 package api
 
-/*
-#cgo LDFLAGS: -L../target/release -lglide_rs
-#include "lib.h"
-
-void successCallback(uintptr_t channelPtr, char *message);
-void failureCallback(uintptr_t channelPtr, char *errMessage);
-*/
+// #cgo LDFLAGS: -L../target/release -lglide_rs
+// #include "../lib.h"
+//
+// void successCallback(uintptr_t channelPtr, char *message);
+// void failureCallback(uintptr_t channelPtr, char *errMessage);
 import "C"
 
 import (
@@ -55,7 +53,7 @@ func createClient(converter connectionRequestConverter) (unsafe.Pointer, error) 
 		msg := C.GoString(CMsg)
 		C.free(unsafe.Pointer(CMsg))
 		C.free(unsafe.Pointer(CErr))
-		return nil, &RedisError{msg}
+		return nil, &ClosingError{msg}
 	}
 
 	return CResponse.conn_ptr, nil
