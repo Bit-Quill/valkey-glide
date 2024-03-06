@@ -1,6 +1,10 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
+import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigResetStat;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigRewrite;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
@@ -45,7 +49,7 @@ public class RedisClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<Object[]> exec(Transaction transaction) {
+    public CompletableFuture<Object[]> exec(@NonNull Transaction transaction) {
         return commandManager.submitNewCommand(transaction, this::handleArrayOrNullResponse);
     }
 
@@ -74,5 +78,28 @@ public class RedisClient extends BaseClient
     public CompletableFuture<String> select(long index) {
         return commandManager.submitNewCommand(
                 Select, new String[] {Long.toString(index)}, this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> clientId() {
+        return commandManager.submitNewCommand(ClientId, new String[0], this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> clientGetName() {
+        return commandManager.submitNewCommand(
+                ClientGetName, new String[0], this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> configRewrite() {
+        return commandManager.submitNewCommand(
+                ConfigRewrite, new String[0], this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> configResetStat() {
+        return commandManager.submitNewCommand(
+                ConfigResetStat, new String[0], this::handleStringResponse);
     }
 }

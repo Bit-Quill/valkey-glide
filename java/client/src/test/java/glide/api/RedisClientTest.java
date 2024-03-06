@@ -12,11 +12,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
+import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigResetStat;
+import static redis_request.RedisRequestOuterClass.RequestType.ConfigRewrite;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
 import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.Del;
 import static redis_request.RedisRequestOuterClass.RequestType.Exists;
+import static redis_request.RedisRequestOuterClass.RequestType.Expire;
+import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.HashDel;
 import static redis_request.RedisRequestOuterClass.RequestType.HashExists;
@@ -30,10 +36,15 @@ import static redis_request.RedisRequestOuterClass.RequestType.Incr;
 import static redis_request.RedisRequestOuterClass.RequestType.IncrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.IncrByFloat;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
+import static redis_request.RedisRequestOuterClass.RequestType.LLen;
 import static redis_request.RedisRequestOuterClass.RequestType.LPop;
 import static redis_request.RedisRequestOuterClass.RequestType.LPush;
+import static redis_request.RedisRequestOuterClass.RequestType.LRange;
+import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.MGet;
 import static redis_request.RedisRequestOuterClass.RequestType.MSet;
+import static redis_request.RedisRequestOuterClass.RequestType.PExpire;
+import static redis_request.RedisRequestOuterClass.RequestType.PExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
@@ -43,8 +54,10 @@ import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.Select;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
+import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 
+import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
@@ -317,6 +330,215 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(numberExisting, result);
+    }
+
+    @SneakyThrows
+    @Test
+    public void expire_returns_success() {
+        // setup
+        String key = "testKey";
+        long seconds = 10L;
+        String[] arguments = new String[] {key, Long.toString(seconds)};
+
+        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(true);
+
+        // match on protobuf request
+        when(commandManager.<Boolean>submitNewCommand(eq(Expire), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Boolean> response = service.expire(key, seconds);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(true, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void expire_with_expireOptions_returns_success() {
+        // setup
+        String key = "testKey";
+        long seconds = 10L;
+        String[] arguments = new String[] {key, Long.toString(seconds), "NX"};
+
+        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(false);
+
+        // match on protobuf request
+        when(commandManager.<Boolean>submitNewCommand(eq(Expire), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Boolean> response = service.expire(key, seconds, ExpireOptions.HAS_NO_EXPIRY);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(false, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void expireAt_returns_success() {
+        // setup
+        String key = "testKey";
+        long unixSeconds = 100000L;
+        String[] arguments = new String[] {key, Long.toString(unixSeconds)};
+
+        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(true);
+
+        // match on protobuf request
+        when(commandManager.<Boolean>submitNewCommand(eq(ExpireAt), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Boolean> response = service.expireAt(key, unixSeconds);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(true, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void expireAt_with_expireOptions_returns_success() {
+        // setup
+        String key = "testKey";
+        long unixSeconds = 100000L;
+        String[] arguments = new String[] {key, Long.toString(unixSeconds), "XX"};
+
+        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(false);
+
+        // match on protobuf request
+        when(commandManager.<Boolean>submitNewCommand(eq(ExpireAt), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Boolean> response =
+                service.expireAt(key, unixSeconds, ExpireOptions.HAS_EXISTING_EXPIRY);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(false, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void pexpire_returns_success() {
+        // setup
+        String key = "testKey";
+        long milliseconds = 50000L;
+        String[] arguments = new String[] {key, Long.toString(milliseconds)};
+
+        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(true);
+
+        // match on protobuf request
+        when(commandManager.<Boolean>submitNewCommand(eq(PExpire), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Boolean> response = service.pexpire(key, milliseconds);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(true, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void pexpire_with_expireOptions_returns_success() {
+        // setup
+        String key = "testKey";
+        long milliseconds = 50000L;
+        String[] arguments = new String[] {key, Long.toString(milliseconds), "LT"};
+
+        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(false);
+
+        // match on protobuf request
+        when(commandManager.<Boolean>submitNewCommand(eq(PExpire), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Boolean> response =
+                service.pexpire(key, milliseconds, ExpireOptions.NEW_EXPIRY_LESS_THAN_CURRENT);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(false, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void pexpireAt_returns_success() {
+        // setup
+        String key = "testKey";
+        long unixMilliseconds = 999999L;
+        String[] arguments = new String[] {key, Long.toString(unixMilliseconds)};
+
+        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(true);
+
+        // match on protobuf request
+        when(commandManager.<Boolean>submitNewCommand(eq(PExpireAt), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Boolean> response = service.pexpireAt(key, unixMilliseconds);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(true, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void pexpireAt_with_expireOptions_returns_success() {
+        // setup
+        String key = "testKey";
+        long unixMilliseconds = 999999L;
+        String[] arguments = new String[] {key, Long.toString(unixMilliseconds), "GT"};
+
+        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(false);
+
+        // match on protobuf request
+        when(commandManager.<Boolean>submitNewCommand(eq(PExpireAt), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Boolean> response =
+                service.pexpireAt(key, unixMilliseconds, ExpireOptions.NEW_EXPIRY_GREATER_THAN_CURRENT);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(false, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void ttl_returns_success() {
+        // setup
+        String key = "testKey";
+        long ttl = 999L;
+
+        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(ttl);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(TTL), eq(new String[] {key}), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.ttl(key);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(ttl, response.get());
     }
 
     @SneakyThrows
@@ -827,6 +1049,80 @@ public class RedisClientTest {
 
     @SneakyThrows
     @Test
+    public void lrange_returns_success() {
+        // setup
+        String key = "testKey";
+        long start = 2L;
+        long end = 4L;
+        String[] args = new String[] {key, Long.toString(start), Long.toString(end)};
+        String[] value = new String[] {"value1", "value2"};
+
+        CompletableFuture<String[]> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+
+        // match on protobuf request
+        when(commandManager.<String[]>submitNewCommand(eq(LRange), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String[]> response = service.lrange(key, start, end);
+        String[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void ltrim_returns_success() {
+        // setup
+        String key = "testKey";
+        long start = 2L;
+        long end = 2L;
+        String[] args = new String[] {key, Long.toString(end), Long.toString(start)};
+
+        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(OK);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(LTrim), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.ltrim(key, start, end);
+        String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(OK, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void llen_returns_success() {
+        // setup
+        String key = "testKey";
+        String[] args = new String[] {key};
+        long value = 2L;
+
+        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(LLen), eq(args), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.llen(key);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
     public void rpush_returns_success() {
         // setup
         String key = "testKey";
@@ -993,5 +1289,83 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void clientId_returns_success() {
+        // setup
+        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(42L);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(ClientId), eq(new String[0]), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.clientId();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(42L, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void clientGetName_returns_success() {
+        // setup
+        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn("TEST");
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(ClientGetName), eq(new String[0]), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.clientGetName();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals("TEST", response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void configRewrite_returns_success() {
+        // setup
+        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(OK);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(ConfigRewrite), eq(new String[0]), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.configRewrite();
+        String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(OK, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void configResetStat_returns_success() {
+        // setup
+        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(OK);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(ConfigResetStat), eq(new String[0]), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.configResetStat();
+        String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(OK, payload);
     }
 }

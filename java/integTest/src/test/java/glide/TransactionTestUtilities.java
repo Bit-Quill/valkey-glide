@@ -1,6 +1,8 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide;
 
+import static glide.api.BaseClient.OK;
+
 import glide.api.models.BaseTransaction;
 import glide.api.models.commands.SetOptions;
 import java.util.Map;
@@ -61,7 +63,10 @@ public class TransactionTestUtilities {
         baseTransaction.hincrBy(key4, field3, 5);
         baseTransaction.hincrByFloat(key4, field3, 5.5);
 
-        baseTransaction.lpush(key5, new String[] {value1, value2, value3});
+        baseTransaction.lpush(key5, new String[] {value1, value2, value3, value3});
+        baseTransaction.llen(key5);
+        baseTransaction.ltrim(key5, 1, -1);
+        baseTransaction.lrange(key5, 0, -2);
         baseTransaction.lpop(key5);
         baseTransaction.lpopCount(key5, 2);
 
@@ -74,12 +79,14 @@ public class TransactionTestUtilities {
         baseTransaction.scard(key7);
         baseTransaction.smembers(key7);
 
+        baseTransaction.configResetStat();
+
         return baseTransaction;
     }
 
     public static Object[] transactionTestResult() {
         return new Object[] {
-            "OK",
+            OK,
             value1,
             null,
             new String[] {value1, value2},
@@ -88,7 +95,7 @@ public class TransactionTestUtilities {
             null,
             1L,
             null,
-            "OK",
+            OK,
             new String[] {value2, value1},
             1L,
             3L,
@@ -104,7 +111,10 @@ public class TransactionTestUtilities {
             1L,
             5L,
             10.5,
-            3L,
+            4L,
+            4L,
+            OK,
+            new String[] {value3, value2},
             value3,
             new String[] {value2, value1},
             3L,
@@ -114,6 +124,7 @@ public class TransactionTestUtilities {
             1L,
             1L,
             Set.of("baz"),
+            OK
         };
     }
 }
