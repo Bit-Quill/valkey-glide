@@ -42,18 +42,12 @@ const (
 
 //export successCallback
 func successCallback(channelPtr C.uintptr_t, message *C.char) {
-	goMessage := C.GoString(message)
-	goChannelPointer := uintptr(channelPtr)
-	resultChannel := *(*chan payload)(unsafe.Pointer(goChannelPointer))
-	resultChannel <- payload{value: goMessage, errMessage: nil}
+	// TODO: Implement when we implement the command logic
 }
 
 //export failureCallback
 func failureCallback(channelPtr C.uintptr_t, errMessage *C.RedisErrorFFI) {
-	goMessage := C.GoString(errMessage.message)
-	goChannelPointer := uintptr(channelPtr)
-	resultChannel := *(*chan payload)(unsafe.Pointer(goChannelPointer))
-	resultChannel <- payload{value: "", errMessage: fmt.Errorf("error at redis operation: %s", goMessage)}
+	// TODO: Implement when we implement the command logic
 }
 
 func (glideRedisClient *GlideRedisClient) ConnectToRedis(request *protobuf.ConnectionRequest) error {
