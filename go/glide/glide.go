@@ -73,6 +73,10 @@ func (glideRedisClient *GlideRedisClient) ConnectToRedis(request *protobuf.Conne
 	return nil
 }
 
-func (glideRedisClient *GlideRedisClient) CloseClient() {
+func (glideRedisClient *GlideRedisClient) CloseClient() error {
+	if glideRedisClient.coreClient == nil {
+		return fmt.Errorf("Cannot close glide client before it has been created.")
+	}
 	C.close_client(glideRedisClient.coreClient)
+	return nil
 }

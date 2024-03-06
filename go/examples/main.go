@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/aws/glide-for-redis/go/glide/glide"
 	"github.com/aws/glide-for-redis/go/glide/protobuf"
+	"log"
 )
 
 func main() {
@@ -23,12 +24,15 @@ func main() {
 		request.Addresses,
 		&protobuf.NodeAddress{Host: "localhost", Port: uint32(6379)},
 	)
-	err := client.ConnectToRedis(request)
-	if err != nil {
-		return
+	connectionErr := client.ConnectToRedis(request)
+	if connectionErr != nil {
+		log.Fatal(connectionErr)
 	}
 
-	client.CloseClient()
+	closeClientErr := client.CloseClient()
+	if closeClientErr != nil {
+		log.Fatal(closeClientErr)
+	}
 
 	fmt.Println("Disconnected from Redis")
 }
