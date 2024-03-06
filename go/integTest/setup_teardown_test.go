@@ -24,8 +24,7 @@ type GlideTestSuite struct {
 func (suite *GlideTestSuite) SetupSuite() {
 	// Stop cluster in case previous test run was interrupted or crashed and didn't stop.
 	// If an error occurs, we ignore it in case the servers actually were stopped before running this.
-	cmd := exec.Command("python3", "../../utils/cluster_manager.py", "stop", "--prefix", "redis-cluster")
-	runCommandWithOutput(suite, cmd, true)
+	runClusterManager(suite, []string{"stop", "--prefix", "redis-cluster"}, true)
 
 	// Delete dirs if stop failed due to https://github.com/aws/glide-for-redis/issues/849
 	err := os.RemoveAll("../../utils/clusters")
@@ -34,26 +33,24 @@ func (suite *GlideTestSuite) SetupSuite() {
 	}
 
 	// Start standalone Redis instance
-	cmd = exec.Command("python3", "../../utils/cluster_manager.py", "start", "-r", "0")
-	output := runCommandWithOutput(suite, cmd, false)
+	clusterManagerOutput := runClusterManager(suite, []string{"start", "-r", "0"}, false)
 
-	suite.standalonePorts = extractPorts(suite, output)
+	suite.standalonePorts = extractPorts(suite, clusterManagerOutput)
 	suite.T().Logf("Standalone ports = %s", fmt.Sprint(suite.standalonePorts))
 
 	// Start Redis cluster
-	cmd = exec.Command("python3", "../../utils/cluster_manager.py", "start", "--cluster-mode")
-	output = runCommandWithOutput(suite, cmd, false)
+	clusterManagerOutput = runClusterManager(suite, []string{"start", "--cluster-mode"}, false)
 
-	suite.clusterPorts = extractPorts(suite, output)
+	suite.clusterPorts = extractPorts(suite, clusterManagerOutput)
 	suite.T().Logf("Cluster ports = %s", fmt.Sprint(suite.clusterPorts))
 
 	// Get Redis version
-	err = exec.Command("redis-server", "-v").Run()
+	byteOutput, err := exec.Command("redis-server", "-v").Output()
 	if err != nil {
 		suite.T().Fatal(err.Error())
 	}
 
-	suite.redisVersion = extractRedisVersion(output)
+	suite.redisVersion = extractRedisVersion(string(byteOutput))
 	suite.T().Logf("Redis version = %s", suite.redisVersion)
 }
 
@@ -80,20 +77,26 @@ func extractPorts(suite *GlideTestSuite, output string) []int {
 	return ports
 }
 
-func runCommandWithOutput(suite *GlideTestSuite, cmd *exec.Cmd, ignoreExitCode bool) string {
-	output, err := cmd.Output()
-	suite.T().Logf("%s stdout:\n====\n%s\n====\n", cmd.Path, string(output))
+func runClusterManager(suite *GlideTestSuite, args []string, ignoreExitCode bool) string {
+	pythonArgs := append([]string{"../../utils/cluster_manager.py"}, args...)
+	output, err := exec.Command("python3", pythonArgs...).Output()
+	if output != nil && len(output) > 0 {
+		suite.T().Logf("cluster_manager.py stdout:\n====\n%s\n====\n", string(output))
+	}
 
 	if err != nil {
 		var exitError *exec.ExitError
 		isExitError := errors.As(err, &exitError)
 		if !isExitError {
-			suite.T().Fatalf("Unexpected error while executing command %s: %s", cmd.Path, err.Error())
+			suite.T().Fatalf("Unexpected error while executing cluster_manager.py: %s", err.Error())
 		}
 
-		suite.T().Logf("%s stderr:\n====\n%s\n====\n", cmd.Path, string(exitError.Stderr))
+		if exitError.Stderr != nil && len(exitError.Stderr) > 0 {
+			suite.T().Logf("cluster_manager.py stderr:\n====\n%s\n====\n", string(exitError.Stderr))
+		}
+
 		if !ignoreExitCode {
-			suite.T().Fatalf("Command %s failed: %s", cmd.Path, exitError.Error())
+			suite.T().Fatalf("cluster_manager.py script failed: %s", exitError.Error())
 		}
 	}
 
@@ -112,6 +115,5 @@ func TestGlideTestSuite(t *testing.T) {
 }
 
 func (suite *GlideTestSuite) TearDownSuite() {
-	cmd := exec.Command("python3", "../../utils/cluster_manager.py", "stop", "--prefix", "redis-cluster", "--keep-folder")
-	runCommandWithOutput(suite, cmd, false)
+	runClusterManager(suite, []string{"stop", "--prefix", "redis-cluster", "--keep-folder"}, false)
 }
