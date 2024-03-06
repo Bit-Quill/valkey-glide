@@ -6,7 +6,7 @@ package api
 // #include "../lib.h"
 //
 // void successCallback(uintptr_t channelPtr, char *message);
-// void failureCallback(uintptr_t channelPtr, char *errMessage);
+// void failureCallback(uintptr_t channelPtr, struct RedisErrorFFI *cErr);
 import "C"
 
 import (
@@ -22,7 +22,7 @@ func successCallback(channelPtr C.uintptr_t, message *C.char) {
 }
 
 //export failureCallback
-func failureCallback(channelPtr C.uintptr_t, errMessage *C.char) {
+func failureCallback(channelPtr C.uintptr_t, cErr *C.RedisErrorFFI) {
 	// TODO: Implement this function when command logic is added
 	return
 }
@@ -44,19 +44,25 @@ func createClient(converter connectionRequestConverter) (unsafe.Pointer, error) 
 
 	byteCount := len(msg)
 	requestBytes := C.CBytes(msg)
-	CResponse := (*C.struct_ConnectionResponse)(C.create_client((*C.uchar)(requestBytes), C.uintptr_t(byteCount), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback))))
-	defer C.free(unsafe.Pointer(CResponse))
+	cResponse := (*C.struct_ConnectionResponse)(C.create_client((*C.uchar)(requestBytes), C.uintptr_t(byteCount), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback))))
+	defer C.free_connection_response(cResponse)
 
-	CErr := CResponse.error
-	if CErr != nil {
-		return nil, redisErrorFromCError(CErr)
+	cErr := cResponse.error
+	if cErr != nil {
+		defer C.free_error(cErr)
+		return nil, redisErrorFromCError(cErr)
 	}
 
-	return CResponse.conn_ptr, nil
+	return cResponse.conn_ptr, nil
 }
 
-// TODO: Is this doc accurate?
-// Close terminates the client by closing all associated resources, including the socket and any active channels.
-func (client *baseClient) Close() {
+// Close terminates the client by closing all associated resources.
+func (client *baseClient) Close() error {
+	if client.coreClient == nil {
+		return &GlideError{"The glide client was not open. Either it was not initialized, or it was already closed."}
+	}
+
 	C.close_client(client.coreClient)
+	client.coreClient = nil
+	return nil
 }

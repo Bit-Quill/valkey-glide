@@ -5,7 +5,12 @@ package api
 // #cgo LDFLAGS: -L../target/release -lglide_rs
 // #include "../lib.h"
 import "C"
-import "unsafe"
+
+type GlideError struct {
+	msg string
+}
+
+func (e GlideError) Error() string { return e.msg }
 
 type ClosingError struct {
 	msg string
@@ -52,13 +57,8 @@ func errorFromType(errorType C.enum_ErrorType, msg string) error {
 	}
 }
 
-func redisErrorFromCError(CErr *C.struct_RedisErrorFFI) error {
-	CMsg := (*CErr).message
-	defer C.free(unsafe.Pointer(CErr))
-	defer C.free(unsafe.Pointer(CMsg))
-
-	errorType := (*CErr).error_type
-	msg := C.GoString(CMsg)
-
+func redisErrorFromCError(cErr *C.struct_RedisErrorFFI) error {
+	errorType := cErr.error_type
+	msg := C.GoString(cErr.message)
 	return errorFromType(errorType, msg)
 }

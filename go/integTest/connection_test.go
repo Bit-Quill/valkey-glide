@@ -15,7 +15,8 @@ func (suite *GlideTestSuite) TestStandaloneConnect() {
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), client)
 
-	client.Close()
+	err = client.Close()
+	assert.Nil(suite.T(), err)
 }
 
 func (suite *GlideTestSuite) TestClusterConnect() {
@@ -29,5 +30,6 @@ func (suite *GlideTestSuite) TestClusterConnect() {
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), client)
 
-	client.Close()
+	err = client.Close()
+	assert.Nil(suite.T(), err)
 }
