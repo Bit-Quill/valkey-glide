@@ -16,6 +16,8 @@ pub type SuccessCallback =
     unsafe extern "C" fn(channel_address: usize, message: *const c_char) -> ();
 
 /// Failure callback that is called when a Redis command fails.
+///
+/// `error` should be manually freed by calling `free_error` after this callback is invoked, otherwise a memory leak will occur.
 pub type FailureCallback =
     unsafe extern "C" fn(channel_address: usize, error: *const RedisErrorFFI) -> ();
 
@@ -95,6 +97,8 @@ fn create_client_internal(
 }
 
 /// Creates a new client to the given address. The success callback needs to copy the given string synchronously, since it will be dropped by Rust once the callback returns. All callbacks should be offloaded to separate threads in order not to exhaust the client's thread pool.
+///
+/// The returned `ConnectionResponse` should be manually freed by calling `free_connection_response`, otherwise a memory leak will occur. It should be freed whether or not an error occurs.
 ///
 /// # Safety
 ///
