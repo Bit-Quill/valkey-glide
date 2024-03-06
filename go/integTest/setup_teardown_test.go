@@ -3,6 +3,7 @@
 package integTest
 
 import (
+	"errors"
 	"fmt"
 	"github.com/stretchr/testify/suite"
 	"log"
@@ -23,7 +24,8 @@ type GlideTestSuite struct {
 func (suite *GlideTestSuite) SetupSuite() {
 	// Stop cluster in case previous test run was interrupted or crashed and didn't stop.
 	// If an error occurs, we ignore it in case the servers actually were stopped before running this.
-	_ = exec.Command("python3", "../../utils/cluster_manager.py", "stop", "--prefix", "redis-cluster").Run()
+	cmd := exec.Command("python3", "../../utils/cluster_manager.py", "stop", "--prefix", "redis-cluster")
+	runCommandWithOutput(suite, cmd, true)
 
 	// Delete dirs if stop failed due to https://github.com/aws/glide-for-redis/issues/849
 	err := os.RemoveAll("../../utils/clusters")
@@ -32,30 +34,26 @@ func (suite *GlideTestSuite) SetupSuite() {
 	}
 
 	// Start standalone Redis instance
-	output, err := exec.Command("python3", "../../utils/cluster_manager.py", "start", "-r", "0").CombinedOutput()
-	if err != nil {
-		suite.T().Fatal(fmt.Sprint(err) + ": " + string(output))
-	}
+	cmd = exec.Command("python3", "../../utils/cluster_manager.py", "start", "-r", "0")
+	output := runCommandWithOutput(suite, cmd, false)
 
-	suite.standalonePorts = extractPorts(suite, string(output))
+	suite.standalonePorts = extractPorts(suite, output)
 	suite.T().Logf("Standalone ports = %s", fmt.Sprint(suite.standalonePorts))
 
 	// Start Redis cluster
-	output, err = exec.Command("python3", "../../utils/cluster_manager.py", "start", "--cluster-mode").CombinedOutput()
-	if err != nil {
-		suite.T().Fatal(fmt.Sprint(err) + ": " + string(output))
-	}
+	cmd = exec.Command("python3", "../../utils/cluster_manager.py", "start", "--cluster-mode")
+	output = runCommandWithOutput(suite, cmd, false)
 
-	suite.clusterPorts = extractPorts(suite, string(output))
+	suite.clusterPorts = extractPorts(suite, output)
 	suite.T().Logf("Cluster ports = %s", fmt.Sprint(suite.clusterPorts))
 
 	// Get Redis version
-	output, err = exec.Command("redis-server", "-v").CombinedOutput()
+	err = exec.Command("redis-server", "-v").Run()
 	if err != nil {
-		suite.T().Fatal(fmt.Sprint(err) + ": " + string(output))
+		suite.T().Fatal(err.Error())
 	}
 
-	suite.redisVersion = extractRedisVersion(string(output))
+	suite.redisVersion = extractRedisVersion(output)
 	suite.T().Logf("Redis version = %s", suite.redisVersion)
 }
 
@@ -82,8 +80,28 @@ func extractPorts(suite *GlideTestSuite, output string) []int {
 	return ports
 }
 
+func runCommandWithOutput(suite *GlideTestSuite, cmd *exec.Cmd, ignoreExitCode bool) string {
+	output, err := cmd.Output()
+	suite.T().Logf("%s stdout:\n====\n%s\n====\n", cmd.Path, string(output))
+
+	if err != nil {
+		var exitError *exec.ExitError
+		isExitError := errors.As(err, &exitError)
+		if !isExitError {
+			suite.T().Fatalf("Unexpected error while executing command %s: %s", cmd.Path, err.Error())
+		}
+
+		suite.T().Logf("%s stderr:\n====\n%s\n====\n", cmd.Path, string(exitError.Stderr))
+		if !ignoreExitCode {
+			suite.T().Fatalf("Command %s failed: %s", cmd.Path, exitError.Error())
+		}
+	}
+
+	return string(output)
+}
+
 func extractRedisVersion(output string) string {
-	// Expected line format:
+	// Expected output format:
 	// Redis server v=7.2.3 sha=00000000:0 malloc=jemalloc-5.3.0 bits=64 build=7504b1fedf883f2
 	versionSection := strings.Split(output, " ")[2]
 	return strings.Split(versionSection, "=")[1]
@@ -94,8 +112,6 @@ func TestGlideTestSuite(t *testing.T) {
 }
 
 func (suite *GlideTestSuite) TearDownSuite() {
-	output, err := exec.Command("python3", "../../utils/cluster_manager.py", "stop", "--prefix", "redis-cluster", "--keep-folder").CombinedOutput()
-	if err != nil {
-		suite.T().Fatal(fmt.Sprint(err) + ": " + string(output))
-	}
+	cmd := exec.Command("python3", "../../utils/cluster_manager.py", "stop", "--prefix", "redis-cluster", "--keep-folder")
+	runCommandWithOutput(suite, cmd, false)
 }
