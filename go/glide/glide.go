@@ -59,7 +59,7 @@ func failureCallback(channelPtr C.uintptr_t, errMessage *C.RedisErrorFFI) {
 func (glideRedisClient *GlideRedisClient) ConnectToRedis(request *protobuf.ConnectionRequest) error {
 	marshalledRequest, err := proto.Marshal(request)
 	if err != nil {
-		return fmt.Errorf("Failed to encode connection request:", err)
+		return fmt.Errorf("Failed to encode connection request: %v", err)
 	}
 	byteCount := len(marshalledRequest)
 	requestBytes := C.CBytes(marshalledRequest)
