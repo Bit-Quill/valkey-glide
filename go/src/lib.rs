@@ -49,6 +49,7 @@ pub enum ErrorType {
 }
 
 /// The glide client.
+#[allow(dead_code)]
 pub struct Client {
     client: GlideClient,
     success_callback: SuccessCallback,
