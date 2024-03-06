@@ -6,12 +6,14 @@ package api
 
 import "C"
 
+// RedisClient is a client used for connection to standalone Redis servers.
 type RedisClient struct {
 	baseClient
 }
 
-func CreateClient(converter connectionRequestConverter) (*RedisClient, error) {
-	connPtr, err := createClient(converter)
+// CreateClient creates a Redis client in standalone mode using the given [RedisClientConfiguration].
+func CreateClient(config RedisClientConfiguration) (*RedisClient, error) {
+	connPtr, err := createClient(&config)
 	if err != nil {
 		return nil, err
 	}

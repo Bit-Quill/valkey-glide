@@ -49,16 +49,14 @@ func createClient(converter connectionRequestConverter) (unsafe.Pointer, error) 
 
 	CErr := CResponse.error
 	if CErr != nil {
-		CMsg := (*CErr).message
-		msg := C.GoString(CMsg)
-		C.free(unsafe.Pointer(CMsg))
-		C.free(unsafe.Pointer(CErr))
-		return nil, &ClosingError{msg}
+		return nil, redisErrorFromCError(CErr)
 	}
 
 	return CResponse.conn_ptr, nil
 }
 
+// TODO: Is this doc accurate?
+// Close terminates the client by closing all associated resources, including the socket and any active channels.
 func (client *baseClient) Close() {
 	C.close_client(client.coreClient)
 }
