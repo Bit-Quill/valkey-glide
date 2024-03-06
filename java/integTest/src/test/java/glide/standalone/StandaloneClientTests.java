@@ -96,7 +96,7 @@ public class StandaloneClientTests {
     @ParameterizedTest
     @ValueSource(ints = {100, 2 ^ 16})
     public void client_can_handle_concurrent_workload(int valueSize) {
-        ExecutorService executorService = Executors.newFixedThreadPool(8);
+        ExecutorService executorService = Executors.newCachedThreadPool();
         RedisClient client = RedisClient.CreateClient(commonClientConfig().build()).get();
         CompletableFuture[] futures = new CompletableFuture[100];
 
