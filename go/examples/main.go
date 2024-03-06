@@ -19,7 +19,7 @@ func main() {
 		ClusterModeEnabled: false,
 		ReadFrom:           protobuf.ReadFrom_Primary,
 	}
-        request.Addresses = append(
+	request.Addresses = append(
 		request.Addresses,
 		&protobuf.NodeAddress{Host: "localhost", Port: uint32(6379)},
 	)
