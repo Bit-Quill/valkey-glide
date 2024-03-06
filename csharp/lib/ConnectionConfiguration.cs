@@ -8,7 +8,6 @@ namespace Glide;
 
 public abstract class ConnectionConfiguration
 {
-
     #region Structs and Enums definitions
     /// <summary>
     /// A mirror of <c>ConnectionRequest</c> from <c>connection_request.proto</c>.
@@ -16,18 +15,18 @@ public abstract class ConnectionConfiguration
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     internal struct ConnectionRequest
     {
-        public nuint address_count;
-        public IntPtr addresses; // ** NodeAddress - array pointer
-        public TlsMode tls_mode;
-        public bool cluster_mode;
-        public uint request_timeout;
-        public ReadFrom read_from;
-        public RetryStrategy connection_retry_strategy;
-        public AuthenticationInfo authentication_info;
-        public uint database_id;
-        public Protocol protocol;
+        public nuint AddressCount;
+        public IntPtr Addresses; // ** NodeAddress - array pointer
+        public TlsMode TlsMode;
+        public bool ClusterMode;
+        public uint RequestTimeout;
+        public ReadFrom ReadFrom;
+        public RetryStrategy ConnectionRetryStrategy;
+        public AuthenticationInfo AuthenticationInfo;
+        public uint DatabaseId;
+        public Protocol Protocol;
         [MarshalAs(UnmanagedType.LPStr)]
-        public string? client_name;
+        public string? ClientName;
     }
 
     /// <summary>
@@ -58,7 +57,7 @@ public abstract class ConnectionConfiguration
         /// where the time between retries increases. Once the retries have reached the maximum value, the
         /// time between retries will remain constant until a reconnect attempt is successful.
         /// </summary>
-        public uint Number_of_retries;
+        public uint NumberOfRetries;
         /// <summary>
         /// The multiplier that will be applied to the waiting time between each retry.
         /// </summary>
@@ -66,13 +65,13 @@ public abstract class ConnectionConfiguration
         /// <summary>
         /// The exponent base configured for the strategy.
         /// </summary>
-        public uint Exponent_base;
+        public uint ExponentBase;
 
         public RetryStrategy(uint number_of_retries, uint factor, uint exponent_base)
         {
-            Number_of_retries = number_of_retries;
+            NumberOfRetries = number_of_retries;
             Factor = factor;
-            Exponent_base = exponent_base;
+            ExponentBase = exponent_base;
         }
     }
 
@@ -96,7 +95,7 @@ public abstract class ConnectionConfiguration
     {
         NoTls = 0,
         SecureTls = 1,
-        InsecureTls = 2,
+        //InsecureTls = 2,
     }
 
     /// <summary>
@@ -113,8 +112,8 @@ public abstract class ConnectionConfiguration
         /// </summary>
         PreferReplica = 1,
         // TODO: doc or comment out/remove
-        LowestLatency = 2,
-        AZAffinity = 3,
+        //LowestLatency = 2,
+        //AZAffinity = 3,
     }
 
     /// <summary>
@@ -137,27 +136,30 @@ public abstract class ConnectionConfiguration
     private static readonly ushort DEFAULT_PORT = 6379;
 
     /// <summary>
+    /// Basic class which holds common configuration for all types of clients.<br />
+    /// Refer to derived classes for more details: <see cref="StandaloneClientConfiguration" /> and <see cref="ClusterClientConfiguration" />.
+    /// </summary>
+    public abstract class BaseClientConfiguration
+    {
+        internal ConnectionRequest Request;
+
+        internal ConnectionRequest ToRequest() => Request;
+    }
+
+    /// <summary>
     /// Configuration for a standalone client. Use <see cref="StandaloneClientConfigurationBuilder"/> to create an instance.
     /// </summary>
-    public sealed class StandaloneClientConfiguration : ConnectionConfiguration
+    public sealed class StandaloneClientConfiguration : BaseClientConfiguration
     {
-        internal ConnectionRequest request;
-
         internal StandaloneClientConfiguration() { }
-
-        internal ConnectionRequest Request() { return request; }
     }
 
     /// <summary>
     /// Configuration for a cluster client. Use <see cref="ClusterClientConfigurationBuilder"/> to create an instance.
     /// </summary>
-    public sealed class ClusterClientConfiguration : ConnectionConfiguration
+    public sealed class ClusterClientConfiguration : BaseClientConfiguration
     {
-        internal ConnectionRequest request;
-
         internal ClusterClientConfiguration() { }
-
-        internal ConnectionRequest Request() { return request; }
     }
 
     /// <summary>
@@ -167,13 +169,11 @@ public abstract class ConnectionConfiguration
     public abstract class ClientConfigurationBuilder<T> : IDisposable
         where T : ClientConfigurationBuilder<T>, new()
     {
-        internal ConnectionRequest config;
-
-        private bool built = false;
+        internal ConnectionRequest Config;
 
         protected ClientConfigurationBuilder(bool cluster_mode)
         {
-            config = new ConnectionRequest { cluster_mode = cluster_mode };
+            Config = new ConnectionRequest { ClusterMode = cluster_mode };
         }
 
         #region address
@@ -316,7 +316,7 @@ public abstract class ConnectionConfiguration
         {
             set
             {
-                config.tls_mode = value;
+                Config.TlsMode = value;
             }
         }
         /// <inheritdoc cref="TlsMode"/>
@@ -342,7 +342,7 @@ public abstract class ConnectionConfiguration
         {
             set
             {
-                config.request_timeout = value;
+                Config.RequestTimeout = value;
             }
         }
         /// <inheritdoc cref="RequestTimeout"/>
@@ -360,7 +360,7 @@ public abstract class ConnectionConfiguration
         {
             set
             {
-                config.read_from = value;
+                Config.ReadFrom = value;
             }
         }
         /// <inheritdoc cref="ReadFrom"/>
@@ -387,7 +387,7 @@ public abstract class ConnectionConfiguration
         {
             set
             {
-                config.authentication_info = new AuthenticationInfo
+                Config.AuthenticationInfo = new AuthenticationInfo
                     (
                         value.username,
                         value.password
@@ -419,7 +419,7 @@ public abstract class ConnectionConfiguration
         {
             set
             {
-                config.protocol = value;
+                Config.Protocol = value;
             }
         }
 
@@ -445,7 +445,7 @@ public abstract class ConnectionConfiguration
         {
             set
             {
-                config.client_name = value;
+                Config.ClientName = value;
             }
         }
 
@@ -461,22 +461,24 @@ public abstract class ConnectionConfiguration
 
         private void Clean()
         {
-            if (built)
-                Marshal.FreeHGlobal(config.addresses);
+            if (Config.Addresses != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(Config.Addresses);
+                Config.Addresses = IntPtr.Zero;
+            }
         }
 
         internal ConnectionRequest Build()
         {
             Clean(); // memory leak protection on rebuilding a config from the builder
-            built = true;
-            config.address_count = (uint)addresses.Count;
+            Config.AddressCount = (uint)addresses.Count;
             var address_size = Marshal.SizeOf(typeof(NodeAddress));
-            config.addresses = Marshal.AllocHGlobal(address_size * addresses.Count);
+            Config.Addresses = Marshal.AllocHGlobal(address_size * addresses.Count);
             for (int i = 0; i < addresses.Count; i++)
             {
-                Marshal.StructureToPtr(addresses[i], config.addresses + i * address_size, false);
+                Marshal.StructureToPtr(addresses[i], Config.Addresses + i * address_size, false);
             }
-            return config;
+            return Config;
         }
     }
 
@@ -490,12 +492,9 @@ public abstract class ConnectionConfiguration
         /// <summary>
         /// Complete the configuration with given settings.
         /// </summary>
-        public new StandaloneClientConfiguration Build()
-        {
-            return new StandaloneClientConfiguration() { request = base.Build() };
-        }
+        public new StandaloneClientConfiguration Build() => new() { Request = base.Build() };
 
-        #region DB ID
+        #region DataBase ID
         // TODO: not used
         /// <summary>
         /// Index of the logical database to connect to.
@@ -504,7 +503,7 @@ public abstract class ConnectionConfiguration
         {
             set
             {
-                config.database_id = value;
+                Config.DatabaseId = value;
             }
         }
         /// <inheritdoc cref="DataBaseId"/>
@@ -523,7 +522,7 @@ public abstract class ConnectionConfiguration
         {
             set
             {
-                config.connection_retry_strategy = value;
+                Config.ConnectionRetryStrategy = value;
             }
         }
         /// <inheritdoc cref="ConnectionRetryStrategy"/>
@@ -538,9 +537,9 @@ public abstract class ConnectionConfiguration
             return WithConnectionRetryStrategy(connection_retry_strategy);
         }
         /// <inheritdoc cref="ConnectionRetryStrategy"/>
-        /// <param name="number_of_retries"><inheritdoc cref="RetryStrategy.Number_of_retries" path="/summary"/></param>
+        /// <param name="number_of_retries"><inheritdoc cref="RetryStrategy.NumberOfRetries" path="/summary"/></param>
         /// <param name="factor"><inheritdoc cref="RetryStrategy.Factor" path="/summary"/></param>
-        /// <param name="exponent_base"><inheritdoc cref="RetryStrategy.Exponent_base" path="/summary"/></param>
+        /// <param name="exponent_base"><inheritdoc cref="RetryStrategy.ExponentBase" path="/summary"/></param>
         public StandaloneClientConfigurationBuilder WithConnectionRetryStrategy(uint number_of_retries, uint factor, uint exponent_base)
         {
             return WithConnectionRetryStrategy(new RetryStrategy(number_of_retries, factor, exponent_base));
@@ -559,9 +558,6 @@ public abstract class ConnectionConfiguration
         /// <summary>
         /// Complete the configuration with given settings.
         /// </summary>
-        public new ClusterClientConfiguration Build()
-        {
-            return new ClusterClientConfiguration() { request = base.Build() };
-        }
+        public new ClusterClientConfiguration Build() => new() { Request = base.Build() };
     }
 }

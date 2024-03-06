@@ -18,7 +18,7 @@ public class AsyncClient : IDisposable
         failureCallbackDelegate = FailureCallback;
         var failureCallbackPointer = Marshal.GetFunctionPointerForDelegate(failureCallbackDelegate);
         var configPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ConnectionRequest)));
-        Marshal.StructureToPtr(config.Request(), configPtr, false);
+        Marshal.StructureToPtr(config.ToRequest(), configPtr, false);
         clientPointer = CreateClientFfi(configPtr, successCallbackPointer, failureCallbackPointer);
         Marshal.FreeHGlobal(configPtr);
         if (clientPointer == IntPtr.Zero)
