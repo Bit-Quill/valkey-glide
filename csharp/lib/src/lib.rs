@@ -49,9 +49,8 @@ unsafe fn ptr_to_str(ptr: *const c_char) -> String {
 /// * `data` must not be null.
 /// * `data` must point to `len` consecutive properly initialized [`NodeAddress`](NodeAddress) structs.
 /// * Each [`NodeAddress`](NodeAddress) dereferenced by `data` must contain a valid string pointer. See the safety documentation of [`ptr_to_str`](ptr_to_str).
-#[allow(rustdoc::private_intra_doc_links)]
 #[allow(rustdoc::redundant_explicit_links)]
-pub unsafe fn node_addresses_to_proto(
+unsafe fn node_addresses_to_proto(
     data: *const *const NodeAddress,
     len: usize,
 ) -> Vec<connection_request::NodeAddress> {
