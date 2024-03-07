@@ -10,7 +10,7 @@ public abstract class ConnectionConfiguration
 {
     #region Structs and Enums definitions
     /// <summary>
-    /// A mirror of <c>ConnectionRequest</c> from <c>connection_request.proto</c>.
+    /// A mirror of <c>ConnectionRequest</c> from <a href="https://github.com/aws/glide-for-redis/blob/main/glide-core/src/protobuf/connection_request.proto"><c>connection_request.proto</c></a>.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     internal struct ConnectionRequest
