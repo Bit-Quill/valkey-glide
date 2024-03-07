@@ -1,8 +1,8 @@
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
-pub mod connection;
-use connection::{ConnectionConfig, NodeAddress, ProtocolVersion, ReadFrom, TlsMode};
+pub mod configuration;
+use configuration::{ConnectionConfig, NodeAddress, ProtocolVersion, ReadFrom, TlsMode};
 
 use glide_core::client::Client as GlideClient;
 use glide_core::connection_request;
@@ -32,7 +32,7 @@ pub struct Client {
 ///
 /// # Safety
 ///
-/// * `ptr` must be able to be safely casted to a valid `CString` via `CString::from_raw` if `ptr` is not null. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+/// * `ptr` must be able to be safely casted to a valid `CStr` via `CStr::from_ptr`. See the safety documentation of [`std::ffi::CStr::from_ptr`](https://doc.rust-lang.org/std/ffi/struct.CStr.html#method.from_ptr).
 unsafe fn ptr_to_str(ptr: *const c_char) -> String {
     if ptr as i64 != 0 {
         unsafe { CStr::from_ptr(ptr) }.to_str().unwrap().into()
@@ -70,7 +70,7 @@ unsafe fn node_addresses_to_proto(
 /// # Safety
 ///
 /// * `config` must not be null.
-/// * `config` must be a valid pointer to a [`ConnectionConfig`](ConnectionConfig) struct. See the safety documentation of [`std::ptr`](https://doc.rust-lang.org/std/ptr/index.html#safety).
+/// * `config` must be a valid pointer to a [`ConnectionConfig`](ConnectionConfig) struct.
 /// * Dereferenced [`ConnectionConfig`](ConnectionConfig) struct and all nested structs must contain valid pointers. See the safety documentation of [`node_addresses_to_proto`](node_addresses_to_proto) and [`ptr_to_str`](ptr_to_str).
 #[allow(rustdoc::redundant_explicit_links)]
 unsafe fn create_connection_request(
@@ -147,7 +147,7 @@ unsafe fn create_client_internal(
     })
 }
 
-/// Creates a new client to the configuration. The success callback needs to copy the given string synchronously, since it will be dropped by Rust once the callback returns. All callbacks should be offloaded to separate threads in order not to exhaust the client's thread pool.
+/// Creates a new client with the given configuration. The success callback needs to copy the given string synchronously, since it will be dropped by Rust once the callback returns. All callbacks should be offloaded to separate threads in order not to exhaust the client's thread pool.
 ///
 /// # Safety
 ///
@@ -186,7 +186,7 @@ pub unsafe extern "C" fn close_client(client_ptr: *const c_void) {
 /// * `client_ptr` must not be null.
 /// * `client_ptr` must be able to be safely casted to a valid `Box<Client>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
 /// * `key` and `value` must not be null.
-/// * `key` and `value` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+/// * `key` and `value` must be able to be safely casted to a valid `CStr` via `CStr::from_ptr`. See the safety documentation of [`std::ffi::CStr::from_ptr`](https://doc.rust-lang.org/std/ffi/struct.CStr.html#method.from_ptr).
 /// * `key` and `value` must be kept valid until the callback is called.
 #[no_mangle]
 pub unsafe extern "C" fn set(
@@ -225,7 +225,7 @@ pub unsafe extern "C" fn set(
 /// * `client_ptr` must not be null.
 /// * `client_ptr` must be able to be safely casted to a valid `Box<Client>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
 /// * `key` must not be null.
-/// * `key` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+/// * `key` must be able to be safely casted to a valid `CStr` via `CStr::from_ptr`. See the safety documentation of [`std::ffi::CStr::from_ptr`](https://doc.rust-lang.org/std/ffi/struct.CStr.html#method.from_ptr).
 /// * `key` must be kept valid until the callback is called.
 /// * If the callback is called with a string pointer, the pointer must be used synchronously, because the string will be dropped after the callback.
 #[no_mangle]
@@ -288,7 +288,7 @@ impl From<Level> for logger_core::Level {
 /// # Safety
 ///
 /// * `message` must not be null.
-/// * `message` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+/// * `message` must be able to be safely casted to a valid `CStr` via `CStr::from_ptr`. See the safety documentation of [`std::ffi::CStr::from_ptr`](https://doc.rust-lang.org/std/ffi/struct.CStr.html#method.from_ptr).
 #[no_mangle]
 #[allow(improper_ctypes_definitions)]
 pub unsafe extern "C" fn log(
@@ -312,7 +312,7 @@ pub unsafe extern "C" fn log(
 /// # Safety
 ///
 /// * `file_name` must not be null.
-/// * `file_name` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+/// * `file_name` must be able to be safely casted to a valid `CStr` via `CStr::from_ptr`. See the safety documentation of [`std::ffi::CStr::from_ptr`](https://doc.rust-lang.org/std/ffi/struct.CStr.html#method.from_ptr).
 #[no_mangle]
 #[allow(improper_ctypes_definitions)]
 pub unsafe extern "C" fn init(level: Option<Level>, file_name: *const c_char) -> Level {
