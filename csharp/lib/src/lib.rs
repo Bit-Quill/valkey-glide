@@ -1,7 +1,7 @@
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
-mod connection;
+pub mod connection;
 use connection::{ConnectionConfig, NodeAddress, ProtocolVersion, ReadFrom, TlsMode};
 
 use glide_core::client::Client as GlideClient;
@@ -49,6 +49,8 @@ unsafe fn ptr_to_str(ptr: *const c_char) -> String {
 /// * `data` must not be null.
 /// * `data` must point to `len` consecutive properly initialized [`NodeAddress`](NodeAddress) structs.
 /// * Each [`NodeAddress`](NodeAddress) dereferenced by `data` must contain a valid string pointer. See the safety documentation of [`ptr_to_str`](ptr_to_str).
+#[allow(rustdoc::private_intra_doc_links)]
+#[allow(rustdoc::redundant_explicit_links)]
 pub unsafe fn node_addresses_to_proto(
     data: *const *const NodeAddress,
     len: usize,
@@ -71,6 +73,7 @@ pub unsafe fn node_addresses_to_proto(
 /// * `config` must not be null.
 /// * `config` must be a valid pointer to a [`ConnectionConfig`](ConnectionConfig) struct. See the safety documentation of [`std::ptr`](https://doc.rust-lang.org/std/ptr/index.html#safety).
 /// * Dereferenced [`ConnectionConfig`](ConnectionConfig) struct and all nested structs must contain valid pointers. See the safety documentation of [`node_addresses_to_proto`](node_addresses_to_proto) and [`ptr_to_str`](ptr_to_str).
+#[allow(rustdoc::redundant_explicit_links)]
 unsafe fn create_connection_request(
     config: *const ConnectionConfig,
 ) -> connection_request::ConnectionRequest {
@@ -124,6 +127,7 @@ unsafe fn create_connection_request(
 /// # Safety
 ///
 /// * `config` must be a valid `ConnectionConfig` pointer. See the safety documentation of [`create_connection_request`](create_connection_request).
+#[allow(rustdoc::redundant_explicit_links)]
 unsafe fn create_client_internal(
     config: *const ConnectionConfig,
     success_callback: unsafe extern "C" fn(usize, *const c_char) -> (),
@@ -149,6 +153,8 @@ unsafe fn create_client_internal(
 /// # Safety
 ///
 /// * `config` must be a valid `ConnectionConfig` pointer. See the safety documentation of [`create_client_internal`](create_client_internal).
+#[allow(rustdoc::redundant_explicit_links)]
+#[allow(rustdoc::private_intra_doc_links)]
 #[no_mangle]
 pub unsafe extern "C" fn create_client(
     config: *const ConnectionConfig,
