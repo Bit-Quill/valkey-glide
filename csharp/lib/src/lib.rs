@@ -2,8 +2,9 @@
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
 use glide_core::connection_request;
+use glide_core::errors::{error_message, error_type, RequestErrorType};
 use glide_core::{client::Client as GlideClient, connection_request::NodeAddress};
-use redis::{Cmd, FromRedisValue, RedisError, RedisResult};
+use redis::{Cmd, FromRedisValue, RedisResult};
 use std::{
     ffi::{c_void, CStr, CString},
     os::raw::c_char,
@@ -19,19 +20,10 @@ pub enum Level {
     Trace = 4,
 }
 
-#[repr(u32)]
-pub enum ErrorType {
-    ClosingError = 0,
-    TimeoutError = 1,
-    ExecAbortError = 2,
-    ConnectionError = 3,
-    Unspecified = 4 // TODO rename
-}
-
 pub struct Client {
     client: GlideClient,
     success_callback: unsafe extern "C" fn(usize, *const c_char) -> (),
-    failure_callback: unsafe extern "C" fn(usize, ErrorType, *const c_char) -> (),
+    failure_callback: unsafe extern "C" fn(usize, RequestErrorType, *const c_char) -> (),
     runtime: Runtime,
 }
 
@@ -61,7 +53,7 @@ fn create_client_internal(
     port: u32,
     use_tls: bool,
     success_callback: unsafe extern "C" fn(usize, *const c_char) -> (),
-    failure_callback: unsafe extern "C" fn(usize, ErrorType, *const c_char) -> (),
+    failure_callback: unsafe extern "C" fn(usize, RequestErrorType, *const c_char) -> (),
 ) -> RedisResult<Client> {
     let host_cstring = unsafe { CStr::from_ptr(host as *mut c_char) };
     let host_string = host_cstring.to_str()?.to_string();
@@ -87,7 +79,7 @@ pub extern "C" fn create_client(
     port: u32,
     use_tls: bool,
     success_callback: unsafe extern "C" fn(usize, *const c_char) -> (),
-    failure_callback: unsafe extern "C" fn(usize, ErrorType, *const c_char) -> (),
+    failure_callback: unsafe extern "C" fn(usize, RequestErrorType, *const c_char) -> (),
 ) -> *const c_void {
     match create_client_internal(host, port, use_tls, success_callback, failure_callback) {
         Err(_) => std::ptr::null(), // TODO - log errors
@@ -128,8 +120,9 @@ pub extern "C" fn set(
             match result {
                 Ok(_) => (client.success_callback)(callback_index, std::ptr::null()), // TODO - should return "OK" string.
                 Err(err) => {
-                    let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
-                    (client.failure_callback)(callback_index, redis_error_to_ffi_error(err), c_err_str.as_ptr())
+                    logger_core::log_debug("command error", format!("callback {}, error {}, kind {:?}, code {:?}, category {:?}, detail {:?}", callback_index, err, err.kind(), err.code(), err.category(), err.detail()));
+                    let c_err_str = CString::new(error_message(&err)).expect("CString::new failed");
+                    (client.failure_callback)(callback_index, error_type(&err), c_err_str.as_ptr())
                 }
             };
         }
@@ -156,8 +149,9 @@ pub extern "C" fn get(client_ptr: *const c_void, callback_index: usize, key: *co
             Ok(value) => value,
             Err(err) => {
                 unsafe {
-                    let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
-                    (client.failure_callback)(callback_index, redis_error_to_ffi_error(err), c_err_str.as_ptr())
+                    logger_core::log_debug("command error", format!("callback {}, error {}, kind {:?}, code {:?}, category {:?}, detail {:?}", callback_index, err, err.kind(), err.code(), err.category(), err.detail()));
+                    let c_err_str = CString::new(error_message(&err)).expect("CString::new failed");
+                    (client.failure_callback)(callback_index, error_type(&err), c_err_str.as_ptr())
                 };
                 return;
             }
@@ -169,31 +163,13 @@ pub extern "C" fn get(client_ptr: *const c_void, callback_index: usize, key: *co
                 Ok(None) => (client.success_callback)(callback_index, std::ptr::null()),
                 Ok(Some(c_str)) => (client.success_callback)(callback_index, c_str.as_ptr()),
                 Err(err) => {
-                    let c_err_str = CString::new(err.to_string()).expect("CString::new failed");
-                    (client.failure_callback)(callback_index, redis_error_to_ffi_error(err), c_err_str.as_ptr())
+                    logger_core::log_debug("command error", format!("callback {}, error {}, kind {:?}, code {:?}, category {:?}, detail {:?}", callback_index, err, err.kind(), err.code(), err.category(), err.detail()));
+                    let c_err_str = CString::new(error_message(&err)).expect("CString::new failed");
+                    (client.failure_callback)(callback_index, error_type(&err), c_err_str.as_ptr())
                 }
             };
         }
     });
-}
-
-fn redis_error_to_ffi_error(err : RedisError) -> ErrorType {
-    logger_core::log_error("=== err", format!("{}, kind {:?}, code {:?}, category {:?}, detail {:?}", err, err.kind(), err.code(), err.category(), err.detail()));
-
-    if err.is_connection_dropped() {
-        ErrorType::ConnectionError
-    } else if err.is_timeout() {
-        ErrorType::TimeoutError
-    } else if err.kind() == redis::ErrorKind::ExecAbortError {
-        ErrorType::ExecAbortError
-    } else {
-        ErrorType::Unspecified
-    }
-    // TODO Closing error when
-    //  - unknown request type
-    //  - failed to parse args
-    //  - failed to parse route
-    //  - empty request
 }
 
 impl From<logger_core::Level> for Level {

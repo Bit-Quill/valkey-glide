@@ -97,6 +97,12 @@ public class AsyncClient : IDisposable
     #region FFI function declarations
 
     private delegate void StringAction(ulong index, IntPtr str);
+    /// <summary>
+    /// Glide request failure callback.
+    /// </summary>
+    /// <param name="index">Request ID</param>
+    /// <param name="error_type">Error type</param>
+    /// <param name="error">Error message</param>
     private delegate void FailureAction(ulong index, ErrorType error_type, IntPtr error);
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "get")]
     private static extern void GetFfi(IntPtr client, ulong index, IntPtr key);
@@ -111,13 +117,12 @@ public class AsyncClient : IDisposable
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "close_client")]
     private static extern void CloseClientFfi(IntPtr client);
 
-    enum ErrorType : uint
+    internal enum ErrorType : uint
     {
-        ClosingError = 0,
-        TimeoutError = 1,
-        ExecAbortError = 2,
-        ConnectionError = 3,
-        Unspecified = 4 // TODO rename
+        Unspecified = 0,
+        ExecAbort = 1,
+        Timeout = 2,
+        Disconnect = 3,
     }
 
     #endregion
