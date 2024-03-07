@@ -60,7 +60,6 @@ func (glideRedisClient *GlideRedisClient) ConnectToRedis(request *protobuf.Conne
 	response := (*C.struct_ConnectionResponse)(C.create_client((*C.uchar)(requestBytes), C.uintptr_t(byteCount), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback))))
 	defer C.free_connection_response(response)
 	if response.error_message != nil {
-		defer C.free_error(response.error_message)
 		return fmt.Errorf(C.GoString(response.error_message))
 	}
 	glideRedisClient.coreClient = response.conn_ptr

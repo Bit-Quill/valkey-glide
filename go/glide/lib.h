@@ -75,15 +75,6 @@ void close_client(const void *client_ptr);
  *
  * * `connection_response_ptr` must be able to be safely casted to a valid `Box<ConnectionResponse>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
  * * `connection_response_ptr` must not be null.
+ * * The contained `error_message` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
  */
 void free_connection_response(const struct ConnectionResponse *connection_response_ptr);
-
-/**
- * Deallocates an error message `CString`.
- *
- * # Safety
- *
- * * `error_msg_ptr` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
- * * `error_msg_ptr` must not be null.
- */
-void free_error(const char *error_msg_ptr);
