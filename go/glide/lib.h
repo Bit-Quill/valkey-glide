@@ -69,7 +69,7 @@ void close_client(const void *client_ptr);
  *
  * # Safety
  *
- * * `connection_response_ptr` must be able to be safely casted to a valid `Box<RedisErrorFFI>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
+ * * `connection_response_ptr` must be able to be safely casted to a valid `Box<ConnectionResponse>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
  * * `connection_response_ptr` must not be null.
  */
 void free_connection_response(const struct ConnectionResponse *connection_response_ptr);
