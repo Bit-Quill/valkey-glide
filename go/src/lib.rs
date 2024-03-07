@@ -136,7 +136,7 @@ pub unsafe extern "C" fn close_client(client_ptr: *const c_void) {
 ///
 /// # Safety
 ///
-/// * `connection_response_ptr` must be able to be safely casted to a valid `Box<RedisErrorFFI>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
+/// * `connection_response_ptr` must be able to be safely casted to a valid `Box<ConnectionResponse>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
 /// * `connection_response_ptr` must not be null.
 #[no_mangle]
 pub unsafe extern "C" fn free_connection_response(
