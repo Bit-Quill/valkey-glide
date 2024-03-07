@@ -8,7 +8,7 @@ package glide
 #include "lib.h"
 
 void successCallback(uintptr_t channelPtr, char *message);
-void failureCallback(uintptr_t channelPtr, struct RedisErrorFFI *errMessage);
+void failureCallback(uintptr_t channelPtr, char *errMessage, RequestErrorType errType);
 */
 import "C"
 
@@ -46,7 +46,7 @@ func successCallback(channelPtr C.uintptr_t, message *C.char) {
 }
 
 //export failureCallback
-func failureCallback(channelPtr C.uintptr_t, errMessage *C.RedisErrorFFI) {
+func failureCallback(channelPtr C.uintptr_t, errMessage *C.char, errType C.RequestErrorType) {
 	// TODO: Implement when we implement the command logic
 }
 
@@ -59,9 +59,9 @@ func (glideRedisClient *GlideRedisClient) ConnectToRedis(request *protobuf.Conne
 	requestBytes := C.CBytes(marshalledRequest)
 	response := (*C.struct_ConnectionResponse)(C.create_client((*C.uchar)(requestBytes), C.uintptr_t(byteCount), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback))))
 	defer C.free_connection_response(response)
-	if response.error != nil {
-		defer C.free_error(response.error)
-		return fmt.Errorf(C.GoString(response.error.message))
+	if response.error_message != nil {
+		defer C.free_error(response.error_message)
+		return fmt.Errorf(C.GoString(response.error_message))
 	}
 	glideRedisClient.coreClient = response.conn_ptr
 	return nil

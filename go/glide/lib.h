@@ -1,26 +1,18 @@
+/*
+ * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
+ */
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-/**
- * FFI compatible version of the ErrorType enum defined in protobuf.
- */
-typedef enum ErrorType {
-  ClosingError = 0,
-  RequestError = 1,
-  TimeoutError = 2,
-  ExecAbortError = 3,
-  ConnectionError = 4,
-} ErrorType;
-
-/**
- * A Redis error.
- */
-typedef struct RedisErrorFFI {
-  const char *message;
-  enum ErrorType error_type;
-} RedisErrorFFI;
+typedef enum RequestErrorType {
+  Unspecified = 0,
+  ExecAbort = 1,
+  Timeout = 2,
+  Disconnect = 3,
+} RequestErrorType;
 
 /**
  * The connection response.
@@ -29,7 +21,8 @@ typedef struct RedisErrorFFI {
  */
 typedef struct ConnectionResponse {
   const void *conn_ptr;
-  const struct RedisErrorFFI *error;
+  const char *error_message;
+  RequestErrorType error_type;
 } ConnectionResponse;
 
 /**
@@ -39,11 +32,17 @@ typedef void (*SuccessCallback)(uintptr_t channel_address, const char *message);
 
 /**
  * Failure callback that is called when a Redis command fails.
+ *
+ * `error` should be manually freed by calling `free_error` after this callback is invoked, otherwise a memory leak will occur.
  */
-typedef void (*FailureCallback)(uintptr_t channel_address, const struct RedisErrorFFI *error);
+typedef void (*FailureCallback)(uintptr_t channel_address,
+                                const char *error_message,
+                                RequestErrorType error_type);
 
 /**
  * Creates a new client to the given address. The success callback needs to copy the given string synchronously, since it will be dropped by Rust once the callback returns. All callbacks should be offloaded to separate threads in order not to exhaust the client's thread pool.
+ *
+ * The returned `ConnectionResponse` should be manually freed by calling `free_connection_response`, otherwise a memory leak will occur. It should be freed whether or not an error occurs.
  *
  * # Safety
  *
@@ -76,13 +75,11 @@ void close_client(const void *client_ptr);
 void free_connection_response(const struct ConnectionResponse *connection_response_ptr);
 
 /**
- * Deallocates a `RedisErrorFFI`.
+ * Deallocates an error message `CString`.
  *
  * # Safety
  *
- * * `error_ptr` must be able to be safely casted to a valid `Box<RedisErrorFFI>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
- * * The error message must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
- * * `error_ptr` must not be null.
- * * The error message pointer must not be null.
+ * * `error_msg_ptr` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+ * * `error_msg_ptr` must not be null.
  */
-void free_error(const struct RedisErrorFFI *error_ptr);
+void free_error(const char *error_msg_ptr);

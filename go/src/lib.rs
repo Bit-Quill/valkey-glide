@@ -3,6 +3,8 @@
  */
 use glide_core::client::Client as GlideClient;
 use glide_core::connection_request;
+use glide_core::errors;
+use glide_core::errors::RequestErrorType;
 use protobuf::Message;
 use std::{
     ffi::{c_void, CString},
@@ -12,14 +14,18 @@ use tokio::runtime::Builder;
 use tokio::runtime::Runtime;
 
 /// Success callback that is called when a Redis command succeeds.
+// TODO: Change message type when implementing command logic
 pub type SuccessCallback =
     unsafe extern "C" fn(channel_address: usize, message: *const c_char) -> ();
 
 /// Failure callback that is called when a Redis command fails.
 ///
 /// `error` should be manually freed by calling `free_error` after this callback is invoked, otherwise a memory leak will occur.
-pub type FailureCallback =
-    unsafe extern "C" fn(channel_address: usize, error: *const RedisErrorFFI) -> ();
+pub type FailureCallback = unsafe extern "C" fn(
+    channel_address: usize,
+    error_message: *const c_char,
+    error_type: RequestErrorType,
+) -> ();
 
 /// The connection response.
 ///
@@ -27,25 +33,8 @@ pub type FailureCallback =
 #[repr(C)]
 pub struct ConnectionResponse {
     conn_ptr: *const c_void,
-    error: *const RedisErrorFFI,
-}
-
-/// A Redis error.
-#[repr(C)]
-pub struct RedisErrorFFI {
-    message: *const c_char,
-    error_type: ErrorType,
-}
-
-/// FFI compatible version of the ErrorType enum defined in protobuf.
-// TODO: Update when command errors are implemented
-#[repr(C)]
-pub enum ErrorType {
-    ClosingError = 0,
-    RequestError = 1,
-    TimeoutError = 2,
-    ExecAbortError = 3,
-    ConnectionError = 4,
+    error_message: *const c_char,
+    error_type: RequestErrorType,
 }
 
 /// The glide client.
@@ -57,38 +46,39 @@ pub struct Client {
     runtime: Runtime,
 }
 
+struct CreateClientError {
+    message: String,
+    error_type: RequestErrorType,
+}
+
 fn create_client_internal(
     connection_request_bytes: &[u8],
     success_callback: SuccessCallback,
     failure_callback: FailureCallback,
-) -> Result<Client, RedisErrorFFI> {
+) -> Result<Client, CreateClientError> {
     let request = connection_request::ConnectionRequest::parse_from_bytes(connection_request_bytes)
-        .map_err(|err| {
-            let msg = CString::new(err.to_string()).unwrap();
-            RedisErrorFFI {
-                message: msg.into_raw(),
-                error_type: ErrorType::ConnectionError,
-            }
+        .map_err(|err| CreateClientError {
+            message: err.to_string(),
+            error_type: RequestErrorType::Unspecified,
         })?;
     let runtime = Builder::new_multi_thread()
         .enable_all()
         .thread_name("GLIDE for Redis Go thread")
         .build()
         .map_err(|err| {
-            let msg = CString::new(err.to_string()).unwrap();
-            RedisErrorFFI {
-                message: msg.into_raw(),
-                error_type: ErrorType::ConnectionError,
+            let redis_error = err.into();
+            CreateClientError {
+                message: errors::error_message(&redis_error),
+                error_type: errors::error_type(&redis_error),
             }
         })?;
     let _runtime_handle = runtime.enter();
-    let client = runtime.block_on(GlideClient::new(request)).map_err(|err| {
-        let msg = CString::new(err.to_string()).unwrap();
-        RedisErrorFFI {
-            message: msg.into_raw(),
-            error_type: ErrorType::ConnectionError,
-        }
-    })?;
+    let client = runtime
+        .block_on(GlideClient::new(request))
+        .map_err(|err| CreateClientError {
+            message: err.to_string(),
+            error_type: RequestErrorType::Disconnect,
+        })?;
     Ok(Client {
         client,
         success_callback,
@@ -117,11 +107,13 @@ pub unsafe extern "C" fn create_client(
     let response = match create_client_internal(request_bytes, success_callback, failure_callback) {
         Err(err) => ConnectionResponse {
             conn_ptr: std::ptr::null(),
-            error: Box::into_raw(Box::new(err)) as *const RedisErrorFFI,
+            error_message: CString::into_raw(CString::new(err.message).unwrap()),
+            error_type: err.error_type,
         },
         Ok(client) => ConnectionResponse {
             conn_ptr: Box::into_raw(Box::new(client)) as *const c_void,
-            error: std::ptr::null(),
+            error_message: std::ptr::null(),
+            error_type: RequestErrorType::Unspecified,
         },
     };
     Box::into_raw(Box::new(response))
@@ -155,18 +147,14 @@ pub unsafe extern "C" fn free_connection_response(
     drop(connection_response);
 }
 
-/// Deallocates a `RedisErrorFFI`.
+/// Deallocates an error message `CString`.
 ///
 /// # Safety
 ///
-/// * `error_ptr` must be able to be safely casted to a valid `Box<RedisErrorFFI>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
-/// * The error message must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
-/// * `error_ptr` must not be null.
-/// * The error message pointer must not be null.
+/// * `error_msg_ptr` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+/// * `error_msg_ptr` must not be null.
 #[no_mangle]
-pub unsafe extern "C" fn free_error(error_ptr: *const RedisErrorFFI) {
-    let error = unsafe { Box::from_raw(error_ptr as *mut RedisErrorFFI) };
-    let error_msg = unsafe { CString::from_raw(error.message as *mut c_char) };
-    drop(error);
+pub unsafe extern "C" fn free_error(error_msg_ptr: *const c_char) {
+    let error_msg = unsafe { CString::from_raw(error_msg_ptr as *mut c_char) };
     drop(error_msg);
 }
