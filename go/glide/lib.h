@@ -17,7 +17,7 @@ typedef enum RequestErrorType {
 /**
  * The connection response.
  *
- * It contains either a connection or an error. It is represented as a struct instead of an enum for ease of use in the wrapper language.
+ * It contains either a connection or an error. It is represented as a struct instead of a union for ease of use in the wrapper language.
  */
 typedef struct ConnectionResponse {
   const void *conn_ptr;
