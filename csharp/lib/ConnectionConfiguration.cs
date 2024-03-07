@@ -81,9 +81,9 @@ public abstract class ConnectionConfiguration
         [MarshalAs(UnmanagedType.LPStr)]
         public string? Username;
         [MarshalAs(UnmanagedType.LPStr)]
-        public string? Password;
+        public string Password;
 
-        public AuthenticationInfo(string? username, string? password)
+        public AuthenticationInfo(string? username, string password)
         {
             Username = username;
             Password = password;
@@ -383,7 +383,7 @@ public abstract class ConnectionConfiguration
         /// <c>username</c> The username that will be used for authenticating connections to the Redis servers. If not supplied, <c>"default"</c> will be used.<br />
         /// <c>password</c> The password that will be used for authenticating connections to the Redis servers.
         /// </value>
-        public (string? username, string? password) Authentication
+        public (string? username, string password) Authentication
         {
             set
             {
@@ -399,13 +399,13 @@ public abstract class ConnectionConfiguration
         /// </summary>
         /// <param name="username">The username that will be used for authenticating connections to the Redis servers. If not supplied, <c>"default"</c> will be used.></param>
         /// <param name="password">The password that will be used for authenticating connections to the Redis servers.</param>
-        public T WithAuthentication(string? username, string? password)
+        public T WithAuthentication(string? username, string password)
         {
             Authentication = (username, password);
             return (T)this;
         }
         /// <inheritdoc cref="Authentication"/>
-        public T WithAuthentication((string? username, string? password) credentials)
+        public T WithAuthentication((string? username, string password) credentials)
         {
             return WithAuthentication(credentials.username, credentials.password);
         }

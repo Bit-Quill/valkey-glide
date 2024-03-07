@@ -32,8 +32,7 @@ pub struct Client {
 ///
 /// # Safety
 ///
-/// * `ptr` must not be null.
-/// * `ptr` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+/// * `ptr` must be able to be safely casted to a valid `CString` via `CString::from_raw` if `ptr` is not null. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
 unsafe fn ptr_to_str(ptr: *const c_char) -> String {
     if ptr as i64 != 0 {
         unsafe { CStr::from_ptr(ptr) }.to_str().unwrap().into()
@@ -49,9 +48,7 @@ unsafe fn ptr_to_str(ptr: *const c_char) -> String {
 /// * `len` must not be greater than `isize::MAX`. See the safety documentation of [`std::slice::from_raw_parts`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html).
 /// * `data` must not be null.
 /// * `data` must point to `len` consecutive properly initialized [`NodeAddress`](NodeAddress) structs.
-/// * Each [`NodeAddress`](NodeAddress) dereferenced by `data` contains a string pointer which
-///    * must not be null.
-///    * must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+/// * Each [`NodeAddress`](NodeAddress) dereferenced by `data` must contain a valid string pointer. See the safety documentation of [`ptr_to_str`](ptr_to_str).
 pub unsafe fn node_addresses_to_proto(
     data: *const *const NodeAddress,
     len: usize,
