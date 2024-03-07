@@ -229,21 +229,9 @@ public class ClusterClientTests {
         client.close();
     }
 
-    @Test
-    @SneakyThrows
-    public void close_client_throws_ExecutionException_with_ClosingException_cause() {
-        RedisClusterClient client =
-                RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get();
-
-        client.close();
-        ExecutionException executionException =
-                assertThrows(ExecutionException.class, () -> client.set("foo", "bar").get());
-        assertTrue(executionException.getCause() instanceof ClosingException);
-    }
-
     @SneakyThrows
     @Test
-    public void custom_command_info() {
+    public void client_name() {
         RedisClusterClient client =
                 RedisClusterClient.CreateClient(
                                 commonClusterClientConfig().clientName("TEST_CLIENT_NAME").build())
@@ -254,5 +242,17 @@ public class ClusterClientTests {
         assertTrue(clientInfo.contains("name=TEST_CLIENT_NAME"));
 
         client.close();
+    }
+
+    @Test
+    @SneakyThrows
+    public void close_client_throws_ExecutionException_with_ClosingException_cause() {
+        RedisClusterClient client =
+                RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get();
+
+        client.close();
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.set("foo", "bar").get());
+        assertTrue(executionException.getCause() instanceof ClosingException);
     }
 }

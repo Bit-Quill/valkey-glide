@@ -220,6 +220,18 @@ public class StandaloneClientTests {
         client.close();
     }
 
+    @SneakyThrows
+    @Test
+    public void client_name() {
+        RedisClient client =
+                RedisClient.CreateClient(commonClientConfig().clientName("TEST_CLIENT_NAME").build()).get();
+
+        String clientInfo = (String) client.customCommand(new String[] {"CLIENT", "INFO"}).get();
+        assertTrue(clientInfo.contains("name=TEST_CLIENT_NAME"));
+
+        client.close();
+    }
+
     @Test
     @SneakyThrows
     public void close_client_throws_ExecutionException_with_ClosingException_cause() {
@@ -229,17 +241,5 @@ public class StandaloneClientTests {
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.set("key", "value").get());
         assertTrue(executionException.getCause() instanceof ClosingException);
-    }
-
-    @SneakyThrows
-    @Test
-    public void custom_command_info() {
-        RedisClient client =
-                RedisClient.CreateClient(commonClientConfig().clientName("TEST_CLIENT_NAME").build()).get();
-
-        String clientInfo = (String) client.customCommand(new String[] {"CLIENT", "INFO"}).get();
-        assertTrue(clientInfo.contains("name=TEST_CLIENT_NAME"));
-
-        client.close();
     }
 }
