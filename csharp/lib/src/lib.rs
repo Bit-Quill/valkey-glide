@@ -189,7 +189,7 @@ pub unsafe extern "C" fn close_client(client_ptr: *const c_void) {
 /// * `key` and `value` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
 /// * `key` and `value` must be kept valid until the callback is called.
 #[no_mangle]
-pub extern "C" fn set(
+pub unsafe extern "C" fn set(
     client_ptr: *const c_void,
     callback_index: usize,
     key: *const c_char,
@@ -229,7 +229,7 @@ pub extern "C" fn set(
 /// * `key` must be kept valid until the callback is called.
 /// * If the callback is called with a string pointer, the pointer must be used synchronously, because the string will be dropped after the callback.
 #[no_mangle]
-pub extern "C" fn get(client_ptr: *const c_void, callback_index: usize, key: *const c_char) {
+pub unsafe extern "C" fn get(client_ptr: *const c_void, callback_index: usize, key: *const c_char) {
     let client = unsafe { Box::leak(Box::from_raw(client_ptr as *mut Client)) };
     // The safety of this needs to be ensured by the calling code. Cannot dispose of the pointer before all operations have completed.
     let ptr_address = client_ptr as usize;
