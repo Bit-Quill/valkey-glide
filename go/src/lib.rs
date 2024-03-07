@@ -30,6 +30,8 @@ pub type FailureCallback = unsafe extern "C" fn(
 /// The connection response.
 ///
 /// It contains either a connection or an error. It is represented as a struct instead of an enum for ease of use in the wrapper language.
+///
+/// This struct should be freed using both `free_connection_response` and `free_error` to avoid memory leaks.
 #[repr(C)]
 pub struct ConnectionResponse {
     conn_ptr: *const c_void,
@@ -133,6 +135,8 @@ pub unsafe extern "C" fn close_client(client_ptr: *const c_void) {
 }
 
 /// Deallocates a `ConnectionResponse`.
+///
+/// This function does not free the contained error, which needs to be freed separately using `free_error` afterwards to avoid memory leaks.
 ///
 /// # Safety
 ///
