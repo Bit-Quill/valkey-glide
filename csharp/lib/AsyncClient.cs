@@ -66,12 +66,8 @@ public class AsyncClient : IDisposable
     {
         var error = ptr == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(ptr);
         // Work needs to be offloaded from the calling thread, because otherwise we might starve the client's thread pool.
-        _ = Task.Run(() =>
-        {
-            Console.Error.WriteLine($"FailureCallback : {error_type} : {error}");
-            var message = messageContainer.GetMessage((int)index);
-            message.SetException(new Exception($"{error_type} : {error}"));
-        });
+        _ = Task.Run(() => messageContainer.GetMessage((int)index)
+                .SetException(Errors.MakeException(error_type, error)));
     }
 
     ~AsyncClient() => Dispose();
@@ -119,9 +115,21 @@ public class AsyncClient : IDisposable
 
     internal enum ErrorType : uint
     {
+        /// <summary>
+        /// Represented by <see cref="Errors.UnspecifiedException"/> for user
+        /// </summary>
         Unspecified = 0,
+        /// <summary>
+        /// Represented by <see cref="Errors.ExecutionAbortedException"/> for user
+        /// </summary>
         ExecAbort = 1,
+        /// <summary>
+        /// Represented by <see cref="TimeoutException"/> for user
+        /// </summary>
         Timeout = 2,
+        /// <summary>
+        /// Represented by <see cref="Errors.DisconnectedException"/> for user
+        /// </summary>
         Disconnect = 3,
     }
 
