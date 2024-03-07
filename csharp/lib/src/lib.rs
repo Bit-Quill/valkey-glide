@@ -125,7 +125,7 @@ unsafe fn create_connection_request(
 
 /// # Safety
 ///
-/// * `config` must be a valid `ConnectionConfig` pointer. See the safety documentation of [`create_connection_request`](create_connection_request).
+/// * `config` must be a valid [`ConnectionConfig`](ConnectionConfig) pointer. See the safety documentation of [`create_connection_request`](create_connection_request).
 #[allow(rustdoc::redundant_explicit_links)]
 unsafe fn create_client_internal(
     config: *const ConnectionConfig,
@@ -151,7 +151,7 @@ unsafe fn create_client_internal(
 ///
 /// # Safety
 ///
-/// * `config` must be a valid `ConnectionConfig` pointer. See the safety documentation of [`create_client_internal`](create_client_internal).
+/// * `config` must be a valid [`ConnectionConfig`](ConnectionConfig) pointer. See the safety documentation of [`create_client_internal`](create_client_internal).
 #[allow(rustdoc::redundant_explicit_links)]
 #[allow(rustdoc::private_intra_doc_links)]
 #[no_mangle]
