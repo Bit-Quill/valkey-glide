@@ -235,6 +235,28 @@ pub unsafe extern "C" fn create_client_using_protobuf(
     Box::into_raw(Box::new(response))
 }
 
+/// Deallocates a `ConnectionResponse`.
+///
+/// This function does not free the contained error, which needs to be freed separately using `free_error` afterwards to avoid memory leaks.
+///
+/// # Safety
+///
+/// * `connection_response_ptr` must be able to be safely casted to a valid `Box<ConnectionResponse>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
+/// * `connection_response_ptr` must not be null.
+/// * The contained `error_message` must be able to be safely casted to a valid `CString` via `CString::from_raw` if it is not null. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+#[no_mangle]
+pub unsafe extern "C" fn free_connection_response(
+    connection_response_ptr: *const ConnectionResponse,
+) {
+    let connection_response =
+        unsafe { Box::from_raw(connection_response_ptr as *mut ConnectionResponse) };
+    let error_message = connection_response.error_message;
+    drop(connection_response);
+    if error_message != std::ptr::null() {
+        drop(unsafe { CString::from_raw(error_message as *mut c_char) });
+    }
+}
+
 /// Closes the given client, deallocating it from the heap.
 ///
 /// # Safety
