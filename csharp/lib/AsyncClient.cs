@@ -62,9 +62,9 @@ public class AsyncClient : IDisposable
         });
     }
 
-    private void FailureCallback(ulong index, ErrorType error_type, IntPtr ptr)
+    private void FailureCallback(ulong index, ErrorType error_type, IntPtr error_msg_ptr)
     {
-        var error = ptr == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(ptr);
+        var error = error_msg_ptr == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(error_msg_ptr);
         // Work needs to be offloaded from the calling thread, because otherwise we might starve the client's thread pool.
         _ = Task.Run(() => messageContainer.GetMessage((int)index)
                 .SetException(Errors.MakeException(error_type, error)));
@@ -98,8 +98,8 @@ public class AsyncClient : IDisposable
     /// </summary>
     /// <param name="index">Request ID</param>
     /// <param name="error_type">Error type</param>
-    /// <param name="error">Error message</param>
-    private delegate void FailureAction(ulong index, ErrorType error_type, IntPtr error);
+    /// <param name="error_msg_ptr">Error message</param>
+    private delegate void FailureAction(ulong index, ErrorType error_type, IntPtr error_msg_ptr);
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "get")]
     private static extern void GetFfi(IntPtr client, ulong index, IntPtr key);
 

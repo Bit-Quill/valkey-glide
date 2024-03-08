@@ -120,8 +120,8 @@ pub extern "C" fn set(
             match result {
                 Ok(_) => (client.success_callback)(callback_index, std::ptr::null()), // TODO - should return "OK" string.
                 Err(err) => {
-                    logger_core::log_debug("command error", format!("callback {}, error {}, kind {:?}, code {:?}, category {:?}, detail {:?}", callback_index, err, err.kind(), err.code(), err.category(), err.detail()));
-                    let c_err_str = CString::new(error_message(&err)).expect("CString::new failed");
+                    logger_core::log_debug("command error", format!("callback: {}, error: {}", callback_index, err));
+                    let c_err_str = CString::new(error_message(&err)).unwrap();
                     (client.failure_callback)(callback_index, error_type(&err), c_err_str.as_ptr())
                 }
             };
@@ -149,8 +149,8 @@ pub extern "C" fn get(client_ptr: *const c_void, callback_index: usize, key: *co
             Ok(value) => value,
             Err(err) => {
                 unsafe {
-                    logger_core::log_debug("command error", format!("callback {}, error {}, kind {:?}, code {:?}, category {:?}, detail {:?}", callback_index, err, err.kind(), err.code(), err.category(), err.detail()));
-                    let c_err_str = CString::new(error_message(&err)).expect("CString::new failed");
+                    logger_core::log_debug("command error", format!("callback: {}, error: {}", callback_index, err));
+                    let c_err_str = CString::new(error_message(&err)).unwrap();
                     (client.failure_callback)(callback_index, error_type(&err), c_err_str.as_ptr())
                 };
                 return;
@@ -163,8 +163,8 @@ pub extern "C" fn get(client_ptr: *const c_void, callback_index: usize, key: *co
                 Ok(None) => (client.success_callback)(callback_index, std::ptr::null()),
                 Ok(Some(c_str)) => (client.success_callback)(callback_index, c_str.as_ptr()),
                 Err(err) => {
-                    logger_core::log_debug("command error", format!("callback {}, error {}, kind {:?}, code {:?}, category {:?}, detail {:?}", callback_index, err, err.kind(), err.code(), err.category(), err.detail()));
-                    let c_err_str = CString::new(error_message(&err)).expect("CString::new failed");
+                    logger_core::log_debug("command error", format!("callback: {}, error: {}", callback_index, err));
+                    let c_err_str = CString::new(error_message(&err)).unwrap();
                     (client.failure_callback)(callback_index, error_type(&err), c_err_str.as_ptr())
                 }
             };
