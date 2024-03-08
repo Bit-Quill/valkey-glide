@@ -19,7 +19,7 @@ typedef enum RequestErrorType {
  *
  * It contains either a connection or an error. It is represented as a struct instead of an enum for ease of use in the wrapper language.
  *
- * This struct should be freed using both `free_connection_response` and `free_error` to avoid memory leaks.
+ * This struct should be freed using `free_connection_response` to avoid memory leaks.
  */
 typedef struct ConnectionResponse {
   const void *conn_ptr;
@@ -78,3 +78,13 @@ void close_client(const void *client_ptr);
  * * The contained `error_message` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
  */
 void free_connection_response(const struct ConnectionResponse *connection_response_ptr);
+
+/**
+ * Deallocates an error message `CString`.
+ *
+ * # Safety
+ *
+ * * `error_msg_ptr` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+ * * `error_msg_ptr` must not be null.
+ */
+void free_error(const char *error_msg_ptr);
