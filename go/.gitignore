@@ -1,7 +1,4 @@
 # Go compilation files
 *.pb.go
 
-# Examples
-examples/examples
-
 reports

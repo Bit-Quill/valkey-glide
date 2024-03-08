@@ -20,12 +20,12 @@ func (suite *GlideTestSuite) TestStandaloneConnect() {
 }
 
 func (suite *GlideTestSuite) TestClusterConnect() {
-	config := api.NewRedisClientConfiguration()
+	config := api.NewRedisClusterClientConfiguration()
 	for _, port := range suite.clusterPorts {
 		config.WithAddress(&api.NodeAddress{Port: port})
 	}
 
-	client, err := api.CreateClient(config)
+	client, err := api.CreateClusterClient(config)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), client)

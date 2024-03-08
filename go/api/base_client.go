@@ -16,12 +16,12 @@ import (
 )
 
 //export successCallback
-func successCallback(channelPtr C.uintptr_t, message *C.char) {
+func successCallback(channelPtr C.uintptr_t, cResponse *C.char) {
 	// TODO: Implement when we implement the command logic
 }
 
 //export failureCallback
-func failureCallback(channelPtr C.uintptr_t, errMessage *C.char, errType C.RequestErrorType) {
+func failureCallback(channelPtr C.uintptr_t, cErrorMessage *C.char, cErrorType C.RequestErrorType) {
 	// TODO: Implement when we implement the command logic
 }
 
@@ -33,7 +33,7 @@ type baseClient struct {
 	coreClient unsafe.Pointer
 }
 
-func createClient(converter connectionRequestConverter) (unsafe.Pointer, error) {
+func createClient(converter connectionRequestConverter) (*baseClient, error) {
 	request := converter.toProtobuf()
 	msg, err := proto.Marshal(request)
 	if err != nil {
@@ -50,7 +50,7 @@ func createClient(converter connectionRequestConverter) (unsafe.Pointer, error) 
 		return nil, goError(cResponse.error_type, cResponse.error_message)
 	}
 
-	return cResponse.conn_ptr, nil
+	return &baseClient{cResponse.conn_ptr}, nil
 }
 
 // Close terminates the client by closing all associated resources.
