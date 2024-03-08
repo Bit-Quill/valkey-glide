@@ -58,7 +58,7 @@ public class CommandTests {
     @SneakyThrows
     public void custom_command_info() {
         Object data = regularClient.customCommand(new String[] {"info"}).get();
-        assertTrue(((String) data).contains("# Stats"));
+        assertTrue(((String) data).contains("# Stats"));exec
     }
 
     @Test

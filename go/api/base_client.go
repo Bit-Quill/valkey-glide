@@ -6,7 +6,7 @@ package api
 // #include "../lib.h"
 //
 // void successCallback(uintptr_t channelPtr, char *message);
-// void failureCallback(uintptr_t channelPtr, struct RedisErrorFFI *cErr);
+// void failureCallback(uintptr_t channelPtr, char *errMessage, RequestErrorType errType);
 import "C"
 
 import (
@@ -17,14 +17,12 @@ import (
 
 //export successCallback
 func successCallback(channelPtr C.uintptr_t, message *C.char) {
-	// TODO: Implement this function when command logic is added
-	return
+	// TODO: Implement when we implement the command logic
 }
 
 //export failureCallback
-func failureCallback(channelPtr C.uintptr_t, cErr *C.RedisErrorFFI) {
-	// TODO: Implement this function when command logic is added
-	return
+func failureCallback(channelPtr C.uintptr_t, errMessage *C.char, errType C.RequestErrorType) {
+	// TODO: Implement when we implement the command logic
 }
 
 type connectionRequestConverter interface {
@@ -47,10 +45,9 @@ func createClient(converter connectionRequestConverter) (unsafe.Pointer, error) 
 	cResponse := (*C.struct_ConnectionResponse)(C.create_client((*C.uchar)(requestBytes), C.uintptr_t(byteCount), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback))))
 	defer C.free_connection_response(cResponse)
 
-	cErr := cResponse.error
+	cErr := cResponse.error_message
 	if cErr != nil {
-		defer C.free_error(cErr)
-		return nil, redisErrorFromCError(cErr)
+		return nil, goError(cResponse.error_type, cResponse.error_message)
 	}
 
 	return cResponse.conn_ptr, nil

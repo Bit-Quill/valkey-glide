@@ -1,10 +1,11 @@
-use glide_core::client::Client as GlideClient;
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
+use glide_core::client::Client as GlideClient;
 use glide_core::connection_request;
+use glide_core::errors;
+use glide_core::errors::RequestErrorType;
 use protobuf::Message;
-use redis::RedisResult;
 use std::{
     ffi::{c_void, CString},
     os::raw::c_char,
@@ -12,60 +13,74 @@ use std::{
 use tokio::runtime::Builder;
 use tokio::runtime::Runtime;
 
+/// Success callback that is called when a Redis command succeeds.
+// TODO: Change message type when implementing command logic
 pub type SuccessCallback =
     unsafe extern "C" fn(channel_address: usize, message: *const c_char) -> ();
-pub type FailureCallback =
-    unsafe extern "C" fn(channel_address: usize, err_message: *const c_char) -> ();
 
-pub enum Level {
-    Error = 0,
-    Warn = 1,
-    Info = 2,
-    Debug = 3,
-    Trace = 4,
-}
+/// Failure callback that is called when a Redis command fails.
+///
+/// `error` should be manually freed by calling `free_error` after this callback is invoked, otherwise a memory leak will occur.
+pub type FailureCallback = unsafe extern "C" fn(
+    channel_address: usize,
+    error_message: *const c_char,
+    error_type: RequestErrorType,
+) -> ();
 
+/// The connection response.
+///
+/// It contains either a connection or an error. It is represented as a struct instead of an enum for ease of use in the wrapper language.
+///
+/// This struct should be freed using both `free_connection_response` and `free_error` to avoid memory leaks.
 #[repr(C)]
 pub struct ConnectionResponse {
     conn_ptr: *const c_void,
-    error: *const RedisErrorFFI,
+    error_message: *const c_char,
+    error_type: RequestErrorType,
 }
 
-#[repr(C)]
-pub struct RedisErrorFFI {
-    message: *const c_char,
-    error_type: ErrorType,
-}
-
-#[repr(u32)]
-pub enum ErrorType {
-    ClosingError = 0,
-    RequestError = 1,
-    TimeoutError = 2,
-    ExecAbortError = 3,
-    ConnectionError = 4,
-}
-
+/// The glide client.
+#[allow(dead_code)]
 pub struct Client {
     client: GlideClient,
     success_callback: SuccessCallback,
-    failure_callback: FailureCallback, // TODO - add specific error codes
+    failure_callback: FailureCallback,
     runtime: Runtime,
+}
+
+struct CreateClientError {
+    message: String,
+    error_type: RequestErrorType,
 }
 
 fn create_client_internal(
     connection_request_bytes: &[u8],
     success_callback: SuccessCallback,
     failure_callback: FailureCallback,
-) -> RedisResult<Client> {
-    let request =
-        connection_request::ConnectionRequest::parse_from_bytes(connection_request_bytes).unwrap();
+) -> Result<Client, CreateClientError> {
+    let request = connection_request::ConnectionRequest::parse_from_bytes(connection_request_bytes)
+        .map_err(|err| CreateClientError {
+            message: err.to_string(),
+            error_type: RequestErrorType::Unspecified,
+        })?;
     let runtime = Builder::new_multi_thread()
         .enable_all()
         .thread_name("GLIDE for Redis Go thread")
-        .build()?;
+        .build()
+        .map_err(|err| {
+            let redis_error = err.into();
+            CreateClientError {
+                message: errors::error_message(&redis_error),
+                error_type: errors::error_type(&redis_error),
+            }
+        })?;
     let _runtime_handle = runtime.enter();
-    let client = runtime.block_on(GlideClient::new(request)).unwrap(); // TODO - handle errors.
+    let client = runtime
+        .block_on(GlideClient::new(request))
+        .map_err(|err| CreateClientError {
+            message: err.to_string(),
+            error_type: RequestErrorType::Disconnect,
+        })?;
     Ok(Client {
         client,
         success_callback,
@@ -74,38 +89,80 @@ fn create_client_internal(
     })
 }
 
-/// Creates a new client to the given address. The success callback needs to copy the given string synchronously, since it will be dropped by Rust once the callback returns. All callbacks should be offloaded to separate threads in order not to exhaust the client's thread pool.
+/// Creates a new client with the given configuration. The success callback needs to copy the given string synchronously, since it will be dropped by Rust once the callback returns. All callbacks should be offloaded to separate threads in order not to exhaust the client's thread pool.
+///
+/// The returned `ConnectionResponse` should be manually freed by calling `free_connection_response`, otherwise a memory leak will occur. It should be freed whether or not an error occurs.
+///
+/// # Safety
+///
+/// * `connection_request_bytes` must point to `connection_request_len` consecutive properly initialized bytes.
+/// * `connection_request_len` must not be greater than `isize::MAX`. See the safety documentation of [`std::slice::from_raw_parts`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html).
 #[no_mangle]
 pub unsafe extern "C" fn create_client(
-    connection_request: *const u8,
+    connection_request_bytes: *const u8,
     connection_request_len: usize,
     success_callback: SuccessCallback,
     failure_callback: FailureCallback,
 ) -> *const ConnectionResponse {
     let request_bytes =
-        unsafe { std::slice::from_raw_parts(connection_request, connection_request_len) };
+        unsafe { std::slice::from_raw_parts(connection_request_bytes, connection_request_len) };
     let response = match create_client_internal(request_bytes, success_callback, failure_callback) {
-        Err(err) => {
-            let message_cstring = CString::new(err.to_string()).unwrap();
-            ConnectionResponse {
-                conn_ptr: std::ptr::null(),
-                error: &RedisErrorFFI {
-                    message: message_cstring.as_ptr(),
-                    error_type: ErrorType::ConnectionError,
-                },
-            }
-        }
+        Err(err) => ConnectionResponse {
+            conn_ptr: std::ptr::null(),
+            error_message: CString::into_raw(CString::new(err.message).unwrap()),
+            error_type: err.error_type,
+        },
         Ok(client) => ConnectionResponse {
             conn_ptr: Box::into_raw(Box::new(client)) as *const c_void,
-            error: std::ptr::null(),
+            error_message: std::ptr::null(),
+            error_type: RequestErrorType::Unspecified,
         },
     };
     Box::into_raw(Box::new(response))
 }
 
+/// Closes the given client, deallocating it from the heap.
+///
+/// # Safety
+///
+/// * `client_ptr` must be able to be safely casted to a valid `Box<Client>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
+/// * `client_ptr` must not be null.
 #[no_mangle]
-pub extern "C" fn close_client(client_ptr: *const c_void) {
+pub unsafe extern "C" fn close_client(client_ptr: *const c_void) {
     let client_ptr = unsafe { Box::from_raw(client_ptr as *mut Client) };
     let _runtime_handle = client_ptr.runtime.enter();
     drop(client_ptr);
+}
+
+/// Deallocates a `ConnectionResponse`.
+///
+/// This function does not free the contained error, which needs to be freed separately using `free_error` afterwards to avoid memory leaks.
+///
+/// # Safety
+///
+/// * `connection_response_ptr` must be able to be safely casted to a valid `Box<ConnectionResponse>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
+/// * `connection_response_ptr` must not be null.
+/// * The contained `error_message` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+#[no_mangle]
+pub unsafe extern "C" fn free_connection_response(
+    connection_response_ptr: *const ConnectionResponse,
+) {
+    let connection_response =
+        unsafe { Box::from_raw(connection_response_ptr as *mut ConnectionResponse) };
+    let error_message = connection_response.error_message;
+    drop(connection_response);
+    if error_message != std::ptr::null() {
+        free_error(error_message);
+    }
+}
+
+/// Deallocates an error message `CString`.
+///
+/// # Safety
+///
+/// * `error_msg_ptr` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+/// * `error_msg_ptr` must not be null.
+unsafe fn free_error(error_msg_ptr: *const c_char) {
+    let error_msg = unsafe { CString::from_raw(error_msg_ptr as *mut c_char) };
+    drop(error_msg);
 }
