@@ -6,12 +6,14 @@ use crate::client::Client;
 use crate::connection_request::ConnectionRequest;
 use crate::errors::{error_message, error_type, RequestErrorType};
 use crate::redis_request::{
-    command, redis_request, Command, RedisRequest, RequestType, Routes, ScriptInvocation,
+    command, redis_request, Command, RedisRequest, RequestType as RequestTypeProto, Routes, ScriptInvocation,
     SlotTypes, Transaction,
 };
 use crate::response;
 use crate::response::Response;
 use crate::retry_strategies::get_fixed_interval_backoff;
+use crate::ffi::ffi_client::get_command;
+use crate::ffi::types::RequestType;
 use directories::BaseDirs;
 use dispose::{Disposable, Dispose};
 use futures::stream::StreamExt;
@@ -22,7 +24,7 @@ use redis::cluster_routing::{
 };
 use redis::cluster_routing::{ResponsePolicy, Routable};
 use redis::RedisError;
-use redis::{cmd, Cmd, Value};
+use redis::{Cmd, Value};
 use signal_hook::consts::signal::*;
 use signal_hook_tokio::Signals;
 use std::cell::Cell;
@@ -260,110 +262,105 @@ async fn write_to_writer(response: Response, writer: &Rc<Writer>) -> Result<(), 
     }
 }
 
-fn get_two_word_command(first: &str, second: &str) -> Cmd {
-    let mut cmd = cmd(first);
-    cmd.arg(second);
-    cmd
-}
-
-fn get_command(request: &Command) -> Option<Cmd> {
-    let request_enum = request
-        .request_type
-        .enum_value_or(RequestType::InvalidRequest);
-    match request_enum {
-        RequestType::InvalidRequest => None,
-        RequestType::CustomCommand => Some(Cmd::new()),
-        RequestType::GetString => Some(cmd("GET")),
-        RequestType::SetString => Some(cmd("SET")),
-        RequestType::Ping => Some(cmd("PING")),
-        RequestType::Info => Some(cmd("INFO")),
-        RequestType::Del => Some(cmd("DEL")),
-        RequestType::Select => Some(cmd("SELECT")),
-        RequestType::ConfigGet => Some(get_two_word_command("CONFIG", "GET")),
-        RequestType::ConfigSet => Some(get_two_word_command("CONFIG", "SET")),
-        RequestType::ConfigResetStat => Some(get_two_word_command("CONFIG", "RESETSTAT")),
-        RequestType::ConfigRewrite => Some(get_two_word_command("CONFIG", "REWRITE")),
-        RequestType::ClientGetName => Some(get_two_word_command("CLIENT", "GETNAME")),
-        RequestType::ClientGetRedir => Some(get_two_word_command("CLIENT", "GETREDIR")),
-        RequestType::ClientId => Some(get_two_word_command("CLIENT", "ID")),
-        RequestType::ClientInfo => Some(get_two_word_command("CLIENT", "INFO")),
-        RequestType::ClientKill => Some(get_two_word_command("CLIENT", "KILL")),
-        RequestType::ClientList => Some(get_two_word_command("CLIENT", "LIST")),
-        RequestType::ClientNoEvict => Some(get_two_word_command("CLIENT", "NO-EVICT")),
-        RequestType::ClientNoTouch => Some(get_two_word_command("CLIENT", "NO-TOUCH")),
-        RequestType::ClientPause => Some(get_two_word_command("CLIENT", "PAUSE")),
-        RequestType::ClientReply => Some(get_two_word_command("CLIENT", "REPLY")),
-        RequestType::ClientSetInfo => Some(get_two_word_command("CLIENT", "SETINFO")),
-        RequestType::ClientSetName => Some(get_two_word_command("CLIENT", "SETNAME")),
-        RequestType::ClientUnblock => Some(get_two_word_command("CLIENT", "UNBLOCK")),
-        RequestType::ClientUnpause => Some(get_two_word_command("CLIENT", "UNPAUSE")),
-        RequestType::Expire => Some(cmd("EXPIRE")),
-        RequestType::HashSet => Some(cmd("HSET")),
-        RequestType::HashGet => Some(cmd("HGET")),
-        RequestType::HashDel => Some(cmd("HDEL")),
-        RequestType::HashExists => Some(cmd("HEXISTS")),
-        RequestType::MSet => Some(cmd("MSET")),
-        RequestType::MGet => Some(cmd("MGET")),
-        RequestType::Incr => Some(cmd("INCR")),
-        RequestType::IncrBy => Some(cmd("INCRBY")),
-        RequestType::IncrByFloat => Some(cmd("INCRBYFLOAT")),
-        RequestType::Decr => Some(cmd("DECR")),
-        RequestType::DecrBy => Some(cmd("DECRBY")),
-        RequestType::HashGetAll => Some(cmd("HGETALL")),
-        RequestType::HashMSet => Some(cmd("HMSET")),
-        RequestType::HashMGet => Some(cmd("HMGET")),
-        RequestType::HashIncrBy => Some(cmd("HINCRBY")),
-        RequestType::HashIncrByFloat => Some(cmd("HINCRBYFLOAT")),
-        RequestType::LPush => Some(cmd("LPUSH")),
-        RequestType::LPop => Some(cmd("LPOP")),
-        RequestType::RPush => Some(cmd("RPUSH")),
-        RequestType::RPop => Some(cmd("RPOP")),
-        RequestType::LLen => Some(cmd("LLEN")),
-        RequestType::LRem => Some(cmd("LREM")),
-        RequestType::LRange => Some(cmd("LRANGE")),
-        RequestType::LTrim => Some(cmd("LTRIM")),
-        RequestType::SAdd => Some(cmd("SADD")),
-        RequestType::SRem => Some(cmd("SREM")),
-        RequestType::SMembers => Some(cmd("SMEMBERS")),
-        RequestType::SCard => Some(cmd("SCARD")),
-        RequestType::PExpireAt => Some(cmd("PEXPIREAT")),
-        RequestType::PExpire => Some(cmd("PEXPIRE")),
-        RequestType::ExpireAt => Some(cmd("EXPIREAT")),
-        RequestType::Exists => Some(cmd("EXISTS")),
-        RequestType::Unlink => Some(cmd("UNLINK")),
-        RequestType::TTL => Some(cmd("TTL")),
-        RequestType::Zadd => Some(cmd("ZADD")),
-        RequestType::Zrem => Some(cmd("ZREM")),
-        RequestType::Zrange => Some(cmd("ZRANGE")),
-        RequestType::Zcard => Some(cmd("ZCARD")),
-        RequestType::Zcount => Some(cmd("ZCOUNT")),
-        RequestType::ZIncrBy => Some(cmd("ZINCRBY")),
-        RequestType::ZScore => Some(cmd("ZSCORE")),
-        RequestType::Type => Some(cmd("TYPE")),
-        RequestType::HLen => Some(cmd("HLEN")),
-        RequestType::Echo => Some(cmd("ECHO")),
-        RequestType::ZPopMin => Some(cmd("ZPOPMIN")),
-        RequestType::Strlen => Some(cmd("STRLEN")),
-        RequestType::Lindex => Some(cmd("LINDEX")),
-        RequestType::ZPopMax => Some(cmd("ZPOPMAX")),
-        RequestType::XAck => Some(cmd("XACK")),
-        RequestType::XAdd => Some(cmd("XADD")),
-        RequestType::XReadGroup => Some(cmd("XREADGROUP")),
-        RequestType::XRead => Some(cmd("XREAD")),
-        RequestType::XGroupCreate => Some(get_two_word_command("XGROUP", "CREATE")),
-        RequestType::XGroupDestroy => Some(get_two_word_command("XGROUP", "DESTROY")),
-        RequestType::XTrim => Some(cmd("XTRIM")),
-        RequestType::HSetNX => Some(cmd("HSETNX")),
-        RequestType::SIsMember => Some(cmd("SISMEMBER")),
-        RequestType::Hvals => Some(cmd("HVALS")),
-        RequestType::PTTL => Some(cmd("PTTL")),
-        RequestType::ZRemRangeByRank => Some(cmd("ZREMRANGEBYRANK")),
-        RequestType::Persist => Some(cmd("PERSIST")),
+// TODO
+//   #[cfg(feature = "socket-layer")]
+//   from https://github.com/aws/glide-for-redis/pull/1088
+fn convert_request_type(request_type: protobuf::EnumOrUnknown<RequestTypeProto>) -> RequestType {
+    match request_type.enum_value_or(RequestTypeProto::InvalidRequest) {
+        RequestTypeProto::InvalidRequest => RequestType::InvalidRequest,
+        RequestTypeProto::CustomCommand => RequestType::CustomCommand,
+        RequestTypeProto::GetString => RequestType::GetString,
+        RequestTypeProto::SetString => RequestType::SetString,
+        RequestTypeProto::Ping => RequestType::Ping,
+        RequestTypeProto::Info => RequestType::Info,
+        RequestTypeProto::Del => RequestType::Del,
+        RequestTypeProto::Select => RequestType::Select,
+        RequestTypeProto::ConfigGet => RequestType::ConfigGet,
+        RequestTypeProto::ConfigSet => RequestType::ConfigSet,
+        RequestTypeProto::ConfigResetStat => RequestType::ConfigResetStat,
+        RequestTypeProto::ConfigRewrite => RequestType::ConfigRewrite,
+        RequestTypeProto::ClientGetName => RequestType::ClientGetName,
+        RequestTypeProto::ClientGetRedir => RequestType::ClientGetRedir,
+        RequestTypeProto::ClientId => RequestType::ClientId,
+        RequestTypeProto::ClientInfo => RequestType::ClientInfo,
+        RequestTypeProto::ClientKill => RequestType::ClientKill,
+        RequestTypeProto::ClientList => RequestType::ClientList,
+        RequestTypeProto::ClientNoEvict => RequestType::ClientNoEvict,
+        RequestTypeProto::ClientNoTouch => RequestType::ClientNoTouch,
+        RequestTypeProto::ClientPause => RequestType::ClientPause,
+        RequestTypeProto::ClientReply => RequestType::ClientReply,
+        RequestTypeProto::ClientSetInfo => RequestType::ClientSetInfo,
+        RequestTypeProto::ClientSetName => RequestType::ClientSetName,
+        RequestTypeProto::ClientUnblock => RequestType::ClientUnblock,
+        RequestTypeProto::ClientUnpause => RequestType::ClientUnpause,
+        RequestTypeProto::Expire => RequestType::Expire,
+        RequestTypeProto::HashSet => RequestType::HashSet,
+        RequestTypeProto::HashGet => RequestType::HashGet,
+        RequestTypeProto::HashDel => RequestType::HashDel,
+        RequestTypeProto::HashExists => RequestType::HashExists,
+        RequestTypeProto::MGet => RequestType::MGet,
+        RequestTypeProto::MSet => RequestType::MSet,
+        RequestTypeProto::Incr => RequestType::Incr,
+        RequestTypeProto::IncrBy => RequestType::IncrBy,
+        RequestTypeProto::Decr => RequestType::Decr,
+        RequestTypeProto::IncrByFloat => RequestType::IncrByFloat,
+        RequestTypeProto::DecrBy => RequestType::DecrBy,
+        RequestTypeProto::HashGetAll => RequestType::HashGetAll,
+        RequestTypeProto::HashMSet => RequestType::HashMSet,
+        RequestTypeProto::HashMGet => RequestType::HashMGet,
+        RequestTypeProto::HashIncrBy => RequestType::HashIncrBy,
+        RequestTypeProto::HashIncrByFloat => RequestType::HashIncrByFloat,
+        RequestTypeProto::LPush => RequestType::LPush,
+        RequestTypeProto::LPop => RequestType::LPop,
+        RequestTypeProto::RPush => RequestType::RPush,
+        RequestTypeProto::RPop => RequestType::RPop,
+        RequestTypeProto::LLen => RequestType::LLen,
+        RequestTypeProto::LRem => RequestType::LRem,
+        RequestTypeProto::LRange => RequestType::LRange,
+        RequestTypeProto::LTrim => RequestType::LTrim,
+        RequestTypeProto::SAdd => RequestType::SAdd,
+        RequestTypeProto::SRem => RequestType::SRem,
+        RequestTypeProto::SMembers => RequestType::SMembers,
+        RequestTypeProto::SCard => RequestType::SCard,
+        RequestTypeProto::PExpireAt => RequestType::PExpireAt,
+        RequestTypeProto::PExpire => RequestType::PExpire,
+        RequestTypeProto::ExpireAt => RequestType::ExpireAt,
+        RequestTypeProto::Exists => RequestType::Exists,
+        RequestTypeProto::Unlink => RequestType::Unlink,
+        RequestTypeProto::TTL => RequestType::TTL,
+        RequestTypeProto::Zadd => RequestType::Zadd,
+        RequestTypeProto::Zrem => RequestType::Zrem,
+        RequestTypeProto::Zrange => RequestType::Zrange,
+        RequestTypeProto::Zcard => RequestType::Zcard,
+        RequestTypeProto::Zcount => RequestType::Zcount,
+        RequestTypeProto::ZIncrBy => RequestType::ZIncrBy,
+        RequestTypeProto::ZScore => RequestType::ZScore,
+        RequestTypeProto::Type => RequestType::Type,
+        RequestTypeProto::HLen => RequestType::HLen,
+        RequestTypeProto::Echo => RequestType::Echo,
+        RequestTypeProto::ZPopMin => RequestType::ZPopMin,
+        RequestTypeProto::Strlen => RequestType::Strlen,
+        RequestTypeProto::Lindex => RequestType::Lindex,
+        RequestTypeProto::ZPopMax => RequestType::ZPopMax,
+        RequestTypeProto::XRead => RequestType::XRead,
+        RequestTypeProto::XAdd => RequestType::XAdd,
+        RequestTypeProto::XReadGroup => RequestType::XReadGroup,
+        RequestTypeProto::XAck => RequestType::XAck,
+        RequestTypeProto::XTrim => RequestType::XTrim,
+        RequestTypeProto::XGroupCreate => RequestType::XGroupCreate,
+        RequestTypeProto::XGroupDestroy => RequestType::XGroupDestroy,
+        RequestTypeProto::HSetNX => RequestType::HSetNX,
+        RequestTypeProto::SIsMember => RequestType::SIsMember,
+        RequestTypeProto::Hvals => RequestType::Hvals,
+        RequestTypeProto::PTTL => RequestType::PTTL,
+        RequestTypeProto::ZRemRangeByRank => RequestType::ZRemRangeByRank,
+        RequestTypeProto::Persist => RequestType::Persist,
     }
 }
 
 fn get_redis_command(command: &Command) -> Result<Cmd, ClienUsageError> {
-    let Some(mut cmd) = get_command(command) else {
+
+    let Some(mut cmd) = get_command(convert_request_type(command.request_type)) else {
         return Err(ClienUsageError::Internal(format!(
             "Received invalid request type: {:?}",
             command.request_type

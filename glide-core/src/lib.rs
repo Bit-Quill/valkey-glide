@@ -10,3 +10,4 @@ mod socket_listener;
 pub use socket_listener::*;
 pub mod errors;
 pub mod scripts_container;
+pub mod ffi;

@@ -49,6 +49,7 @@ pub static INITIATE_ONCE: InitiateOnce = InitiateOnce {
 };
 
 #[derive(Debug)]
+#[repr(C)]
 pub enum Level {
     Error = 0,
     Warn = 1,
