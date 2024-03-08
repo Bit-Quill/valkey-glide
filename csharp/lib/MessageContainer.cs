@@ -4,6 +4,8 @@
 
 using System.Collections.Concurrent;
 
+using static Glide.Errors;
+
 namespace Glide;
 
 
@@ -11,10 +13,10 @@ internal class MessageContainer<T>
 {
     internal Message<T> GetMessage(int index) => messages[index];
 
-    internal Message<T> GetMessageForCall(string? key, string? value)
+    internal Message<T> GetMessageForCall(params string?[] args)
     {
         var message = GetFreeMessage();
-        message.StartTask(key, value, this);
+        message.StartTask(args, this);
         return message;
     }
 
@@ -42,7 +44,7 @@ internal class MessageContainer<T>
             {
                 try
                 {
-                    message.SetException(new TaskCanceledException("Client closed", error));
+                    message.SetException(new ExecutionAbortedException($"Client closed: {error}"));
                 }
                 catch (Exception) { }
             }

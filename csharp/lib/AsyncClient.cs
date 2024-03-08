@@ -4,35 +4,68 @@
 
 using System.Runtime.InteropServices;
 
+using static Glide.ConnectionConfiguration;
+using static Glide.Errors;
+
 namespace Glide;
 
 public class AsyncClient : IDisposable
 {
     #region public methods
-    public AsyncClient(string host, UInt32 port, bool useTLS)
+    public enum RequestType : uint
+    {
+        // copied from redis_request.proto
+        CustomCommand = 1,
+        GetString = 2,
+        SetString = 3,
+        Ping = 4,
+        Info = 5,
+        // to be continued ...
+    }
+
+    public AsyncClient(StandaloneClientConfiguration config)
     {
         successCallbackDelegate = SuccessCallback;
         var successCallbackPointer = Marshal.GetFunctionPointerForDelegate(successCallbackDelegate);
         failureCallbackDelegate = FailureCallback;
         var failureCallbackPointer = Marshal.GetFunctionPointerForDelegate(failureCallbackDelegate);
-        clientPointer = CreateClientFfi(host, port, useTLS, successCallbackPointer, failureCallbackPointer);
-        if (clientPointer == IntPtr.Zero)
+        var configPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ConnectionRequest)));
+        Marshal.StructureToPtr(config.ToRequest(), configPtr, false);
+        var responsePtr = CreateClientFfi(configPtr, successCallbackPointer, failureCallbackPointer);
+        Marshal.FreeHGlobal(configPtr);
+        var response = (ConnectionResponse?)Marshal.PtrToStructure(responsePtr, typeof(ConnectionResponse));
+
+        if (response == null)
         {
-            throw new Exception("Failed creating a client");
+            throw new DisconnectedException("Failed creating a client");
+        }
+        clientPointer = response?.Client ?? IntPtr.Zero;
+        FreeConnectionResponse(responsePtr);
+
+        if (clientPointer == IntPtr.Zero || !string.IsNullOrEmpty(response?.Error))
+        {
+            throw new DisconnectedException(response?.Error ?? "Failed creating a client");
         }
     }
 
     public async Task SetAsync(string key, string value)
     {
         var message = messageContainer.GetMessageForCall(key, value);
-        SetFfi(clientPointer, (ulong)message.Index, message.KeyPtr, message.ValuePtr);
+        Command(clientPointer, (ulong)message.Index, RequestType.SetString, (ulong)message.Args.Length, message.Args);
         await message;
+    }
+
+    public async Task<string?> Custom(string[] args)
+    {
+        var message = messageContainer.GetMessageForCall(args);
+        Command(clientPointer, (ulong)message.Index, RequestType.CustomCommand, (ulong)args.Length, message.Args);
+        return await message;
     }
 
     public async Task<string?> GetAsync(string key)
     {
-        var message = messageContainer.GetMessageForCall(key, null);
-        GetFfi(clientPointer, (ulong)message.Index, message.KeyPtr);
+        var message = messageContainer.GetMessageForCall(key);
+        Command(clientPointer, (ulong)message.Index, RequestType.GetString, (ulong)message.Args.Length, message.Args);
         return await message;
     }
 
@@ -62,14 +95,12 @@ public class AsyncClient : IDisposable
         });
     }
 
-    private void FailureCallback(ulong index)
+    private void FailureCallback(ulong index, IntPtr error_msg_ptr, ErrorType error_type)
     {
+        var error = error_msg_ptr == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(error_msg_ptr);
         // Work needs to be offloaded from the calling thread, because otherwise we might starve the client's thread pool.
-        Task.Run(() =>
-        {
-            var message = messageContainer.GetMessage((int)index);
-            message.SetException(new Exception("Operation failed"));
-        });
+        _ = Task.Run(() => messageContainer.GetMessage((int)index)
+                .SetException(Errors.MakeException(error_type, error)));
     }
 
     ~AsyncClient() => Dispose();
@@ -95,19 +126,53 @@ public class AsyncClient : IDisposable
     #region FFI function declarations
 
     private delegate void StringAction(ulong index, IntPtr str);
-    private delegate void FailureAction(ulong index);
-    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "get")]
-    private static extern void GetFfi(IntPtr client, ulong index, IntPtr key);
+    /// <summary>
+    /// Glide request failure callback.
+    /// </summary>
+    /// <param name="index">Request ID</param>
+    /// <param name="error_msg_ptr">Error message</param>
+    /// <param name="errorType">Error type</param>
+    private delegate void FailureAction(ulong index, IntPtr error_msg_ptr, ErrorType errorType);
 
-    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "set")]
-    private static extern void SetFfi(IntPtr client, ulong index, IntPtr key, IntPtr value);
+    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "command")]
+    private static extern void Command(IntPtr client, ulong index, RequestType requestType, ulong argCount, IntPtr[] args);
 
     private delegate void IntAction(IntPtr arg);
-    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_client")]
-    private static extern IntPtr CreateClientFfi(String host, UInt32 port, bool useTLS, IntPtr successCallback, IntPtr failureCallback);
+    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "create_client_using_config")]
+    private static extern IntPtr CreateClientFfi(IntPtr config, IntPtr successCallback, IntPtr failureCallback);
 
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "close_client")]
     private static extern void CloseClientFfi(IntPtr client);
 
+    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "free_connection_response")]
+    private static extern void FreeConnectionResponse(IntPtr connectionResponsePtr);
+
+    internal enum ErrorType : uint
+    {
+        /// <summary>
+        /// Represented by <see cref="Errors.UnspecifiedException"/> for user
+        /// </summary>
+        Unspecified = 0,
+        /// <summary>
+        /// Represented by <see cref="Errors.ExecutionAbortedException"/> for user
+        /// </summary>
+        ExecAbort = 1,
+        /// <summary>
+        /// Represented by <see cref="TimeoutException"/> for user
+        /// </summary>
+        Timeout = 2,
+        /// <summary>
+        /// Represented by <see cref="Errors.DisconnectedException"/> for user
+        /// </summary>
+        Disconnect = 3,
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    internal struct ConnectionResponse
+    {
+        public IntPtr Client;
+        public string Error;
+        public ErrorType ErrorType;
+    }
     #endregion
 }

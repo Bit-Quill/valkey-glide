@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 
 using Glide;
 
+using static Glide.Errors;
+
 /// Reusable source of ValueTask. This object can be allocated once and then reused
 /// to create multiple asynchronous operations, as long as each call to CreateTask
 /// is awaited to completion before the next call begins.
@@ -17,11 +19,9 @@ internal class Message<T> : INotifyCompletion
     /// know how to find the message and set its result.
     public int Index { get; }
 
-    /// The pointer to the unmanaged memory that contains the operation's key.
-    public IntPtr KeyPtr { get; private set; }
+    /// The pointers to the unmanaged memory that contains the command arguments
+    public IntPtr[] Args { get; private set; }
 
-    /// The pointer to the unmanaged memory that contains the operation's key.
-    public IntPtr ValuePtr { get; private set; }
     private readonly MessageContainer<T> container;
 
     public Message(int index, MessageContainer<T> container)
@@ -29,6 +29,7 @@ internal class Message<T> : INotifyCompletion
         Index = index;
         continuation = () => { };
         this.container = container;
+        Args = new IntPtr[0];
     }
 
     private Action? continuation;
@@ -37,7 +38,7 @@ internal class Message<T> : INotifyCompletion
     const int COMPLETION_STAGE_CONTINUATION_EXECUTED = 2;
     private int completionState;
     private T? result;
-    private Exception? exception;
+    private RedisError? exception;
 
     /// Triggers a succesful completion of the task returned from the latest call
     /// to CreateTask.
@@ -49,7 +50,7 @@ internal class Message<T> : INotifyCompletion
 
     /// Triggers a failure completion of the task returned from the latest call to
     /// CreateTask.
-    public void SetException(Exception exc)
+    public void SetException(RedisError exc)
     {
         this.exception = exc;
         FinishSet();
@@ -84,31 +85,22 @@ internal class Message<T> : INotifyCompletion
     /// This returns a task that will complete once SetException / SetResult are called,
     /// and ensures that the internal state of the message is set-up before the task is created,
     /// and cleaned once it is complete.
-    public void StartTask(string? key, string? value, object client)
+    public void StartTask(string?[] args, object client)
     {
         continuation = null;
         this.completionState = COMPLETION_STAGE_STARTED;
         this.result = default(T);
         this.exception = null;
         this.client = client;
-        this.KeyPtr = key is null ? IntPtr.Zero : Marshal.StringToHGlobalAnsi(key);
-        this.ValuePtr = value is null ? IntPtr.Zero : Marshal.StringToHGlobalAnsi(value);
+        this.Args = args.Select(arg => Marshal.StringToHGlobalAnsi(arg)).ToArray();
     }
 
     // This function isn't thread-safe. Access to it should be from a single thread, and only once per operation.
     // For the sake of performance, this responsibility is on the caller, and the function doesn't contain any safety measures.
     private void FreePointers()
     {
-        if (KeyPtr != IntPtr.Zero)
-        {
-            Marshal.FreeHGlobal(KeyPtr);
-            KeyPtr = IntPtr.Zero;
-        }
-        if (ValuePtr != IntPtr.Zero)
-        {
-            Marshal.FreeHGlobal(ValuePtr);
-            ValuePtr = IntPtr.Zero;
-        }
+        foreach (var arg in Args.Where(arg => arg != IntPtr.Zero))
+            Marshal.FreeHGlobal(arg);
         client = null;
     }
 

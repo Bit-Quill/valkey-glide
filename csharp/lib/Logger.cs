@@ -56,7 +56,7 @@ public class Logger
             SetLoggerConfig(logLevel);
         }
         if (!(logLevel <= Logger.loggerLevel)) return;
-        log(Convert.ToInt32(logLevel), Encoding.UTF8.GetBytes(logIdentifier), Encoding.UTF8.GetBytes(message));
+        log(logLevel, logIdentifier, message);
     }
     #endregion internal methods
 
@@ -69,17 +69,16 @@ public class Logger
     // the filename argument is optional - if provided the target of the logs will be the file mentioned, else will be the console
     public static void SetLoggerConfig(Level? level, string? filename = null)
     {
-        var buffer = filename is null ? null : Encoding.UTF8.GetBytes(filename);
-        Logger.loggerLevel = InitInternalLogger(Convert.ToInt32(level), buffer);
+        Logger.loggerLevel = InitInternalLogger(level ?? Level.Error, filename);
     }
     #endregion public methods
 
     #region FFI function declaration
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "log")]
-    private static extern void log(Int32 logLevel, byte[] logIdentifier, byte[] message);
+    private static extern void log(Level logLevel, string logIdentifier, string message);
 
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "init")]
-    private static extern Level InitInternalLogger(Int32 level, byte[]? filename);
+    private static extern Level InitInternalLogger(Level level, string? filename);
 
     #endregion
 }
