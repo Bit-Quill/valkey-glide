@@ -776,7 +776,7 @@ public class SharedCommandTests {
         assertTrue(client.ttl(key).get() <= 10L);
 
         // extend TTL
-        if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
+        if (REDIS_VERSION.isLowerThan("7.0.0")) {
             assertTrue(client.expireAt(key, Instant.now().getEpochSecond() + 50L).get());
         } else {
             assertTrue(
@@ -789,7 +789,7 @@ public class SharedCommandTests {
         }
         assertTrue(client.ttl(key).get() <= 50L);
 
-        if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
+        if (REDIS_VERSION.isLowerThan("7.0.0")) {
             assertTrue(client.pexpireAt(key, Instant.now().toEpochMilli() + 50000L).get());
         } else {
             // set command clears the timeout.
