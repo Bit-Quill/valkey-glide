@@ -77,7 +77,7 @@ public class Logger
     [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "log")]
     private static extern void log(Level logLevel, string logIdentifier, string message);
 
-    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "init")]
+    [DllImport("libglide_rs", CallingConvention = CallingConvention.Cdecl, EntryPoint = "init_logging")]
     private static extern Level InitInternalLogger(Level level, string? filename);
 
     #endregion
