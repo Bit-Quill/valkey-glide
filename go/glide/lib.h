@@ -69,7 +69,7 @@ void close_client(const void *client_ptr);
 /**
  * Deallocates a `ConnectionResponse`.
  *
- * This function does not free the contained error, which needs to be freed separately using `free_error` afterwards to avoid memory leaks.
+ * This function also frees the contained error using `free_error`.
  *
  * # Safety
  *
