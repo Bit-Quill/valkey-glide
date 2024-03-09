@@ -10,6 +10,7 @@ package api
 import "C"
 
 import (
+	"errors"
 	"github.com/aws/glide-for-redis/go/glide/protobuf"
 	"google.golang.org/protobuf/proto"
 	"unsafe"
@@ -56,7 +57,7 @@ func createClient(converter connectionRequestConverter) (*baseClient, error) {
 // Close terminates the client by closing all associated resources.
 func (client *baseClient) Close() error {
 	if client.coreClient == nil {
-		return &GlideError{"The glide client was not open. Either it was not initialized, or it was already closed."}
+		return errors.New("close called on uninitialized or already closed client")
 	}
 
 	C.close_client(client.coreClient)

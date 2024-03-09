@@ -6,30 +6,28 @@ package api
 // #include "../lib.h"
 import "C"
 
-type GlideError struct {
-	msg string
-}
-
-func (e GlideError) Error() string { return e.msg }
-
+// RequestError is a Redis client error that occurs when an error is reported during a request.
 type RequestError struct {
 	msg string
 }
 
 func (e *RequestError) Error() string { return e.msg }
 
+// ExecAbortError is a Redis client error that occurs when a transaction is aborted.
 type ExecAbortError struct {
 	msg string
 }
 
 func (e *ExecAbortError) Error() string { return e.msg }
 
+// TimeoutError is a Redis client error that occurs when a request times out.
 type TimeoutError struct {
 	msg string
 }
 
 func (e *TimeoutError) Error() string { return e.msg }
 
+// DisconnectError is a Redis client error that indicates a connection problem between Glide and Redis.
 type DisconnectError struct {
 	msg string
 }
