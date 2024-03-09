@@ -66,7 +66,7 @@ public class StandaloneClientTests {
     public void send_and_receive_large_values() {
         RedisClient client = RedisClient.CreateClient(commonClientConfig().build()).get();
 
-        int length = 2 ^ 16;
+        int length = 65536;
         String key = getRandomString(length);
         String value = getRandomString(length);
 
@@ -94,7 +94,7 @@ public class StandaloneClientTests {
 
     @SneakyThrows
     @ParameterizedTest
-    @ValueSource(ints = {100, 2 ^ 16})
+    @ValueSource(ints = {100, 65536})
     public void client_can_handle_concurrent_workload(int valueSize) {
         ExecutorService executorService = Executors.newCachedThreadPool();
         RedisClient client = RedisClient.CreateClient(commonClientConfig().build()).get();

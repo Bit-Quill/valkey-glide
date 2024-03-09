@@ -80,7 +80,7 @@ public class ClusterClientTests {
         RedisClusterClient client =
                 RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get();
 
-        int length = 2 ^ 16;
+        int length = 65536;
         String key = getRandomString(length);
         String value = getRandomString(length);
 
@@ -109,7 +109,7 @@ public class ClusterClientTests {
 
     @SneakyThrows
     @ParameterizedTest
-    @ValueSource(ints = {100, 2 ^ 16})
+    @ValueSource(ints = {100, 65536})
     public void client_can_handle_concurrent_workload(int valueSize) {
         ExecutorService executorService = Executors.newCachedThreadPool();
         RedisClusterClient client =
