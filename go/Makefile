@@ -21,7 +21,7 @@ install-tools-go1.22.0: install-build-tools install-dev-tools-go1.22.0
 
 install-tools: install-tools-go1.22.0
 
-build: build-glide-core build-glide-client generate-protobuf
+build: build-glide-client generate-protobuf
 	go build ./...
 
 build-glide-core:
