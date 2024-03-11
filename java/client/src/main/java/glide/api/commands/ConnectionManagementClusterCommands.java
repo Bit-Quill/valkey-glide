@@ -43,8 +43,8 @@ public interface ConnectionManagementClusterCommands {
      * Ping the Redis server.
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
-     * @param route Routing configuration for the command. Client will route the command to the nodes
-     *     defined.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the defined nodes.
      * @return <code>String</code> with <code>"PONG"</code>.
      * @example
      *     <pre>{@code
@@ -59,8 +59,8 @@ public interface ConnectionManagementClusterCommands {
      *
      * @see <a href="https://redis.io/commands/ping/">redis.io</a> for details.
      * @param message The ping argument that will be returned.
-     * @param route Routing configuration for the command. Client will route the command to the nodes
-     *     defined.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the defined nodes.
      * @return <code>String</code> with a copy of the argument <code>message</code>.
      * @example
      *     <pre>{@code
@@ -88,8 +88,8 @@ public interface ConnectionManagementClusterCommands {
      * Gets the current connection id.
      *
      * @see <a href="https://redis.io/commands/client-id/">redis.io</a> for details.
-     * @param route Routing configuration for the command. Client will route the command to the nodes
-     *     defined.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the defined nodes.
      * @return A {@link ClusterValue} which holds a single value if single node route is used or a
      *     dictionary where each address is the key and its corresponding node response is the value.
      *     The value is the id of the client on that node.
@@ -123,8 +123,8 @@ public interface ConnectionManagementClusterCommands {
      * Gets the name of the current connection.
      *
      * @see <a href="https://redis.io/commands/client-getname/">redis.io</a> for details.
-     * @param route Routing configuration for the command. Client will route the command to the nodes
-     *     defined.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the defined nodes.
      * @return A {@link ClusterValue} which holds a single value if single node route is used or a
      *     dictionary where each address is the key and its corresponding node response is the value.
      *     The value is the name of the client connection as a string if a name is set, or null if no
