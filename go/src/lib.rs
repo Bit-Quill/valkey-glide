@@ -31,7 +31,7 @@ pub type FailureCallback = unsafe extern "C" fn(
 ///
 /// It contains either a connection or an error. It is represented as a struct instead of an enum for ease of use in the wrapper language.
 ///
-/// This struct should be freed using both `free_connection_response` and `free_error` to avoid memory leaks.
+/// This struct should be freed using `free_connection_response` to avoid memory leaks.
 #[repr(C)]
 pub struct ConnectionResponse {
     conn_ptr: *const c_void,
@@ -136,7 +136,7 @@ pub unsafe extern "C" fn close_client(client_ptr: *const c_void) {
 
 /// Deallocates a `ConnectionResponse`.
 ///
-/// This function does not free the contained error, which needs to be freed separately using `free_error` afterwards to avoid memory leaks.
+/// This function also frees the contained error using `free_error`.
 ///
 /// # Safety
 ///
@@ -162,7 +162,8 @@ pub unsafe extern "C" fn free_connection_response(
 ///
 /// * `error_msg_ptr` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
 /// * `error_msg_ptr` must not be null.
-unsafe fn free_error(error_msg_ptr: *const c_char) {
+#[no_mangle]
+pub unsafe extern "C" fn free_error(error_msg_ptr: *const c_char) {
     let error_msg = unsafe { CString::from_raw(error_msg_ptr as *mut c_char) };
     drop(error_msg);
 }
