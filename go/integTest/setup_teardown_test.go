@@ -5,13 +5,14 @@ package integTest
 import (
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/suite"
 	"log"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
 type GlideTestSuite struct {

@@ -11,9 +11,10 @@ import "C"
 
 import (
 	"errors"
+	"unsafe"
+
 	"github.com/aws/glide-for-redis/go/glide/protobuf"
 	"google.golang.org/protobuf/proto"
-	"unsafe"
 )
 
 //export successCallback
@@ -43,7 +44,14 @@ func createClient(converter connectionRequestConverter) (*baseClient, error) {
 
 	byteCount := len(msg)
 	requestBytes := C.CBytes(msg)
-	cResponse := (*C.struct_ConnectionResponse)(C.create_client((*C.uchar)(requestBytes), C.uintptr_t(byteCount), (C.SuccessCallback)(unsafe.Pointer(C.successCallback)), (C.FailureCallback)(unsafe.Pointer(C.failureCallback))))
+	cResponse := (*C.struct_ConnectionResponse)(
+		C.create_client(
+			(*C.uchar)(requestBytes),
+			C.uintptr_t(byteCount),
+			(C.SuccessCallback)(unsafe.Pointer(C.successCallback)),
+			(C.FailureCallback)(unsafe.Pointer(C.failureCallback)),
+		),
+	)
 	defer C.free_connection_response(cResponse)
 
 	cErr := cResponse.error_message
