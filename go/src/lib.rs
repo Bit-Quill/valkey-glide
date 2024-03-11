@@ -151,7 +151,7 @@ pub unsafe extern "C" fn free_connection_response(
         unsafe { Box::from_raw(connection_response_ptr as *mut ConnectionResponse) };
     let error_message = connection_response.error_message;
     drop(connection_response);
-    if error_message != std::ptr::null() {
+    if !error_message.is_null() {
         free_error(error_message);
     }
 }
