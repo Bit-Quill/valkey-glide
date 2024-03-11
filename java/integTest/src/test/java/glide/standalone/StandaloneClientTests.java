@@ -1,7 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.standalone;
 
-import static glide.TestConfiguration.STANDALONE_PORTS;
+import static glide.TestUtilities.commonClientConfig;
 import static glide.TestUtilities.getRandomString;
 import static glide.TestUtilities.parseInfoResponseToMap;
 import static glide.api.BaseClient.OK;
@@ -14,29 +14,17 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClient;
 import glide.api.models.commands.InfoOptions;
-import glide.api.models.configuration.NodeAddress;
-import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisCredentials;
 import glide.api.models.exceptions.ClosingException;
 import glide.api.models.exceptions.RequestException;
 import java.lang.module.ModuleDescriptor.Version;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 @Timeout(10)
 public class StandaloneClientTests {
-
-    private RedisClientConfiguration.RedisClientConfigurationBuilder<?, ?> commonClientConfig() {
-        return RedisClientConfiguration.builder()
-                .address(NodeAddress.builder().port(STANDALONE_PORTS[0]).build());
-    }
 
     @SneakyThrows
     private Boolean check_if_server_version_gte(RedisClient client, String minVersion) {
@@ -59,67 +47,6 @@ public class StandaloneClientTests {
         assertTrue(info.contains("lib-ver=unknown"));
 
         client.close();
-    }
-
-    @SneakyThrows
-    @Test
-    public void send_and_receive_large_values() {
-        RedisClient client = RedisClient.CreateClient(commonClientConfig().build()).get();
-
-        int length = 65536;
-        String key = getRandomString(length);
-        String value = getRandomString(length);
-
-        assertEquals(length, key.length());
-        assertEquals(length, value.length());
-        assertEquals(OK, client.set(key, value).get());
-        assertEquals(value, client.get(key).get());
-
-        client.close();
-    }
-
-    @SneakyThrows
-    @Test
-    public void send_and_receive_non_ascii_unicode() {
-        RedisClient client = RedisClient.CreateClient(commonClientConfig().build()).get();
-
-        String key = "foo";
-        String value = "שלום hello 汉字";
-
-        assertEquals(OK, client.set(key, value).get());
-        assertEquals(value, client.get(key).get());
-
-        client.close();
-    }
-
-    @SneakyThrows
-    @ParameterizedTest
-    @ValueSource(ints = {100, 65536})
-    public void client_can_handle_concurrent_workload(int valueSize) {
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        RedisClient client = RedisClient.CreateClient(commonClientConfig().build()).get();
-        CompletableFuture[] futures = new CompletableFuture[100];
-
-        for (int i = 0; i < 100; i++) {
-            futures[i] =
-                    CompletableFuture.runAsync(
-                            () -> {
-                                String key = getRandomString(valueSize);
-                                String value = getRandomString(valueSize);
-                                try {
-                                    assertEquals(OK, client.set(key, value).get());
-                                    assertEquals(value, client.get(key).get());
-                                } catch (InterruptedException | ExecutionException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            },
-                            executorService);
-        }
-
-        CompletableFuture.allOf(futures).join();
-
-        client.close();
-        executorService.shutdown();
     }
 
     @SneakyThrows

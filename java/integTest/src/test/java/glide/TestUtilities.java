@@ -1,9 +1,14 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide;
 
+import static glide.TestConfiguration.CLUSTER_PORTS;
+import static glide.TestConfiguration.STANDALONE_PORTS;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import glide.api.models.ClusterValue;
+import glide.api.models.configuration.NodeAddress;
+import glide.api.models.configuration.RedisClientConfiguration;
+import glide.api.models.configuration.RedisClusterClientConfiguration;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,5 +63,17 @@ public class TestUtilities {
                                 parts -> parts[1],
                                 (existingValue, newValue) -> newValue,
                                 HashMap::new));
+    }
+
+    public static RedisClientConfiguration.RedisClientConfigurationBuilder<?, ?>
+            commonClientConfig() {
+        return RedisClientConfiguration.builder()
+                .address(NodeAddress.builder().port(STANDALONE_PORTS[0]).build());
+    }
+
+    public static RedisClusterClientConfiguration.RedisClusterClientConfigurationBuilder<?, ?>
+            commonClusterClientConfig() {
+        return RedisClusterClientConfiguration.builder()
+                .address(NodeAddress.builder().port(CLUSTER_PORTS[0]).build());
     }
 }
