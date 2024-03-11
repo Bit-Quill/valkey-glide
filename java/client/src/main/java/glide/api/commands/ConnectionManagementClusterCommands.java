@@ -64,7 +64,7 @@ public interface ConnectionManagementClusterCommands {
      * @return <code>String</code> with a copy of the argument <code>message</code>.
      * @example
      *     <pre>{@code
-     * String payload = clusterClient.ping("GLIDE", RANDOM_NODE).get();
+     * String payload = clusterClient.ping("GLIDE", RANDOM).get();
      * assert payload.equals("GLIDE");
      * }</pre>
      */
@@ -99,7 +99,7 @@ public interface ConnectionManagementClusterCommands {
      * assert id > 0;
      *
      * Map<String, Long> idPerNode = client.clientId(ALL_NODES).get().getMultiValue();
-     * assert idPerNode.get("<node 1 address>") > 0;
+     * assert idPerNode.get("node1.example.com:6379") > 0;
      * </pre>
      */
     CompletableFuture<ClusterValue<Long>> clientId(Route route);
@@ -135,7 +135,7 @@ public interface ConnectionManagementClusterCommands {
      * assert clientName != null;
      *
      * Map<String, String> clientNamePerNode = client.clientGetName(ALL_NODES).get().getMultiValue();
-     * assert clientNamePerNode.get("<node 1 address>") != null
+     * assert clientNamePerNode.get("node1.example.com:6379") != null;
      * }</pre>
      */
     CompletableFuture<ClusterValue<String>> clientGetName(Route route);
