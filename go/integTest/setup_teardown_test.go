@@ -81,7 +81,7 @@ func extractPorts(suite *GlideTestSuite, output string) []int {
 func runClusterManager(suite *GlideTestSuite, args []string, ignoreExitCode bool) string {
 	pythonArgs := append([]string{"../../utils/cluster_manager.py"}, args...)
 	output, err := exec.Command("python3", pythonArgs...).Output()
-	if output != nil && len(output) > 0 {
+	if len(output) > 0 {
 		suite.T().Logf("cluster_manager.py stdout:\n====\n%s\n====\n", string(output))
 	}
 
