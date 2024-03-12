@@ -372,7 +372,6 @@ pub fn get_command(request_type: RequestType) -> Option<Cmd> {
         RequestType::PTTL => Some(cmd("PTTL")),
         RequestType::ZRemRangeByRank => Some(cmd("ZREMRANGEBYRANK")),
         RequestType::Persist => Some(cmd("PERSIST")),
-        _ => None,
     }
 }
 
@@ -423,6 +422,7 @@ unsafe fn submit_error_into_callback(
 /// * `arg_count` must not be greater than `isize::MAX`. See the safety documentation of [`std::slice::from_raw_parts`](https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html).
 /// * `args` must not be null.
 /// * `args` must point to `arg_count` consecutive properly initialized null-terminated C strings.
+/// * `command_type` must be a valid `RequestType` value
 /// TODO ref other unsafe fns
 #[no_mangle]
 pub unsafe extern "C" fn command(
