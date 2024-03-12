@@ -1,21 +1,26 @@
+#![deny(unsafe_op_in_unsafe_fn)]
+
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
-
+use redis::{cmd, Cmd, FromRedisValue, RedisResult, Value};
 use std::ffi::{c_char, c_void, CStr, CString};
 use std::slice::from_raw_parts;
 use std::str::Utf8Error;
-use redis::{Cmd, cmd, FromRedisValue, RedisResult, Value};
 use tokio::runtime::Builder;
 // TODO
 //   #[cfg(feature = "socket-layer")]
 //   from https://github.com/aws/glide-for-redis/pull/1088
-use protobuf::Message;
 use crate::client::Client as GlideClient;
-use crate::errors::{error_message, error_type, RequestErrorType};
-use crate::ffi::configuration::{ConnectionConfig, NodeAddress, ProtocolVersion, ReadFrom, TlsMode};
 use crate::connection_request;
-use crate::ffi::types::{Client, ConnectionResponse, FailureCallback, RequestType, SuccessCallback};
+use crate::errors::{error_message, error_type, RequestErrorType};
+use crate::ffi::configuration::{
+    ConnectionConfig, NodeAddress, ProtocolVersion, ReadFrom, TlsMode,
+};
+use crate::ffi::types::{
+    Client, ConnectionResponse, FailureCallback, RequestType, SuccessCallback,
+};
+use protobuf::Message;
 
 struct CreateClientError {
     message: String,
@@ -83,7 +88,7 @@ unsafe fn create_connection_request_using_config(
         TlsMode::Insecure => connection_request::TlsMode::InsecureTls,
         TlsMode::NoTls => connection_request::TlsMode::NoTls,
     }
-        .into();
+    .into();
     connection_request.cluster_mode_enabled = config_ref.cluster_mode;
     connection_request.request_timeout = config_ref.request_timeout;
 
@@ -93,7 +98,7 @@ unsafe fn create_connection_request_using_config(
         ReadFrom::Primary => connection_request::ReadFrom::Primary,
         ReadFrom::LowestLatency => connection_request::ReadFrom::LowestLatency,
     }
-        .into();
+    .into();
 
     let mut retry_strategy = connection_request::ConnectionRetryStrategy::new();
     retry_strategy.number_of_retries = config_ref.connection_retry_strategy.number_of_retries;
@@ -111,20 +116,22 @@ unsafe fn create_connection_request_using_config(
         ProtocolVersion::RESP2 => connection_request::ProtocolVersion::RESP2,
         ProtocolVersion::RESP3 => connection_request::ProtocolVersion::RESP3,
     }
-        .into();
+    .into();
 
     connection_request.client_name = unsafe { ptr_to_str(config_ref.client_name) }.into();
 
     connection_request
 }
 
-fn create_connection_request_using_bytes(connection_request_bytes: &[u8])
-    -> Result<connection_request::ConnectionRequest, CreateClientError> {
-    connection_request::ConnectionRequest::parse_from_bytes(connection_request_bytes)
-        .map_err(|err| CreateClientError {
+fn create_connection_request_using_bytes(
+    connection_request_bytes: &[u8],
+) -> Result<connection_request::ConnectionRequest, CreateClientError> {
+    connection_request::ConnectionRequest::parse_from_bytes(connection_request_bytes).map_err(
+        |err| CreateClientError {
             message: err.to_string(),
             error_type: RequestErrorType::Unspecified,
-        })
+        },
+    )
 }
 
 /// # Safety
@@ -181,7 +188,9 @@ fn create_client_using_connection_request(
     })
 }
 
-fn create_client_result_to_connection_response(result: Result<Client, CreateClientError>) -> ConnectionResponse {
+fn create_client_result_to_connection_response(
+    result: Result<Client, CreateClientError>,
+) -> ConnectionResponse {
     match result {
         Err(err) => ConnectionResponse {
             conn_ptr: std::ptr::null(),
@@ -192,7 +201,7 @@ fn create_client_result_to_connection_response(result: Result<Client, CreateClie
             conn_ptr: Box::into_raw(Box::new(client)) as *const c_void,
             error_message: std::ptr::null(),
             error_type: RequestErrorType::Unspecified,
-        }
+        },
     }
 }
 
@@ -209,7 +218,8 @@ pub unsafe extern "C" fn create_client_using_config(
     success_callback: SuccessCallback,
     failure_callback: FailureCallback,
 ) -> *const ConnectionResponse {
-    let result = unsafe { create_client_using_config_internal(config, success_callback, failure_callback) };
+    let result =
+        unsafe { create_client_using_config_internal(config, success_callback, failure_callback) };
     let response = create_client_result_to_connection_response(result);
     Box::into_raw(Box::new(response))
 }
@@ -230,7 +240,8 @@ pub unsafe extern "C" fn create_client_using_protobuf(
     failure_callback: FailureCallback,
 ) -> *const ConnectionResponse {
     let request_bytes = unsafe { from_raw_parts(connection_request_bytes, connection_request_len) };
-    let result = create_client_using_protobuf_internal(request_bytes, success_callback, failure_callback);
+    let result =
+        create_client_using_protobuf_internal(request_bytes, success_callback, failure_callback);
     let response = create_client_result_to_connection_response(result);
     Box::into_raw(Box::new(response))
 }
@@ -378,7 +389,11 @@ unsafe fn convert_double_pointer_to_vec(
 ) -> Result<Vec<String>, Utf8Error> {
     unsafe { from_raw_parts(data, len) }
         .iter()
-        .map(|arg| unsafe { CStr::from_ptr(*arg) }.to_str().map(ToString::to_string))
+        .map(|arg| {
+            unsafe { CStr::from_ptr(*arg) }
+                .to_str()
+                .map(ToString::to_string)
+        })
         .collect()
 }
 
@@ -388,7 +403,10 @@ unsafe fn submit_error_into_callback(
     error_message: String,
     error_type: RequestErrorType,
 ) -> () {
-    logger_core::log_debug("command error", format!("callback: {}, error: {}", callback_index, error_message));
+    logger_core::log_debug(
+        "command error",
+        format!("callback: {}, error: {}", callback_index, error_message),
+    );
     let c_err_str = CString::new(error_message).unwrap();
     unsafe { (client.failure_callback)(callback_index, c_err_str.as_ptr(), error_type) };
 }
@@ -412,7 +430,7 @@ pub unsafe extern "C" fn command(
     callback_index: usize,
     command_type: RequestType,
     arg_count: usize,
-    args: *const *const c_char
+    args: *const *const c_char,
 ) {
     let client = unsafe { Box::leak(Box::from_raw(client_ptr as *mut Client)) };
     // The safety of this needs to be ensured by the calling code. Cannot dispose of the pointer before all operations have completed.
@@ -421,7 +439,14 @@ pub unsafe extern "C" fn command(
     let arg_vec = match unsafe { convert_double_pointer_to_vec(args, arg_count) } {
         Ok(vec) => vec,
         Err(_) => {
-            unsafe { submit_error_into_callback(client, callback_index, "Failed to read arguments".into(), RequestErrorType::Unspecified)}
+            unsafe {
+                submit_error_into_callback(
+                    client,
+                    callback_index,
+                    "Failed to read arguments".into(),
+                    RequestErrorType::Unspecified,
+                )
+            }
             return;
         }
     };
@@ -432,7 +457,14 @@ pub unsafe extern "C" fn command(
         let mut cmd = match get_command(command_type) {
             Some(cmd) => cmd,
             None => {
-                unsafe { submit_error_into_callback(client, callback_index, "Failed to read command type".into(), RequestErrorType::Unspecified)}
+                unsafe {
+                    submit_error_into_callback(
+                        client,
+                        callback_index,
+                        "Failed to read command type".into(),
+                        RequestErrorType::Unspecified,
+                    )
+                }
                 return;
             }
         };
@@ -442,21 +474,37 @@ pub unsafe extern "C" fn command(
         let value = match result {
             Ok(value) => value,
             Err(err) => {
-                unsafe { submit_error_into_callback(client, callback_index, error_message(&err), error_type(&err))}
+                unsafe {
+                    submit_error_into_callback(
+                        client,
+                        callback_index,
+                        error_message(&err),
+                        error_type(&err),
+                    )
+                }
                 return;
             }
         };
 
-        let result : RedisResult<Option<CString>> = match value {
+        let result: RedisResult<Option<CString>> = match value {
             Value::Nil => Ok(None),
             Value::Int(num) => Ok(Some(CString::new(format!("{}", num)).unwrap())),
-            Value::SimpleString(_) | Value::BulkString(_) => Option::<CString>::from_owned_redis_value(value),
+            Value::SimpleString(_) | Value::BulkString(_) => {
+                Option::<CString>::from_owned_redis_value(value)
+            }
             Value::Okay => Ok(Some(CString::new("OK").unwrap())),
             Value::Double(num) => Ok(Some(CString::new(format!("{}", num)).unwrap())),
             Value::Boolean(bool) => Ok(Some(CString::new(format!("{}", bool)).unwrap())),
             other => {
                 // TODO maybe use _ instead of other
-                unsafe { submit_error_into_callback(client, callback_index, format!("Failed to process response of type {:?}", other), RequestErrorType::Unspecified)}
+                unsafe {
+                    submit_error_into_callback(
+                        client,
+                        callback_index,
+                        format!("Failed to process response of type {:?}", other),
+                        RequestErrorType::Unspecified,
+                    )
+                }
                 return;
             }
         };
@@ -465,7 +513,12 @@ pub unsafe extern "C" fn command(
             match result {
                 Ok(None) => (client.success_callback)(callback_index, std::ptr::null()),
                 Ok(Some(c_str)) => (client.success_callback)(callback_index, c_str.as_ptr()),
-                Err(err) => submit_error_into_callback(client, callback_index, error_message(&err), error_type(&err))
+                Err(err) => submit_error_into_callback(
+                    client,
+                    callback_index,
+                    error_message(&err),
+                    error_type(&err),
+                ),
             };
         }
     });

@@ -1,10 +1,9 @@
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
-
+use crate::errors::RequestErrorType;
 use std::ffi::{c_char, c_void};
 use tokio::runtime::Runtime;
-use crate::errors::RequestErrorType;
 
 // Cannot use glide_core::redis_request::RequestType, because it is not FFI safe
 #[repr(u32)]
@@ -108,10 +107,8 @@ pub enum RequestType {
 ///
 /// TODO - copy, ptr
 // TODO: Change message type when implementing command logic
-pub type SuccessCallback = unsafe extern "C" fn(
-    callback_index: usize,
-    message: *const c_char
-) -> ();
+pub type SuccessCallback =
+    unsafe extern "C" fn(callback_index: usize, message: *const c_char) -> ();
 
 /// Failure callback that is called when a Redis command fails.
 ///

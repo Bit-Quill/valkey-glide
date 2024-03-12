@@ -1,10 +1,11 @@
+#![deny(unsafe_op_in_unsafe_fn)]
+
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
-
+use logger_core::Level;
 use std::ffi::CStr;
 use std::os::raw::c_char;
-use logger_core::Level;
 
 #[no_mangle]
 #[allow(improper_ctypes_definitions)]
