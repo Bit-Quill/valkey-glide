@@ -411,9 +411,6 @@ public class CommandTests {
     @Test
     @SneakyThrows
     public void cluster_fail_routing_by_address_if_no_port_is_provided() {
-        ExecutionException executionException =
-                assertThrows(
-                        ExecutionException.class, () -> clusterClient.info(new ByAddressRoute("foo")).get());
-        assertTrue(executionException.getCause() instanceof RequestException);
+        assertThrows(RequestException.class, () -> clusterClient.info(new ByAddressRoute("foo")).get());
     }
 }
