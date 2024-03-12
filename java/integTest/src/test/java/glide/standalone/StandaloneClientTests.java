@@ -1,23 +1,19 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.standalone;
 
+import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestUtilities.commonClientConfig;
 import static glide.TestUtilities.getRandomString;
-import static glide.TestUtilities.parseInfoResponseToMap;
 import static glide.api.BaseClient.OK;
-import static glide.api.models.commands.InfoOptions.Section.SERVER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClient;
-import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RedisCredentials;
 import glide.api.models.exceptions.ClosingException;
 import glide.api.models.exceptions.RequestException;
-import java.lang.module.ModuleDescriptor.Version;
 import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -27,21 +23,14 @@ import org.junit.jupiter.api.Timeout;
 public class StandaloneClientTests {
 
     @SneakyThrows
-    private Boolean check_if_server_version_gte(RedisClient client, String minVersion) {
-        String infoStr = client.info(InfoOptions.builder().section(SERVER).build()).get();
-        String redisVersion = parseInfoResponseToMap(infoStr).get("redis_version");
-        assertNotNull(redisVersion);
-        return Version.parse(redisVersion).compareTo(Version.parse(minVersion)) >= 0;
-    }
-
-    @SneakyThrows
     @Test
     public void register_client_name_and_version() {
-        RedisClient client = RedisClient.CreateClient(commonClientConfig().build()).get();
-
         String minVersion = "7.2.0";
         assumeTrue(
-                check_if_server_version_gte(client, minVersion), "Redis version required >= " + minVersion);
+                REDIS_VERSION.isGreaterThanOrEqualTo("7.2.0"), "Redis version required >= " + minVersion);
+
+        RedisClient client = RedisClient.CreateClient(commonClientConfig().build()).get();
+
         String info = (String) client.customCommand(new String[] {"CLIENT", "INFO"}).get();
         assertTrue(info.contains("lib-name=GlideJava"));
         assertTrue(info.contains("lib-ver=unknown"));
