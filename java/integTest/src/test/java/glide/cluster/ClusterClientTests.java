@@ -27,7 +27,8 @@ public class ClusterClientTests {
     public void register_client_name_and_version() {
         String minVersion = "7.2.0";
         assumeTrue(
-                REDIS_VERSION.isGreaterThanOrEqualTo(minVersion), "Redis version required >= " + minVersion);
+                REDIS_VERSION.isGreaterThanOrEqualTo(minVersion),
+                "Redis version required >= " + minVersion);
 
         RedisClusterClient client =
                 RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get();
