@@ -1,3 +1,5 @@
+#![deny(unsafe_op_in_unsafe_fn)]
+
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
@@ -20,7 +22,7 @@ pub type SuccessCallback =
 
 /// Failure callback that is called when a Redis command fails.
 ///
-/// `error` should be manually freed by calling `free_error` after this callback is invoked, otherwise a memory leak will occur.
+/// `error` should be manually freed after this callback is invoked, otherwise a memory leak will occur.
 pub type FailureCallback = unsafe extern "C" fn(
     channel_address: usize,
     error_message: *const c_char,
@@ -40,6 +42,7 @@ pub struct ConnectionResponse {
 }
 
 /// The glide client.
+// TODO: Remove allow(dead_code) once connection logic is implemented
 #[allow(dead_code)]
 pub struct Client {
     client: GlideClient,
@@ -131,39 +134,26 @@ pub unsafe extern "C" fn create_client(
 pub unsafe extern "C" fn close_client(client_ptr: *const c_void) {
     let client_ptr = unsafe { Box::from_raw(client_ptr as *mut Client) };
     let _runtime_handle = client_ptr.runtime.enter();
-    drop(client_ptr);
 }
 
 /// Deallocates a `ConnectionResponse`.
 ///
-/// This function also frees the contained error using `free_error`.
+/// This function also frees the contained error.
 ///
 /// # Safety
 ///
 /// * `connection_response_ptr` must be able to be safely casted to a valid `Box<ConnectionResponse>` via `Box::from_raw`. See the safety documentation of [`std::boxed::Box::from_raw`](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw).
 /// * `connection_response_ptr` must not be null.
 /// * The contained `error_message` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
+/// * The contained `error_message` must not be null.
 #[no_mangle]
 pub unsafe extern "C" fn free_connection_response(
-    connection_response_ptr: *const ConnectionResponse,
+    connection_response_ptr: *mut ConnectionResponse,
 ) {
-    let connection_response =
-        unsafe { Box::from_raw(connection_response_ptr as *mut ConnectionResponse) };
+    let connection_response = unsafe { Box::from_raw(connection_response_ptr) };
     let error_message = connection_response.error_message;
     drop(connection_response);
     if !error_message.is_null() {
-        free_error(error_message);
+        drop(unsafe { CString::from_raw(error_message as *mut c_char) });
     }
-}
-
-/// Deallocates an error message `CString`.
-///
-/// # Safety
-///
-/// * `error_msg_ptr` must be able to be safely casted to a valid `CString` via `CString::from_raw`. See the safety documentation of [`std::ffi::CString::from_raw`](https://doc.rust-lang.org/std/ffi/struct.CString.html#method.from_raw).
-/// * `error_msg_ptr` must not be null.
-#[no_mangle]
-pub unsafe extern "C" fn free_error(error_msg_ptr: *const c_char) {
-    let error_msg = unsafe { CString::from_raw(error_msg_ptr as *mut c_char) };
-    drop(error_msg);
 }
