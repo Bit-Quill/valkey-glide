@@ -5,8 +5,8 @@ package api
 // #cgo LDFLAGS: -L../target/release -lglide_rs
 // #include "../lib.h"
 //
-// void successCallback(uintptr_t channelPtr, char *message);
-// void failureCallback(uintptr_t channelPtr, char *errMessage, RequestErrorType errType);
+// void successCallback(void *channelPtr, char *message);
+// void failureCallback(void *channelPtr, char *errMessage, RequestErrorType errType);
 import "C"
 
 import (
@@ -16,14 +16,24 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+type payload struct {
+	value *string
+	error error
+}
+
 //export successCallback
-func successCallback(channelPtr C.uintptr_t, cResponse *C.char) {
-	// TODO: Implement when we implement the command logic
+func successCallback(channelPtr unsafe.Pointer, cResponse *C.char) {
+	// TODO: free response
+	response := C.GoString(cResponse)
+	resultChannel := *(*chan payload)(channelPtr)
+	resultChannel <- payload{value: &response, error: nil}
 }
 
 //export failureCallback
-func failureCallback(channelPtr C.uintptr_t, cErrorMessage *C.char, cErrorType C.RequestErrorType) {
-	// TODO: Implement when we implement the command logic
+func failureCallback(channelPtr unsafe.Pointer, cErrorMessage *C.char, cErrorType C.RequestErrorType) {
+	// TODO: free response
+	resultChannel := *(*chan payload)(channelPtr)
+	resultChannel <- payload{value: nil, error: goError(cErrorType, cErrorMessage)}
 }
 
 type connectionRequestConverter interface {
@@ -69,4 +79,51 @@ func (client *baseClient) Close() {
 
 	C.close_client(client.coreClient)
 	client.coreClient = nil
+}
+
+// CustomCommand executes a single command, specified by args, without checking inputs. Every part of the command, including
+// the command name and subcommands, should be added as a separate value in args. The returning value depends on the executed
+// command.
+//
+// This function should only be used for single-response commands. Commands that don't return response (such as SUBSCRIBE), or
+// that return potentially more than a single response (such as XREAD), or that change the client's behavior (such as entering
+// pub/sub mode on RESP2 connections) shouldn't be called using this function.
+//
+// For example, to return a list of all pub/sub clients:
+//
+//	client.CustomCommand([]string{"CLIENT", "LIST","TYPE", "PUBSUB"})
+func (client *baseClient) CustomCommand(args []string) (interface{}, error) {
+	cArgs := toCStrings(args)
+	defer freeCStrings(cArgs)
+
+	resultChannel := make(chan payload)
+	resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
+
+	C.command(client.coreClient, C.uintptr_t(resultChannelPtr), C.CustomCommand, C.uintptr_t(len(args)), &cArgs[0])
+
+	payload := <-resultChannel
+	if payload.error != nil {
+		return nil, payload.error
+	}
+
+	if payload.value != nil {
+		return *payload.value, nil
+	}
+
+	return nil, nil
+}
+
+func toCStrings(args []string) []*C.char {
+	cArgs := make([]*C.char, len(args))
+	for i, arg := range args {
+		cString := C.CString(arg)
+		cArgs[i] = cString
+	}
+	return cArgs
+}
+
+func freeCStrings(cArgs []*C.char) {
+	for _, arg := range cArgs {
+		C.free(unsafe.Pointer(arg))
+	}
 }

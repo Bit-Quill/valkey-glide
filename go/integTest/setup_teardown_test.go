@@ -12,6 +12,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/glide-for-redis/go/glide/api"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -117,4 +119,28 @@ func TestGlideTestSuite(t *testing.T) {
 
 func (suite *GlideTestSuite) TearDownSuite() {
 	runClusterManager(suite, []string{"stop", "--prefix", "redis-cluster", "--keep-folder"}, false)
+}
+
+func (suite *GlideTestSuite) createClient() *api.RedisClient {
+	config := api.NewRedisClientConfiguration().
+		WithAddress(&api.NodeAddress{Port: suite.standalonePorts[0]}).
+		WithRequestTimeout(5000)
+	client, err := api.CreateClient(config)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), client)
+
+	return client
+}
+
+func (suite *GlideTestSuite) createClusterClient() *api.RedisClusterClient {
+	config := api.NewRedisClusterClientConfiguration().
+		WithAddress(&api.NodeAddress{Port: suite.clusterPorts[0]}).
+		WithRequestTimeout(5000)
+	client, err := api.CreateClusterClient(config)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), client)
+
+	return client
 }
