@@ -57,8 +57,8 @@ format:
 	golines -w --shorten-comments -m 127 .
 
 test:
-	go test -v -race `go list ./... | grep -v -e protobuf -e examples`
+	go test -v -race ./...
 
 test-and-report:
 	mkdir -p reports
-	go test -v -race `go list ./... | grep -v -e protobuf -e examples` -json | go-test-report -o reports/test-report.html
+	go test -v -race ./... -json | go-test-report -o reports/test-report.html
