@@ -15,8 +15,7 @@ func (suite *GlideTestSuite) TestStandaloneConnect() {
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), client)
 
-	err = client.Close()
-	assert.Nil(suite.T(), err)
+	client.Close()
 }
 
 func (suite *GlideTestSuite) TestClusterConnect() {
@@ -30,6 +29,15 @@ func (suite *GlideTestSuite) TestClusterConnect() {
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), client)
 
-	err = client.Close()
-	assert.Nil(suite.T(), err)
+	client.Close()
+}
+
+func (suite *GlideTestSuite) TestConnectWithInvalidAddress() {
+	config := api.NewRedisClientConfiguration().
+		WithAddress(&api.NodeAddress{Host: "invalid-host"})
+	client, err := api.CreateClient(config)
+
+	assert.Nil(suite.T(), client)
+	assert.NotNil(suite.T(), err)
+	assert.IsType(suite.T(), &api.DisconnectError{}, err)
 }
