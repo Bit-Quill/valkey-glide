@@ -20,5 +20,7 @@ func main() {
 		log.Fatal("error connecting to database: ", err)
 	}
 
+	// TODO: Add example commands as they are implemented
+
 	client.Close()
 }
