@@ -93,6 +93,10 @@ func (client *baseClient) Close() {
 //
 //	client.CustomCommand([]string{"CLIENT", "LIST","TYPE", "PUBSUB"})
 func (client *baseClient) CustomCommand(args []string) (interface{}, error) {
+	if client.coreClient == nil {
+		return nil, &DisconnectError{"Unable to execute requests; the client is closed. Please create a new client."}
+	}
+
 	cArgs := toCStrings(args)
 	defer freeCStrings(cArgs)
 

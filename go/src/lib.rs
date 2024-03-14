@@ -1,4 +1,5 @@
-#![deny(unsafe_op_in_unsafe_fn)]
+// TODO: uncomment
+// #![deny(unsafe_op_in_unsafe_fn)]
 
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0

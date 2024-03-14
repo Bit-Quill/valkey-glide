@@ -12,5 +12,5 @@ func (suite *GlideTestSuite) TestClusterCustomCommand() {
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), "PONG", result)
 
-	_ = client.Close()
+	client.Close()
 }
