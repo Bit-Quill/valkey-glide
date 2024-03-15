@@ -93,6 +93,10 @@ func (client *baseClient) Close() {
 //
 //	client.CustomCommand([]string{"CLIENT", "LIST","TYPE", "PUBSUB"})
 func (client *baseClient) CustomCommand(args []string) (interface{}, error) {
+	return client.executeCommand(C.CustomCommand, args)
+}
+
+func (client *baseClient) executeCommand(requestType C.RequestType, args []string) (interface{}, error) {
 	if client.coreClient == nil {
 		return nil, &DisconnectError{"Unable to execute requests; the client is closed. Please create a new client."}
 	}
@@ -103,7 +107,7 @@ func (client *baseClient) CustomCommand(args []string) (interface{}, error) {
 	resultChannel := make(chan payload)
 	resultChannelPtr := uintptr(unsafe.Pointer(&resultChannel))
 
-	C.command(client.coreClient, C.uintptr_t(resultChannelPtr), C.CustomCommand, C.uintptr_t(len(args)), &cArgs[0])
+	C.command(client.coreClient, C.uintptr_t(resultChannelPtr), requestType, C.uintptr_t(len(args)), &cArgs[0])
 
 	payload := <-resultChannel
 	if payload.error != nil {
