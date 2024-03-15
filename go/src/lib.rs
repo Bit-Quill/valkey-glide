@@ -403,7 +403,7 @@ let client = unsafe { Box::leak(Box::from_raw(client_ptr as *mut Client)) };
             }
         };
 
-        //print!(" === val {:?}\n", value.clone());
+        print!(" === val {:?}\n", value.clone());
 
         let result: RedisResult<Option<CString>> = match value {
             Value::Nil => Ok(None),
@@ -411,6 +411,7 @@ let client = unsafe { Box::leak(Box::from_raw(client_ptr as *mut Client)) };
             Value::SimpleString(_) | Value::BulkString(_) => {
                 Option::<CString>::from_owned_redis_value(value)
             }
+            Value::VerbatimString { format: _, text } => Ok(Some(CString::new(text).unwrap())),
             Value::Okay => Ok(Some(CString::new("OK").unwrap())),
             Value::Double(num) => Ok(Some(CString::new(format!("{}", num)).unwrap())),
             Value::Boolean(bool) => Ok(Some(CString::new(format!("{}", bool)).unwrap())),

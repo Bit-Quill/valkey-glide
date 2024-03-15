@@ -16,6 +16,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+type BaseClient interface {
+	coreCommands
+
+	// Close terminates the client by closing all associated resources.
+	Close()
+}
+
 type payload struct {
 	value *string
 	error error
@@ -36,7 +43,7 @@ func failureCallback(channelPtr unsafe.Pointer, cErrorMessage *C.char, cErrorTyp
 	resultChannel <- payload{value: nil, error: goError(cErrorType, cErrorMessage)}
 }
 
-type connectionRequestConverter interface {
+type ClientConfiguration interface {
 	toProtobuf() *protobuf.ConnectionRequest
 }
 
@@ -44,7 +51,7 @@ type baseClient struct {
 	coreClient unsafe.Pointer
 }
 
-func createClient(converter connectionRequestConverter) (*baseClient, error) {
+func createClient(converter ClientConfiguration) (*baseClient, error) {
 	request := converter.toProtobuf()
 	msg, err := proto.Marshal(request)
 	if err != nil {

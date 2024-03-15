@@ -123,7 +123,22 @@ func (suite *GlideTestSuite) TearDownSuite() {
 	runClusterManager(suite, []string{"stop", "--prefix", "redis-cluster", "--keep-folder"}, false)
 }
 
-func (suite *GlideTestSuite) getClients() []api.BaseClient {
+func (suite *GlideTestSuite) TearDownTest() {
+	for _, client := range suite.clients {
+		client.Close()
+	}
+
+	for _, client := range suite.clusterClients {
+		client.Close()
+	}
+}
+
+func (suite *GlideTestSuite) runWithDefaultClients(test func(client api.BaseClient)) {
+	clients := suite.getDefaultClients()
+	suite.runWithClients(clients, test)
+}
+
+func (suite *GlideTestSuite) getDefaultClients() []api.BaseClient {
 	return []api.BaseClient{suite.defaultClient(), suite.defaultClusterClient()}
 }
 
@@ -132,13 +147,6 @@ func (suite *GlideTestSuite) defaultClient() *api.RedisClient {
 		WithAddress(&api.NodeAddress{Port: suite.standalonePorts[0]}).
 		WithRequestTimeout(5000)
 	return suite.client(config)
-}
-
-func (suite *GlideTestSuite) defaultClusterClient() *api.RedisClusterClient {
-	config := api.NewRedisClusterClientConfiguration().
-		WithAddress(&api.NodeAddress{Port: suite.clusterPorts[0]}).
-		WithRequestTimeout(5000)
-	return suite.clusterClient(config)
 }
 
 func (suite *GlideTestSuite) client(config *api.RedisClientConfiguration) *api.RedisClient {
@@ -151,6 +159,13 @@ func (suite *GlideTestSuite) client(config *api.RedisClientConfiguration) *api.R
 	return client
 }
 
+func (suite *GlideTestSuite) defaultClusterClient() *api.RedisClusterClient {
+	config := api.NewRedisClusterClientConfiguration().
+		WithAddress(&api.NodeAddress{Port: suite.clusterPorts[0]}).
+		WithRequestTimeout(5000)
+	return suite.clusterClient(config)
+}
+
 func (suite *GlideTestSuite) clusterClient(config *api.RedisClusterClientConfiguration) *api.RedisClusterClient {
 	client, err := api.CreateClusterClient(config)
 
@@ -161,12 +176,10 @@ func (suite *GlideTestSuite) clusterClient(config *api.RedisClusterClientConfigu
 	return client
 }
 
-func (suite *GlideTestSuite) TearDownTest() {
-	for _, client := range suite.clients {
-		client.Close()
-	}
-
-	for _, client := range suite.clusterClients {
-		client.Close()
+func (suite *GlideTestSuite) runWithClients(clients []api.BaseClient, test func(client api.BaseClient)) {
+	for i, client := range clients {
+		suite.T().Run(fmt.Sprintf("Testing [%v]", i), func(t *testing.T) {
+			test(client)
+		})
 	}
 }

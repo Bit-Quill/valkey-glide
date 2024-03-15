@@ -2,10 +2,6 @@
 
 package api
 
-type BaseClient interface {
-	coreCommands
-}
-
 type coreCommands interface {
 	// CustomCommand executes a single command, specified by args, without checking inputs. Every part of the command, including
 	// the command name and subcommands, should be added as a separate value in args. The returning value depends on the executed
