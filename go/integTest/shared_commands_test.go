@@ -32,8 +32,12 @@ func (suite *GlideTestSuite) TestCustomCommandInfo() {
 
 func (suite *GlideTestSuite) TestCustomCommandClientInfo() {
 	clientName := "TEST_CLIENT_NAME"
-	config := api.NewRedisClientConfiguration().WithClientName(clientName)
-	clusterConfig := api.NewRedisClusterClientConfiguration().WithClientName(clientName)
+	config := api.NewRedisClientConfiguration().
+		WithAddress(&api.NodeAddress{Port: suite.standalonePorts[0]}).
+		WithClientName(clientName)
+	clusterConfig := api.NewRedisClusterClientConfiguration().
+		WithAddress(&api.NodeAddress{Port: suite.clusterPorts[0]}).
+		WithClientName(clientName)
 	clients := []api.BaseClient{suite.client(config), suite.clusterClient(clusterConfig)}
 
 	suite.runWithClients(clients, func(client api.BaseClient) {
