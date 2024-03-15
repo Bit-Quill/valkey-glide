@@ -4,9 +4,10 @@ package integTest
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/aws/glide-for-redis/go/glide/api"
 	"github.com/stretchr/testify/assert"
-	"strings"
 )
 
 func (suite *GlideTestSuite) TestCustomCommandPing() {
