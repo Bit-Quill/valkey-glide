@@ -22,6 +22,8 @@ type GlideTestSuite struct {
 	standalonePorts []int
 	clusterPorts    []int
 	redisVersion    string
+	clients         []*api.RedisClient
+	clusterClients  []*api.RedisClusterClient
 }
 
 func (suite *GlideTestSuite) SetupSuite() {
@@ -121,26 +123,50 @@ func (suite *GlideTestSuite) TearDownSuite() {
 	runClusterManager(suite, []string{"stop", "--prefix", "redis-cluster", "--keep-folder"}, false)
 }
 
-func (suite *GlideTestSuite) createClient() *api.RedisClient {
+func (suite *GlideTestSuite) getClients() []api.BaseClient {
+	return []api.BaseClient{suite.defaultClient(), suite.defaultClusterClient()}
+}
+
+func (suite *GlideTestSuite) defaultClient() *api.RedisClient {
 	config := api.NewRedisClientConfiguration().
 		WithAddress(&api.NodeAddress{Port: suite.standalonePorts[0]}).
 		WithRequestTimeout(5000)
+	return suite.client(config)
+}
+
+func (suite *GlideTestSuite) defaultClusterClient() *api.RedisClusterClient {
+	config := api.NewRedisClusterClientConfiguration().
+		WithAddress(&api.NodeAddress{Port: suite.clusterPorts[0]}).
+		WithRequestTimeout(5000)
+	return suite.clusterClient(config)
+}
+
+func (suite *GlideTestSuite) client(config *api.RedisClientConfiguration) *api.RedisClient {
 	client, err := api.CreateClient(config)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), client)
 
+	suite.clients = append(suite.clients, client)
 	return client
 }
 
-func (suite *GlideTestSuite) createClusterClient() *api.RedisClusterClient {
-	config := api.NewRedisClusterClientConfiguration().
-		WithAddress(&api.NodeAddress{Port: suite.clusterPorts[0]}).
-		WithRequestTimeout(5000)
+func (suite *GlideTestSuite) clusterClient(config *api.RedisClusterClientConfiguration) *api.RedisClusterClient {
 	client, err := api.CreateClusterClient(config)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), client)
 
+	suite.clusterClients = append(suite.clusterClients, client)
 	return client
+}
+
+func (suite *GlideTestSuite) TearDownTest() {
+	for _, client := range suite.clients {
+		client.Close()
+	}
+
+	for _, client := range suite.clusterClients {
+		client.Close()
+	}
 }
