@@ -34,6 +34,12 @@ type DisconnectError struct {
 
 func (e *DisconnectError) Error() string { return e.msg }
 
+type ClosingError struct {
+	msg string
+}
+
+func (e *ClosingError) Error() string { return e.msg }
+
 func goError(cErrorType C.RequestErrorType, cErrorMessage *C.char) error {
 	msg := C.GoString(cErrorMessage)
 	switch cErrorType {

@@ -105,7 +105,7 @@ func (client *baseClient) CustomCommand(args []string) (interface{}, error) {
 
 func (client *baseClient) executeCommand(requestType C.RequestType, args []string) (interface{}, error) {
 	if client.coreClient == nil {
-		return nil, &DisconnectError{"Unable to execute requests; the client is closed. Please create a new client."}
+		return nil, &ClosingError{"Unable to execute requests; the client is closed. Please create a new client."}
 	}
 
 	cArgs := toCStrings(args)
