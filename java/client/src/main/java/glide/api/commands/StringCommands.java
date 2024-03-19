@@ -189,8 +189,9 @@ public interface StringCommands {
      *
      * @see <a href="https://redis.io/commands/strlen/">redis.io</a> for details.
      * @param key The key to check its length.
-     * @return The length of the string value stored at key. If <code>key</code> does not exist, it is
-     *     treated as an empty string, and the command returns <code>0</code>.
+     * @return The length of the string value stored at key.<br>
+     *     If <code>key</code> does not exist, it is treated as an empty string, and the command
+     *     returns <code>0</code>.
      * @example
      *     <pre>{@code
      * client.set("key", "GLIDE").get();

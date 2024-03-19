@@ -348,8 +348,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/strlen/">redis.io</a> for details.
      * @param key The key to check its length.
-     * @return Command Response - The length of the string value stored at key. If <code>key</code>
-     *     does not exist, it is treated as an empty string, and the command returns <code>0</code>.
+     * @return Command Response - The length of the string value stored at key.<br>
+     *     If <code>key</code> does not exist, it is treated as an empty string, and the command
+     *     returns <code>0</code>.
      */
     public T strlen(String key) {
         ArgsArray commandArgs = buildArgs(key);
