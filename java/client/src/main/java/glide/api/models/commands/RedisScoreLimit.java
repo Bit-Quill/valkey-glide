@@ -28,7 +28,7 @@ public class RedisScoreLimit {
         /** The score value. */
         private final double bound;
 
-        /** Whether the score value is inclusive. */
+        /** Whether the score value is inclusive. Defaults to true if not set. */
         private final boolean isInclusive;
 
         public ScoreBoundary(double bound, boolean isInclusive) {
@@ -41,6 +41,7 @@ public class RedisScoreLimit {
             this.isInclusive = true;
         }
 
+        /** Convert the score boundary to the Redis protocol format. */
         @Override
         public String toArg() {
             return this.isInclusive ? String.valueOf(this.bound) : "(" + this.bound;
