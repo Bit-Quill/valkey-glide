@@ -126,7 +126,7 @@ public class RedisClientTest {
     @Test
     public void echo_returns_success() {
         // setup
-        String message = "GLIDE THE BEST";
+        String message = "GLIDE";
         String[] arguments = new String[] {message};
         CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete(message);

@@ -86,7 +86,7 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void echo(BaseClient client) {
-        String message = "GLIDE THE BEST";
+        String message = "GLIDE";
         String response = client.echo(message).get();
         assertEquals(message, response);
     }

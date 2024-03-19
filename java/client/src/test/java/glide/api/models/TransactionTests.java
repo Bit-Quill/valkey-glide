@@ -99,8 +99,8 @@ public class TransactionTests {
         transaction.del(new String[] {"key1", "key2"});
         results.add(Pair.of(Del, ArgsArray.newBuilder().addArgs("key1").addArgs("key2").build()));
 
-        transaction.echo("GLIDE THE BEST");
-        results.add(Pair.of(Echo, ArgsArray.newBuilder().addArgs("GLIDE THE BEST").build()));
+        transaction.echo("GLIDE");
+        results.add(Pair.of(Echo, ArgsArray.newBuilder().addArgs("GLIDE").build()));
 
         transaction.ping();
         results.add(Pair.of(Ping, ArgsArray.newBuilder().build()));

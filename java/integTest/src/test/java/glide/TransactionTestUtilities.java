@@ -91,7 +91,7 @@ public class TransactionTestUtilities {
 
         baseTransaction.configResetStat();
 
-        baseTransaction.echo("GLIDE THE BEST");
+        baseTransaction.echo("GLIDE");
 
         return baseTransaction;
     }
@@ -144,7 +144,7 @@ public class TransactionTestUtilities {
             OK,
             Map.of("timeout", "1000"),
             OK,
-            "GLIDE THE BEST", // echo
+            "GLIDE", // echo
         };
     }
 }
