@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import response.ResponseOuterClass.Response;
 
@@ -260,9 +259,9 @@ public class RedisClusterClient extends BaseClient
                 new String[0],
                 route,
                 response ->
-                    route.isSingleNodeRoute()
-                        ? ClusterValue.ofSingleValue(castArray(handleArrayResponse(response), String.class))
-                        : ClusterValue.ofMultiValue(castMapOfArrays(handleMapResponse(response), String.class))
-        );
+                        route.isSingleNodeRoute()
+                                ? ClusterValue.ofSingleValue(castArray(handleArrayResponse(response), String.class))
+                                : ClusterValue.ofMultiValue(
+                                        castMapOfArrays(handleMapResponse(response), String.class)));
     }
 }

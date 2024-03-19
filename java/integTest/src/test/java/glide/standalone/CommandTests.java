@@ -253,7 +253,9 @@ public class CommandTests {
 
         assertEquals(2, result.length);
 
-        assertTrue(Long.parseLong(result[0]) > now, "Time() result (" + result[0] + ") should be greater than now (" + now + ")");
+        assertTrue(
+                Long.parseLong(result[0]) > now,
+                "Time() result (" + result[0] + ") should be greater than now (" + now + ")");
         assertTrue(Long.parseLong(result[1]) < 1000000);
     }
 }

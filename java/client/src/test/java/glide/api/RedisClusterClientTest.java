@@ -653,7 +653,8 @@ public class RedisClusterClientTest {
         when(testResponse.get()).thenReturn(ClusterValue.ofSingleValue(payload));
 
         // match on protobuf request
-        when(commandManager.<ClusterValue<String[]>>submitNewCommand(eq(Time), eq(new String[0]), eq(RANDOM), any()))
+        when(commandManager.<ClusterValue<String[]>>submitNewCommand(
+                        eq(Time), eq(new String[0]), eq(RANDOM), any()))
                 .thenReturn(testResponse);
 
         // exercise

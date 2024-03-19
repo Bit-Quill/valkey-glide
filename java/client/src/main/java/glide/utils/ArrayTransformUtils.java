@@ -62,13 +62,10 @@ public class ArrayTransformUtils {
      * @param <U> The subtype of T to which the elements are cast.
      */
     @SuppressWarnings("unchecked")
-    public static <T, U extends T> Map<String, U[]> castMapOfArrays(Map<String, T[]> mapOfArrays, Class<U> clazz) {
-        return mapOfArrays.entrySet().stream().collect(
-            Collectors.toMap(
-                k -> k.getKey(),
-                e -> castArray(e.getValue(), clazz)
-            )
-        );
+    public static <T, U extends T> Map<String, U[]> castMapOfArrays(
+            Map<String, T[]> mapOfArrays, Class<U> clazz) {
+        return mapOfArrays.entrySet().stream()
+                .collect(Collectors.toMap(k -> k.getKey(), e -> castArray(e.getValue(), clazz)));
     }
 
     /**

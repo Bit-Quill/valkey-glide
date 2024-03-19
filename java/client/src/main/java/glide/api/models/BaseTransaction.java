@@ -1246,9 +1246,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns the server time.
      *
      * @see <a href="https://redis.io/commands/time/">redis.io</a> for details.
-     * @return Command Response - The current server time as a <code>String[]</code> with two elements: A Unix timestamp
-     *     and the amount of microseconds already elapsed in the current second. The returned array is
-     *     in a [Unix timestamp, Microseconds already elapsed] format.
+     * @return Command Response - The current server time as a <code>String[]</code> with two
+     *     elements: A Unix timestamp and the amount of microseconds already elapsed in the current
+     *     second. The returned array is in a [Unix timestamp, Microseconds already elapsed] format.
      */
     public T time() {
         protobufTransaction.addCommands(buildCommand(Time));
