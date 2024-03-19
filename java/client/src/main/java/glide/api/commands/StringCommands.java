@@ -16,8 +16,8 @@ import java.util.concurrent.CompletableFuture;
 public interface StringCommands {
 
     /**
-     * Get the value associated with the given <code>key</code>, or <code>null</code> if no such value
-     * exists.
+     * Gets the value associated with the given <code>key</code>, or <code>null</code> if no such
+     * value exists.
      *
      * @see <a href="https://redis.io/commands/get/">redis.io</a> for details.
      * @param key The <code>key</code> to retrieve from the database.
@@ -35,7 +35,7 @@ public interface StringCommands {
     CompletableFuture<String> get(String key);
 
     /**
-     * Set the given <code>key</code> with the given value.
+     * Sets the given <code>key</code> with the given value.
      *
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
      * @param key The <code>key</code> to store.
@@ -50,7 +50,7 @@ public interface StringCommands {
     CompletableFuture<String> set(String key, String value);
 
     /**
-     * Set the given key with the given value. Return value is dependent on the passed options.
+     * Sets the given key with the given value. Return value is dependent on the passed options.
      *
      * @see <a href="https://redis.io/commands/set/">redis.io</a> for details.
      * @param key The key to store.
@@ -75,7 +75,7 @@ public interface StringCommands {
     CompletableFuture<String> set(String key, String value, SetOptions options);
 
     /**
-     * Retrieve the values of multiple <code>keys</code>.
+     * Retrieves the values of multiple <code>keys</code>.
      *
      * @see <a href="https://redis.io/commands/mget/">redis.io</a> for details.
      * @param keys A list of keys to retrieve values for.
@@ -91,7 +91,7 @@ public interface StringCommands {
     CompletableFuture<String[]> mget(String[] keys);
 
     /**
-     * Set multiple keys to multiple values in a single operation.
+     * Sets multiple keys to multiple values in a single operation.
      *
      * @see <a href="https://redis.io/commands/mset/">redis.io</a> for details.
      * @param keyValueMap A key-value map consisting of keys and their respective values to set.
@@ -105,7 +105,7 @@ public interface StringCommands {
     CompletableFuture<String> mset(Map<String, String> keyValueMap);
 
     /**
-     * Increment the number stored at <code>key</code> by one. If <code>key</code> does not exist, it
+     * Increments the number stored at <code>key</code> by one. If <code>key</code> does not exist, it
      * is set to 0 before performing the operation.
      *
      * @see <a href="https://redis.io/commands/incr/">redis.io</a> for details.
@@ -120,7 +120,7 @@ public interface StringCommands {
     CompletableFuture<Long> incr(String key);
 
     /**
-     * Increment the number stored at <code>key</code> by <code>amount</code>. If <code>key</code>
+     * Increments the number stored at <code>key</code> by <code>amount</code>. If <code>key</code>
      * does not exist, it is set to 0 before performing the operation.
      *
      * @see <a href="https://redis.io/commands/incrby/">redis.io</a> for details.
@@ -136,7 +136,7 @@ public interface StringCommands {
     CompletableFuture<Long> incrBy(String key, long amount);
 
     /**
-     * Increment the string representing a floating point number stored at <code>key</code> by <code>
+     * Increments the string representing a floating point number stored at <code>key</code> by <code>
      * amount</code>. By using a negative increment value, the result is that the value stored at
      * <code>key</code> is decremented. If <code>key</code> does not exist, it is set to 0 before
      * performing the operation.
@@ -154,7 +154,7 @@ public interface StringCommands {
     CompletableFuture<Double> incrByFloat(String key, double amount);
 
     /**
-     * Decrement the number stored at <code>key</code> by one. If <code>key</code> does not exist, it
+     * Decrements the number stored at <code>key</code> by one. If <code>key</code> does not exist, it
      * is set to 0 before performing the operation.
      *
      * @see <a href="https://redis.io/commands/decr/">redis.io</a> for details.
@@ -169,7 +169,7 @@ public interface StringCommands {
     CompletableFuture<Long> decr(String key);
 
     /**
-     * Decrement the number stored at <code>key</code> by <code>amount</code>. If <code>key</code>
+     * Decrements the number stored at <code>key</code> by <code>amount</code>. If <code>key</code>
      * does not exist, it is set to 0 before performing the operation.
      *
      * @see <a href="https://redis.io/commands/decrby/">redis.io</a> for details.
