@@ -20,6 +20,8 @@ import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
 import glide.api.models.commands.ExpireOptions;
+import glide.api.models.commands.RedisScoreLimit.InfBound;
+import glide.api.models.commands.RedisScoreLimit.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.NodeAddress;
@@ -1010,5 +1012,29 @@ public class SharedCommandTests {
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.zcard("foo").get());
         assertTrue(executionException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void zcount(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        Map<String, Double> membersScores = Map.of("one", 1.0, "two", 2.0, "three", 3.0);
+        assertEquals(3, client.zadd(key, membersScores).get());
+        assertEquals(
+                3, client.zcount(key, InfBound.NEGATIVE_INFINITY, InfBound.POSITIVE_INFINITY).get());
+        assertEquals(
+                1, client.zcount(key, new ScoreBoundary(1, false), new ScoreBoundary(3, false)).get());
+        assertEquals(
+                2, client.zcount(key, new ScoreBoundary(1, false), new ScoreBoundary(3, true)).get());
+        assertEquals(
+                3, client.zcount(key, InfBound.NEGATIVE_INFINITY, new ScoreBoundary(3, true)).get());
+        assertEquals(
+                0, client.zcount(key, InfBound.POSITIVE_INFINITY, new ScoreBoundary(3, true)).get());
+        assertEquals(
+                0,
+                client
+                        .zcount("non_existing_key", InfBound.NEGATIVE_INFINITY, InfBound.POSITIVE_INFINITY)
+                        .get());
     }
 }

@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
+import glide.api.models.commands.RedisScoreLimit.ScoreLimit;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -183,4 +184,31 @@ public interface SortedSetBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> zcard(String key);
+
+    /**
+     * Returns the number of members in the sorted set stored at <code>key</code> with scores between
+     * <code>minScore</code> and <code>maxScore</code>.
+     *
+     * @see <a href="https://redis.io/commands/zcount/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param minScore The minimum score to count from. Can be an implementation of InfBound
+     *     representing positive/negative infinity, or ScoreBoundary representing a specific score and
+     *     inclusivity.
+     * @param maxScore The maximum score to count up to. Can be an implementation of InfBound
+     *     representing positive/negative infinity, or ScoreBoundary representing a specific score and
+     *     inclusivity.
+     * @return The number of members in the specified score range.<br>
+     *     If <code>key</code> does not exist, it is treated as an empty sorted set, and the command
+     *     returns 0.<br>
+     *     If <code>max_score</code> < <code>min_score</code>, 0 is returned.
+     * @example
+     *     <pre>{@code
+     * Long num1 = client.zcount("my_sorted_set", new ScoreBoundary(5.0 , true) , InfBound.POSITIVE_INFINITY).get();
+     * assert num1 == 2L; // Indicates that there are 2 members with scores between 5.0 (not exclusive) and +inf in the sorted set "my_sorted_set".
+     *
+     * Long num2 = client.zcount("my_sorted_set", new ScoreBoundary(5.0 , true) , new ScoreBoundary(10.0 , false)).get();
+     * assert num2 == 1L; // Indicates that there is one member with ScoreBoundary 5.0 < score <= 10.0 in the sorted set "my_sorted_set".
+     * }</pre>
+     */
+    CompletableFuture<Long> zcount(String key, ScoreLimit minScore, ScoreLimit maxScore);
 }

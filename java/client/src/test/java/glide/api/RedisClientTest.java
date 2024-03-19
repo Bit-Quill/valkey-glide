@@ -64,10 +64,13 @@ import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
+import static redis_request.RedisRequestOuterClass.RequestType.Zcount;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
+import glide.api.models.commands.RedisScoreLimit.InfBound;
+import glide.api.models.commands.RedisScoreLimit.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
 import glide.api.models.commands.ZaddOptions;
@@ -1630,6 +1633,31 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<Long> response = service.zcard(key);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zcount_returns_success() {
+        // setup
+        String key = "testKey";
+        String[] arguments = new String[] {key, "-inf", "10.0"};
+        Long value = 3L;
+
+        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
+        when(testResponse.get()).thenReturn(value);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(Zcount), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response =
+                service.zcount(key, InfBound.NEGATIVE_INFINITY, new ScoreBoundary(10, true));
         Long payload = response.get();
 
         // verify

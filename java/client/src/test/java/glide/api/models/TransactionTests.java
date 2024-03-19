@@ -50,10 +50,13 @@ import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
+import static redis_request.RedisRequestOuterClass.RequestType.Zcount;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
+import glide.api.models.commands.RedisScoreLimit.InfBound;
+import glide.api.models.commands.RedisScoreLimit.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.ZaddOptions;
 import java.util.LinkedHashMap;
@@ -371,6 +374,11 @@ public class TransactionTests {
 
         transaction.zcard("key");
         results.add(Pair.of(Zcard, ArgsArray.newBuilder().addArgs("key").build()));
+
+        transaction.zcount("key", new ScoreBoundary(5, false), InfBound.POSITIVE_INFINITY);
+        results.add(
+                Pair.of(
+                        Zcount, ArgsArray.newBuilder().addArgs("key").addArgs("(5.0").addArgs("+inf").build()));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

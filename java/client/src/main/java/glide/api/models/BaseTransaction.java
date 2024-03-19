@@ -52,11 +52,13 @@ import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
+import static redis_request.RedisRequestOuterClass.RequestType.Zcount;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
+import glide.api.models.commands.RedisScoreLimit.ScoreLimit;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
@@ -1238,6 +1240,29 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T zcard(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(new String[] {key});
         protobufTransaction.addCommands(buildCommand(Zcard, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the number of members in the sorted set stored at <code>key</code> with scores between
+     * <code>minScore</code> and <code>maxScore</code>.
+     *
+     * @see <a href="https://redis.io/commands/zcount/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param minScore The minimum score to count from. Can be an implementation of InfBound
+     *     representing positive/negative infinity, or ScoreBoundary representing a specific score and
+     *     inclusivity.
+     * @param maxScore The maximum score to count up to. Can be an implementation of InfBound
+     *     representing positive/negative infinity, or ScoreBoundary representing a specific score and
+     *     inclusivity.
+     * @return Command Response - The number of members in the specified score range.<br>
+     *     If <code>key</code> does not exist, it is treated as an empty sorted set, and the command
+     *     returns 0.<br>
+     *     If <code>max_score</code> < <code>min_score</code>, 0 is returned.
+     */
+    public T zcount(@NonNull String key, @NonNull ScoreLimit minScore, @NonNull ScoreLimit maxScore) {
+        ArgsArray commandArgs = buildArgs(new String[] {key, minScore.toArg(), maxScore.toArg()});
+        protobufTransaction.addCommands(buildCommand(Zcount, commandArgs));
         return getThis();
     }
 
