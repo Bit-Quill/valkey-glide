@@ -107,7 +107,7 @@ public interface ServerManagementCommands {
      * Returns the server time.
      *
      * @see <a href="https://redis.io/commands/time/">redis.io</a> for details.
-     * @return The current server time as a <code>String[]</code> with two elements: A Unix timestamp
+     * @return The current server time as a <code>String</code> array with two elements: A Unix timestamp
      *     and the amount of microseconds already elapsed in the current second. The returned array is
      *     in a [Unix timestamp, Microseconds already elapsed] format.
      * @example
