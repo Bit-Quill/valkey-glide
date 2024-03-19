@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import glide.api.BaseClient;
 import glide.api.RedisClusterClient;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
@@ -35,9 +36,11 @@ import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.SlotKeyRoute;
 import glide.api.models.exceptions.RedisException;
 import glide.api.models.exceptions.RequestException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
@@ -45,6 +48,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @Timeout(10)
 public class CommandTests {
@@ -502,5 +507,35 @@ public class CommandTests {
     @SneakyThrows
     public void cluster_fail_routing_by_address_if_no_port_is_provided() {
         assertThrows(RequestException.class, () -> clusterClient.info(new ByAddressRoute("foo")).get());
+    }
+
+    @Test
+    @SneakyThrows
+    public void time() {
+        // Take the time now, convert to 10 digits and subtract 1 second
+        long now = Instant.now().getEpochSecond() - 1L;
+        String[] result = clusterClient.time().get();
+        assertEquals(2, result.length);
+        assertTrue(Long.parseLong(result[0]) > now, "Time() result (" + result[0] + ") should be greater than now (" + now + ")");
+        assertTrue(Long.parseLong(result[1]) < 1000000);
+    }
+
+    @Test
+    @SneakyThrows
+    public void time_with_route() {
+        // Take the time now, convert to 10 digits and subtract 1 second
+        long now = Instant.now().getEpochSecond() - 1L;
+
+        ClusterValue<String[]> result = clusterClient.time(ALL_PRIMARIES).get();
+        assertTrue(result.hasMultiData());
+        assertTrue(result.getMultiValue().size() > 1);
+
+        // check the first node's server time
+        Object[] serverTime =
+            result.getMultiValue().get(result.getMultiValue().keySet().toArray(String[]::new)[0]);
+
+        assertEquals(2, serverTime.length);
+        assertTrue(Long.parseLong((String)serverTime[0]) > now, "Time() result (" + serverTime[0] + ") should be greater than now (" + now + ")");
+        assertTrue(Long.parseLong((String)serverTime[1]) < 1000000);
     }
 }
