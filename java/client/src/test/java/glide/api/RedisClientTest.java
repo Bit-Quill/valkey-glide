@@ -137,11 +137,11 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<String> response = service.echo(message);
-        String pong = response.get();
+        String echo = response.get();
 
         // verify
         assertEquals(testResponse, response);
-        assertEquals(message, pong);
+        assertEquals(message, echo);
     }
 
     @SneakyThrows
