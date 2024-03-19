@@ -1246,7 +1246,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns the remaining time to live of <code>key</code> that has a timeout, in milliseconds.
      *
      * @see <a href="https://redis.io/commands/pttl/">redis.io</a> for details.
-     * @param key - The key to return its timeout.
+     * @param key The key to return its timeout.
      * @return Command Response - TTL in milliseconds. <code>-2</code> if <code>key</code> does not
      *     exist, <code>-1</code> if <code>key</code> exists but has no associated expire.
      */
