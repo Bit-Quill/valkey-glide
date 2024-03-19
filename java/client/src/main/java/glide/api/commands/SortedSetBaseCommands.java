@@ -4,6 +4,7 @@ package glide.api.commands;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import lombok.NonNull;
 
 /**
  * Supports commands and transactions for the "Sorted Set Commands" group for standalone clients and
@@ -183,4 +184,24 @@ public interface SortedSetBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> zcard(String key);
+
+    /**
+     * Returns the score of <code>member</code> in the sorted set stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/zscore/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param member The member whose score is to be retrieved.
+     * @return The score of the member.<br>
+     *     If <code>member</code> does not exist in the sorted set, <code>null</code> is returned.<br>
+     *     If <code>key</code> does not exist, <code>null</code> is returned.
+     * @example
+     *     <pre>{@code
+     * Double num1 = client.zcore("mySortedSet", "member").get();
+     * assert num1 == 10.5; // Indicates that the score of "member" in the sorted set "my_sorted_set" is 10.5.
+     *
+     * Double num2 = client.zcore("mySortedSet", "non_existing_member").get();
+     * assert num2 == null;
+     * }</pre>
+     */
+    CompletableFuture<Double> zscore(@NonNull String key, @NonNull String member);
 }
