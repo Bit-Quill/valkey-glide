@@ -4,7 +4,6 @@ package glide.api.commands;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import lombok.NonNull;
 
 /**
  * Supports commands and transactions for the "Sorted Set Commands" group for standalone clients and
@@ -203,5 +202,5 @@ public interface SortedSetBaseCommands {
      * assert num2 == null;
      * }</pre>
      */
-    CompletableFuture<Double> zscore(@NonNull String key, @NonNull String member);
+    CompletableFuture<Double> zscore(String key, String member);
 }
