@@ -1024,6 +1024,14 @@ public class SharedCommandTests {
         assertEquals(
                 3, client.zcount(key, InfBound.NEGATIVE_INFINITY, InfBound.POSITIVE_INFINITY).get());
         assertEquals(
+                3,
+                client
+                        .zcount(
+                                key,
+                                new ScoreBoundary(Double.NEGATIVE_INFINITY),
+                                new ScoreBoundary(Double.POSITIVE_INFINITY))
+                        .get());
+        assertEquals(
                 1, client.zcount(key, new ScoreBoundary(1, false), new ScoreBoundary(3, false)).get());
         assertEquals(
                 2, client.zcount(key, new ScoreBoundary(1, false), new ScoreBoundary(3, true)).get());
