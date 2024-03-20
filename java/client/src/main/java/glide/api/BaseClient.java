@@ -594,16 +594,6 @@ public abstract class BaseClient
                 ZPopMin, new String[] {key, Long.toString(count)}, this::handleMapResponse);
     }
 
-    /**
-     * Removes and returns the member with the lowest score from the sorted set stored at the
-     * specified <code>key</code>.
-     *
-     * @see <a href="https://redis.io/commands/zpopmin/">redis.io</a> for more details.
-     * @param key The key of the sorted set.
-     * @return A map containing the removed member and their corresponding score.<br>
-     *     If <code>key</code> doesn't exist, it will be treated as an empy sorted set and the command
-     *     returns an empty map.
-     */
     @Override
     public CompletableFuture<Map<String, Double>> zpopmin(@NonNull String key) {
         return commandManager.submitNewCommand(ZPopMin, new String[] {key}, this::handleMapResponse);
