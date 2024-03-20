@@ -1,25 +1,24 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands;
 
+import lombok.RequiredArgsConstructor;
+
 public class RedisScoreLimit {
     public interface ScoreLimit {
         String toArg();
     }
 
     /** Enumeration representing numeric positive and negative infinity bounds for a sorted set. */
+    @RequiredArgsConstructor
     public enum InfBound implements ScoreLimit {
         POSITIVE_INFINITY("+inf"),
         NEGATIVE_INFINITY("-inf");
 
-        private final String representation;
-
-        InfBound(String representation) {
-            this.representation = representation;
-        }
+        private final String redisApi;
 
         @Override
         public String toArg() {
-            return representation;
+            return redisApi;
         }
     }
 
