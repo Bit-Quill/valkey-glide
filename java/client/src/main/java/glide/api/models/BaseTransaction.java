@@ -1244,7 +1244,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /**
      * Removes and returns up to <code>count</code> members with the highest scores from the sorted
-     * set stored at * the specified <code>key</code>.
+     * set stored at the specified <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/zpopmax/">redis.io</a> for more details.
      * @param key The key of the sorted set.
