@@ -195,10 +195,10 @@ public interface SortedSetBaseCommands {
      *     If <code>key</code> does not exist, <code>null</code> is returned.
      * @example
      *     <pre>{@code
-     * Double num1 = client.zcore("mySortedSet", "member").get();
-     * assert num1 == 10.5; // Indicates that the score of "member" in the sorted set "my_sorted_set" is 10.5.
+     * Double num1 = client.zscore("mySortedSet", "member").get();
+     * assert num1 == 10.5; // Indicates that the score of "member" in the sorted set "mySortedSet" is 10.5.
      *
-     * Double num2 = client.zcore("mySortedSet", "non_existing_member").get();
+     * Double num2 = client.zscore("mySortedSet", "non_existing_member").get();
      * assert num2 == null;
      * }</pre>
      */
