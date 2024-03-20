@@ -12,6 +12,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/glide-for-redis/go/glide/api"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -20,6 +22,8 @@ type GlideTestSuite struct {
 	standalonePorts []int
 	clusterPorts    []int
 	redisVersion    string
+	clients         []*api.RedisClient
+	clusterClients  []*api.RedisClusterClient
 }
 
 func (suite *GlideTestSuite) SetupSuite() {
@@ -117,4 +121,31 @@ func TestGlideTestSuite(t *testing.T) {
 
 func (suite *GlideTestSuite) TearDownSuite() {
 	runClusterManager(suite, []string{"stop", "--prefix", "redis-cluster", "--keep-folder"}, false)
+}
+
+func (suite *GlideTestSuite) TearDownTest() {
+	for _, client := range suite.clients {
+		client.Close()
+	}
+
+	for _, client := range suite.clusterClients {
+		client.Close()
+	}
+}
+
+func (suite *GlideTestSuite) defaultClient() *api.RedisClient {
+	config := api.NewRedisClientConfiguration().
+		WithAddress(&api.NodeAddress{Port: suite.standalonePorts[0]}).
+		WithRequestTimeout(5000)
+	return suite.client(config)
+}
+
+func (suite *GlideTestSuite) client(config *api.RedisClientConfiguration) *api.RedisClient {
+	client, err := api.NewRedisClient(config)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), client)
+
+	suite.clients = append(suite.clients, client)
+	return client
 }
