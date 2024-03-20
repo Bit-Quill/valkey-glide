@@ -195,8 +195,8 @@ public interface SortedSetBaseCommands {
      *     their scores, ordered from lowest to highest.
      * @return A map of the removed members and their scores, ordered from the one with the highest
      *     score to the one with the lowest.<br>
-     *     If <code>key</code> doesn't exist, it will be treated as an empy sorted set and the command
-     *     returns an empty map.
+     *     If <code>key</code> doesn't exist, it will be treated as an empty sorted set and the
+     *     command returns an empty <code>Map</code>.
      * @example
      *     <pre>{@code
      * Map<String, Double> payload = client.zpopmax("mySortedSet", 2).get();
@@ -211,9 +211,9 @@ public interface SortedSetBaseCommands {
      *
      * @see <a href="https://redis.io/commands/zpopmin/">redis.io</a> for more details.
      * @param key The key of the sorted set.
-     * @return A map containing the removed member and their corresponding score.<br>
-     *     If <code>key</code> doesn't exist, it will be treated as an empy sorted set and the command
-     *     returns an empty map.
+     * @return A map containing the removed member and its corresponding score.<br>
+     *     If <code>key</code> doesn't exist, it will be treated as an empty sorted set and the
+     *     command returns an empty <code>Map</code>.
      * @example
      *     <pre>{@code
      * Map<String, Double> payload = client.zpopmin("mySortedSet").get();
