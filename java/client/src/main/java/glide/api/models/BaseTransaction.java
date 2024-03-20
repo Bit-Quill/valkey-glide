@@ -58,7 +58,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
-import glide.api.models.commands.RedisScoreLimit.ScoreLimit;
+import glide.api.models.commands.ScoreLimitOptions.ScoreLimit;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
@@ -1261,7 +1261,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     If <code>max_score</code> < <code>min_score</code>, 0 is returned.
      */
     public T zcount(@NonNull String key, @NonNull ScoreLimit minScore, @NonNull ScoreLimit maxScore) {
-        ArgsArray commandArgs = buildArgs(new String[] {key, minScore.toArg(), maxScore.toArg()});
+        ArgsArray commandArgs =
+                buildArgs(concatenateArrays(new String[] {key}, minScore.toArgs(), maxScore.toArgs()));
         protobufTransaction.addCommands(buildCommand(Zcount, commandArgs));
         return getThis();
     }

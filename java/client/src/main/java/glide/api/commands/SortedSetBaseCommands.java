@@ -1,7 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
-import glide.api.models.commands.RedisScoreLimit.ScoreLimit;
+import glide.api.models.commands.ScoreLimitOptions.ScoreLimit;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

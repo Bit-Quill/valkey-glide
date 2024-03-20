@@ -3,9 +3,9 @@ package glide.api.models.commands;
 
 import lombok.RequiredArgsConstructor;
 
-public class RedisScoreLimit {
+public class ScoreLimitOptions {
     public interface ScoreLimit {
-        String toArg();
+        String[] toArgs();
     }
 
     /** Enumeration representing numeric positive and negative infinity bounds for a sorted set. */
@@ -17,8 +17,8 @@ public class RedisScoreLimit {
         private final String redisApi;
 
         @Override
-        public String toArg() {
-            return redisApi;
+        public String[] toArgs() {
+            return new String[] {redisApi};
         }
     }
 
@@ -42,8 +42,8 @@ public class RedisScoreLimit {
 
         /** Convert the score boundary to the Redis protocol format. */
         @Override
-        public String toArg() {
-            return this.isInclusive ? String.valueOf(this.bound) : "(" + this.bound;
+        public String[] toArgs() {
+            return new String[] {this.isInclusive ? String.valueOf(this.bound) : "(" + this.bound};
         }
     }
 }

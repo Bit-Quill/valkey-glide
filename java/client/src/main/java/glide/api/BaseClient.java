@@ -55,7 +55,7 @@ import glide.api.commands.SetBaseCommands;
 import glide.api.commands.SortedSetBaseCommands;
 import glide.api.commands.StringCommands;
 import glide.api.models.commands.ExpireOptions;
-import glide.api.models.commands.RedisScoreLimit.ScoreLimit;
+import glide.api.models.commands.ScoreLimitOptions.ScoreLimit;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
@@ -592,7 +592,8 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> zcount(
             @NonNull String key, @NonNull ScoreLimit minScore, @NonNull ScoreLimit maxScore) {
-        return commandManager.submitNewCommand(
-                Zcount, new String[] {key, minScore.toArg(), maxScore.toArg()}, this::handleLongResponse);
+        String[] arguments =
+                concatenateArrays(new String[] {key}, minScore.toArgs(), maxScore.toArgs());
+        return commandManager.submitNewCommand(Zcount, arguments, this::handleLongResponse);
     }
 }

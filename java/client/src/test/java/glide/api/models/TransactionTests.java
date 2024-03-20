@@ -55,8 +55,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
-import glide.api.models.commands.RedisScoreLimit.InfBound;
-import glide.api.models.commands.RedisScoreLimit.ScoreBoundary;
+import glide.api.models.commands.ScoreLimitOptions.InfBound;
+import glide.api.models.commands.ScoreLimitOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.ZaddOptions;
 import java.util.LinkedHashMap;
