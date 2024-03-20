@@ -66,7 +66,8 @@ fn create_client_internal(
     let request = connection_request::ConnectionRequest::parse_from_bytes(connection_request_bytes)
         .map_err(|err| err.to_string())?;
     // TODO: optimize this (e.g. by pinning each go thread to a rust thread)
-    let runtime = Builder::new_current_thread()
+    // TODO: This should be new_current_thread
+    let runtime = Builder::new_multi_thread()
         .enable_all()
         .thread_name("GLIDE for Redis Go thread")
         .build()
