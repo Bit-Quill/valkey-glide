@@ -1253,8 +1253,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     their scores, ordered from highest to lowest.
      * @return Command Response - A map of the removed members and their scores, ordered from the one
      *     with the highest score to the one with the lowest.<br>
-     *     If <code>key</code> doesn't exist, it will be treated as an empy sorted set and the command
-     *     returns an empty map.
+     *     If <code>key</code> doesn't exist, it will be treated as an empty sorted set and the
+     *     command returns an empty <code>Map</code>.
      */
     public T zpopmax(@NonNull String key, long count) {
         ArgsArray commandArgs = buildArgs(new String[] {key, Long.toString(count)});
@@ -1268,10 +1268,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/zpopmax/">redis.io</a> for more details.
      * @param key The key of the sorted set.
-     * @return Command Response - A map containing the removed member and their corresponding score.
-     *     <br>
-     *     If <code>key</code> doesn't exist, it will be treated as an empy sorted set and the command
-     *     returns an empty map.
+     * @return Command Response - A map containing the removed member and its corresponding score.<br>
+     *     If <code>key</code> doesn't exist, it will be treated as an empty sorted set and the
+     *     command returns an empty <code>Map</code>.
      */
     public T zpopmax(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(new String[] {key});

@@ -1020,7 +1020,7 @@ public class SharedCommandTests {
         Map<String, Double> membersScores = Map.of("a", 1.0, "b", 2.0, "c", 3.0);
         assertEquals(3, client.zadd(key, membersScores).get());
         assertEquals(Map.of("c", 3.0), client.zpopmax(key).get());
-        assertEquals(Map.of("b", 2.0, "a", 1.0), client.zpopmax(key, 2).get());
+        assertEquals(Map.of("b", 2.0, "a", 1.0), client.zpopmax(key, 3).get());
         assertTrue(client.zpopmax(key).get().isEmpty());
         assertTrue(client.zpopmax("non_existing_key").get().isEmpty());
 
