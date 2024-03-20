@@ -1,7 +1,9 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.managers;
 
+import glide.api.RedisClient;
 import glide.api.models.ClusterTransaction;
+import glide.api.models.Script;
 import glide.api.models.Transaction;
 import glide.api.models.configuration.RequestRoutingConfiguration.ByAddressRoute;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
@@ -86,6 +88,20 @@ public class CommandManager {
     }
 
     /**
+     * Build a Script (by hash) and send.
+     *
+     * @param script
+     * @param responseHandler The handler for the response object
+     * @return A result promise of type T
+     */
+    public <T> CompletableFuture<T> submitNewCommand(
+        Script script, RedisExceptionCheckedFunction<Response, T> responseHandler) {
+
+        RedisRequest.Builder command = prepareRedisRequest(script);
+        return submitCommandToChannel(command, responseHandler);
+    }
+
+    /**
      * Build a Transaction and send.
      *
      * @param transaction Redis Transaction request with multiple commands
@@ -164,6 +180,24 @@ public class CommandManager {
 
         RedisRequest.Builder builder =
                 RedisRequest.newBuilder().setTransaction(transaction.getProtobufTransaction().build());
+
+        return builder;
+    }
+
+    /**
+     * Build a protobuf transaction request object with routing options.
+     *
+     * @param transaction Redis transaction with commands
+     * @return An uncompleted request. {@link CallbackDispatcher} is responsible to complete it by
+     *     adding a callback id.
+     */
+    protected RedisRequest.Builder prepareRedisRequest(Script script) {
+
+        // TODO add key and args
+        RedisRequest.Builder builder =
+            RedisRequest.newBuilder().setScriptInvocation(
+                RedisRequestOuterClass.ScriptInvocation.newBuilder().setHash(script.getHash()).build()
+            );
 
         return builder;
     }

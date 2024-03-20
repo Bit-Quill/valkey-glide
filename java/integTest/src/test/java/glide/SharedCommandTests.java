@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
+import glide.api.models.Script;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.ZaddOptions;
@@ -37,6 +38,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -859,6 +861,17 @@ public class SharedCommandTests {
         assertFalse(client.pexpireAt(key, Instant.now().toEpochMilli() + 10000L).get());
 
         assertEquals(-2L, client.ttl(key).get());
+    }
+
+    @Test
+    @SneakyThrows
+    public void invoke_script_test() {
+        Script script = new Script("return 'Hello'");
+        Object response = standaloneClient.invokeScript(script).get();
+
+        assertEquals("Hello", response);
+
+        script.close();
     }
 
     @SneakyThrows
