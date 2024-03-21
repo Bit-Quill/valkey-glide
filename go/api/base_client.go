@@ -23,7 +23,7 @@ type BaseClient interface {
 }
 
 type payload struct {
-	value *string
+	value string
 	error error
 }
 
@@ -32,14 +32,14 @@ func successCallback(channelPtr unsafe.Pointer, cResponse *C.char) {
 	// TODO: call lib.rs function to free response
 	response := C.GoString(cResponse)
 	resultChannel := *(*chan payload)(channelPtr)
-	resultChannel <- payload{value: &response, error: nil}
+	resultChannel <- payload{value: response, error: nil}
 }
 
 //export failureCallback
 func failureCallback(channelPtr unsafe.Pointer, cErrorMessage *C.char, cErrorType C.RequestErrorType) {
 	// TODO: call lib.rs function to free response
 	resultChannel := *(*chan payload)(channelPtr)
-	resultChannel <- payload{value: nil, error: goError(cErrorType, cErrorMessage)}
+	resultChannel <- payload{value: "", error: goError(cErrorType, cErrorMessage)}
 }
 
 type clientConfiguration interface {
@@ -90,7 +90,7 @@ func (client *baseClient) Close() {
 
 func (client *baseClient) executeCommand(requestType C.RequestType, args []string) (interface{}, error) {
 	if client.coreClient == nil {
-		return nil, &ClosingError{"Unable to execute requests; the client is closed. Please create a new client."}
+		return nil, &ClosingError{"The client is closed."}
 	}
 
 	cArgs := toCStrings(args)
@@ -106,11 +106,7 @@ func (client *baseClient) executeCommand(requestType C.RequestType, args []strin
 		return nil, payload.error
 	}
 
-	if payload.value != nil {
-		return *payload.value, nil
-	}
-
-	return nil, nil
+	return payload.value, nil
 }
 
 func toCStrings(args []string) []*C.char {
