@@ -31,7 +31,7 @@ type payload struct {
 
 //export successCallback
 func successCallback(channelPtr unsafe.Pointer, cResponse *C.char) {
-	// TODO: free response
+	// TODO: call lib.rs function to free response
 	response := C.GoString(cResponse)
 	resultChannel := *(*chan payload)(channelPtr)
 	resultChannel <- payload{value: &response, error: nil}
@@ -39,7 +39,7 @@ func successCallback(channelPtr unsafe.Pointer, cResponse *C.char) {
 
 //export failureCallback
 func failureCallback(channelPtr unsafe.Pointer, cErrorMessage *C.char, cErrorType C.RequestErrorType) {
-	// TODO: free response
+	// TODO: call lib.rs function to free response
 	resultChannel := *(*chan payload)(channelPtr)
 	resultChannel <- payload{value: nil, error: goError(cErrorType, cErrorMessage)}
 }
