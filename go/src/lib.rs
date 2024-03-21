@@ -396,7 +396,7 @@ let client = unsafe { Box::leak(Box::from_raw(client_ptr as *mut Client)) };
             }
         };
 
-        print!(" === val {:?}\n", value.clone());
+        //print!(" === val {:?}\n", value.clone());
 
         let result: RedisResult<Option<CString>> = match value {
             Value::Nil => Ok(None),

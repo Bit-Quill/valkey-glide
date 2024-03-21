@@ -18,8 +18,6 @@ import (
 
 // BaseClient defines an interface for methods common to both [RedisClient] and [RedisClusterClient].
 type BaseClient interface {
-	GenericCommands
-
 	// Close terminates the client by closing all associated resources.
 	Close()
 }
@@ -88,21 +86,6 @@ func (client *baseClient) Close() {
 
 	C.close_client(client.coreClient)
 	client.coreClient = nil
-}
-
-// CustomCommand executes a single command, specified by args, without checking inputs. Every part of the command, including
-// the command name and subcommands, should be added as a separate value in args. The returning value depends on the executed
-// command.
-//
-// This function should only be used for single-response commands. Commands that don't return response (such as SUBSCRIBE), or
-// that return potentially more than a single response (such as XREAD), or that change the client's behavior (such as entering
-// pub/sub mode on RESP2 connections) shouldn't be called using this function.
-//
-// For example, to return a list of all pub/sub clients:
-//
-//	client.CustomCommand([]string{"CLIENT", "LIST","TYPE", "PUBSUB"})
-func (client *baseClient) CustomCommand(args []string) (interface{}, error) {
-	return client.executeCommand(C.CustomCommand, args)
 }
 
 func (client *baseClient) executeCommand(requestType C.RequestType, args []string) (interface{}, error) {
