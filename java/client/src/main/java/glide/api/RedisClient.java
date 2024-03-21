@@ -16,7 +16,6 @@ import static redis_request.RedisRequestOuterClass.RequestType.Select;
 import glide.api.commands.ConnectionManagementCommands;
 import glide.api.commands.GenericCommands;
 import glide.api.commands.ServerManagementCommands;
-import glide.api.models.Script;
 import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RedisClientConfiguration;
@@ -56,10 +55,6 @@ public class RedisClient extends BaseClient
     @Override
     public CompletableFuture<Object[]> exec(@NonNull Transaction transaction) {
         return commandManager.submitNewCommand(transaction, this::handleArrayOrNullResponse);
-    }
-
-    public CompletableFuture<Object> invokeScript(@NonNull Script script) {
-        return commandManager.submitNewCommand(script, this::handleObjectOrNullResponse);
     }
 
     @Override

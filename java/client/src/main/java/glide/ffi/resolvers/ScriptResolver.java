@@ -10,6 +10,7 @@ public class ScriptResolver {
 
     /**
      * Resolves a Script object from code
+     *
      * @param code
      * @return String representing the saved hash
      */
