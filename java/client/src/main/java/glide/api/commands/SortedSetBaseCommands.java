@@ -207,16 +207,16 @@ public interface SortedSetBaseCommands {
     CompletableFuture<Long> zrank(String key, String member);
 
     /**
-     * Returns the rank of <code>member</code> in the sorted set stored at <code>key</code> with it's score, where scores
-     * are ordered from the lowest to highest.
+     * Returns the rank of <code>member</code> in the sorted set stored at <code>key</code> with it's
+     * score, where scores are ordered from the lowest to highest.
      *
      * @see <a href="https://redis.io/commands/zrank/">redis.io</a> for more details.
      * @param key The key of the sorted set.
      * @param member The member whose rank is to be retrieved.
-     * @return An array containing the rank (as Long) and score (as Double) of <code>member</code> in the sorted
-     *     set.<br>
+     * @return An array containing the rank (as <code>Long</code>) and score (as <code>Double</code>)
+     *     of <code>member</code> in the sorted set.<br>
      *     If <code>key</code> doesn't exist, or if <code>member</code> is not present in the set,
-     *     null will be returned.
+     *     <code>null</code> will be returned.
      * @example
      *     <pre>{@code
      * Object[] result1 = client.zrankWithScore("mySortedSet", "member2").get();
