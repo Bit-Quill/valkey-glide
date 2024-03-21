@@ -3,7 +3,7 @@
  */
 use glide_core::start_socket_listener;
 
-use jni::objects::{JClass, JObject, JString, JObjectArray, JThrowable};
+use jni::objects::{JClass, JObject, JObjectArray, JString, JThrowable};
 use jni::sys::jlong;
 use jni::JNIEnv;
 use log::error;
@@ -160,8 +160,8 @@ pub extern "system" fn Java_glide_ffi_resolvers_ScriptResolver_storeScript<'loca
     _class: JClass<'local>,
     code: JString,
 ) -> JObject<'local> {
-    let str: String = env.get_string(&code).unwrap().into();
-    let hash = glide_core::scripts_container::add_script(&str);
+    let code_str: String = env.get_string(&code).unwrap().into();
+    let hash = glide_core::scripts_container::add_script(&code_str);
     JObject::from(env.new_string(hash).unwrap())
 }
 
@@ -171,6 +171,6 @@ pub extern "system" fn Java_glide_ffi_resolvers_ScriptResolver_dropScript<'local
     _class: JClass<'local>,
     hash: JString,
 ) {
-    let str: String = env.get_string(&hash).unwrap().into();
-    glide_core::scripts_container::remove_script(&str);
+    let hash_str: String = env.get_string(&hash).unwrap().into();
+    glide_core::scripts_container::remove_script(&hash_str);
 }
