@@ -601,6 +601,6 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Object[]> zrankWithScore(@NonNull String key, @NonNull String member) {
         return commandManager.submitNewCommand(
-            Zrank, new String[] {key, member, "WITHSCORE"}, this::handleArrayOrNullResponse);
+                Zrank, new String[] {key, member, "WITHSCORE"}, this::handleArrayOrNullResponse);
     }
 }

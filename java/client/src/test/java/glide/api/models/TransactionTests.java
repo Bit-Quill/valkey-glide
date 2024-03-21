@@ -377,7 +377,10 @@ public class TransactionTests {
         results.add(Pair.of(Zrank, ArgsArray.newBuilder().addArgs("key").addArgs("member").build()));
 
         transaction.zrankWithScore("key", "member");
-        results.add(Pair.of(Zrank, ArgsArray.newBuilder().addArgs("key").addArgs("member").addArgs("WITHSCORE").build()));
+        results.add(
+                Pair.of(
+                        Zrank,
+                        ArgsArray.newBuilder().addArgs("key").addArgs("member").addArgs("WITHSCORE").build()));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

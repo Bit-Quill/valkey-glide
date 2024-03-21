@@ -1677,7 +1677,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Object[]>submitNewCommand(eq(Zrank), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Object[]> response = service.zrankWithScore(key, member);
