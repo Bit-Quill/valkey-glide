@@ -1,6 +1,8 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
+import glide.api.models.commands.RangeOptions.IRangeQuery;
+import glide.api.models.commands.RangeOptions.IScoredRangeQuery;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -183,4 +185,71 @@ public interface SortedSetBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> zcard(String key);
+
+    /**
+     * Returns the specified range of elements in the sorted set stored at <code>key</code>.<br>
+     * ZRANGE can perform different types of range queries: by index (rank), by the score, or by
+     * lexicographical order.<br>
+     * To get the elements with their scores, see zrange_withscores.
+     *
+     * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param rangeQuery The range query object representing the type of range query to perform.<br>
+     *     - For range queries by index (rank), use RangeByIndex.<br>
+     *     - For range queries by lexicographical order, use RangeByLex.<br>
+     *     - For range queries by score, use RangeByScore.
+     * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
+     *     score.
+     * @return An array elements within the specified range. If <code>key</code> does not exist, it is
+     *     treated as an empty sorted set, and the command returns an empty array.
+     */
+    CompletableFuture<String[]> zrange(String key, IRangeQuery rangeQuery, boolean reverse);
+
+    /**
+     * Returns the specified range of elements in the sorted set stored at <code>key</code>.<br>
+     * ZRANGE can perform different types of range queries: by index (rank), by the score, or by
+     * lexicographical order.<br>
+     * To get the elements with their scores, see zrange_withscores.
+     *
+     * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param rangeQuery The range query object representing the type of range query to perform.<br>
+     *     - For range queries by index (rank), use RangeByIndex.<br>
+     *     - For range queries by lexicographical order, use RangeByLex.<br>
+     *     - For range queries by score, use RangeByScore.
+     * @return An array elements within the specified range. If <code>key</code> does not exist, it is
+     *     treated as an empty sorted set, and the command returns an empty array.
+     */
+    CompletableFuture<String[]> zrange(String key, IRangeQuery rangeQuery);
+
+    /**
+     * Returns the specified range of elements with their scores in the sorted set stored at <code>key
+     * </code>. Similar to ZRANGE but with a WITHSCORE flag.
+     *
+     * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param rangeQuery The range query object representing the type of range query to perform.<br>
+     *     - For range queries by index (rank), use RangeByIndex.<br>
+     *     - For range queries by score, use RangeByScore.
+     * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
+     *     score.
+     * @return A map of elements and their scores within the specified range. If <code>key</code> does
+     *     not exist, it is treated as an empty sorted set, and the command returns an empty map.
+     */
+    CompletableFuture<Map<String, Double>> zrangeWithScores(
+            String key, IScoredRangeQuery rangeQuery, boolean reverse);
+
+    /**
+     * Returns the specified range of elements with their scores in the sorted set stored at <code>key
+     * </code>. Similar to ZRANGE but with a WITHSCORE flag.
+     *
+     * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param rangeQuery The range query object representing the type of range query to perform.<br>
+     *     - For range queries by index (rank), use RangeByIndex.<br>
+     *     - For range queries by score, use RangeByScore.
+     * @return A map of elements and their scores within the specified range. If <code>key</code> does
+     *     not exist, it is treated as an empty sorted set, and the command returns an empty map.
+     */
+    CompletableFuture<Map<String, Double>> zrangeWithScores(String key, IScoredRangeQuery rangeQuery);
 }
