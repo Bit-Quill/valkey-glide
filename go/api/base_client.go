@@ -139,7 +139,11 @@ func freeCStrings(cArgs []*C.char) {
 // [redis.io]: https://redis.io/commands/set/
 func (client *baseClient) Set(key string, value string) (string, error) {
 	result, err := client.executeCommand(C.SetString, []string{key, value})
-	return handleStringResponse(result, err)
+	if err != nil {
+		return "", err
+	}
+
+	return handleStringResponse(result)
 }
 
 // SetWithOptions sets the given key with the given value using the given options. The return value is dependent on the passed
@@ -162,7 +166,11 @@ func (client *baseClient) Set(key string, value string) (string, error) {
 // [redis.io]: https://redis.io/commands/set/
 func (client *baseClient) SetWithOptions(key string, value string, options *SetOptions) (string, error) {
 	result, err := client.executeCommand(C.SetString, append([]string{key, value}, options.toArgs()...))
-	return handleStringResponse(result, err)
+	if err != nil {
+		return "", nil
+	}
+
+	return handleStringResponse(result)
 }
 
 // Get a pointer to the value associated with the given key, or nil if no such value exists.
@@ -176,5 +184,9 @@ func (client *baseClient) SetWithOptions(key string, value string, options *SetO
 // [redis.io]: https://redis.io/commands/set/
 func (client *baseClient) Get(key string) (string, error) {
 	result, err := client.executeCommand(C.GetString, []string{key})
-	return handleStringResponse(result, err)
+	if err != nil {
+		return "", err
+	}
+
+	return handleStringResponse(result)
 }
