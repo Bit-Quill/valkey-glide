@@ -4,10 +4,17 @@ package glide.api.models;
 import static glide.ffi.resolvers.ScriptResolver.dropScript;
 import static glide.ffi.resolvers.ScriptResolver.storeScript;
 
-/** Represents a Script object for ScriptInvokation */
+/**
+ * A wrapper for a Script object for {@link
+ * glide.api.commands.GenericBaseCommands#invokeScript(Script)} As long as this object is not
+ * closed, the script's code is saved in memory, and can be resent to the server.
+ */
 public class Script implements AutoCloseable {
 
-    String hash;
+    /**
+     * hash string representing the code
+     */
+    private String hash;
 
     /**
      * Wraps around creating a Script object from <code>code</code>.

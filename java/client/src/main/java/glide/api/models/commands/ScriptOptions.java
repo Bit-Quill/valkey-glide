@@ -11,14 +11,14 @@ import lombok.Singular;
  * Optional arguments for {@link glide.api.commands.GenericBaseCommands#invokeScript(Script,
  * ScriptOptions)} command.
  *
- * @see <a href="https://redis.io/commands/set/">redis.io</a>
+ * @see <a href="https://redis.io/commands/evalsha/">redis.io</a>
  */
 @Builder
 public final class ScriptOptions {
 
-    /** The keys that are used in the script. */
+    /** The keys that are accessed by the script. */
     @Singular @Getter private final List<String> keys;
 
-    /** The arguments for the script. */
+    /** The arguments provided to the script. */
     @Singular @Getter private final List<String> args;
 }

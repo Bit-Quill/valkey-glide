@@ -88,7 +88,7 @@ public class CommandManager {
     }
 
     /**
-     * Build a Script (by hash) and send.
+     * Build a Script (by hash) request to send to Redis.
      *
      * @param script
      * @param keys

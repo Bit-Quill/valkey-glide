@@ -311,7 +311,7 @@ public interface GenericBaseCommands {
      *     <pre>{@code
      * try(Script luaScript = new Script("return \{ KEYS[1], ARGV[1] \}")) {
      *     ScriptOptions scriptOptions = ScriptOptions.builder().key("foo").arg("bar").build();
-     *     String[] result = (String[]) client.invokeScript(luaScript, scriptOptions).get();
+     *     Object[] result = (Object[]) client.invokeScript(luaScript, scriptOptions).get();
      *     assert result[0] == "foo";
      *     assert result[1] == "bar";
      * }

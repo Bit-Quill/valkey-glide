@@ -867,23 +867,46 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void invokeScript_test(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+
         try (Script script = new Script("return 'Hello'")) {
             Object response = client.invokeScript(script).get();
-
             assertEquals("Hello", response);
         }
-    }
 
-    @SneakyThrows
-    @ParameterizedTest
-    @MethodSource("getClients")
-    public void invokeScript_with_options_test(BaseClient client) {
-        try (Script script = new Script("return { KEYS[1], ARGV[1] }")) {
-            ScriptOptions options = ScriptOptions.builder().key("foo").arg("bar").build();
-            Object[] response = (Object[]) client.invokeScript(script, options).get();
+        try (Script script = new Script("return redis.call('SET', KEYS[1], ARGV[1])")) {
+            Object setResponse1 = client.invokeScript(script,
+                ScriptOptions.builder()
+                    .key(key1)
+                    .arg("value1")
+                    .build()
+            ).get();
+            assertEquals(OK, setResponse1);
 
-            assertEquals("foo", response[0]);
-            assertEquals("bar", response[1]);
+            Object setResponse2 = client.invokeScript(script,
+                ScriptOptions.builder()
+                    .key(key2)
+                    .arg("value2")
+                    .build()
+            ).get();
+            assertEquals(OK, setResponse2);
+        }
+
+        try (Script script = new Script("return redis.call('GET', KEYS[1])")) {
+            Object getResponse1 = client.invokeScript(script,
+                ScriptOptions.builder()
+                    .key(key1)
+                    .build()
+            ).get();
+            assertEquals("value1", getResponse1);
+
+            Object getResponse2 = client.invokeScript(script,
+                ScriptOptions.builder()
+                    .key(key2)
+                    .build()
+            ).get();
+            assertEquals("value2", getResponse2);
         }
     }
 
