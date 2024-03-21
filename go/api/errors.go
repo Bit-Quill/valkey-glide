@@ -6,6 +6,12 @@ package api
 // #include "../lib.h"
 import "C"
 
+type RedisError struct {
+	msg string
+}
+
+func (e *RedisError) Error() string { return e.msg }
+
 type ConnectionError struct {
 	msg string
 }
