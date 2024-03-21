@@ -12,7 +12,7 @@ import static glide.ffi.resolvers.ScriptResolver.storeScript;
 public class Script implements AutoCloseable {
 
     /** hash string representing the code */
-    private String hash;
+    private final String hash;
 
     /**
      * Wraps around creating a Script object from <code>code</code>.
