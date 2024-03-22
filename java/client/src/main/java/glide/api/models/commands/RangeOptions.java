@@ -120,6 +120,14 @@ public class RangeOptions {
         private final long count;
     }
 
+    public interface RangeQuery {
+        String getStart();
+
+        String getEnd();
+
+        Limit getLimit();
+    }
+
     /**
      * Represents a range by lexicographical order in a sorted set.<br>
      * The <code>start</code> and <code>stop</code> arguments represent lexicographical boundaries.
@@ -213,14 +221,6 @@ public class RangeOptions {
             this.end = end.toArgs();
             this.limit = null;
         }
-    }
-
-    public interface RangeQuery {
-        String getStart();
-
-        String getEnd();
-
-        Limit getLimit();
     }
 
     public static String[] createZrangeArgs(

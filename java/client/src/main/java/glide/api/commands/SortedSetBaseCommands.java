@@ -201,8 +201,8 @@ public interface SortedSetBaseCommands {
      *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
      *     score.
-     * @return An array elements within the specified range. If <code>key</code> does not exist, it is
-     *     treated as an empty sorted set, and the command returns an empty array.
+     * @return An array of elements within the specified range. If <code>key</code> does not exist, it
+     *     is treated as an empty sorted set, and the command returns an empty array.
      * @example
      *     <pre>{@code
      * String[] payload1 = client.zrange("mySortedSet", new RangeByIndex(0, -1), true).get(); // RangeByIndex(0, -1) specifies retrieval of all elements from the start to the end of the sorted set.
@@ -226,8 +226,8 @@ public interface SortedSetBaseCommands {
      *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
      *     - For range queries by lexicographical order, use {@link RangeOptions.RangeByLex}.<br>
      *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
-     * @return An array elements within the specified range. If <code>key</code> does not exist, it is
-     *     treated as an empty sorted set, and the command returns an empty array.
+     * @return An of array elements within the specified range. If <code>key</code> does not exist, it
+     *     is treated as an empty sorted set, and the command returns an empty array.
      * @example
      *     <pre>{@code
      * String[] payload1 = client.zrange("mySortedSet", new RangeByIndex(0, -1)).get();
@@ -250,8 +250,9 @@ public interface SortedSetBaseCommands {
      *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
      *     score.
-     * @return A map of elements and their scores within the specified range. If <code>key</code> does
-     *     not exist, it is treated as an empty sorted set, and the command returns an empty map.
+     * @return A <code>Map</code> of elements and their scores within the specified range. If <code>
+     *     key</code> does not exist, it is treated as an empty sorted set, and the command returns an
+     *     empty <code>Map</code>.
      * @example
      *     <pre>{@code
      * Map<String, Double> payload1 = client.zrangeWithScores("mySortedSet", new RangeByScore(new ScoreBoundary(10), new ScoreBoundary(20)), true).get();
@@ -273,8 +274,9 @@ public interface SortedSetBaseCommands {
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
      *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
      *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
-     * @return A map of elements and their scores within the specified range. If <code>key</code> does
-     *     not exist, it is treated as an empty sorted set, and the command returns an empty map.
+     * @return A <code><ap</code> of elements and their scores within the specified range. If <code>
+     *     key</code> does not exist, it is treated as an empty sorted set, and the command returns an
+     *     empty <code>Map</code>.
      * @example
      *     <pre>{@code
      * Map<String, Double> payload1 = client.zrangeWithScores("mySortedSet", new RangeByScore(new ScoreBoundary(10), new ScoreBoundary(20))).get();

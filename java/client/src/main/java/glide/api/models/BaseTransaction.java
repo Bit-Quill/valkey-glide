@@ -1258,7 +1258,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
      *     score.
-     * @return Command Response - An array elements within the specified range. If <code>key</code>
+     * @return Command Response - An array of elements within the specified range. If <code>key</code>
      *     does not exist, it is treated as an empty sorted set, and the command returns an empty
      *     array.
      */
@@ -1281,7 +1281,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
      *     - For range queries by lexicographical order, use {@link RangeOptions.RangeByLex}.<br>
      *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
-     * @return Command Response - An array elements within the specified range. If <code>key</code>
+     * @return Command Response - An array of elements within the specified range. If <code>key</code>
      *     does not exist, it is treated as an empty sorted set, and the command returns an empty
      *     array.
      */
@@ -1300,9 +1300,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
      *     score.
-     * @return Command Response - A map of elements and their scores within the specified range. If
-     *     <code>key</code> does not exist, it is treated as an empty sorted set, and the command
-     *     returns an empty map.
+     * @return Command Response - A <code>Map</code> of elements and their scores within the specified
+     *     range. If <code>key</code> does not exist, it is treated as an empty sorted set, and the
+     *     command returns an empty <code>Map</code>.
      */
     public T zrangeWithScores(
             @NonNull String key, @NonNull RangeOptions.ScoredRangeQuery rangeQuery, boolean reverse) {
@@ -1320,9 +1320,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
      *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
      *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
-     * @return Command Response - A map of elements and their scores within the specified range. If
-     *     <code>key</code> does not exist, it is treated as an empty sorted set, and the command
-     *     returns an empty map.
+     * @return Command Response - A <code>Map</code> of elements and their scores within the specified
+     *     range. If <code>key</code> does not exist, it is treated as an empty sorted set, and the
+     *     command returns an empty <code>Map</code>.
      */
     public T zrangeWithScores(
             @NonNull String key, @NonNull RangeOptions.ScoredRangeQuery rangeQuery) {
