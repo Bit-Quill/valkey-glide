@@ -39,7 +39,7 @@ public interface StreamBaseCommands {
      *     set to <code>false</code> and no stream with the matching <code>key</code> exists.
      * @example
      *     <pre>{@code
-     * // Stream options to not make the stream if "key" is not a stream, as use stream id of "sid"
+     * // Option to use the existing stream, or return null if the stream doesn't already exist at "key"
      * StreamAddOptions options = StreamAddOptions.builder().id("sid").makeStream(Boolean.FALSE).build();
      * String streamId = client.xadd("key", Map.of("name", "Sara", "surname", "OConnor"), options).get();
      * if (streamId != null) {

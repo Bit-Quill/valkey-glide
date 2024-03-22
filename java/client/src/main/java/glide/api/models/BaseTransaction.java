@@ -1303,8 +1303,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param values field-value pairs to be added to the entry.
      * @return Command Response - The id of the added entry.
      */
-    public T xadd(String key, Map<String, String> values) {
-        return this.xadd(key, values, StreamAddOptions.builder().build());
+    public T xadd(@NonNull String key, @NonNull Map<String, String> values) {
+        this.xadd(key, values, StreamAddOptions.builder().build());
+        return getThis();
     }
 
     /**
@@ -1318,11 +1319,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     options.makeStream</code> is set to <code>false</code> and no stream with the matching
      *     <code>key</code> exists.
      */
-    public T xadd(String key, Map<String, String> values, StreamAddOptions options) {
+    public T xadd(@NonNull String key, @NonNull Map<String, String> values, @NonNull StreamAddOptions options) {
         String[] arguments =
-            ArrayUtils.addAll(
-                ArrayUtils.addFirst(options.toArgs(), key),
-                ArrayTransformUtils.convertMapToKeyValueStringArray(values));
+                ArrayUtils.addAll(
+                        ArrayUtils.addFirst(options.toArgs(), key),
+                        convertMapToKeyValueStringArray(values));
         ArgsArray commandArgs = buildArgs(arguments);
         protobufTransaction.addCommands(buildCommand(XAdd, commandArgs));
         return getThis();

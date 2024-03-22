@@ -625,7 +625,7 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<String> xadd(@NonNull String key, Map<String, String> values) {
+    public CompletableFuture<String> xadd(@NonNull String key, @NonNull Map<String, String> values) {
         return xadd(key, values, StreamAddOptions.builder().build());
     }
 
@@ -633,9 +633,9 @@ public abstract class BaseClient
     public CompletableFuture<String> xadd(
             @NonNull String key, @NonNull Map<String, String> values, @NonNull StreamAddOptions options) {
         String[] arguments =
-            ArrayUtils.addAll(
-                ArrayUtils.addFirst(options.toArgs(), key),
-                ArrayTransformUtils.convertMapToKeyValueStringArray(values));
+                ArrayUtils.addAll(
+                        ArrayUtils.addFirst(options.toArgs(), key),
+                        convertMapToKeyValueStringArray(values));
         return commandManager.submitNewCommand(XAdd, arguments, this::handleStringOrNullResponse);
     }
 

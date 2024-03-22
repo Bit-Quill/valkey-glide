@@ -5,6 +5,7 @@ import glide.api.commands.StreamBaseCommands;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
+import lombok.NonNull;
 
 /**
  * Optional arguments to {@link StreamBaseCommands#xadd}
@@ -37,8 +38,8 @@ public final class StreamAddOptions {
 
     public abstract static class StreamTrimOptions {
         /**
-         * If `true`, the stream will be trimmed exactly. Equivalent to `=` in the Redis API. Otherwise
-         * the stream will be trimmed in a near-exact manner, which is more efficient, equivalent to `~`
+         * If <code>true</code>, the stream will be trimmed exactly. Equivalent to <code>=</code> in the Redis API. Otherwise,
+         * the stream will be trimmed in a near-exact manner, which is more efficient, equivalent to <code>~</code>
          * in the Redis API.
          */
         protected Boolean exact;
@@ -70,12 +71,12 @@ public final class StreamAddOptions {
         /** Trim the stream according to entry ID. Equivalent to <code>MINID</code> in the Redis API. */
         private final String threshold;
 
-        public MinId(Boolean exact, String threshold) {
+        public MinId(boolean exact, @NonNull String threshold) {
             this.threshold = threshold;
             this.exact = exact;
         }
 
-        public MinId(Boolean exact, String threshold, Long limit) {
+        public MinId(boolean exact, @NonNull String threshold, long limit) {
             this.threshold = threshold;
             this.exact = exact;
             this.limit = limit;
@@ -97,12 +98,12 @@ public final class StreamAddOptions {
          */
         private final Long threshold;
 
-        public Maxlen(Boolean exact, Long threshold) {
+        public Maxlen(boolean exact, long threshold) {
             this.threshold = threshold;
             this.exact = exact;
         }
 
-        public Maxlen(Boolean exact, Long threshold, Long limit) {
+        public Maxlen(boolean exact, long threshold, long limit) {
             this.threshold = threshold;
             this.exact = exact;
             this.limit = limit;
