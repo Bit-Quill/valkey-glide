@@ -198,7 +198,7 @@ public interface SortedSetBaseCommands {
      * Double num1 = client.zscore("mySortedSet", "member").get();
      * assert num1 == 10.5; // Indicates that the score of "member" in the sorted set "mySortedSet" is 10.5.
      *
-     * Double num2 = client.zscore("mySortedSet", "non_existing_member").get();
+     * Double num2 = client.zscore("mySortedSet", "nonExistingMember").get();
      * assert num2 == null;
      * }</pre>
      */
