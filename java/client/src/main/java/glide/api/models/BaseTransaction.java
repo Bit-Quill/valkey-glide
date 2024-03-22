@@ -1248,14 +1248,14 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns the specified range of elements in the sorted set stored at <code>key</code>.<br>
      * ZRANGE can perform different types of range queries: by index (rank), by the score, or by
      * lexicographical order.<br>
-     * To get the elements with their scores, see zrange_withscores.
+     * To get the elements with their scores, see {@link #zrangeWithScores}.
      *
      * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
      * @param key The key of the sorted set.
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
-     *     - For range queries by index (rank), use RangeByIndex.<br>
-     *     - For range queries by lexicographical order, use RangeByLex.<br>
-     *     - For range queries by score, use RangeByScore.
+     *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
+     *     - For range queries by lexicographical order, use {@link RangeOptions.RangeByLex}.<br>
+     *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
      *     score.
      * @return Command Response - An array elements within the specified range. If <code>key</code>
@@ -1273,17 +1273,17 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns the specified range of elements in the sorted set stored at <code>key</code>.<br>
      * ZRANGE can perform different types of range queries: by index (rank), by the score, or by
      * lexicographical order.<br>
-     * To get the elements with their scores, see zrange_withscores.
+     * To get the elements with their scores, see {@link #zrangeWithScores}.
      *
      * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
      * @param key The key of the sorted set.
-     * @param rangeQuery Command Response - The range query object representing the type of range
-     *     query to perform.<br>
-     *     - For range queries by index (rank), use RangeByIndex.<br>
-     *     - For range queries by lexicographical order, use RangeByLex.<br>
-     *     - For range queries by score, use RangeByScore.
-     * @return An array elements within the specified range. If <code>key</code> does not exist, it is
-     *     treated as an empty sorted set, and the command returns an empty array.
+     * @param rangeQuery The range query object representing the type of range query to perform.<br>
+     *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
+     *     - For range queries by lexicographical order, use {@link RangeOptions.RangeByLex}.<br>
+     *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
+     * @return Command Response - An array elements within the specified range. If <code>key</code>
+     *     does not exist, it is treated as an empty sorted set, and the command returns an empty
+     *     array.
      */
     public T zrange(@NonNull String key, @NonNull RangeOptions.RangeQuery rangeQuery) {
         return getThis().zrange(key, rangeQuery, false);
@@ -1296,8 +1296,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
      * @param key The key of the sorted set.
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
-     *     - For range queries by index (rank), use RangeByIndex.<br>
-     *     - For range queries by score, use RangeByScore.
+     *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
+     *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
      *     score.
      * @return Command Response - A map of elements and their scores within the specified range. If
@@ -1318,8 +1318,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
      * @param key The key of the sorted set.
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
-     *     - For range queries by index (rank), use RangeByIndex.<br>
-     *     - For range queries by score, use RangeByScore.
+     *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
+     *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @return Command Response - A map of elements and their scores within the specified range. If
      *     <code>key</code> does not exist, it is treated as an empty sorted set, and the command
      *     returns an empty map.

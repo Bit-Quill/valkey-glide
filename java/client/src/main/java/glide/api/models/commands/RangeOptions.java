@@ -7,24 +7,17 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Arguments for {@link glide.api.commands.SortedSetBaseCommands#zrange} and {@link
+ * glide.api.commands.SortedSetBaseCommands#zrangeWithScores}
+ *
+ * @see <a href="https://redis.io/commands/zrange/">redis.io</a>
+ */
 public class RangeOptions {
+
     public interface ScoreRange {
         String toArgs();
     }
-
-    public interface LexRange {
-        String toArgs();
-    }
-
-    public interface RangeQuery {
-        String getStart();
-
-        String getEnd();
-
-        Limit getLimit();
-    }
-
-    public interface ScoredRangeQuery extends RangeQuery {}
 
     /** Enumeration representing numeric positive and negative infinity bounds for a sorted set. */
     @RequiredArgsConstructor
@@ -61,6 +54,10 @@ public class RangeOptions {
         public String toArgs() {
             return this.isInclusive ? String.valueOf(this.bound) : "(" + this.bound;
         }
+    }
+
+    public interface LexRange {
+        String toArgs();
     }
 
     /**
@@ -124,6 +121,42 @@ public class RangeOptions {
     }
 
     /**
+     * Represents a range by lexicographical order in a sorted set.<br>
+     * The <code>start</code> and <code>stop</code> arguments represent lexicographical boundaries.
+     */
+    @Getter
+    public static class RangeByLex implements RangeQuery {
+        /** The start lexicographic boundary. */
+        private final String start;
+
+        /** The stop lexicographic boundary. */
+        private final String end;
+
+        /**
+         * The limit argument for a range query. Defaults to null. See <code>Limit</code> class for more
+         * information.
+         */
+        private final Limit limit;
+
+        public RangeByLex(
+                @NonNull RangeOptions.LexRange start,
+                @NonNull RangeOptions.LexRange end,
+                @NonNull Limit limit) {
+            this.start = start.toArgs();
+            this.end = end.toArgs();
+            this.limit = limit;
+        }
+
+        public RangeByLex(@NonNull RangeOptions.LexRange start, @NonNull RangeOptions.LexRange end) {
+            this.start = start.toArgs();
+            this.end = end.toArgs();
+            this.limit = null;
+        }
+    }
+
+    public interface ScoredRangeQuery extends RangeQuery {}
+
+    /**
      * Represents a range by index (rank) in a sorted set.<br>
      * The <code>start</code> and <code>stop</code> arguments represent zero-based indexes.
      */
@@ -182,38 +215,12 @@ public class RangeOptions {
         }
     }
 
-    /**
-     * Represents a range by lexicographical order in a sorted set.<br>
-     * The <code>start</code> and <code>stop</code> arguments represent lexicographical boundaries.
-     */
-    @Getter
-    public static class RangeByLex implements RangeQuery {
-        /** The start lexicographic boundary. */
-        private final String start;
+    public interface RangeQuery {
+        String getStart();
 
-        /** The stop lexicographic boundary. */
-        private final String end;
+        String getEnd();
 
-        /**
-         * The limit argument for a range query. Defaults to null. See <code>Limit</code> class for more
-         * information.
-         */
-        private final Limit limit;
-
-        public RangeByLex(
-                @NonNull RangeOptions.LexRange start,
-                @NonNull RangeOptions.LexRange end,
-                @NonNull Limit limit) {
-            this.start = start.toArgs();
-            this.end = end.toArgs();
-            this.limit = limit;
-        }
-
-        public RangeByLex(@NonNull RangeOptions.LexRange start, @NonNull RangeOptions.LexRange end) {
-            this.start = start.toArgs();
-            this.end = end.toArgs();
-            this.limit = null;
-        }
+        Limit getLimit();
     }
 
     public static String[] createZrangeArgs(

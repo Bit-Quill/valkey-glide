@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
+import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.RangeQuery;
 import glide.api.models.commands.RangeOptions.ScoredRangeQuery;
 import glide.api.models.commands.ZaddOptions;
@@ -190,21 +191,21 @@ public interface SortedSetBaseCommands {
      * Returns the specified range of elements in the sorted set stored at <code>key</code>.<br>
      * ZRANGE can perform different types of range queries: by index (rank), by the score, or by
      * lexicographical order.<br>
-     * To get the elements with their scores, see zrange_withscores.
+     * To get the elements with their scores, see {@link #zrangeWithScores}.
      *
      * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
      * @param key The key of the sorted set.
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
-     *     - For range queries by index (rank), use RangeByIndex.<br>
-     *     - For range queries by lexicographical order, use RangeByLex.<br>
-     *     - For range queries by score, use RangeByScore.
+     *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
+     *     - For range queries by lexicographical order, use {@link RangeOptions.RangeByLex}.<br>
+     *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
      *     score.
      * @return An array elements within the specified range. If <code>key</code> does not exist, it is
      *     treated as an empty sorted set, and the command returns an empty array.
      * @example
      *     <pre>{@code
-     * String[] payload1 = client.zrange("mySortedSet", new RangeByIndex(0, -1), true).get();
+     * String[] payload1 = client.zrange("mySortedSet", new RangeByIndex(0, -1), true).get(); // RangeByIndex(0, -1) specifies retrieval of all elements from the start to the end of the sorted set.
      * assert payload1.equals(new String[] {'member3', 'member2', 'member1'}); // Returns all members in descending order.
      *
      * String[] payload2 = client.zrange("mySortedSet", new RangeByScore(InfScoreBound.NEGATIVE_INFINITY, new ScoreBoundary(3)), false).get();
@@ -217,14 +218,14 @@ public interface SortedSetBaseCommands {
      * Returns the specified range of elements in the sorted set stored at <code>key</code>.<br>
      * ZRANGE can perform different types of range queries: by index (rank), by the score, or by
      * lexicographical order.<br>
-     * To get the elements with their scores, see zrange_withscores.
+     * To get the elements with their scores, see {@link #zrangeWithScores}.
      *
      * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
      * @param key The key of the sorted set.
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
-     *     - For range queries by index (rank), use RangeByIndex.<br>
-     *     - For range queries by lexicographical order, use RangeByLex.<br>
-     *     - For range queries by score, use RangeByScore.
+     *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
+     *     - For range queries by lexicographical order, use {@link RangeOptions.RangeByLex}.<br>
+     *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @return An array elements within the specified range. If <code>key</code> does not exist, it is
      *     treated as an empty sorted set, and the command returns an empty array.
      * @example
@@ -245,8 +246,8 @@ public interface SortedSetBaseCommands {
      * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
      * @param key The key of the sorted set.
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
-     *     - For range queries by index (rank), use RangeByIndex.<br>
-     *     - For range queries by score, use RangeByScore.
+     *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
+     *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
      *     score.
      * @return A map of elements and their scores within the specified range. If <code>key</code> does
@@ -270,8 +271,8 @@ public interface SortedSetBaseCommands {
      * @see <a href="https://redis.io/commands/zrange/">redis.io</a> for more details.
      * @param key The key of the sorted set.
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
-     *     - For range queries by index (rank), use RangeByIndex.<br>
-     *     - For range queries by score, use RangeByScore.
+     *     - For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.<br>
+     *     - For range queries by score, use {@link RangeOptions.RangeByScore}.
      * @return A map of elements and their scores within the specified range. If <code>key</code> does
      *     not exist, it is treated as an empty sorted set, and the command returns an empty map.
      * @example
