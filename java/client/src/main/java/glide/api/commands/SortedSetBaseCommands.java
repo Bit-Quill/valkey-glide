@@ -1,8 +1,8 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
-import glide.api.models.commands.RangeOptions.IRangeQuery;
-import glide.api.models.commands.RangeOptions.IScoredRangeQuery;
+import glide.api.models.commands.RangeOptions.RangeQuery;
+import glide.api.models.commands.RangeOptions.ScoredRangeQuery;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -202,8 +202,16 @@ public interface SortedSetBaseCommands {
      *     score.
      * @return An array elements within the specified range. If <code>key</code> does not exist, it is
      *     treated as an empty sorted set, and the command returns an empty array.
+     * @example
+     *     <pre>{@code
+     * String[] payload1 = client.zrange("mySortedSet", new RangeByIndex(0, -1), true).get();
+     * assert payload1.equals(new String[] {'member3', 'member2', 'member1'}); // Returns all members in descending order.
+     *
+     * String[] payload2 = client.zrange("mySortedSet", new RangeByScore(InfScoreBound.NEGATIVE_INFINITY, new ScoreBoundary(3)), false).get();
+     * assert payload2.equals(new String[] {'member2', 'member3'}); // Returns members with scores within the range of negative infinity to 3, in ascending order.
+     * }</pre>
      */
-    CompletableFuture<String[]> zrange(String key, IRangeQuery rangeQuery, boolean reverse);
+    CompletableFuture<String[]> zrange(String key, RangeQuery rangeQuery, boolean reverse);
 
     /**
      * Returns the specified range of elements in the sorted set stored at <code>key</code>.<br>
@@ -219,8 +227,16 @@ public interface SortedSetBaseCommands {
      *     - For range queries by score, use RangeByScore.
      * @return An array elements within the specified range. If <code>key</code> does not exist, it is
      *     treated as an empty sorted set, and the command returns an empty array.
+     * @example
+     *     <pre>{@code
+     * String[] payload1 = client.zrange("mySortedSet", new RangeByIndex(0, -1)).get();
+     * assert payload1.equals(new String[] {'member1', 'member2', 'member3'}); // Returns all members in ascending order.
+     *
+     * String[] payload2 = client.zrange("mySortedSet", new RangeByScore(InfScoreBound.NEGATIVE_INFINITY, new ScoreBoundary(3))).get();
+     * assert payload2.equals(new String[] {'member2', 'member3'}); // Returns members with scores within the range of negative infinity to 3, in ascending order.
+     * }</pre>
      */
-    CompletableFuture<String[]> zrange(String key, IRangeQuery rangeQuery);
+    CompletableFuture<String[]> zrange(String key, RangeQuery rangeQuery);
 
     /**
      * Returns the specified range of elements with their scores in the sorted set stored at <code>key
@@ -235,9 +251,17 @@ public interface SortedSetBaseCommands {
      *     score.
      * @return A map of elements and their scores within the specified range. If <code>key</code> does
      *     not exist, it is treated as an empty sorted set, and the command returns an empty map.
+     * @example
+     *     <pre>{@code
+     * Map<String, Double> payload1 = client.zrangeWithScores("mySortedSet", new RangeByScore(new ScoreBoundary(10), new ScoreBoundary(20)), true).get();
+     * assert payload1.equals(Map.of('member2', 15.2, 'member1', 10.5)); // Returns members with scores between 10 and 20 with their scores.
+     *
+     * Map<String, Double> payload2 = client.zrangeWithScores("mySortedSet", new RangeByScore(InfScoreBound.NEGATIVE_INFINITY, new ScoreBoundary(3)), false).get();
+     * assert payload2.equals(Map.of('member4', -2.0, 'member7', 1.5)); // Returns members with with scores within the range of negative infinity to 3, with their scores.
+     * }</pre>
      */
     CompletableFuture<Map<String, Double>> zrangeWithScores(
-            String key, IScoredRangeQuery rangeQuery, boolean reverse);
+            String key, ScoredRangeQuery rangeQuery, boolean reverse);
 
     /**
      * Returns the specified range of elements with their scores in the sorted set stored at <code>key
@@ -250,6 +274,14 @@ public interface SortedSetBaseCommands {
      *     - For range queries by score, use RangeByScore.
      * @return A map of elements and their scores within the specified range. If <code>key</code> does
      *     not exist, it is treated as an empty sorted set, and the command returns an empty map.
+     * @example
+     *     <pre>{@code
+     * Map<String, Double> payload1 = client.zrangeWithScores("mySortedSet", new RangeByScore(new ScoreBoundary(10), new ScoreBoundary(20))).get();
+     * assert payload1.equals(Map.of('member1', 10.5, 'member2', 15.2)); // Returns members with scores between 10 and 20 with their scores.
+     *
+     * Map<String, Double> payload2 = client.zrangeWithScores("mySortedSet", new RangeByScore(InfScoreBound.NEGATIVE_INFINITY, new ScoreBoundary(3))).get();
+     * assert payload2.equals(Map.of('member4', -2.0, 'member7', 1.5)); // Returns members with with scores within the range of negative infinity to 3, with their scores.
+     * }</pre>
      */
-    CompletableFuture<Map<String, Double>> zrangeWithScores(String key, IScoredRangeQuery rangeQuery);
+    CompletableFuture<Map<String, Double>> zrangeWithScores(String key, ScoredRangeQuery rangeQuery);
 }

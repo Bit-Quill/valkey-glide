@@ -20,7 +20,6 @@ import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
 import glide.api.models.commands.ExpireOptions;
-import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
 import glide.api.models.commands.RangeOptions.LexBoundary;
@@ -1133,10 +1132,7 @@ public class SharedCommandTests {
         assertArrayEquals(
                 new String[] {"a", "b"},
                 client
-                        .zrange(
-                                key,
-                                new RangeByLex(
-                                        RangeOptions.InfLexBound.NEGATIVE_INFINITY, new LexBoundary("c", false)))
+                        .zrange(key, new RangeByLex(InfLexBound.NEGATIVE_INFINITY, new LexBoundary("c", false)))
                         .get());
 
         assertArrayEquals(

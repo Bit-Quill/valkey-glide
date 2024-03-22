@@ -56,7 +56,6 @@ import glide.api.commands.SortedSetBaseCommands;
 import glide.api.commands.StringCommands;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.RangeOptions;
-import glide.api.models.commands.RangeOptions.IRangeQuery;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
@@ -592,7 +591,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<String[]> zrange(
-            @NonNull String key, @NonNull IRangeQuery rangeQuery, boolean reverse) {
+            @NonNull String key, @NonNull RangeOptions.RangeQuery rangeQuery, boolean reverse) {
         String[] arguments = RangeOptions.createZrangeArgs(key, rangeQuery, reverse, false);
 
         return commandManager.submitNewCommand(
@@ -602,13 +601,14 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<String[]> zrange(@NonNull String key, @NonNull IRangeQuery rangeQuery) {
+    public CompletableFuture<String[]> zrange(
+            @NonNull String key, @NonNull RangeOptions.RangeQuery rangeQuery) {
         return this.zrange(key, rangeQuery, false);
     }
 
     @Override
     public CompletableFuture<Map<String, Double>> zrangeWithScores(
-            @NonNull String key, @NonNull RangeOptions.IScoredRangeQuery rangeQuery, boolean reverse) {
+            @NonNull String key, @NonNull RangeOptions.ScoredRangeQuery rangeQuery, boolean reverse) {
         String[] arguments = RangeOptions.createZrangeArgs(key, rangeQuery, reverse, true);
 
         return commandManager.submitNewCommand(Zrange, arguments, this::handleMapResponse);
@@ -616,7 +616,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Map<String, Double>> zrangeWithScores(
-            @NonNull String key, @NonNull RangeOptions.IScoredRangeQuery rangeQuery) {
+            @NonNull String key, @NonNull RangeOptions.ScoredRangeQuery rangeQuery) {
         return this.zrangeWithScores(key, rangeQuery, false);
     }
 }

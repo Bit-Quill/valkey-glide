@@ -16,7 +16,7 @@ public class RangeOptions {
         String toArgs();
     }
 
-    public interface IRangeQuery {
+    public interface RangeQuery {
         String getStart();
 
         String getEnd();
@@ -24,7 +24,7 @@ public class RangeOptions {
         Limit getLimit();
     }
 
-    public interface IScoredRangeQuery extends IRangeQuery {}
+    public interface ScoredRangeQuery extends RangeQuery {}
 
     /** Enumeration representing numeric positive and negative infinity bounds for a sorted set. */
     @RequiredArgsConstructor
@@ -34,22 +34,6 @@ public class RangeOptions {
 
         private final String redisApi;
 
-        public String toArgs() {
-            return redisApi;
-        }
-    }
-
-    /**
-     * Enumeration representing lexicographic positive and negative infinity bounds for sorted set.
-     */
-    @RequiredArgsConstructor
-    public enum InfLexBound implements LexRange {
-        POSITIVE_INFINITY("+"),
-        NEGATIVE_INFINITY("-");
-
-        private final String redisApi;
-
-        @Override
         public String toArgs() {
             return redisApi;
         }
@@ -76,6 +60,22 @@ public class RangeOptions {
         /** Convert the score boundary to the Redis protocol format. */
         public String toArgs() {
             return this.isInclusive ? String.valueOf(this.bound) : "(" + this.bound;
+        }
+    }
+
+    /**
+     * Enumeration representing lexicographic positive and negative infinity bounds for sorted set.
+     */
+    @RequiredArgsConstructor
+    public enum InfLexBound implements LexRange {
+        POSITIVE_INFINITY("+"),
+        NEGATIVE_INFINITY("-");
+
+        private final String redisApi;
+
+        @Override
+        public String toArgs() {
+            return redisApi;
         }
     }
 
@@ -129,7 +129,7 @@ public class RangeOptions {
      */
     @RequiredArgsConstructor
     @Getter
-    public static class RangeByIndex implements IScoredRangeQuery {
+    public static class RangeByIndex implements ScoredRangeQuery {
         /** The start index of the range. */
         private final String start;
 
@@ -152,7 +152,7 @@ public class RangeOptions {
      * The <code>start</code> and <code>stop</code> arguments represent score boundaries.
      */
     @Getter
-    public static class RangeByScore implements IScoredRangeQuery {
+    public static class RangeByScore implements ScoredRangeQuery {
         /** The start score boundary. */
         private final String start;
 
@@ -187,7 +187,7 @@ public class RangeOptions {
      * The <code>start</code> and <code>stop</code> arguments represent lexicographical boundaries.
      */
     @Getter
-    public static class RangeByLex implements IRangeQuery {
+    public static class RangeByLex implements RangeQuery {
         /** The start lexicographic boundary. */
         private final String start;
 
@@ -217,7 +217,7 @@ public class RangeOptions {
     }
 
     public static String[] createZrangeArgs(
-            String key, IRangeQuery rangeQuery, boolean reverse, boolean withScores) {
+            String key, RangeQuery rangeQuery, boolean reverse, boolean withScores) {
         String[] arguments = new String[] {key, rangeQuery.getStart(), rangeQuery.getEnd()};
 
         if (rangeQuery instanceof RangeByScore) {
