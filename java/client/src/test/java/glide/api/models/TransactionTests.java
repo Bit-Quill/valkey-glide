@@ -55,6 +55,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
+import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
@@ -62,6 +63,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.SetOptions;
+import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.ZaddOptions;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -390,6 +392,17 @@ public class TransactionTests {
 
         transaction.zscore("key", "member");
         results.add(Pair.of(ZScore, ArgsArray.newBuilder().addArgs("key").addArgs("member").build()));
+
+        transaction.xadd("key", Map.of("field1", "foo1"), StreamAddOptions.builder().id("id").build());
+        results.add(
+            Pair.of(
+                XAdd,
+                ArgsArray.newBuilder()
+                    .addArgs("key")
+                    .addArgs("id")
+                    .addArgs("field1")
+                    .addArgs("foo1")
+                    .build()));
 
         transaction.time();
         results.add(Pair.of(Time, ArgsArray.newBuilder().build()));

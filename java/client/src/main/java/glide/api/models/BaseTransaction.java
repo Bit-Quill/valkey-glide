@@ -57,6 +57,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
+import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
@@ -67,7 +68,9 @@ import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
+import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.ZaddOptions;
+import glide.utils.ArrayTransformUtils;
 import java.util.Map;
 import lombok.Getter;
 import lombok.NonNull;
@@ -1289,6 +1292,39 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T zscore(@NonNull String key, @NonNull String member) {
         ArgsArray commandArgs = buildArgs(new String[] {key, member});
         protobufTransaction.addCommands(buildCommand(ZScore, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Adds an entry to the specified stream.
+     *
+     * @see <a href="https://redis.io/commands/xadd/">redis.io</a> for details.
+     * @param key The key of the stream.
+     * @param values field-value pairs to be added to the entry.
+     * @return Command Response - The id of the added entry.
+     */
+    public T xadd(String key, Map<String, String> values) {
+        return this.xadd(key, values, StreamAddOptions.builder().build());
+    }
+
+    /**
+     * Adds an entry to the specified stream.
+     *
+     * @see <a href="https://redis.io/commands/xadd/">redis.io</a> for details.
+     * @param key The key of the stream.
+     * @param values field-value pairs to be added to the entry.
+     * @param options options.
+     * @return Command Response - The id of the added entry, or <code>null</code> if <code>
+     *     options.makeStream</code> is set to <code>false</code> and no stream with the matching
+     *     <code>key</code> exists.
+     */
+    public T xadd(String key, Map<String, String> values, StreamAddOptions options) {
+        String[] arguments =
+            ArrayUtils.addAll(
+                ArrayUtils.addFirst(options.toArgs(), key),
+                ArrayTransformUtils.convertMapToKeyValueStringArray(values));
+        ArgsArray commandArgs = buildArgs(arguments);
+        protobufTransaction.addCommands(buildCommand(XAdd, commandArgs));
         return getThis();
     }
 
