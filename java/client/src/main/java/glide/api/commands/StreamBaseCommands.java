@@ -34,13 +34,17 @@ public interface StreamBaseCommands {
      * @see <a href="https://redis.io/commands/xadd/">redis.io</a> for details.
      * @param key The key of the stream.
      * @param values field-value pairs to be added to the entry.
-     * @param options options.
+     * @param options Stream add options.
      * @return The id of the added entry, or <code>null</code> if <code>options.makeStream</code> is
      *     set to <code>false</code> and no stream with the matching <code>key</code> exists.
      * @example
      *     <pre>{@code
-     * String streamId = client.xadd("key", Map.of("name", "Sara", "surname", "OConnor").get();
-     * System.out.println("Stream: " + streamId);
+     * // Stream options to not make the stream if "key" is not a stream, as use stream id of "sid"
+     * StreamAddOptions options = StreamAddOptions.builder().id("sid").makeStream(Boolean.FALSE).build();
+     * String streamId = client.xadd("key", Map.of("name", "Sara", "surname", "OConnor"), options).get();
+     * if (streamId != null) {
+     *     assert streamId.equals("sid");
+     * }
      * }</pre>
      */
     CompletableFuture<String> xadd(String key, Map<String, String> values, StreamAddOptions options);

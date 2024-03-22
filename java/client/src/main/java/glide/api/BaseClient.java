@@ -631,7 +631,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<String> xadd(
-        @NonNull String key, Map<String, String> values, StreamAddOptions options) {
+            @NonNull String key, @NonNull Map<String, String> values, @NonNull StreamAddOptions options) {
         String[] arguments =
             ArrayUtils.addAll(
                 ArrayUtils.addFirst(options.toArgs(), key),

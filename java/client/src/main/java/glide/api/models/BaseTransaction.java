@@ -1313,7 +1313,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/xadd/">redis.io</a> for details.
      * @param key The key of the stream.
      * @param values field-value pairs to be added to the entry.
-     * @param options options.
+     * @param options Stream add options.
      * @return Command Response - The id of the added entry, or <code>null</code> if <code>
      *     options.makeStream</code> is set to <code>false</code> and no stream with the matching
      *     <code>key</code> exists.

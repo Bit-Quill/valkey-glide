@@ -1905,6 +1905,10 @@ public class RedisClientTest {
         return List.of(
             Arguments.of(
                 Pair.of(
+                    // no TRIM option
+                    StreamAddOptions.builder().id("id").makeStream(Boolean.FALSE).build(),
+                    new String[] {"testKey", NO_MAKE_STREAM_REDIS_API, "id"}),
+                Pair.of(
                     // MAXLEN with LIMIT
                     StreamAddOptions.builder()
                         .id("id")
@@ -1969,14 +1973,14 @@ public class RedisClientTest {
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getStreamAddOptions")
-    public void xadd_with_options_returns_success(Pair<StreamAddOptions, String[]> input) {
+    public void xadd_with_options_returns_success(Pair<StreamAddOptions, String[]> optionAndArgs) {
         // setup
         String key = "testKey";
         Map<String, String> fieldValues = new LinkedHashMap<>();
         fieldValues.put("testField1", "testValue1");
         fieldValues.put("testField2", "testValue2");
         String[] arguments =
-            ArrayUtils.addAll(input.getRight(), convertMapToKeyValueStringArray(fieldValues));
+            ArrayUtils.addAll(optionAndArgs.getRight(), convertMapToKeyValueStringArray(fieldValues));
         String returnId = "testId";
 
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
@@ -1987,7 +1991,7 @@ public class RedisClientTest {
             .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<String> response = service.xadd(key, fieldValues, input.getLeft());
+        CompletableFuture<String> response = service.xadd(key, fieldValues, optionAndArgs.getLeft());
         String payload = response.get();
 
         // verify
