@@ -38,9 +38,9 @@ public final class StreamAddOptions {
 
     public abstract static class StreamTrimOptions {
         /**
-         * If <code>true</code>, the stream will be trimmed exactly. Equivalent to <code>=</code> in the Redis API. Otherwise,
-         * the stream will be trimmed in a near-exact manner, which is more efficient, equivalent to <code>~</code>
-         * in the Redis API.
+         * If <code>true</code>, the stream will be trimmed exactly. Equivalent to <code>=</code> in the
+         * Redis API. Otherwise, the stream will be trimmed in a near-exact manner, which is more
+         * efficient, equivalent to <code>~</code> in the Redis API.
          */
         protected Boolean exact;
 

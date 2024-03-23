@@ -70,7 +70,6 @@ import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.ZaddOptions;
-import glide.utils.ArrayTransformUtils;
 import java.util.Map;
 import lombok.Getter;
 import lombok.NonNull;
@@ -1319,11 +1318,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     options.makeStream</code> is set to <code>false</code> and no stream with the matching
      *     <code>key</code> exists.
      */
-    public T xadd(@NonNull String key, @NonNull Map<String, String> values, @NonNull StreamAddOptions options) {
+    public T xadd(
+            @NonNull String key, @NonNull Map<String, String> values, @NonNull StreamAddOptions options) {
         String[] arguments =
                 ArrayUtils.addAll(
-                        ArrayUtils.addFirst(options.toArgs(), key),
-                        convertMapToKeyValueStringArray(values));
+                        ArrayUtils.addFirst(options.toArgs(), key), convertMapToKeyValueStringArray(values));
         ArgsArray commandArgs = buildArgs(arguments);
         protobufTransaction.addCommands(buildCommand(XAdd, commandArgs));
         return getThis();

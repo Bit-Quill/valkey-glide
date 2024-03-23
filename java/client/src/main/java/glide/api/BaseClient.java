@@ -634,8 +634,7 @@ public abstract class BaseClient
             @NonNull String key, @NonNull Map<String, String> values, @NonNull StreamAddOptions options) {
         String[] arguments =
                 ArrayUtils.addAll(
-                        ArrayUtils.addFirst(options.toArgs(), key),
-                        convertMapToKeyValueStringArray(values));
+                        ArrayUtils.addFirst(options.toArgs(), key), convertMapToKeyValueStringArray(values));
         return commandManager.submitNewCommand(XAdd, arguments, this::handleStringOrNullResponse);
     }
 

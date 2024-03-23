@@ -395,14 +395,14 @@ public class TransactionTests {
 
         transaction.xadd("key", Map.of("field1", "foo1"));
         results.add(
-            Pair.of(
-                XAdd,
-                ArgsArray.newBuilder()
-                    .addArgs("key")
-                    .addArgs("*")
-                    .addArgs("field1")
-                    .addArgs("foo1")
-                    .build()));
+                Pair.of(
+                        XAdd,
+                        ArgsArray.newBuilder()
+                                .addArgs("key")
+                                .addArgs("*")
+                                .addArgs("field1")
+                                .addArgs("foo1")
+                                .build()));
 
         transaction.xadd("key", Map.of("field1", "foo1"), StreamAddOptions.builder().id("id").build());
         results.add(
