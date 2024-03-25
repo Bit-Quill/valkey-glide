@@ -586,6 +586,23 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getClients")
+    public void lindex(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String[] valueArray =
+                new String[] {
+                    "value" + UUID.randomUUID().toString(), "value" + UUID.randomUUID().toString()
+                };
+
+        assertEquals(2, client.lpush(key, valueArray).get());
+        assertEquals(valueArray[1], client.lindex(key, 0).get());
+        assertEquals(valueArray[0], client.lindex(key, 1).get());
+        assertNull(client.lindex(key, 3).get());
+        assertNull(client.lindex("nonExistingKey", 3).get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
     public void ltrim_existing_non_existing_key_and_type_error(BaseClient client) {
         String key = UUID.randomUUID().toString();
         String[] valueArray = new String[] {"value4", "value3", "value2", "value1"};

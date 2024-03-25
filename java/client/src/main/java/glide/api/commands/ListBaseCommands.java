@@ -90,17 +90,41 @@ public interface ListBaseCommands {
      *     If <code>key</code> does not exist an empty array will be returned.<br>
      * @example
      *     <pre>{@code
-     * String[] payload = lient.lrange("my_list", 0, 2).get()
-     * assert payload.equals(new String[] {"value1", "value2", "value3"})
+     * String[] payload = lient.lrange("my_list", 0, 2).get();
+     * assert payload.equals(new String[] {"value1", "value2", "value3"});
      *
-     * String[] payload = client.lrange("my_list", -2, -1).get()
-     * assert payload.equals(new String[] {"value2", "value3"})
+     * String[] payload = client.lrange("my_list", -2, -1).get();
+     * assert payload.equals(new String[] {"value2", "value3"});
      *
-     * String[] payload = client.lrange("non_exiting_key", 0, 2).get()
-     * assert payload.equals(new String[] {})
+     * String[] payload = client.lrange("non_exiting_key", 0, 2).get();
+     * assert payload.equals(new String[] {});
      * }</pre>
      */
     CompletableFuture<String[]> lrange(String key, long start, long end);
+
+    /**
+     * Returns the element at <code>index</code> in the list stored at <code>key</code>.<br>
+     * The index is zero-based, so 0 means the first element, 1 the second element and so on. Negative
+     * indices can be used to designate elements starting at the tail of the list. Here, -1 means the
+     * last element, -2 means the penultimate and so forth.
+     *
+     * @see <a href="https://redis.io/commands/lindex/">redis.io</a> for details.
+     * @param key The key of the list.
+     * @param index The index of the element in the list to retrieve.
+     * @return The element at <code>index</code> in the list stored at <code>key</code>.<br>
+     *     If <code>index</code> is out of range or if <code>key</code> does not exist, null is
+     *     returned.
+     * @example
+     *     <pre>{@code
+     * String payload1 = client.lindex("myList", 0).get();
+     * assert payload1.equals('value1'); // Returns the first element in the list stored at 'myList'.
+     *
+     * String payload2 = client.lindex("myList", -1).get();
+     * assert payload2.equals('value3'); // Returns the last element in the list stored at 'myList'.
+     *
+     * }</pre>
+     */
+    CompletableFuture<String> lindex(String key, int index);
 
     /**
      * Trims an existing list so that it will contain only the specified range of elements specified.
