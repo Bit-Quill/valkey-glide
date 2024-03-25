@@ -59,29 +59,11 @@ public interface HashBaseCommands {
      *     If <code>key</code> does not exist, it is treated as an empty hash and it returns 0.<br>
      * @example
      *     <pre>{@code
-     * Long num = client.hdel("my_hash", new String[] {"field1", "field2"}).get();
+     * Long num = client.hdel("my_hash", new String[] {}).get("field1", "field2");
      * assert num == 2L; //Indicates that two fields were successfully removed from the hash.
      * }</pre>
      */
     CompletableFuture<Long> hdel(String key, String[] fields);
-
-    /**
-     * Returns the number of fields contained in the hash stored at <code>key</code>.
-     *
-     * @see <a href="https://redis.io/commands/hlen/">redis.io</a> for details.
-     * @param key The key of the hash.
-     * @return The number of fields in the hash, or 0 when the key does not exist. If <code>key</code>
-     *     holds a value that is not a hash, an error is returned.
-     * @example
-     *     <pre>{@code
-     * Long num1 = client.hlen("myHash").get();
-     * assert num1 == 3L;
-     *
-     * Long num2 = client.hlen("nonExistingKey").get();
-     * assert num2 == 0L;
-     * }</pre>
-     */
-    CompletableFuture<Long> hlen(String key);
 
     /**
      * Returns the values associated with the specified fields in the hash stored at <code>key</code>.
