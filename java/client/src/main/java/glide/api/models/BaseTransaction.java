@@ -580,7 +580,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param index The index of the element in the list to retrieve.
      * @return Command Response - The element at <code>index</code> in the list stored at <code>key
      *     </code>.<br>
-     *     If <code>index</code> is out of range or if <code>key</code> does not exist, null is
+     *     If <code>index</code> is out of range or if <code>key</code> does not exist, `null` is
      *     returned.
      */
     public T lindex(@NonNull String key, int index) {

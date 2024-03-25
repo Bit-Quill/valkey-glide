@@ -587,17 +587,20 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void lindex(BaseClient client) {
-        String key = UUID.randomUUID().toString();
-        String[] valueArray =
-                new String[] {
-                    "value" + UUID.randomUUID().toString(), "value" + UUID.randomUUID().toString()
-                };
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String[] valueArray = new String[] {"value1", "value2"};
 
-        assertEquals(2, client.lpush(key, valueArray).get());
-        assertEquals(valueArray[1], client.lindex(key, 0).get());
-        assertEquals(valueArray[0], client.lindex(key, 1).get());
-        assertNull(client.lindex(key, 3).get());
+        assertEquals(2, client.lpush(key1, valueArray).get());
+        assertEquals(valueArray[1], client.lindex(key1, 0).get());
+        assertEquals(valueArray[0], client.lindex(key1, 1).get());
+        assertNull(client.lindex(key1, 3).get());
         assertNull(client.lindex("nonExistingKey", 3).get());
+
+        assertEquals(OK, client.set(key2, "value").get());
+        Exception executionException =
+                assertThrows(ExecutionException.class, () -> client.lindex(key2, 0).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
     }
 
     @SneakyThrows
