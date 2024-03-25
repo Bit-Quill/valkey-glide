@@ -113,6 +113,9 @@ pub unsafe extern "system" fn Java_glide_ffi_resolvers_RedisValueResolver_valueF
     redis_value_to_java(&mut env, *value)
 }
 
+/// # Safety
+///
+/// * Function throws a checked java exception if fails to get the socket path.
 #[no_mangle]
 pub unsafe extern "system" fn Java_glide_ffi_resolvers_SocketListenerResolver_startSocketListener<
     'local,
