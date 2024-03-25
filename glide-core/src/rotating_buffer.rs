@@ -1,6 +1,9 @@
-/**
+/*
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
+
+#![deny(unsafe_op_in_unsafe_fn)]
+
 use bytes::BytesMut;
 use integer_encoding::VarInt;
 use logger_core::log_error;

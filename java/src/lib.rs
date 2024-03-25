@@ -1,6 +1,9 @@
-/**
+/*
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
+
+#![deny(unsafe_op_in_unsafe_fn)]
+
 use glide_core::start_socket_listener;
 
 use jni::objects::{JClass, JObject, JObjectArray, JString, JThrowable};
@@ -95,8 +98,11 @@ fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<
     }
 }
 
+/// # Safety
+///
+/// * `pointer` must point to a valid `Value` obtained from a [protobuf response](https://github.com/aws/glide-for-redis/blob/main/glide-core/src/protobuf/response.proto).
 #[no_mangle]
-pub extern "system" fn Java_glide_ffi_resolvers_RedisValueResolver_valueFromPointer<'local>(
+pub unsafe extern "system" fn Java_glide_ffi_resolvers_RedisValueResolver_valueFromPointer<'local>(
     mut env: JNIEnv<'local>,
     _class: JClass<'local>,
     pointer: jlong,
@@ -106,7 +112,7 @@ pub extern "system" fn Java_glide_ffi_resolvers_RedisValueResolver_valueFromPoin
 }
 
 #[no_mangle]
-pub extern "system" fn Java_glide_ffi_resolvers_SocketListenerResolver_startSocketListener<
+pub unsafe extern "system" fn Java_glide_ffi_resolvers_SocketListenerResolver_startSocketListener<
     'local,
 >(
     env: JNIEnv<'local>,
