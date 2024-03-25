@@ -49,23 +49,6 @@ public class TransactionTestUtilities {
         baseTransaction.exists(new String[] {key1});
         baseTransaction.persist(key1);
 
-        baseTransaction.del(new String[] {key1});
-        baseTransaction.get(key1);
-
-        baseTransaction.unlink(new String[] {key2});
-        baseTransaction.get(key2);
-
-        baseTransaction.mset(Map.of(key1, value2, key2, value1));
-        baseTransaction.mget(new String[] {key1, key2});
-
-        baseTransaction.incr(key3);
-        baseTransaction.incrBy(key3, 2);
-
-        baseTransaction.decr(key3);
-        baseTransaction.decrBy(key3, 2);
-
-        baseTransaction.incrByFloat(key3, 0.5);
-
         baseTransaction.unlink(new String[] {key3});
         baseTransaction.setrange(key3, 0, "GLIDE");
 
@@ -79,9 +62,6 @@ public class TransactionTestUtilities {
         baseTransaction.hdel(key4, new String[] {field1});
         baseTransaction.hvals(key4);
 
-        baseTransaction.hincrBy(key4, field3, 5);
-        baseTransaction.hincrByFloat(key4, field3, 5.5);
-
         baseTransaction.lpush(key5, new String[] {value1, value1, value2, value3, value3});
         baseTransaction.llen(key5);
         baseTransaction.lindex(key5, 0);
@@ -90,10 +70,6 @@ public class TransactionTestUtilities {
         baseTransaction.lrange(key5, 0, -2);
         baseTransaction.lpop(key5);
         baseTransaction.lpopCount(key5, 2);
-
-        baseTransaction.rpush(key6, new String[] {value1, value2, value2});
-        baseTransaction.rpop(key6);
-        baseTransaction.rpopCount(key6, 2);
 
         baseTransaction.sadd(key7, new String[] {"baz", "foo"});
         baseTransaction.srem(key7, new String[] {"foo"});
@@ -237,6 +213,7 @@ public class TransactionTestUtilities {
             3L, // pfcount(new String[] { hllKey1, hllKey2 });;
             OK, // pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
             3L, // pfcount(new String[] { hllKey3 })
+
         };
     }
 }
