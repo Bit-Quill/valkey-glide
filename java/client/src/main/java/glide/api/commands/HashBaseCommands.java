@@ -70,8 +70,8 @@ public interface HashBaseCommands {
      *
      * @see <a href="https://redis.io/commands/hlen/">redis.io</a> for details.
      * @param key The key of the hash.
-     * @return The number of fields in the hash, or 0 when the key does not exist. If <code>key</code>
-     *     holds a value that is not a hash, an error is returned.
+     * @return The number of fields in the hash, or <code>0</code> when the key does not exist.<br>
+     *     If <code>key</code> holds a value that is not a hash, an error is returned.
      * @example
      *     <pre>{@code
      * Long num1 = client.hlen("myHash").get();

@@ -400,7 +400,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/hlen/">redis.io</a> for details.
      * @param key The key of the hash.
-     * @return Command Response - The number of fields in the hash, or 0 when the key does not exist.
+     * @return Command Response - The number of fields in the hash, or `0` when the key does not
+     *     exist.<br>
      *     If <code>key</code> holds a value that is not a hash, an error is returned.
      */
     public T hlen(@NonNull String key) {
