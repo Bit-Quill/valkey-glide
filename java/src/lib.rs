@@ -102,7 +102,9 @@ fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<
 ///
 /// * `pointer` must point to a valid `Value` obtained from a [protobuf response](https://github.com/aws/glide-for-redis/blob/main/glide-core/src/protobuf/response.proto).
 #[no_mangle]
-pub unsafe extern "system" fn Java_glide_ffi_resolvers_RedisValueResolver_valueFromPointer<'local>(
+pub unsafe extern "system" fn Java_glide_ffi_resolvers_RedisValueResolver_valueFromPointer<
+    'local,
+>(
     mut env: JNIEnv<'local>,
     _class: JClass<'local>,
     pointer: jlong,
