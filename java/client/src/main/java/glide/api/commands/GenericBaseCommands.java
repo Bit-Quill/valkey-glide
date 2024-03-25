@@ -95,7 +95,7 @@ public interface GenericBaseCommands {
      * @see <a href="https://redis.io/commands/expire/">redis.io</a> for details.
      * @param key The key to set timeout on it.
      * @param seconds The timeout in seconds.
-     * @param expireOptions The expiration options.
+     * @param expireOptions The expire options.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
@@ -143,7 +143,7 @@ public interface GenericBaseCommands {
      * @see <a href="https://redis.io/commands/expireat/">redis.io</a> for details.
      * @param key The key to set timeout on it.
      * @param unixSeconds The timeout in an absolute Unix timestamp.
-     * @param expireOptions The expiration options.
+     * @param expireOptions The expire options.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
@@ -191,7 +191,7 @@ public interface GenericBaseCommands {
      * @see <a href="https://redis.io/commands/pexpire/">redis.io</a> for details.
      * @param key The key to set timeout on it.
      * @param milliseconds The timeout in milliseconds.
-     * @param expireOptions The expiration options.
+     * @param expireOptions The expire options.
      * @return <code>true</code> if the timeout was set. <code>false</code> if the timeout was not
      *     set. e.g. <code>key</code> doesn't exist, or operation skipped due to the provided
      *     arguments.
