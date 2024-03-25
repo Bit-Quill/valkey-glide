@@ -1903,71 +1903,71 @@ public class RedisClientTest {
 
     private static List<Arguments> getStreamAddOptions() {
         return List.of(
-            Arguments.of(
-                Pair.of(
-                    // no TRIM option
-                    StreamAddOptions.builder().id("id").makeStream(Boolean.FALSE).build(),
-                    new String[] {"testKey", NO_MAKE_STREAM_REDIS_API, "id"}),
-                Pair.of(
-                    // MAXLEN with LIMIT
-                    StreamAddOptions.builder()
-                        .id("id")
-                        .makeStream(Boolean.TRUE)
-                        .trim(new StreamAddOptions.Maxlen(Boolean.TRUE, 5L, 10L))
-                        .build(),
-                    new String[] {
-                        "testKey",
-                        TRIM_MAXLEN_REDIS_API,
-                        TRIM_EXACT_REDIS_API,
-                        Long.toString(5L),
-                        TRIM_LIMIT_REDIS_API,
-                        Long.toString(10L),
-                        "id"
-                    }),
-                Pair.of(
-                    // MAXLEN with non exact match
-                    StreamAddOptions.builder()
-                        .makeStream(Boolean.FALSE)
-                        .trim(new StreamAddOptions.Maxlen(Boolean.FALSE, 2L))
-                        .build(),
-                    new String[] {
-                        "testKey",
-                        NO_MAKE_STREAM_REDIS_API,
-                        TRIM_MAXLEN_REDIS_API,
-                        TRIM_NOT_EXACT_REDIS_API,
-                        Long.toString(2L),
-                        "*"
-                    }),
-                Pair.of(
-                    // MIN ID with LIMIT
-                    StreamAddOptions.builder()
-                        .id("id")
-                        .makeStream(Boolean.TRUE)
-                        .trim(new StreamAddOptions.MinId(Boolean.TRUE, "testKey", 10L))
-                        .build(),
-                    new String[] {
-                        "testKey",
-                        TRIM_MINID_REDIS_API,
-                        TRIM_EXACT_REDIS_API,
-                        Long.toString(5L),
-                        TRIM_LIMIT_REDIS_API,
-                        Long.toString(10L),
-                        "id"
-                    }),
-                Pair.of(
-                    // MIN ID with non exact match
-                    StreamAddOptions.builder()
-                        .makeStream(Boolean.FALSE)
-                        .trim(new StreamAddOptions.MinId(Boolean.FALSE, "testKey"))
-                        .build(),
-                    new String[] {
-                        "testKey",
-                        NO_MAKE_STREAM_REDIS_API,
-                        TRIM_MINID_REDIS_API,
-                        TRIM_NOT_EXACT_REDIS_API,
-                        Long.toString(5L),
-                        "*"
-                    })));
+                Arguments.of(
+                        Pair.of(
+                                // no TRIM option
+                                StreamAddOptions.builder().id("id").makeStream(Boolean.FALSE).build(),
+                                new String[] {"testKey", NO_MAKE_STREAM_REDIS_API, "id"}),
+                        Pair.of(
+                                // MAXLEN with LIMIT
+                                StreamAddOptions.builder()
+                                        .id("id")
+                                        .makeStream(Boolean.TRUE)
+                                        .trim(new StreamAddOptions.MaxLen(Boolean.TRUE, 5L, 10L))
+                                        .build(),
+                                new String[] {
+                                    "testKey",
+                                    TRIM_MAXLEN_REDIS_API,
+                                    TRIM_EXACT_REDIS_API,
+                                    Long.toString(5L),
+                                    TRIM_LIMIT_REDIS_API,
+                                    Long.toString(10L),
+                                    "id"
+                                }),
+                        Pair.of(
+                                // MAXLEN with non exact match
+                                StreamAddOptions.builder()
+                                        .makeStream(Boolean.FALSE)
+                                        .trim(new StreamAddOptions.MaxLen(Boolean.FALSE, 2L))
+                                        .build(),
+                                new String[] {
+                                    "testKey",
+                                    NO_MAKE_STREAM_REDIS_API,
+                                    TRIM_MAXLEN_REDIS_API,
+                                    TRIM_NOT_EXACT_REDIS_API,
+                                    Long.toString(2L),
+                                    "*"
+                                }),
+                        Pair.of(
+                                // MIN ID with LIMIT
+                                StreamAddOptions.builder()
+                                        .id("id")
+                                        .makeStream(Boolean.TRUE)
+                                        .trim(new StreamAddOptions.MinId(Boolean.TRUE, "testKey", 10L))
+                                        .build(),
+                                new String[] {
+                                    "testKey",
+                                    TRIM_MINID_REDIS_API,
+                                    TRIM_EXACT_REDIS_API,
+                                    Long.toString(5L),
+                                    TRIM_LIMIT_REDIS_API,
+                                    Long.toString(10L),
+                                    "id"
+                                }),
+                        Pair.of(
+                                // MIN ID with non exact match
+                                StreamAddOptions.builder()
+                                        .makeStream(Boolean.FALSE)
+                                        .trim(new StreamAddOptions.MinId(Boolean.FALSE, "testKey"))
+                                        .build(),
+                                new String[] {
+                                    "testKey",
+                                    NO_MAKE_STREAM_REDIS_API,
+                                    TRIM_MINID_REDIS_API,
+                                    TRIM_NOT_EXACT_REDIS_API,
+                                    Long.toString(5L),
+                                    "*"
+                                })));
     }
 
     @SneakyThrows

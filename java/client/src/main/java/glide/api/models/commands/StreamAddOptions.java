@@ -42,7 +42,7 @@ public final class StreamAddOptions {
          * Redis API. Otherwise, the stream will be trimmed in a near-exact manner, which is more
          * efficient, equivalent to <code>~</code> in the Redis API.
          */
-        protected Boolean exact;
+        protected boolean exact;
 
         /** If set, sets the maximal amount of entries that will be deleted. */
         protected Long limit;
@@ -71,49 +71,79 @@ public final class StreamAddOptions {
         /** Trim the stream according to entry ID. Equivalent to <code>MINID</code> in the Redis API. */
         private final String threshold;
 
+        /**
+         * Create a trim option to trim stream based on stream ID.
+         *
+         * @param exact whether to match exactly on the threshold.
+         * @param threshold comparison id.
+         */
         public MinId(boolean exact, @NonNull String threshold) {
             this.threshold = threshold;
             this.exact = exact;
         }
 
+        /**
+         * Create a trim option to trim stream based on stream ID.
+         *
+         * @param exact whether to match exactly on the threshold.
+         * @param threshold comparison id.
+         * @param limit max number of stream entries to be trimmed.
+         */
         public MinId(boolean exact, @NonNull String threshold, long limit) {
             this.threshold = threshold;
             this.exact = exact;
             this.limit = limit;
         }
 
-        public String getMethod() {
+        @Override
+        protected String getMethod() {
             return TRIM_MINID_REDIS_API;
         }
 
-        public String getThreshold() {
+        @Override
+        protected String getThreshold() {
             return threshold;
         }
     }
 
-    public static class Maxlen extends StreamTrimOptions {
+    public static class MaxLen extends StreamTrimOptions {
         /**
-         * Trim the stream according to length. <br>
+         * Trim the stream according to length.<br>
          * Equivalent to <code>MAXLEN</code> in the Redis API.
          */
         private final Long threshold;
 
-        public Maxlen(boolean exact, long threshold) {
+        /**
+         * Create a Max Length trim option to trim stream based on length.
+         *
+         * @param exact whether to match exactly on the threshold.
+         * @param threshold comparison count.
+         */
+        public MaxLen(boolean exact, long threshold) {
             this.threshold = threshold;
             this.exact = exact;
         }
 
-        public Maxlen(boolean exact, long threshold, long limit) {
+        /**
+         * Create a Max Length trim option to trim stream entries exceeds the threshold.
+         *
+         * @param exact whether to match exactly on the threshold.
+         * @param threshold comparison count.
+         * @param limit max number of stream entries to be trimmed.
+         */
+        public MaxLen(boolean exact, long threshold, long limit) {
             this.threshold = threshold;
             this.exact = exact;
             this.limit = limit;
         }
 
-        public String getMethod() {
+        @Override
+        protected String getMethod() {
             return TRIM_MAXLEN_REDIS_API;
         }
 
-        public String getThreshold() {
+        @Override
+        protected String getThreshold() {
             return threshold.toString();
         }
     }

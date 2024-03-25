@@ -18,7 +18,7 @@ public interface StreamBaseCommands {
      *
      * @see <a href="https://redis.io/commands/xadd/">redis.io</a> for details.
      * @param key The key of the stream.
-     * @param values field-value pairs to be added to the entry.
+     * @param values Field-value pairs to be added to the entry.
      * @return The id of the added entry.
      * @example
      *     <pre>{@code
@@ -33,10 +33,10 @@ public interface StreamBaseCommands {
      *
      * @see <a href="https://redis.io/commands/xadd/">redis.io</a> for details.
      * @param key The key of the stream.
-     * @param values field-value pairs to be added to the entry.
+     * @param values Field-value pairs to be added to the entry.
      * @param options Stream add options.
-     * @return The id of the added entry, or <code>null</code> if <code>options.makeStream</code> is
-     *     set to <code>false</code> and no stream with the matching <code>key</code> exists.
+     * @return The id of the added entry, or <code>null</code> if {@link StreamAddOptions#makeStream}
+     *     is set to <code>false</code> and no stream with the matching <code>key</code> exists.
      * @example
      *     <pre>{@code
      * // Option to use the existing stream, or return null if the stream doesn't already exist at "key"

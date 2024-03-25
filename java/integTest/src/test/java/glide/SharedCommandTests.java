@@ -1174,14 +1174,14 @@ public class SharedCommandTests {
 
         // this will trim the first entry.
         String id =
-            client
-                .xadd(
-                    key,
-                    Map.of(field1, "foo3", field2, "bar3"),
-                    StreamAddOptions.builder()
-                        .trim(new StreamAddOptions.Maxlen(Boolean.TRUE, 2L))
-                        .build())
-                .get();
+                client
+                        .xadd(
+                                key,
+                                Map.of(field1, "foo3", field2, "bar3"),
+                                StreamAddOptions.builder()
+                                        .trim(new StreamAddOptions.MaxLen(Boolean.TRUE, 2L))
+                                        .build())
+                        .get();
         assertNotNull(id);
         if (client instanceof RedisClient) {
             assertEquals(2L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
