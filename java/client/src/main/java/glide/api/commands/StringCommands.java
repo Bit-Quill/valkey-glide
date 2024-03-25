@@ -25,11 +25,11 @@ public interface StringCommands {
      *     <code>key</code> as a <code>String</code>. Otherwise, return <code>null</code>.
      * @example
      *     <pre>{@code
-     * String payload = client.get("key").get();
-     * assert payload.equals("value");
+     * String value = client.get("key").get();
+     * assert value.equals("value");
      *
-     * String payload = client.get("non_existing_key").get();
-     * assert payload.equals(null);
+     * String value = client.get("non_existing_key").get();
+     * assert value.equals(null);
      * }</pre>
      */
     CompletableFuture<String> get(String key);
@@ -43,8 +43,8 @@ public interface StringCommands {
      * @return Response from Redis containing <code>"OK"</code>.
      * @example
      *     <pre>{@code
-     * String payload = client.set("key", "value").get();
-     * assert payload.equals("OK");
+     * String value = client.set("key", "value").get();
+     * assert value.equals("OK");
      * }</pre>
      */
     CompletableFuture<String> set(String key, String value);
@@ -63,13 +63,9 @@ public interface StringCommands {
      *     is set, return the old value as a <code>String</code>.
      * @example
      *     <pre>{@code
-     * String payload =
-     *         client.set("key", "value", SetOptions.builder()
-     *                 .conditionalSet(ONLY_IF_EXISTS)
-     *                 .expiry(SetOptions.Expiry.Seconds(5L))
-     *                 .build())
-     *                 .get();
-     * assert payload.equals("OK");
+     * SetOptions options = SetOptions.builder().conditionalSet(ONLY_IF_EXISTS).expiry(Seconds(5L)).build();
+     * String value = client.set("key", "value", options).get();
+     * assert value.equals("OK");
      * }</pre>
      */
     CompletableFuture<String> set(String key, String value, SetOptions options);
@@ -84,8 +80,8 @@ public interface StringCommands {
      *     </code>.
      * @example
      *     <pre>{@code
-     * String payload = client.mget(new String[] {"key1", "key2"}).get();
-     * assert payload.equals(new String[] {"value1", "value2"});
+     * String values = client.mget(new String[] {"key1", "key2"}).get();
+     * assert values.equals(new String[] {"value1", "value2"});
      * }</pre>
      */
     CompletableFuture<String[]> mget(String[] keys);
@@ -98,8 +94,8 @@ public interface StringCommands {
      * @return Always <code>OK</code>.
      * @example
      *     <pre>{@code
-     * String payload = client.mset(Map.of("key1", "value1", "key2", "value2"}).get();
-     * assert payload.equals("OK"));
+     * String result = client.mset(Map.of("key1", "value1", "key2", "value2"}).get();
+     * assert result.equals("OK"));
      * }</pre>
      */
     CompletableFuture<String> mset(Map<String, String> keyValueMap);
@@ -147,7 +143,7 @@ public interface StringCommands {
      * @return The value of <code>key</code> after the increment.
      * @example
      *     <pre>{@code
-     * Long num = client.incrByFloat("key", 0.5).get();
+     * Double num = client.incrByFloat("key", 0.5).get();
      * assert num == 7.5;
      * }</pre>
      */

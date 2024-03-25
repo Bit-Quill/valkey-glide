@@ -27,10 +27,12 @@ public interface SortedSetBaseCommands {
      *     If <code>changed</code> is set, returns the number of elements updated in the sorted set.
      * @example
      *     <pre>{@code
-     * Long num = client.zadd("mySortedSet", Map.of("member1", 10.5, "member2", 8.2), ZaddOptions.builder().build(), false).get();
+     * ZaddOptions options = ZaddOptions.builder().build();
+     * Long num = client.zadd("mySortedSet", Map.of("member1", 10.5, "member2", 8.2), options, false).get();
      * assert num == 2L; // Indicates that two elements have been added or updated in the sorted set "mySortedSet".
      *
-     * Long num = client.zadd("existingSortedSet", Map.of("member1", 15.0, "member2", 5.5), ZaddOptions.builder().conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS).build(), false).get();
+     * options = ZaddOptions.builder().conditionalChange(ONLY_IF_EXISTS).build();
+     * Long num = client.zadd("existingSortedSet", Map.of("member1", 15.0, "member2", 5.5), options, false).get();
      * assert num == 2L; // Updates the scores of two existing members in the sorted set "existingSortedSet".
      * }</pre>
      */
@@ -48,10 +50,12 @@ public interface SortedSetBaseCommands {
      * @return The number of elements added to the sorted set.
      * @example
      *     <pre>{@code
-     * Long num = client.zadd("mySortedSet", Map.of("member1", 10.5, "member2", 8.2), ZaddOptions.builder().build()).get();
+     * ZaddOptions options = ZaddOptions.builder().build();
+     * Long num = client.zadd("mySortedSet", Map.of("member1", 10.5, "member2", 8.2), options).get();
      * assert num == 2L; // Indicates that two elements have been added to the sorted set "mySortedSet".
      *
-     * Long num = client.zadd("existingSortedSet", Map.of("member1", 15.0, "member2", 5.5), ZaddOptions.builder().conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS).build()).get();
+     * options = ZaddOptions.builder().conditionalChange(ONLY_IF_EXISTS).build();
+     * Long num = client.zadd("existingSortedSet", Map.of("member1", 15.0, "member2", 5.5), options).get();
      * assert num == 0L; // No new members were added to the sorted set "existingSortedSet".
      * }</pre>
      */
@@ -111,10 +115,12 @@ public interface SortedSetBaseCommands {
      *     returned.
      * @example
      *     <pre>{@code
-     * Double num = client.zaddIncr("mySortedSet", member, 5.0, ZaddOptions.builder().build()).get();
+     * ZaddOptions options = ZaddOptions.builder().build();
+     * Double num = client.zaddIncr("mySortedSet", member, 5.0, ).get();
      * assert num == 5.0;
      *
-     * Double num = client.zaddIncr("existingSortedSet", member, 3.0, ZaddOptions.builder().updateOptions(ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT).build()).get();
+     * options = ZaddOptions.builder().updateOptions(SCORE_LESS_THAN_CURRENT).build();
+     * Double num = client.zaddIncr("existingSortedSet", member, 3.0, options).get();
      * assert num == null;
      * }</pre>
      */

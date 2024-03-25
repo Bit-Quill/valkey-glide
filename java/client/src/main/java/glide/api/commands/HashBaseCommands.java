@@ -59,7 +59,7 @@ public interface HashBaseCommands {
      *     If <code>key</code> does not exist, it is treated as an empty hash and it returns 0.<br>
      * @example
      *     <pre>{@code
-     * Long num = client.hdel("my_hash", new String[] {}).get("field1", "field2");
+     * Long num = client.hdel("my_hash", new String[] {"field1", "field2"}).get();
      * assert num == 2L; //Indicates that two fields were successfully removed from the hash.
      * }</pre>
      */

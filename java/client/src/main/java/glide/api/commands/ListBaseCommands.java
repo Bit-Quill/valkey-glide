@@ -91,14 +91,14 @@ public interface ListBaseCommands {
      *     If <code>key</code> does not exist an empty array will be returned.
      * @example
      *     <pre>{@code
-     * String[] payload = lient.lrange("my_list", 0, 2).get()
-     * assert payload.equals(new String[] {"value1", "value2", "value3"})
+     * String[] payload = lient.lrange("my_list", 0, 2).get();
+     * assert payload.equals(new String[] {"value1", "value2", "value3"});
      *
-     * String[] payload = client.lrange("my_list", -2, -1).get()
-     * assert payload.equals(new String[] {"value2", "value3"})
+     * String[] payload = client.lrange("my_list", -2, -1).get();
+     * assert payload.equals(new String[] {"value2", "value3"});
      *
-     * String[] payload = client.lrange("non_exiting_key", 0, 2).get()
-     * assert payload.equals(new String[] {})
+     * String[] payload = client.lrange("non_exiting_key", 0, 2).get();
+     * assert payload.equals(new String[] {});
      * }</pre>
      */
     CompletableFuture<String[]> lrange(String key, long start, long end);
@@ -181,11 +181,11 @@ public interface ListBaseCommands {
      * @return The length of the list after the push operations.
      * @example
      *     <pre>{@code
-     * Long pushCount1 = client.rpush("my_list", new String[] {"value1", "value2"}).get()
-     * assert pushCount1 == 2L
+     * Long pushCount1 = client.rpush("my_list", new String[] {"value1", "value2"}).get();
+     * assert pushCount1 == 2L;
      *
-     * Long pushCount2 = client.rpush("nonexistent_list", new String[] {"new_value"}).get()
-     * assert pushCount2 == 1L
+     * Long pushCount2 = client.rpush("nonexistent_list", new String[] {"new_value"}).get();
+     * assert pushCount2 == 1L;
      * }</pre>
      */
     CompletableFuture<Long> rpush(String key, String[] elements);

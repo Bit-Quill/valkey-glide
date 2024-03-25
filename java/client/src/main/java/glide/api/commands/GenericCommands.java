@@ -24,7 +24,7 @@ public interface GenericCommands {
      *     this function.
      * @example
      *     <pre>{@code
-     * Object response = (String) client.customCommand(new String[] {"ping", "GLIDE"}).get()
+     * Object response = (String) client.customCommand(new String[] {"ping", "GLIDE"}).get();
      * assert ((String) response).equals("GLIDE");
      * // Get a list of all pub/sub clients:
      * Object result = client.customCommand(new String[]{ "CLIENT", "LIST", "TYPE", "PUBSUB" }).get();
