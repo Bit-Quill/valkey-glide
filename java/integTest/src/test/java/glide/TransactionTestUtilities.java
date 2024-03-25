@@ -56,6 +56,7 @@ public class TransactionTestUtilities {
 
         baseTransaction.hset(key4, Map.of(field1, value1, field2, value2));
         baseTransaction.hget(key4, field1);
+        baseTransaction.hlen(key4);
         baseTransaction.hexists(key4, field2);
         baseTransaction.hmget(key4, new String[] {field1, "non_existing_field", field2});
         baseTransaction.hgetall(key4);
@@ -113,14 +114,15 @@ public class TransactionTestUtilities {
             0L,
             0.5,
             1L,
-            2L,
-            value1,
-            true,
-            new String[] {value1, null, value2},
-            Map.of(field1, value1, field2, value2),
-            1L,
-            5L,
-            10.5,
+            2L, // hset
+            value1, // hget
+            2L, // hlen
+            true, // hexists
+            new String[] {value1, null, value2}, // hmget
+            Map.of(field1, value1, field2, value2), // hgetall
+            1L, // hdel
+            5L, // hincrBy
+            10.5, // hincrByFloat
             5L,
             5L,
             1L,
