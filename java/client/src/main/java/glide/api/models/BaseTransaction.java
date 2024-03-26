@@ -383,6 +383,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * If <code>key</code> does not exist, a new key holding a hash is created.<br>
      * If <code>field</code> already exists, this operation has no effect.
      *
+     * @see <a href="https://redis.io/commands/hsetnx/">redis.io</a> for details.
      * @param key The key of the hash.
      * @param field The field to set the value for.
      * @param value The value to set.
