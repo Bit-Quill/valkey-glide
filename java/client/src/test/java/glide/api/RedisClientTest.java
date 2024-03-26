@@ -254,7 +254,8 @@ public class RedisClientTest {
         String value = "testValue";
         CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete(null);
-        when(commandManager.<String>submitNewCommand(eq(SetString), eq(new String[] {key, value}), any()))
+        when(commandManager.<String>submitNewCommand(
+                        eq(SetString), eq(new String[] {key, value}), any()))
                 .thenReturn(testResponse);
 
         // exercise

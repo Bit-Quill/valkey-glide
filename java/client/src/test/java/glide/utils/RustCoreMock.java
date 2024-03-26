@@ -149,7 +149,8 @@ public class RustCoreMock {
         private final AtomicBoolean anybodyConnected = new AtomicBoolean(false);
 
         @Override
-        public void channelRead(@NonNull ChannelHandlerContext ctx, @NonNull Object msg) throws Exception {
+        public void channelRead(@NonNull ChannelHandlerContext ctx, @NonNull Object msg)
+                throws Exception {
             var buf = (ByteBuf) msg;
             var bytes = new byte[buf.readableBytes()];
             buf.readBytes(bytes);

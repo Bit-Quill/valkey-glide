@@ -39,7 +39,8 @@ public class ThreadPoolResourceAllocatorTest {
         assertEquals(mockedThreadPoolResource, theResource);
 
         // Ensure that supplier only is invoked once to set up the shared resource
-        ThreadPoolResource theSameResource = ThreadPoolResourceAllocator.getOrCreate(threadPoolSupplier);
+        ThreadPoolResource theSameResource =
+                ThreadPoolResourceAllocator.getOrCreate(threadPoolSupplier);
         assertEquals(mockedThreadPoolResource, theSameResource);
         verify(threadPoolSupplier, times(1)).get();
 
@@ -63,7 +64,8 @@ public class ThreadPoolResourceAllocatorTest {
         assertEquals(mockedThreadPoolResource, theResource);
 
         // Ensure that supplier only is invoked once to set up the shared resource
-        ThreadPoolResource theSameResource = ThreadPoolResourceAllocator.getOrCreate(threadPoolSupplier);
+        ThreadPoolResource theSameResource =
+                ThreadPoolResourceAllocator.getOrCreate(threadPoolSupplier);
         assertEquals(mockedThreadPoolResource, theSameResource);
         verify(threadPoolSupplier, times(2)).get();
 
