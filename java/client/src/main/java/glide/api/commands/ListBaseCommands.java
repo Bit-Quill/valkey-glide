@@ -104,16 +104,17 @@ public interface ListBaseCommands {
 
     /**
      * Returns the element at <code>index</code> in the list stored at <code>key</code>.<br>
-     * The index is zero-based, so 0 means the first element, 1 the second element and so on. Negative
-     * indices can be used to designate elements starting at the tail of the list. Here, -1 means the
-     * last element, -2 means the penultimate and so forth.
+     * The index is zero-based, so <code>0</code> means the first element, <code>1</code> the second
+     * element and so on. Negative indices can be used to designate elements starting at the tail of
+     * the list. Here, <code>-1</code> means the last element, <code>-2</code> means the penultimate
+     * and so forth.
      *
      * @see <a href="https://redis.io/commands/lindex/">redis.io</a> for details.
      * @param key The key of the list.
      * @param index The index of the element in the list to retrieve.
      * @return The element at <code>index</code> in the list stored at <code>key</code>.<br>
-     *     If <code>index</code> is out of range or if <code>key</code> does not exist, `null` is
-     *     returned.
+     *     If <code>index</code> is out of range or if <code>key</code> does not exist, <code>null
+     *     </code> is returned.
      * @example
      *     <pre>{@code
      * String payload1 = client.lindex("myList", 0).get();
