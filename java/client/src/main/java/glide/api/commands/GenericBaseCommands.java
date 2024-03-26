@@ -22,7 +22,7 @@ public interface GenericBaseCommands {
      * @example
      *     <pre>{@code
      * Long num = client.del(new String[] {"key1", "key2"}).get();
-     * assert num == 2l;
+     * assert num == 2L;
      * }</pre>
      */
     CompletableFuture<Long> del(String[] keys);
