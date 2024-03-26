@@ -105,8 +105,8 @@ public class RedisClientTest {
         Object value = "testValue";
         String cmd = "GETSTRING";
         String[] arguments = new String[] {cmd, key};
-        CompletableFuture<Object> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Object> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.submitNewCommand(eq(CustomCommand), eq(arguments), any()))
@@ -125,8 +125,8 @@ public class RedisClientTest {
     @Test
     public void ping_returns_success() {
         // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn("PONG");
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete("PONG");
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(Ping), eq(new String[0]), any()))
@@ -147,7 +147,7 @@ public class RedisClientTest {
         // setup
         String message = "RETURN OF THE PONG";
         String[] arguments = new String[] {message};
-        CompletableFuture<String> testResponse = new CompletableFuture();
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete(message);
 
         // match on protobuf request
@@ -167,9 +167,9 @@ public class RedisClientTest {
     @Test
     public void select_returns_success() {
         // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        Long index = 5L;
-        when(testResponse.get()).thenReturn(OK);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        long index = 5L;
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(
@@ -191,8 +191,8 @@ public class RedisClientTest {
         // setup
         String[] keys = new String[] {"testKey1", "testKey2"};
         Long numberDeleted = 1L;
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(numberDeleted);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(numberDeleted);
         when(commandManager.<Long>submitNewCommand(eq(Del), eq(keys), any())).thenReturn(testResponse);
 
         // exercise
@@ -210,8 +210,8 @@ public class RedisClientTest {
         // setup
         String[] keys = new String[] {"testKey1", "testKey2"};
         Long numberUnlinked = 1L;
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(numberUnlinked);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(numberUnlinked);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(Unlink), eq(keys), any()))
@@ -232,8 +232,8 @@ public class RedisClientTest {
         // setup
         String key = "testKey";
         String value = "testValue";
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
         when(commandManager.<String>submitNewCommand(eq(GetString), eq(new String[] {key}), any()))
                 .thenReturn(testResponse);
 
@@ -252,9 +252,9 @@ public class RedisClientTest {
         // setup
         String key = "testKey";
         String value = "testValue";
-        CompletableFuture<Void> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(null);
-        when(commandManager.<Void>submitNewCommand(eq(SetString), eq(new String[] {key, value}), any()))
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(null);
+        when(commandManager.<String>submitNewCommand(eq(SetString), eq(new String[] {key, value}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -280,8 +280,8 @@ public class RedisClientTest {
                         .build();
         String[] arguments = new String[] {key, value, ONLY_IF_EXISTS.getRedisApi(), "KEEPTTL"};
 
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(null);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(null);
         when(commandManager.<String>submitNewCommand(eq(SetString), eq(arguments), any()))
                 .thenReturn(testResponse);
 
@@ -309,8 +309,8 @@ public class RedisClientTest {
                 new String[] {
                     key, value, ONLY_IF_DOES_NOT_EXIST.getRedisApi(), RETURN_OLD_VALUE, "EXAT", "60"
                 };
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
         when(commandManager.<String>submitNewCommand(eq(SetString), eq(arguments), any()))
                 .thenReturn(testResponse);
 
@@ -328,8 +328,8 @@ public class RedisClientTest {
         // setup
         String[] keys = new String[] {"testKey1", "testKey2"};
         Long numberExisting = 1L;
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(numberExisting);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(numberExisting);
         when(commandManager.<Long>submitNewCommand(eq(Exists), eq(keys), any()))
                 .thenReturn(testResponse);
 
@@ -350,8 +350,8 @@ public class RedisClientTest {
         long seconds = 10L;
         String[] arguments = new String[] {key, Long.toString(seconds)};
 
-        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(true);
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
+        testResponse.complete(Boolean.TRUE);
 
         // match on protobuf request
         when(commandManager.<Boolean>submitNewCommand(eq(Expire), eq(arguments), any()))
@@ -373,8 +373,8 @@ public class RedisClientTest {
         long seconds = 10L;
         String[] arguments = new String[] {key, Long.toString(seconds), "NX"};
 
-        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(false);
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
+        testResponse.complete(Boolean.FALSE);
 
         // match on protobuf request
         when(commandManager.<Boolean>submitNewCommand(eq(Expire), eq(arguments), any()))
@@ -396,8 +396,8 @@ public class RedisClientTest {
         long unixSeconds = 100000L;
         String[] arguments = new String[] {key, Long.toString(unixSeconds)};
 
-        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(true);
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
+        testResponse.complete(Boolean.TRUE);
 
         // match on protobuf request
         when(commandManager.<Boolean>submitNewCommand(eq(ExpireAt), eq(arguments), any()))
@@ -419,8 +419,8 @@ public class RedisClientTest {
         long unixSeconds = 100000L;
         String[] arguments = new String[] {key, Long.toString(unixSeconds), "XX"};
 
-        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(false);
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
+        testResponse.complete(Boolean.FALSE);
 
         // match on protobuf request
         when(commandManager.<Boolean>submitNewCommand(eq(ExpireAt), eq(arguments), any()))
@@ -443,8 +443,8 @@ public class RedisClientTest {
         long milliseconds = 50000L;
         String[] arguments = new String[] {key, Long.toString(milliseconds)};
 
-        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(true);
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
+        testResponse.complete(Boolean.TRUE);
 
         // match on protobuf request
         when(commandManager.<Boolean>submitNewCommand(eq(PExpire), eq(arguments), any()))
@@ -466,8 +466,8 @@ public class RedisClientTest {
         long milliseconds = 50000L;
         String[] arguments = new String[] {key, Long.toString(milliseconds), "LT"};
 
-        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(false);
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
+        testResponse.complete(Boolean.FALSE);
 
         // match on protobuf request
         when(commandManager.<Boolean>submitNewCommand(eq(PExpire), eq(arguments), any()))
@@ -490,8 +490,8 @@ public class RedisClientTest {
         long unixMilliseconds = 999999L;
         String[] arguments = new String[] {key, Long.toString(unixMilliseconds)};
 
-        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(true);
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
+        testResponse.complete(Boolean.TRUE);
 
         // match on protobuf request
         when(commandManager.<Boolean>submitNewCommand(eq(PExpireAt), eq(arguments), any()))
@@ -513,8 +513,8 @@ public class RedisClientTest {
         long unixMilliseconds = 999999L;
         String[] arguments = new String[] {key, Long.toString(unixMilliseconds), "GT"};
 
-        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(false);
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
+        testResponse.complete(Boolean.FALSE);
 
         // match on protobuf request
         when(commandManager.<Boolean>submitNewCommand(eq(PExpireAt), eq(arguments), any()))
@@ -535,9 +535,8 @@ public class RedisClientTest {
         // setup
         String key = "testKey";
         long ttl = 999L;
-
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(ttl);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(ttl);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(TTL), eq(new String[] {key}), any()))
@@ -555,9 +554,9 @@ public class RedisClientTest {
     @Test
     public void info_returns_success() {
         // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         String testPayload = "Key: Value";
-        when(testResponse.get()).thenReturn(testPayload);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(testPayload);
         when(commandManager.<String>submitNewCommand(eq(Info), eq(new String[0]), any()))
                 .thenReturn(testResponse);
 
@@ -576,9 +575,9 @@ public class RedisClientTest {
         // setup
         String[] arguments =
                 new String[] {InfoOptions.Section.ALL.toString(), InfoOptions.Section.DEFAULT.toString()};
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         String testPayload = "Key: Value";
-        when(testResponse.get()).thenReturn(testPayload);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(testPayload);
         when(commandManager.<String>submitNewCommand(eq(Info), eq(arguments), any()))
                 .thenReturn(testResponse);
 
@@ -600,9 +599,9 @@ public class RedisClientTest {
     @Test
     public void info_with_empty_InfoOptions_returns_success() {
         // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
         String testPayload = "Key: Value";
-        when(testResponse.get()).thenReturn(testPayload);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(testPayload);
         when(commandManager.<String>submitNewCommand(eq(Info), eq(new String[0]), any()))
                 .thenReturn(testResponse);
 
@@ -622,11 +621,11 @@ public class RedisClientTest {
         String[] keys = {"key1", null, "key2"};
         String[] values = {"value1", null, "value2"};
 
-        CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(values);
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(values);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(MGet), eq(keys), any()))
+        when(commandManager.<String[]>submitNewCommand(eq(MGet), eq(keys), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -647,8 +646,8 @@ public class RedisClientTest {
         keyValueMap.put("key2", "value2");
         String[] args = {"key1", "value1", "key2", "value2"};
 
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(OK);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(MSet), eq(args), any()))
@@ -670,11 +669,11 @@ public class RedisClientTest {
         String key = "testKey";
         Long value = 10L;
 
-        CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(Incr), eq(new String[] {key}), any()))
+        when(commandManager.<Long>submitNewCommand(eq(Incr), eq(new String[] {key}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -694,11 +693,11 @@ public class RedisClientTest {
         long amount = 1L;
         Long value = 10L;
 
-        CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(
+        when(commandManager.<Long>submitNewCommand(
                         eq(IncrBy), eq(new String[] {key, Long.toString(amount)}), any()))
                 .thenReturn(testResponse);
 
@@ -719,11 +718,11 @@ public class RedisClientTest {
         double amount = 1.1;
         Double value = 10.1;
 
-        CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Double> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(
+        when(commandManager.<Double>submitNewCommand(
                         eq(IncrByFloat), eq(new String[] {key, Double.toString(amount)}), any()))
                 .thenReturn(testResponse);
 
@@ -743,11 +742,11 @@ public class RedisClientTest {
         String key = "testKey";
         Long value = 10L;
 
-        CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(Decr), eq(new String[] {key}), any()))
+        when(commandManager.<Long>submitNewCommand(eq(Decr), eq(new String[] {key}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -767,11 +766,11 @@ public class RedisClientTest {
         long amount = 1L;
         Long value = 10L;
 
-        CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(
+        when(commandManager.<Long>submitNewCommand(
                         eq(DecrBy), eq(new String[] {key, Long.toString(amount)}), any()))
                 .thenReturn(testResponse);
 
@@ -793,8 +792,8 @@ public class RedisClientTest {
         String[] args = new String[] {key, field};
         String value = "value";
 
-        CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
         when(commandManager.<String>submitNewCommand(eq(HashGet), eq(args), any()))
                 .thenReturn(testResponse);
 
@@ -818,8 +817,8 @@ public class RedisClientTest {
         String[] args = new String[] {key, "field1", "value1", "field2", "value2"};
         Long value = 2L;
 
-        CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
         when(commandManager.<Long>submitNewCommand(eq(HashSet), eq(args), any()))
                 .thenReturn(testResponse);
 
@@ -841,8 +840,8 @@ public class RedisClientTest {
         String[] args = {key, "testField1", "testField2"};
         Long value = 2L;
 
-        CompletableFuture testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
         when(commandManager.<Long>submitNewCommand(eq(HashDel), eq(args), any()))
                 .thenReturn(testResponse);
 
@@ -864,8 +863,8 @@ public class RedisClientTest {
         String[] args = {"testKey", "testField1", "testField2"};
         String[] value = {"testValue1", "testValue2"};
 
-        CompletableFuture<String[]> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<String[]>submitNewCommand(eq(HashMGet), eq(args), any()))
@@ -889,8 +888,8 @@ public class RedisClientTest {
         String[] args = new String[] {key, field};
         Boolean value = true;
 
-        CompletableFuture<Boolean> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Boolean>submitNewCommand(eq(HashExists), eq(args), any()))
@@ -915,8 +914,8 @@ public class RedisClientTest {
         value.put("key1", "field1");
         value.put("key2", "field2");
 
-        CompletableFuture<Map<String, String>> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Map<String, String>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Map<String, String>>submitNewCommand(eq(HashGetAll), eq(args), any()))
@@ -940,8 +939,8 @@ public class RedisClientTest {
         long amount = 1L;
         Long value = 10L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(
@@ -966,8 +965,8 @@ public class RedisClientTest {
         double amount = 1.0;
         Double value = 10.0;
 
-        CompletableFuture<Double> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Double> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Double>submitNewCommand(
@@ -992,8 +991,8 @@ public class RedisClientTest {
         String[] args = new String[] {key, "value1", "value2"};
         Long value = 2L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(LPush), eq(args), any()))
@@ -1016,8 +1015,8 @@ public class RedisClientTest {
         String[] args = new String[] {key};
         String value = "value";
 
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(LPop), eq(args), any()))
@@ -1041,8 +1040,8 @@ public class RedisClientTest {
         String[] args = new String[] {key, Long.toString(count)};
         String[] value = new String[] {"value1", "value2"};
 
-        CompletableFuture<String[]> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<String[]>submitNewCommand(eq(LPop), eq(args), any()))
@@ -1067,8 +1066,8 @@ public class RedisClientTest {
         String[] args = new String[] {key, Long.toString(start), Long.toString(end)};
         String[] value = new String[] {"value1", "value2"};
 
-        CompletableFuture<String[]> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<String[]>submitNewCommand(eq(LRange), eq(args), any()))
@@ -1092,8 +1091,8 @@ public class RedisClientTest {
         long end = 2L;
         String[] args = new String[] {key, Long.toString(end), Long.toString(start)};
 
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(OK);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(LTrim), eq(args), any()))
@@ -1116,8 +1115,8 @@ public class RedisClientTest {
         String[] args = new String[] {key};
         long value = 2L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(LLen), eq(args), any())).thenReturn(testResponse);
@@ -1141,8 +1140,8 @@ public class RedisClientTest {
         String[] args = new String[] {key, Long.toString(count), element};
         long value = 2L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(LRem), eq(args), any())).thenReturn(testResponse);
@@ -1165,8 +1164,8 @@ public class RedisClientTest {
         String[] args = new String[] {key, "value1", "value2"};
         Long value = 2L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(RPush), eq(args), any()))
@@ -1189,8 +1188,8 @@ public class RedisClientTest {
         String value = "value";
         String[] args = new String[] {key};
 
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(RPop), eq(args), any()))
@@ -1214,8 +1213,8 @@ public class RedisClientTest {
         String[] args = new String[] {key, Long.toString(count)};
         String[] value = new String[] {"value1", "value2"};
 
-        CompletableFuture<String[]> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<String[]>submitNewCommand(eq(RPop), eq(args), any()))
@@ -1239,8 +1238,8 @@ public class RedisClientTest {
         String[] arguments = ArrayUtils.addFirst(members, key);
         Long value = 2L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(SAdd), eq(arguments), any()))
@@ -1264,8 +1263,8 @@ public class RedisClientTest {
         String[] arguments = ArrayUtils.addFirst(members, key);
         Long value = 2L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(SRem), eq(arguments), any()))
@@ -1287,8 +1286,8 @@ public class RedisClientTest {
         String key = "testKey";
         Set<String> value = Set.of("testMember");
 
-        CompletableFuture<Set<String>> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Set<String>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Set<String>>submitNewCommand(eq(SMembers), eq(new String[] {key}), any()))
@@ -1310,8 +1309,8 @@ public class RedisClientTest {
         String key = "testKey";
         Long value = 2L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(SCard), eq(new String[] {key}), any()))
@@ -1338,8 +1337,8 @@ public class RedisClientTest {
         String[] arguments = ArrayUtils.addFirst(membersScoresArgs, key);
         Long value = 2L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(Zadd), eq(arguments), any()))
@@ -1373,8 +1372,8 @@ public class RedisClientTest {
         arguments = ArrayUtils.addAll(arguments, membersScoresArgs);
         Long value = 2L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(Zadd), eq(arguments), any()))
@@ -1417,8 +1416,8 @@ public class RedisClientTest {
         String[] arguments = new String[] {key, "INCR", Double.toString(increment), member};
         Double value = 3.0;
 
-        CompletableFuture<Double> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Double> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Double>submitNewCommand(eq(Zadd), eq(arguments), any()))
@@ -1452,8 +1451,8 @@ public class RedisClientTest {
                         new String[] {"INCR", Double.toString(increment), member});
         Double value = 3.0;
 
-        CompletableFuture<Double> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Double> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Double>submitNewCommand(eq(Zadd), eq(arguments), any()))
@@ -1472,8 +1471,8 @@ public class RedisClientTest {
     @Test
     public void clientId_returns_success() {
         // setup
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(42L);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(42L);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(ClientId), eq(new String[0]), any()))
@@ -1491,8 +1490,8 @@ public class RedisClientTest {
     @Test
     public void clientGetName_returns_success() {
         // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn("TEST");
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete("TEST");
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(ClientGetName), eq(new String[0]), any()))
@@ -1510,8 +1509,8 @@ public class RedisClientTest {
     @Test
     public void configRewrite_returns_success() {
         // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(OK);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(ConfigRewrite), eq(new String[0]), any()))
@@ -1530,8 +1529,8 @@ public class RedisClientTest {
     @Test
     public void configResetStat_returns_success() {
         // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(OK);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(ConfigResetStat), eq(new String[0]), any()))
@@ -1550,9 +1549,9 @@ public class RedisClientTest {
     @Test
     public void configGet_returns_success() {
         // setup
-        CompletableFuture<Map<String, String>> testResponse = mock(CompletableFuture.class);
         Map<String, String> testPayload = Map.of("timeout", "1000");
-        when(testResponse.get()).thenReturn(testPayload);
+        CompletableFuture<Map<String, String>> testResponse = new CompletableFuture<>();
+        testResponse.complete(testPayload);
 
         // match on protobuf request
         when(commandManager.<Map<String, String>>submitNewCommand(
@@ -1572,8 +1571,8 @@ public class RedisClientTest {
     @Test
     public void configSet_returns_success() {
         // setup
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(OK);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(
@@ -1597,8 +1596,8 @@ public class RedisClientTest {
         String[] arguments = ArrayUtils.addFirst(members, key);
         Long value = 2L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(Zrem), eq(arguments), any()))
@@ -1621,8 +1620,8 @@ public class RedisClientTest {
         String[] arguments = new String[] {key};
         Long value = 3L;
 
-        CompletableFuture<Long> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(Zcard), eq(arguments), any()))
