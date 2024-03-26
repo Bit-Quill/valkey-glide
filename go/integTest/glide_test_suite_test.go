@@ -133,13 +133,13 @@ func (suite *GlideTestSuite) TearDownTest() {
 	}
 }
 
-func (suite *GlideTestSuite) runWithDefaultClients(test func(client api.BaseClient)) {
+func (suite *GlideTestSuite) runWithDefaultClients(test func(client api.GlideClient)) {
 	clients := suite.getDefaultClients()
 	suite.runWithClients(clients, test)
 }
 
-func (suite *GlideTestSuite) getDefaultClients() []api.BaseClient {
-	return []api.BaseClient{suite.defaultClient(), suite.defaultClusterClient()}
+func (suite *GlideTestSuite) getDefaultClients() []api.GlideClient {
+	return []api.GlideClient{suite.defaultClient(), suite.defaultClusterClient()}
 }
 
 func (suite *GlideTestSuite) defaultClient() *api.RedisClient {
@@ -176,7 +176,7 @@ func (suite *GlideTestSuite) clusterClient(config *api.RedisClusterClientConfigu
 	return client
 }
 
-func (suite *GlideTestSuite) runWithClients(clients []api.BaseClient, test func(client api.BaseClient)) {
+func (suite *GlideTestSuite) runWithClients(clients []api.GlideClient, test func(client api.GlideClient)) {
 	for i, client := range clients {
 		suite.T().Run(fmt.Sprintf("Testing [%v]", i), func(t *testing.T) {
 			test(client)
