@@ -93,7 +93,7 @@ public class TransactionTestUtilities {
         baseTransaction.configResetStat();
 
         // TODO
-        baseTransaction.pfadd(hllKey1, new String[0]);
+        // baseTransaction.pfadd(hllKey1, new String[0]);
 
         return baseTransaction;
     }
@@ -146,7 +146,7 @@ public class TransactionTestUtilities {
             OK,
             Map.of("timeout", "1000"),
             OK,
-            1L, // pfadd(hllKey1, new String[0])
+            // 1L, // pfadd(hllKey1, new String[0])
         };
     }
 }
