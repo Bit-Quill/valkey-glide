@@ -122,14 +122,14 @@ public class TransactionTestUtilities {
             1L,
             5L,
             10.5,
-            5L, // lpush
-            5L, // llen
-            value3, // lindex
-            1L, // lrem
-            OK, // ltrim
-            new String[] {value3, value2}, // lrange
-            value3, // lpop
-            new String[] {value2, value1}, // lpopcount
+            5L,
+            5L,
+            value3, // lindex(key5, 0)
+            1L,
+            OK,
+            new String[] {value3, value2},
+            value3,
+            new String[] {value2, value1},
             3L,
             value2,
             new String[] {value2, value1},

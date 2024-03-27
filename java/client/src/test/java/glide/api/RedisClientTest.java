@@ -1093,8 +1093,8 @@ public class RedisClientTest {
         String[] args = new String[] {key, Integer.toString(index)};
         String value = "value";
 
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(value);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(Lindex), eq(args), any()))
