@@ -120,7 +120,7 @@ public class TransactionTestUtilities {
             new String[] {value1, null, value2},
             Map.of(field1, value1, field2, value2),
             1L,
-            new String[] {value2}, // hvals
+            new String[] {value2}, // hvals(key4)
             5L,
             10.5,
             5L,
