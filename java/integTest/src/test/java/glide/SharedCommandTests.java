@@ -1016,12 +1016,11 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void pfadd(BaseClient client) {
-        String key1 = UUID.randomUUID().toString();
-        String key2 = UUID.randomUUID().toString();
-        assertEquals(1, client.pfadd(key1, new String[] {"one", "two"}).get());
-        assertEquals(0, client.pfadd(key1, new String[] {"two"}).get());
-        assertEquals(0, client.pfadd(key1, new String[0]).get());
-        assertEquals(1, client.pfadd(key2, new String[0]).get());
+        String key = UUID.randomUUID().toString();
+        assertEquals(1, client.pfadd(key, new String[0]).get());
+        assertEquals(1, client.pfadd(key, new String[] {"one", "two"}).get());
+        assertEquals(0, client.pfadd(key, new String[] {"two"}).get());
+        assertEquals(0, client.pfadd(key, new String[0]).get());
 
         // Key exists, but it is not a HLL
         assertEquals(OK, client.set("foo", "bar").get());

@@ -94,12 +94,7 @@ public class TransactionTestUtilities {
 
         baseTransaction.configResetStat();
 
-        baseTransaction
-            .pfadd(hllKey1, new String[0])
-            .pfadd(hllKey1, new String[] {"a", "b", "c"})
-            .pfadd(hllKey2, new String[] {"b", "c", "d"})
-            .pfadd(hllKey1, new String[0]);
-
+        baseTransaction.pfadd(hllKey1, new String[] {"a", "b", "c"});
 
         return baseTransaction;
     }
@@ -152,10 +147,7 @@ public class TransactionTestUtilities {
             OK,
             Map.of("timeout", "1000"),
             OK,
-            1L, // pfadd(hllKey1, new String[0])
             1L, // pfadd(hllKey1, new String[] {"a", "b", "c"})
-            1L, // pfadd(hllKey2, new String[] {"b", "c", "d"})
-            0L, // pfadd(hllKey1, new String[0])
         };
     }
 }

@@ -591,7 +591,7 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> pfadd(String key, @NonNull String[] elements) {
+    public CompletableFuture<Long> pfadd(@NonNull String key, @NonNull String[] elements) {
         String[] arguments = ArrayUtils.addFirst(elements, key);
         return commandManager.submitNewCommand(PfAdd, arguments, this::handleLongResponse);
     }

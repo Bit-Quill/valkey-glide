@@ -1264,7 +1264,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return Command Response - <code>1</code> if a HyperLogLog internal register was altered or
      *     <code>0</code> otherwise.
      */
-    public T pfadd(String key, String[] elements) {
+    public T pfadd(@NonNull String key, @NonNull String[] elements) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(elements, key));
         protobufTransaction.addCommands(buildCommand(PfAdd, commandArgs));
         return getThis();

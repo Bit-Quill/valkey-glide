@@ -12,20 +12,12 @@ import java.util.concurrent.CompletableFuture;
 public interface HyperLogLogBaseCommands {
 
     /**
-     * Adds all the elements to the HyperLogLog data structure stored and create a new structure if it
-     * is missing.
+     * Adds all elements to the HyperLogLog data structure stored at the specified <code>key</code>,
+     * creating a new structure if the <code>key</code> does not exist.
      *
-     * <p>As a side effect of this command the HyperLogLog internals may be updated to reflect a
-     * different estimation of the number of unique items added so far (the cardinality of the set).
-     *
-     * <p>If the approximated cardinality estimated by the HyperLogLog changed after executing the
-     * command, <code>PFADD</code> returns <code>1</code>, otherwise <code>0</code> is returned. The
-     * command automatically creates an empty HyperLogLog structure if the specified key does not
-     * exist.
-     *
-     * <p>A command call without elements, this will result into no operation performed if the
-     * variable already exists, or just the creation of the data structure if the key does not exist
-     * (in the latter case <code>1</code> is returned).
+     * <p>A command call without elements results into no operation performed if the variable already
+     * exists, or just the creation of the data structure if the key does not exist (in the latter
+     * case <code>1</code> is returned).
      *
      * @see <a href="https://redis.io/commands/pfadd/">redis.io</a> for details.
      * @param key The data structure to add elements into.
@@ -36,12 +28,6 @@ public interface HyperLogLogBaseCommands {
      *     <pre>{@code
      * Long result = client.pfadd("hll_1", new String[] { "a", "b", "c" }).get();
      * assert result == 1L; // A data structure was created or modified
-     *
-     * result = client.pfadd("hll_1", new String[] { "b", "c" }).get();
-     * assert result == 0L; // No data structure was modified
-     *
-     * result = client.pfadd("hll_1", new String[0]).get();
-     * assert result == 0L; // No data structure was modified
      *
      * result = client.pfadd("hll_2", new String[0]).get();
      * assert result == 1L; // A new empty data structure was created
