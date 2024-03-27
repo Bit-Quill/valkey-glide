@@ -80,6 +80,7 @@ public class ClusterTransactionTests {
         Object[] expectedResult = transactionTestResult();
 
         Object[] results = clusterClient.exec(transaction, RANDOM).get();
+
         assertArrayEquals(expectedResult, results);
     }
 }
