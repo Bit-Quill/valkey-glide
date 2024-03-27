@@ -1034,9 +1034,9 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void pfcount(BaseClient client) {
-        String key1 = UUID.randomUUID().toString();
-        String key2 = UUID.randomUUID().toString();
-        String key3 = UUID.randomUUID().toString();
+        String key1 = "{test}-hll1-" + UUID.randomUUID();
+        String key2 = "{test}-hll2-" + UUID.randomUUID();
+        String key3 = "{test}-hll3-" + UUID.randomUUID();
         assertEquals(1, client.pfadd(key1, new String[] {"a", "b", "c"}).get());
         assertEquals(1, client.pfadd(key2, new String[] {"b", "c", "d"}).get());
         assertEquals(3, client.pfcount(new String[] {key1}).get());
