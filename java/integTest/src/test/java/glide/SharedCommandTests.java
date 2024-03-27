@@ -1011,4 +1011,21 @@ public class SharedCommandTests {
                 assertThrows(ExecutionException.class, () -> client.zcard("foo").get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void pfadd(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        assertEquals(1, client.pfadd(key1, new String[] {"one", "two"}).get());
+        assertEquals(0, client.pfadd(key1, new String[0]).get());
+        assertEquals(1, client.pfadd(key2, new String[0]).get());
+
+        // Key exists, but it is not a set
+        assertEquals(OK, client.set("foo", "bar").get());
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.pfadd("foo", new String[0]).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+    }
 }

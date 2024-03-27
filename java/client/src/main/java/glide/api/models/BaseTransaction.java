@@ -40,6 +40,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.MGet;
 import static redis_request.RedisRequestOuterClass.RequestType.MSet;
 import static redis_request.RedisRequestOuterClass.RequestType.PExpire;
 import static redis_request.RedisRequestOuterClass.RequestType.PExpireAt;
+import static redis_request.RedisRequestOuterClass.RequestType.PfAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
@@ -1238,6 +1239,34 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T zcard(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(new String[] {key});
         protobufTransaction.addCommands(buildCommand(Zcard, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Adds all the elements to the HyperLogLog data structure stored and create a new structure if it
+     * is missing.
+     *
+     * <p>As a side effect of this command the HyperLogLog internals may be updated to reflect a
+     * different estimation of the number of unique items added so far (the cardinality of the set).
+     *
+     * <p>If the approximated cardinality estimated by the HyperLogLog changed after executing the
+     * command, <code>PFADD</code> returns <code>1</code>, otherwise <code>0</code> is returned. The
+     * command automatically creates an empty HyperLogLog structure if the specified key does not
+     * exist.
+     *
+     * <p>A command call without elements, this will result into no operation performed if the
+     * variable already exists, or just the creation of the data structure if the key does not exist
+     * (in the latter case <code>1</code> is returned).
+     *
+     * @see <a href="https://redis.io/commands/pfadd/">redis.io</a> for details.
+     * @param key The data structure to add elements into.
+     * @param elements The elements to add.
+     * @return Command Response - <code>1</code> if a HyperLogLog internal register was altered or
+     *     <code>0</code> otherwise.
+     */
+    public T pfadd(String key, String[] elements) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(elements, key));
+        protobufTransaction.addCommands(buildCommand(PfAdd, commandArgs));
         return getThis();
     }
 

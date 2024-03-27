@@ -18,6 +18,7 @@ public class TransactionTestUtilities {
     private static final String key6 = "{key}" + UUID.randomUUID();
     private static final String key7 = "{key}" + UUID.randomUUID();
     private static final String key8 = "{key}" + UUID.randomUUID();
+    private static final String hllKey1 = "hllKey1-" + UUID.randomUUID();
     private static final String value1 = UUID.randomUUID().toString();
     private static final String value2 = UUID.randomUUID().toString();
     private static final String value3 = UUID.randomUUID().toString();
@@ -91,6 +92,9 @@ public class TransactionTestUtilities {
 
         baseTransaction.configResetStat();
 
+        // TODO
+        baseTransaction.pfadd(hllKey1, new String[0]);
+
         return baseTransaction;
     }
 
@@ -141,7 +145,8 @@ public class TransactionTestUtilities {
             2L,
             OK,
             Map.of("timeout", "1000"),
-            OK
+            OK,
+            1L, // pfadd(hllKey1, new String[0])
         };
     }
 }
