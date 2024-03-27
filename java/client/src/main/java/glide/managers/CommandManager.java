@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.managers;
 
+import glide.api.models.BaseTransaction;
 import glide.api.models.ClusterTransaction;
 import glide.api.models.Script;
 import glide.api.models.Transaction;
@@ -82,10 +83,10 @@ public class CommandManager {
      * @param responseHandler The handler for the response object
      * @return A result promise of type T
      */
-    public <T> CompletableFuture<T> submitNewCommand(
+    public <T> CompletableFuture<T> submitNewTransaction(
             Transaction transaction, RedisExceptionCheckedFunction<Response, T> responseHandler) {
 
-        RedisRequest.Builder command = prepareRedisRequest(transaction);
+        RedisRequest.Builder command = prepareRedisRequest(transaction, Optional.empty());
         return submitCommandToChannel(command, responseHandler);
     }
 
@@ -116,7 +117,7 @@ public class CommandManager {
      * @param responseHandler The handler for the response object
      * @return A result promise of type T
      */
-    public <T> CompletableFuture<T> submitNewCommand(
+    public <T> CompletableFuture<T> submitNewTransaction(
             ClusterTransaction transaction,
             Optional<Route> route,
             RedisExceptionCheckedFunction<Response, T> responseHandler) {
@@ -216,7 +217,7 @@ public class CommandManager {
      *     adding a callback id.
      */
     protected RedisRequest.Builder prepareRedisRequest(
-            ClusterTransaction transaction, Optional<Route> route) {
+            BaseTransaction<?> transaction, Optional<Route> route) {
 
         RedisRequest.Builder builder =
                 RedisRequest.newBuilder().setTransaction(transaction.getProtobufTransaction().build());
