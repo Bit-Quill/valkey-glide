@@ -135,7 +135,7 @@ public class TransactionTestUtilities {
             2L,
             1L,
             1L,
-            true, // sismember
+            true, // sismember(key7, "baz")
             Set.of("baz"),
             3L,
             4.0,
