@@ -325,7 +325,7 @@ type benchmarkClient interface {
 
 type benchmarkResults struct {
 	iterationsPerTask int
-	durationNano      int64
+	durationNano      time.Duration
 	tps               float64
 	latencyStats      map[string]*latencyStats
 }
@@ -339,23 +339,15 @@ func measureBenchmark(clients []benchmarkClient, config *benchmarkConfig) *bench
 	}
 
 	actions := getActions(config.DataSize)
-	durationNano, latencies := runBenchmark(iterationsPerTask, config.NumConcurrentTasks, actions, clients)
-	tps := calculateTPS(len(latencies), durationNano)
+	duration, latencies := runBenchmark(iterationsPerTask, config.NumConcurrentTasks, actions, clients)
+	tps := float64(len(latencies)) / duration.Seconds()
 	stats := getLatencyStats(latencies)
 	return &benchmarkResults{
 		iterationsPerTask: iterationsPerTask,
-		durationNano:      durationNano,
+		durationNano:      duration,
 		tps:               tps,
 		latencyStats:      stats,
 	}
-}
-
-func calculateTPS(tasks int, durationNano int64) float64 {
-	return float64(tasks) / nanosToSec(durationNano)
-}
-
-func nanosToSec(durationNano int64) float64 {
-    return float64(durationNano) / 1e9
 }
 
 type operations func(client benchmarkClient) (string, error)
@@ -398,11 +390,11 @@ func keyFromNewKeyspace() string {
 
 type actionLatency struct {
 	action  string
-	latency int64
+	latency time.Duration
 }
 
-func runBenchmark(iterationsPerTask int, concurrentTasks int, actions map[string]operations, clients []benchmarkClient) (durationNano int64, latencies map[string][]int64) {
-	latencies = map[string][]int64{
+func runBenchmark(iterationsPerTask int, concurrentTasks int, actions map[string]operations, clients []benchmarkClient) (totalDuration time.Duration, latencies map[string][]time.Duration) {
+	latencies = map[string][]time.Duration{
 		getExisting:    {},
 		getNonExisting: {},
 		set:            {},
@@ -420,7 +412,7 @@ func runBenchmark(iterationsPerTask int, concurrentTasks int, actions map[string
 		latencies[result.action] = append(latencies[result.action], result.latency)
 	}
 
-	return time.Since(start).Nanoseconds(), latencies
+	return time.Since(start), latencies
 }
 
 func runTask(results chan<- actionLatency, iterations int, actions map[string]operations, clients []benchmarkClient) {
@@ -433,10 +425,10 @@ func runTask(results chan<- actionLatency, iterations int, actions map[string]op
 	}
 }
 
-func measureOperation(operation operations, client benchmarkClient) int64 {
+func measureOperation(operation operations, client benchmarkClient) time.Duration {
 	start := time.Now()
 	operation(client)
-	return time.Since(start).Nanoseconds()
+	return time.Since(start)
 }
 
 const probGet = 0.8
@@ -456,15 +448,15 @@ func randomAction() string {
 }
 
 type latencyStats struct {
-	avgLatency   float64
-	p50Latency   int64
-	p90Latency   int64
-	p99Latency   int64
-	stdDeviation float64
+	avgLatency   time.Duration
+	p50Latency   time.Duration
+	p90Latency   time.Duration
+	p99Latency   time.Duration
+	stdDeviation time.Duration
 	numRequests  int
 }
 
-func getLatencyStats(actionLatencies map[string][]int64) map[string]*latencyStats {
+func getLatencyStats(actionLatencies map[string][]time.Duration) map[string]*latencyStats {
 	results := make(map[string]*latencyStats)
 
 	for action, latencies := range actionLatencies {
@@ -485,15 +477,17 @@ func getLatencyStats(actionLatencies map[string][]int64) map[string]*latencyStat
 	return results
 }
 
-func average(observations []int64) float64 {
-	var sum int64
-	for _, latency := range observations {
-		sum += latency
+func average(observations []time.Duration) time.Duration {
+	var sumNano int64 = 0
+	for _, observation := range observations {
+		sumNano += observation.Nanoseconds()
 	}
-	return float64(sum) / float64(len(observations))
+
+	avgNano := sumNano / int64(len(observations))
+	return time.Duration(avgNano)
 }
 
-func percentile(observations []int64, p float64) int64 {
+func percentile(observations []time.Duration, p float64) time.Duration {
 	N := float64(len(observations))
 	n := (N-1)*p/100 + 1
 
@@ -506,10 +500,10 @@ func percentile(observations []int64, p float64) int64 {
 	k := int(n)
 	d := n - float64(k)
 	interpolatedValue := float64(observations[k-1]) + d*(float64(observations[k])-float64(observations[k-1]))
-	return int64(math.Round(interpolatedValue))
+	return time.Duration(int64(math.Round(interpolatedValue)))
 }
 
-func standardDeviation(observations []int64) float64 {
+func standardDeviation(observations []time.Duration) time.Duration {
 	var sum, mean, sd float64
 	lengthNumbers := len(observations)
 
@@ -524,7 +518,7 @@ func standardDeviation(observations []int64) float64 {
 	}
 
 	sd = math.Sqrt(sd / float64(lengthNumbers))
-	return sd
+	return time.Duration(sd)
 }
 
 func printResults(results *benchmarkResults) {
@@ -536,11 +530,11 @@ func printResults(results *benchmarkResults) {
 	var totalRequests int
 	for action, latencyStat := range results.latencyStats {
 		fmt.Printf("===> %s <===\n", action)
-		fmt.Printf("avg. latency (ms): %.3f\n", latencyStat.avgLatency)
-		fmt.Printf("std dev (ms): %.3f\n", latencyStat.stdDeviation)
-		fmt.Printf("p50 latency (ms): %.3f\n", nanosToSec(latencyStat.p50Latency))
-		fmt.Printf("p90 latency (ms): %.3f\n", nanosToSec(latencyStat.p90Latency))
-		fmt.Printf("p99 latency (ms): %.3f\n", nanosToSec(latencyStat.p99Latency))
+		fmt.Printf("avg. latency (ms): %.3f\n", float64(latencyStat.avgLatency)/1e6)
+		fmt.Printf("std dev (ms): %.3f\n", float64(latencyStat.stdDeviation)/1e6)
+		fmt.Printf("p50 latency (ms): %.3f\n", float64(latencyStat.p50Latency)/1e6)
+		fmt.Printf("p90 latency (ms): %.3f\n", float64(latencyStat.p90Latency)/1e6)
+		fmt.Printf("p99 latency (ms): %.3f\n", float64(latencyStat.p99Latency)/1e6)
 		fmt.Printf("Number of requests: %d\n", latencyStat.numRequests)
 		totalRequests += latencyStat.numRequests
 	}
