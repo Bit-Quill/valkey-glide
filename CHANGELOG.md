@@ -28,6 +28,7 @@
 * Node: Added Rename command. ([#1124](https://github.com/aws/glide-for-redis/pull/1124))
 * Core: Added `PFADD` command. (TODO ADD HERE PR #)
 * Core: Added `PFCOUNT` command. (TODO ADD HERE PR #)
+* Core: Added `PFMERGE` command. (TODO ADD HERE PR #)
 
 #### Features
 

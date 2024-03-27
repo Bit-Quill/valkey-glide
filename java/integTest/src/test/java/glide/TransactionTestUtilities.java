@@ -18,7 +18,9 @@ public class TransactionTestUtilities {
     private static final String key6 = "{key}" + UUID.randomUUID();
     private static final String key7 = "{key}" + UUID.randomUUID();
     private static final String key8 = "{key}" + UUID.randomUUID();
-    private static final String hllKey1 = "hllKey1-" + UUID.randomUUID();
+    private static final String hllKey1 = "{test}:hllKey1-" + UUID.randomUUID();
+    private static final String hllKey2 = "{test}:hllKey2-" + UUID.randomUUID();
+    private static final String hllKey3 = "{test}:hllKey3-" + UUID.randomUUID();
     private static final String value1 = UUID.randomUUID().toString();
     private static final String value2 = UUID.randomUUID().toString();
     private static final String value3 = UUID.randomUUID().toString();
@@ -96,6 +98,7 @@ public class TransactionTestUtilities {
         // baseTransaction.pfadd(hllKey1, new String[0]);
 
         // TODO pfcount
+        // TODO pfmerge
 
         return baseTransaction;
     }

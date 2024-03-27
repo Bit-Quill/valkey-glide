@@ -42,6 +42,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.PExpire;
 import static redis_request.RedisRequestOuterClass.RequestType.PExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.PfAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.PfCount;
+import static redis_request.RedisRequestOuterClass.RequestType.PfMerge;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
@@ -1283,6 +1284,24 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T pfcount(String[] keys) {
         ArgsArray commandArgs = buildArgs(keys);
         protobufTransaction.addCommands(buildCommand(PfCount, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Merges multiple HyperLogLog values into a unique value.
+     *
+     * <p>The computed merged HyperLogLog is created if it does not exist before (defaulting to an
+     * empty HyperLogLog).<br>
+     * If the destination variable exists, it is treated as one of the source HyperLogLog data set.
+     *
+     * @see <a href="https://redis.io/commands/pfmerge/">redis.io</a> for details.
+     * @param destKey The destination where to merge HyperLogLog data sets into.
+     * @param sourceKeys The source HyperLogLog to merge.
+     * @return Command Response - <code>OK</code>
+     */
+    public T pfmerge(String destKey, String[] sourceKeys) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sourceKeys, destKey));
+        protobufTransaction.addCommands(buildCommand(PfMerge, commandArgs));
         return getThis();
     }
 
