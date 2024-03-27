@@ -1023,7 +1023,7 @@ public class SharedCommandTests {
         assertEquals(0, client.pfadd(key1, new String[0]).get());
         assertEquals(1, client.pfadd(key2, new String[0]).get());
 
-        // Key exists, but it is not a set
+        // Key exists, but it is not a HLL
         assertEquals(OK, client.set("foo", "bar").get());
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.pfadd("foo", new String[0]).get());
