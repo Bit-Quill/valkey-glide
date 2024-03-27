@@ -1019,6 +1019,7 @@ public class SharedCommandTests {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
         assertEquals(1, client.pfadd(key1, new String[] {"one", "two"}).get());
+        assertEquals(0, client.pfadd(key1, new String[] {"two"}).get());
         assertEquals(0, client.pfadd(key1, new String[0]).get());
         assertEquals(1, client.pfadd(key2, new String[0]).get());
 

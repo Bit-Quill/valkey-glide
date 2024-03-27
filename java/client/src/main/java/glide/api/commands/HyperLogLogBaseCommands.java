@@ -37,6 +37,9 @@ public interface HyperLogLogBaseCommands {
      * Long result = client.pfadd("hll_1", new String[] { "a", "b", "c" }).get();
      * assert result == 1L; // A data structure was created or modified
      *
+     * result = client.pfadd("hll_1", new String[] { "b", "c" }).get();
+     * assert result == 0L; // No data structure was modified
+     *
      * result = client.pfadd("hll_1", new String[0]).get();
      * assert result == 0L; // No data structure was modified
      *
