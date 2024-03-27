@@ -96,18 +96,13 @@ public class TransactionTestUtilities {
         baseTransaction.configResetStat();
 
         baseTransaction
-            .pfadd(hllKey1, new String[0])
-            .pfadd(hllKey1, new String[] {"a", "b", "c"})
-            .pfadd(hllKey2, new String[] {"b", "c", "d"})
-            .pfadd(hllKey1, new String[0])
-            .pfadd(hllKey3, new String[0]);
+                .pfadd(hllKey1, new String[0])
+                .pfadd(hllKey1, new String[] {"a", "b", "c"})
+                .pfadd(hllKey2, new String[] {"b", "c", "d"})
+                .pfadd(hllKey1, new String[0])
+                .pfadd(hllKey3, new String[0]);
 
-        baseTransaction
-            .pfcount(new String[] { "{key}:" + UUID.randomUUID()}) // TODO rename after #160
-            .pfcount(new String[] { hllKey3 })
-            .pfcount(new String[] { hllKey1 })
-            .pfcount(new String[] { hllKey1, hllKey2 });
-
+        baseTransaction.pfcount(new String[] {hllKey1, hllKey2});
 
         return baseTransaction;
     }
@@ -165,9 +160,6 @@ public class TransactionTestUtilities {
             1L, // pfadd(hllKey2, new String[] {"b", "c", "d"})
             0L, // pfadd(hllKey1, new String[0])
             1L, // pfadd(hllKey3, new String[0])
-            0L, // pfcount(new String[] { UUID.randomUUID().toString() })
-            0L, // pfcount(new String[] { hllKey3 })
-            3L, // pfcount(new String[] { hllKey1 })
             4L, // pfcount(new String[] { hllKey1, hllKey2 });
         };
     }

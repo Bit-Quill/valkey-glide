@@ -1272,15 +1272,15 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Gets the approximated cardinality (size) of the union of the HyperLogLogs passed, by internally
-     * merging into a temporary HyperLogLog.
+     * Estimates the cardinality of the data stored in a HyperLogLog structure for a single key or
+     * calculates the combined cardinality of multiple keys by merging their HyperLogLogs temporarily.
      *
      * @see <a href="https://redis.io/commands/pfcount/">redis.io</a> for details.
-     * @param keys The data structure(s) to count cardinality.
+     * @param keys Identifiers of the HyperLogLog data structures to be analyzed.
      * @return Command Response - The approximated cardinality of given HyperLogLogs data structures
      *     or <code>0</code> if the variable does not exist.
      */
-    public T pfcount(String[] keys) {
+    public T pfcount(@NonNull String[] keys) {
         ArgsArray commandArgs = buildArgs(keys);
         protobufTransaction.addCommands(buildCommand(PfCount, commandArgs));
         return getThis();
