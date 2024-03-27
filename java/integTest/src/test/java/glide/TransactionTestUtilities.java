@@ -114,15 +114,15 @@ public class TransactionTestUtilities {
             0L,
             0.5,
             1L,
-            2L, // hset
-            value1, // hget
-            2L, // hlen
-            true, // hexists
-            new String[] {value1, null, value2}, // hmget
-            Map.of(field1, value1, field2, value2), // hgetall
-            1L, // hdel
-            5L, // hincrBy
-            10.5, // hincrByFloat
+            2L,
+            value1,
+            2L, // hlen(key4)
+            true,
+            new String[] {value1, null, value2},
+            Map.of(field1, value1, field2, value2),
+            1L,
+            5L,
+            10.5,
             5L,
             5L,
             1L,
