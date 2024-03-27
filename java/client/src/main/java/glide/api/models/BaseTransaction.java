@@ -41,6 +41,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.MSet;
 import static redis_request.RedisRequestOuterClass.RequestType.PExpire;
 import static redis_request.RedisRequestOuterClass.RequestType.PExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.PfAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.PfCount;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
@@ -1267,6 +1268,21 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T pfadd(String key, String[] elements) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(elements, key));
         protobufTransaction.addCommands(buildCommand(PfAdd, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Gets the approximated cardinality (size) of the union of the HyperLogLogs passed, by internally
+     * merging into a temporary HyperLogLog.
+     *
+     * @see <a href="https://redis.io/commands/pfcount/">redis.io</a> for details.
+     * @param keys The data structure(s) to count cardinality.
+     * @return Command Response - The approximated cardinality of given HyperLogLogs data structures
+     *     or <code>0</code> if the variable does not exist.
+     */
+    public T pfcount(String[] keys) {
+        ArgsArray commandArgs = buildArgs(keys);
+        protobufTransaction.addCommands(buildCommand(PfCount, commandArgs));
         return getThis();
     }
 

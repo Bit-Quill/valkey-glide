@@ -48,4 +48,26 @@ public interface HyperLogLogBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> pfadd(String key, String[] elements);
+
+    /**
+     * Gets the approximated cardinality (size) of the union of the HyperLogLogs passed, by internally
+     * merging into a temporary HyperLogLog.
+     *
+     * @see <a href="https://redis.io/commands/pfcount/">redis.io</a> for details.
+     * @param keys The data structure(s) to count cardinality.
+     * @return The approximated cardinality of given HyperLogLogs data structures or <code>0</code> if
+     *     the variable does not exist.
+     * @example
+     *     <pre>{@code
+     * Long result = client.pfcount("hll_1", "hll_2").get();
+     * assert result == 42L; // Count of unique elements in multiple data structures
+     *
+     * result = client.pfcount("empty_hll").get();
+     * assert result == 0L;
+     *
+     * result = client.pfcount("not_existing_hll").get();
+     * assert result == 0L;
+     * }</pre>
+     */
+    CompletableFuture<Long> pfcount(String[] keys);
 }

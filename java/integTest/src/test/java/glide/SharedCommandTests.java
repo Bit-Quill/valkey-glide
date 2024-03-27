@@ -1029,4 +1029,27 @@ public class SharedCommandTests {
                 assertThrows(ExecutionException.class, () -> client.pfadd("foo", new String[0]).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void pfcount(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String key3 = UUID.randomUUID().toString();
+        assertEquals(1, client.pfadd(key1, new String[] {"a", "b", "c"}).get());
+        assertEquals(1, client.pfadd(key2, new String[] {"b", "c", "d"}).get());
+        assertEquals(3, client.pfcount(new String[] {key1}).get());
+        assertEquals(3, client.pfcount(new String[] {key2}).get());
+        assertEquals(4, client.pfcount(new String[] {key1, key2}).get());
+        // empty HLL
+        assertEquals(1, client.pfadd(key3, new String[0]).get());
+        assertEquals(0, client.pfcount(new String[] {key3}).get());
+
+        // Key exists, but it is not a HLL
+        assertEquals(OK, client.set("foo", "bar").get());
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.pfcount(new String[] {"foo"}).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+    }
 }

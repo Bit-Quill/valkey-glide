@@ -39,6 +39,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.MSet;
 import static redis_request.RedisRequestOuterClass.RequestType.PExpire;
 import static redis_request.RedisRequestOuterClass.RequestType.PExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.PfAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.PfCount;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
@@ -378,6 +379,8 @@ public class TransactionTests {
                 Pair.of(
                         PfAdd,
                         ArgsArray.newBuilder().addArgs("hll").addArgs("a").addArgs("b").addArgs("c").build()));
+        transaction.pfcount(new String[] {"hll1", "hll2"});
+        results.add(Pair.of(PfCount, ArgsArray.newBuilder().addArgs("hll1").addArgs("hll2").build()));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 
