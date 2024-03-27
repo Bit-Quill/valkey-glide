@@ -74,7 +74,7 @@ func main() {
 func closeFile(file *os.File) {
 	err := file.Close()
 	if err != nil {
-		log.Fatal("Error closing the file:", err)
+		log.Fatal("Error closing file:", err)
 	}
 }
 
@@ -228,8 +228,8 @@ func executeBenchmarks(runConfig *runConfiguration, connectionSettings *internal
 					benchmarkConfig := &benchmarkConfig{
 						ClientName:         clientName,
 						NumConcurrentTasks: numConcurrentTasks,
-						ClientCount:        dataSize,
-						DataSize:           clientCount,
+						ClientCount:        clientCount,
+						DataSize:           dataSize,
 						Minimal:            runConfig.minimal,
 						ConnectionSettings: connectionSettings,
 						ResultsFile:        runConfig.resultsFile,
@@ -251,7 +251,7 @@ func executeBenchmarks(runConfig *runConfiguration, connectionSettings *internal
 
 func runSingleBenchmark(config *benchmarkConfig) error {
 	fmt.Printf("Running benchmarking for %s client:\n", config.ClientName)
-	fmt.Printf("\n =====> %s <===== %d clients %d concurrent %d data size \n\n", config.ClientName, config.ClientCount, config.NumConcurrentTasks, config.DataSize)
+	fmt.Printf("\n =====> %s <===== clientCount: %d, concurrentTasks: %d, dataSize: %d \n\n", config.ClientName, config.ClientCount, config.NumConcurrentTasks, config.DataSize)
 
 	clients, err := createClients(config)
 	if err != nil {
@@ -340,7 +340,7 @@ func measureBenchmark(clients []benchmarkClient, config *benchmarkConfig) *bench
 
 	actions := getActions(config.DataSize)
 	duration, latencies := runBenchmark(iterationsPerTask, config.NumConcurrentTasks, actions, clients)
-	tps := float64(len(latencies)) / duration.Seconds()
+	tps := calculateTPS(latencies, duration)
 	stats := getLatencyStats(latencies)
 	return &benchmarkResults{
 		iterationsPerTask: iterationsPerTask,
@@ -348,6 +348,15 @@ func measureBenchmark(clients []benchmarkClient, config *benchmarkConfig) *bench
 		tps:               tps,
 		latencyStats:      stats,
 	}
+}
+
+func calculateTPS(latencies map[string][]time.Duration, totalDuration time.Duration) float64 {
+	numRequests := 0
+	for _, durations := range latencies {
+		numRequests += len(durations)
+	}
+
+	return float64(numRequests) / totalDuration.Seconds()
 }
 
 type operations func(client benchmarkClient) (string, error)
@@ -402,7 +411,7 @@ func runBenchmark(iterationsPerTask int, concurrentTasks int, actions map[string
 
 	start := time.Now()
 	numResults := concurrentTasks * iterationsPerTask
-	results := make(chan actionLatency, numResults)
+	results := make(chan *actionLatency, numResults)
 	for i := 0; i < concurrentTasks; i++ {
 		go runTask(results, iterationsPerTask, actions, clients)
 	}
@@ -415,19 +424,23 @@ func runBenchmark(iterationsPerTask int, concurrentTasks int, actions map[string
 	return time.Since(start), latencies
 }
 
-func runTask(results chan<- actionLatency, iterations int, actions map[string]operations, clients []benchmarkClient) {
+func runTask(results chan<- *actionLatency, iterations int, actions map[string]operations, clients []benchmarkClient) {
 	for i := 0; i < iterations; i++ {
 		clientIndex := i % len(clients)
 		action := randomAction()
 		operation := actions[action]
 		latency := measureOperation(operation, clients[clientIndex])
-		results <- actionLatency{action: action, latency: latency}
+		results <- &actionLatency{action: action, latency: latency}
 	}
 }
 
 func measureOperation(operation operations, client benchmarkClient) time.Duration {
 	start := time.Now()
-	operation(client)
+	_, err := operation(client)
+	if err != nil {
+		log.Print("Error while executing operation: ", err)
+	}
+
 	return time.Since(start)
 }
 
