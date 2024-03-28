@@ -528,6 +528,7 @@ def wait_for_all_topology_views(
     Wait for each of the nodes to have a topology view that contains all nodes.
     On Redis 6 only when a replica finished syncing and loading, it will be included in the CLUSTER SLOTS output.
     """
+    version = get_redis_version()
     for server in servers:
         cmd_args = [
             "redis-cli",
@@ -537,10 +538,9 @@ def wait_for_all_topology_views(
             str(server.port),
             *get_redis_cli_option_args(cluster_folder, use_tls),
             "cluster",
-            "slots",
+            "slots" if version.startswith('6') else "shards",
         ]
         logging.debug(f"Executing: {cmd_args}")
-        version = get_redis_version()
         retries = 60
         output = ""
         while retries >= 0:
@@ -557,7 +557,7 @@ def wait_for_all_topology_views(
                         f"Failed to execute command: {str(p.args)}\n Return code: {p.returncode}\n Error: {err}"
                     )
 
-                if output.count(f"{server.host}") == (len(servers) if version.startswith('6') else len(servers) / 2):
+                if output.count(f"{server.host}") == (len(servers) if version.startswith('6') else len(servers) * 2):
                     logging.debug(f"Server {server} is ready!")
                     break
                 else:
