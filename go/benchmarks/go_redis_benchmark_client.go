@@ -16,23 +16,23 @@ type goRedisBenchmarkClient struct {
 }
 
 func (goRedisClient *goRedisBenchmarkClient) connect(connectionSettings *connectionSettings) error {
-	if connectionSettings.ClusterModeEnabled {
+	if connectionSettings.clusterModeEnabled {
 		clusterOptions := &redis.ClusterOptions{
-			Addrs: []string{fmt.Sprintf("%s:%d", connectionSettings.Host, connectionSettings.Port)},
+			Addrs: []string{fmt.Sprintf("%s:%d", connectionSettings.host, connectionSettings.port)},
 		}
 
-		if connectionSettings.UseTLS {
+		if connectionSettings.useTLS {
 			clusterOptions.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
 		}
 
 		goRedisClient.client = redis.NewClusterClient(clusterOptions)
 	} else {
 		options := &redis.Options{
-			Addr: fmt.Sprintf("%s:%d", connectionSettings.Host, connectionSettings.Port),
+			Addr: fmt.Sprintf("%s:%d", connectionSettings.host, connectionSettings.port),
 			DB:   0,
 		}
 
-		if connectionSettings.UseTLS {
+		if connectionSettings.useTLS {
 			options.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
 		}
 

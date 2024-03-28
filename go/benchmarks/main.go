@@ -72,9 +72,9 @@ func closeFile(file *os.File) {
 }
 
 func parseArguments() *options {
-	resultsFile := flag.String("resultsFile", "", "Result filepath")
-	dataSize := flag.String("dataSize", "[100 4000]", "Data block size")
-	concurrentTasks := flag.String("concurrentTasks", "[100 1000]", "Number of concurrent tasks")
+	resultsFile := flag.String("resultsFile", "results/go-results.json", "Result filepath")
+	dataSize := flag.String("dataSize", "[100]", "Data block size")
+	concurrentTasks := flag.String("concurrentTasks", "[1 10 100 1000]", "Number of concurrent tasks")
 	clientNames := flag.String("clients", "all", "One of: all|go-redis|glide")
 	host := flag.String("host", "localhost", "Hostname")
 	port := flag.Int("port", 6379, "Port number")

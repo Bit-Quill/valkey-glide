@@ -11,10 +11,10 @@ type glideBenchmarkClient struct {
 }
 
 func (glideBenchmarkClient *glideBenchmarkClient) connect(connectionSettings *connectionSettings) error {
-	if connectionSettings.ClusterModeEnabled {
+	if connectionSettings.clusterModeEnabled {
 		config := api.NewRedisClusterClientConfiguration().
-			WithAddress(&api.NodeAddress{Host: connectionSettings.Host, Port: connectionSettings.Port}).
-			WithUseTLS(connectionSettings.UseTLS)
+			WithAddress(&api.NodeAddress{Host: connectionSettings.host, Port: connectionSettings.port}).
+			WithUseTLS(connectionSettings.useTLS)
 		glideClient, err := api.NewRedisClusterClient(config)
 		if err != nil {
 			return err
@@ -24,8 +24,8 @@ func (glideBenchmarkClient *glideBenchmarkClient) connect(connectionSettings *co
 		return nil
 	} else {
 		config := api.NewRedisClientConfiguration().
-			WithAddress(&api.NodeAddress{Host: connectionSettings.Host, Port: connectionSettings.Port}).
-			WithUseTLS(connectionSettings.UseTLS)
+			WithAddress(&api.NodeAddress{Host: connectionSettings.host, Port: connectionSettings.port}).
+			WithUseTLS(connectionSettings.useTLS)
 		glideClient, err := api.NewRedisClient(config)
 		if err != nil {
 			return err

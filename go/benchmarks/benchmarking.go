@@ -15,18 +15,18 @@ import (
 )
 
 type connectionSettings struct {
-	Host               string
-	Port               int
-	UseTLS             bool
-	ClusterModeEnabled bool
+	host               string
+	port               int
+	useTLS             bool
+	clusterModeEnabled bool
 }
 
 func runBenchmarks(runConfig *runConfiguration) error {
 	connSettings := &connectionSettings{
-		Host:               runConfig.host,
-		Port:               runConfig.port,
-		UseTLS:             runConfig.tls,
-		ClusterModeEnabled: runConfig.clusterModeEnabled,
+		host:               runConfig.host,
+		port:               runConfig.port,
+		useTLS:             runConfig.tls,
+		clusterModeEnabled: runConfig.clusterModeEnabled,
 	}
 
 	err := executeBenchmarks(runConfig, connSettings)
@@ -35,20 +35,20 @@ func runBenchmarks(runConfig *runConfiguration) error {
 	}
 
 	if runConfig.resultsFile != os.Stdout {
-		return processResults(runConfig.resultsFile)
+		return writeResults(runConfig.resultsFile)
 	}
 
 	return nil
 }
 
 type benchmarkConfig struct {
-	ClientName         string
-	NumConcurrentTasks int
-	ClientCount        int
-	DataSize           int
-	Minimal            bool
-	ConnectionSettings *connectionSettings
-	ResultsFile        *os.File
+	clientName         string
+	numConcurrentTasks int
+	clientCount        int
+	dataSize           int
+	minimal            bool
+	connectionSettings *connectionSettings
+	resultsFile        *os.File
 }
 
 func executeBenchmarks(runConfig *runConfiguration, connectionSettings *connectionSettings) error {
@@ -57,13 +57,13 @@ func executeBenchmarks(runConfig *runConfiguration, connectionSettings *connecti
 			for _, clientCount := range runConfig.clientCount {
 				for _, dataSize := range runConfig.dataSize {
 					benchmarkConfig := &benchmarkConfig{
-						ClientName:         clientName,
-						NumConcurrentTasks: numConcurrentTasks,
-						ClientCount:        clientCount,
-						DataSize:           dataSize,
-						Minimal:            runConfig.minimal,
-						ConnectionSettings: connectionSettings,
-						ResultsFile:        runConfig.resultsFile,
+						clientName:         clientName,
+						numConcurrentTasks: numConcurrentTasks,
+						clientCount:        clientCount,
+						dataSize:           dataSize,
+						minimal:            runConfig.minimal,
+						connectionSettings: connectionSettings,
+						resultsFile:        runConfig.resultsFile,
 					}
 
 					err := runSingleBenchmark(benchmarkConfig)
@@ -81,13 +81,13 @@ func executeBenchmarks(runConfig *runConfiguration, connectionSettings *connecti
 }
 
 func runSingleBenchmark(config *benchmarkConfig) error {
-	fmt.Printf("Running benchmarking for %s client:\n", config.ClientName)
+	fmt.Printf("Running benchmarking for %s client:\n", config.clientName)
 	fmt.Printf(
 		"\n =====> %s <===== clientCount: %d, concurrentTasks: %d, dataSize: %d \n\n",
-		config.ClientName,
-		config.ClientCount,
-		config.NumConcurrentTasks,
-		config.DataSize,
+		config.clientName,
+		config.clientCount,
+		config.numConcurrentTasks,
+		config.dataSize,
 	)
 
 	clients, err := createClients(config)
@@ -96,27 +96,34 @@ func runSingleBenchmark(config *benchmarkConfig) error {
 	}
 
 	benchmarkResult := measureBenchmark(clients, config)
-	if config.ResultsFile != os.Stdout {
-		addResultsJsonFormat(config, benchmarkResult)
+	if config.resultsFile != os.Stdout {
+		addJsonResults(config, benchmarkResult)
 	}
 
 	printResults(benchmarkResult)
 	return closeClients(clients)
 }
 
+type benchmarkClient interface {
+	connect(connectionSettings *connectionSettings) error
+	set(key string, value string) (string, error)
+	get(key string) (string, error)
+	close() error
+	getName() string
+}
+
 func createClients(config *benchmarkConfig) ([]benchmarkClient, error) {
 	var clients []benchmarkClient
-
-	for clientNum := 0; clientNum < config.ClientCount; clientNum++ {
+	for clientNum := 0; clientNum < config.clientCount; clientNum++ {
 		var client benchmarkClient
-		switch config.ClientName {
+		switch config.clientName {
 		case goRedis:
 			client = &goRedisBenchmarkClient{}
 		case glide:
 			client = &glideBenchmarkClient{}
 		}
 
-		err := client.connect(config.ConnectionSettings)
+		err := client.connect(config.connectionSettings)
 		if err != nil {
 			return nil, err
 		}
@@ -138,11 +145,9 @@ func closeClients(clients []benchmarkClient) error {
 	return nil
 }
 
-// benchmarks package
-
 var jsonResults []map[string]interface{}
 
-func processResults(file *os.File) error {
+func writeResults(file *os.File) error {
 	encoder := json.NewEncoder(file)
 	err := encoder.Encode(jsonResults)
 	if err != nil {
@@ -152,36 +157,28 @@ func processResults(file *os.File) error {
 	return nil
 }
 
-type benchmarkClient interface {
-	connect(connectionSettings *connectionSettings) error
-	set(key string, value string) (string, error)
-	get(key string) (string, error)
-	close() error
-	getName() string
-}
-
 type benchmarkResults struct {
 	iterationsPerTask int
-	durationNano      time.Duration
+	duration          time.Duration
 	tps               float64
 	latencyStats      map[string]*latencyStats
 }
 
 func measureBenchmark(clients []benchmarkClient, config *benchmarkConfig) *benchmarkResults {
 	var iterationsPerTask int
-	if config.Minimal {
+	if config.minimal {
 		iterationsPerTask = 1000
 	} else {
-		iterationsPerTask = int(math.Min(math.Max(1e5, float64(config.NumConcurrentTasks*1e4)), 1e7))
+		iterationsPerTask = int(math.Min(math.Max(1e5, float64(config.numConcurrentTasks*1e4)), 1e7))
 	}
 
-	actions := getActions(config.DataSize)
-	duration, latencies := runBenchmark(iterationsPerTask, config.NumConcurrentTasks, actions, clients)
+	actions := getActions(config.dataSize)
+	duration, latencies := runBenchmark(iterationsPerTask, config.numConcurrentTasks, actions, clients)
 	tps := calculateTPS(latencies, duration)
 	stats := getLatencyStats(latencies)
 	return &benchmarkResults{
 		iterationsPerTask: iterationsPerTask,
-		durationNano:      duration,
+		duration:          duration,
 		tps:               tps,
 		latencyStats:      stats,
 	}
@@ -253,9 +250,9 @@ func runBenchmark(
 		set:            {},
 	}
 
-	start := time.Now()
 	numResults := concurrentTasks * iterationsPerTask
 	results := make(chan *actionLatency, numResults)
+	start := time.Now()
 	for i := 0; i < concurrentTasks; i++ {
 		go runTask(results, iterationsPerTask, actions, clients)
 	}
@@ -281,11 +278,12 @@ func runTask(results chan<- *actionLatency, iterations int, actions map[string]o
 func measureOperation(operation operations, client benchmarkClient) time.Duration {
 	start := time.Now()
 	_, err := operation(client)
+	duration := time.Since(start)
 	if err != nil {
 		log.Print("Error while executing operation: ", err)
 	}
 
-	return time.Since(start)
+	return duration
 }
 
 const (
@@ -364,36 +362,33 @@ func percentile(observations []time.Duration, p float64) time.Duration {
 
 func standardDeviation(observations []time.Duration) time.Duration {
 	var sum, mean, sd float64
-	lengthNumbers := len(observations)
-
-	for i := 0; i < lengthNumbers; i++ {
+	numObservations := len(observations)
+	for i := 0; i < numObservations; i++ {
 		sum += float64(observations[i])
 	}
 
-	mean = sum / float64(lengthNumbers)
-
-	for j := 0; j < lengthNumbers; j++ {
+	mean = sum / float64(numObservations)
+	for j := 0; j < numObservations; j++ {
 		sd += math.Pow(float64(observations[j])-mean, 2)
 	}
 
-	sd = math.Sqrt(sd / float64(lengthNumbers))
+	sd = math.Sqrt(sd / float64(numObservations))
 	return time.Duration(sd)
 }
 
 func printResults(results *benchmarkResults) {
-	durationSec := float64(results.durationNano) / 1e9
-	fmt.Printf("Runtime (sec): %.3f\n", durationSec)
+	fmt.Printf("Runtime (sec): %.3f\n", results.duration.Seconds())
 	fmt.Printf("Iterations: %d\n", results.iterationsPerTask)
 	fmt.Printf("TPS: %d\n", int(results.tps))
 
 	var totalRequests int
 	for action, latencyStat := range results.latencyStats {
 		fmt.Printf("===> %s <===\n", action)
-		fmt.Printf("avg. latency (ms): %.3f\n", float64(latencyStat.avgLatency)/1e6)
-		fmt.Printf("std dev (ms): %.3f\n", float64(latencyStat.stdDeviation)/1e6)
-		fmt.Printf("p50 latency (ms): %.3f\n", float64(latencyStat.p50Latency)/1e6)
-		fmt.Printf("p90 latency (ms): %.3f\n", float64(latencyStat.p90Latency)/1e6)
-		fmt.Printf("p99 latency (ms): %.3f\n", float64(latencyStat.p99Latency)/1e6)
+		fmt.Printf("avg. latency (ms): %.3f\n", latencyStat.avgLatency.Seconds()*1000)
+		fmt.Printf("std dev (ms): %.3f\n", latencyStat.stdDeviation.Seconds()*1000)
+		fmt.Printf("p50 latency (ms): %.3f\n", latencyStat.p50Latency.Seconds()*1000)
+		fmt.Printf("p90 latency (ms): %.3f\n", latencyStat.p90Latency.Seconds()*1000)
+		fmt.Printf("p99 latency (ms): %.3f\n", latencyStat.p99Latency.Seconds()*1000)
 		fmt.Printf("Number of requests: %d\n", latencyStat.numRequests)
 		totalRequests += latencyStat.numRequests
 	}
@@ -401,22 +396,22 @@ func printResults(results *benchmarkResults) {
 	fmt.Printf("Total requests: %d\n", totalRequests)
 }
 
-func addResultsJsonFormat(config *benchmarkConfig, results *benchmarkResults) {
+func addJsonResults(config *benchmarkConfig, results *benchmarkResults) {
 	jsonResult := make(map[string]interface{})
 
-	jsonResult["client"] = config.ClientName
-	jsonResult["is_cluster"] = config.ConnectionSettings.ClusterModeEnabled
-	jsonResult["num_of_tasks"] = config.NumConcurrentTasks
-	jsonResult["data_size"] = config.DataSize
-	jsonResult["client_count"] = config.ClientCount
+	jsonResult["client"] = config.clientName
+	jsonResult["is_cluster"] = config.connectionSettings.clusterModeEnabled
+	jsonResult["num_of_tasks"] = config.numConcurrentTasks
+	jsonResult["data_size"] = config.dataSize
+	jsonResult["client_count"] = config.clientCount
 	jsonResult["tps"] = results.tps
 
 	for key, value := range results.latencyStats {
-		jsonResult[key+"_p50_latency"] = float64(value.p50Latency) / 1e6
-		jsonResult[key+"_p90_latency"] = float64(value.p90Latency) / 1e6
-		jsonResult[key+"_p99_latency"] = float64(value.p99Latency) / 1e6
-		jsonResult[key+"_average_latency"] = float64(value.avgLatency) / 1e6
-		jsonResult[key+"_std_dev"] = float64(value.stdDeviation) / 1e6
+		jsonResult[key+"_p50_latency"] = value.p50Latency.Seconds() * 1000
+		jsonResult[key+"_p90_latency"] = value.p90Latency.Seconds() * 1000
+		jsonResult[key+"_p99_latency"] = value.p99Latency.Seconds() * 1000
+		jsonResult[key+"_average_latency"] = value.avgLatency.Seconds() * 1000
+		jsonResult[key+"_std_dev"] = value.stdDeviation.Seconds() * 1000
 	}
 
 	jsonResults = append(jsonResults, jsonResult)
