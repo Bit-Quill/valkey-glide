@@ -253,7 +253,7 @@ public class TransactionTestUtilities {
             OK, // set(stringKey1, value1);
             value1, // get(stringKey1);
             null, // set(stringKey2, value2, returnOldValue(true));
-            new String[] { value1, value2 }, // customCommand(new String[] {"MGET", ...});
+            new String[] {value1, value2}, // customCommand(new String[] {"MGET", ...});
             1L, // exists(new String[] {stringKey1});
             1L, // del(new String[] {stringKey1});
             null, // get(stringKey1);
