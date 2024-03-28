@@ -7,6 +7,7 @@ on:
             - glide-core/src/**
             - submodules/**
             - java/**
+            - utils/cluster_manager.py
             - .github/workflows/java.yml
             - .github/workflows/install-shared-dependencies/action.yml
             - .github/workflows/install-redis/action.yml
@@ -17,6 +18,7 @@ on:
             - glide-core/src/**
             - submodules/**
             - java/**
+            - utils/cluster_manager.py
             - .github/workflows/java.yml
             - .github/workflows/install-shared-dependencies/action.yml
             - .github/workflows/install-redis/action.yml

@@ -541,7 +541,7 @@ def wait_for_all_topology_views(
                         f"Failed to execute command: {str(p.args)}\n Return code: {p.returncode}\n Error: {err}"
                     )
 
-                if output.count(f"{server.host}") == len(servers):
+                if output.count(f"{server.host}") == len(servers) / 2:
                     logging.debug(f"Server {server} is ready!")
                     break
                 else:
