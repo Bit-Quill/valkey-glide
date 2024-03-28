@@ -505,13 +505,28 @@ def wait_for_a_message_in_redis_logs(
                 f"See {dir}/redis.log for more information"
             )
 
+def get_redis_version():
+    p = subprocess.Popen(
+        ["redis-server", "--version"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    output, err = p.communicate(timeout=5)
+    if err:
+        raise Exception(
+            f"Failed to execute command: {str(p.args)}\n Return code: {p.returncode}\n Error: {err}"
+        )
+    # output in format
+    # Redis server v=7.2.3 sha=00000000:0 malloc=jemalloc-5.3.0 bits=64 build=7504b1fedf883f2
+    return output.split()[2].split('=')[1]
 
 def wait_for_all_topology_views(
     servers: List[RedisServer], cluster_folder: str, use_tls: bool
 ):
     """
     Wait for each of the nodes to have a topology view that contains all nodes.
-    Only when a replica finished syncing and loading, it will be included in the CLUSTER SLOTS output.
+    On Redis 6 only when a replica finished syncing and loading, it will be included in the CLUSTER SLOTS output.
     """
     for server in servers:
         cmd_args = [
@@ -525,6 +540,7 @@ def wait_for_all_topology_views(
             "slots",
         ]
         logging.debug(f"Executing: {cmd_args}")
+        version = get_redis_version()
         retries = 60
         output = ""
         while retries >= 0:
@@ -541,7 +557,7 @@ def wait_for_all_topology_views(
                         f"Failed to execute command: {str(p.args)}\n Return code: {p.returncode}\n Error: {err}"
                     )
 
-                if output.count(f"{server.host}") == len(servers) / 2:
+                if output.count(f"{server.host}") == (len(servers) if version.startswith('6') else len(servers) / 2):
                     logging.debug(f"Server {server} is ready!")
                     break
                 else:
