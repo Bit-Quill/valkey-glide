@@ -45,6 +45,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.ZMScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
@@ -592,6 +593,15 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> zcard(@NonNull String key) {
         return commandManager.submitNewCommand(Zcard, new String[] {key}, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Double[]> zmscore(@NonNull String key, @NonNull String[] members) {
+        String[] arguments = ArrayUtils.addFirst(members, key);
+        return commandManager.submitNewCommand(
+                ZMScore,
+                arguments,
+                response -> castArray(handleArrayOrNullResponse(response), Double.class));
     }
 
     @Override

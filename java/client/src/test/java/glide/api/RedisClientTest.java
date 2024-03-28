@@ -65,6 +65,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.ZMScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
@@ -1679,6 +1680,31 @@ public class RedisClientTest {
         // exercise
         CompletableFuture<Long> response = service.zcard(key);
         Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zmscore_returns_success() {
+        // setup
+        String key = "testKey";
+        String[] members = new String[] {"member1", "member2"};
+        String[] arguments = new String[] {key, "member1", "member2"};
+        Double[] value = new Double[] {2.5, 8.2};
+
+        CompletableFuture<Double[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Double[]>submitNewCommand(eq(ZMScore), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Double[]> response = service.zmscore(key, members);
+        Double[] payload = response.get();
 
         // verify
         assertEquals(testResponse, response);
