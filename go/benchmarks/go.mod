@@ -1,6 +1,6 @@
 module github.com/aws/glide-for-redis/go/glide/benchmarks
 
-go 1.22.0
+go 1.22
 
 replace github.com/aws/glide-for-redis/go/glide => ../
 
