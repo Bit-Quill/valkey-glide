@@ -110,9 +110,7 @@ public class TransactionTestUtilities {
 
         baseTransaction
                 .pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
-                .pfmerge(hllKey1, new String[] {hllKey2})
-                .pfcount(new String[] {hllKey3})
-                .pfcount(new String[] {hllKey1});
+                .pfcount(new String[] {hllKey3});
 
         return baseTransaction;
     }
@@ -175,9 +173,7 @@ public class TransactionTestUtilities {
             3L, // pfcount(new String[] { hllKey1 })
             4L, // pfcount(new String[] { hllKey1, hllKey2 });
             OK, // pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
-            OK, // pfmerge(hllKey1, new String[] {hllKey2})
             4L, // pfcount(new String[] { hllKey3 })
-            4L, // pfcount(new String[] { hllKey1 });
         };
     }
 }

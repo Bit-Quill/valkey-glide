@@ -604,7 +604,7 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<String> pfmerge(String destKey, String[] sourceKeys) {
+    public CompletableFuture<String> pfmerge(@NonNull String destKey, @NonNull String[] sourceKeys) {
         String[] arguments = ArrayUtils.addFirst(sourceKeys, destKey);
         return commandManager.submitNewCommand(PfMerge, arguments, this::handleStringResponse);
     }

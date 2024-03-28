@@ -1288,18 +1288,17 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Merges multiple HyperLogLog values into a unique value.
-     *
-     * <p>The computed merged HyperLogLog is created if it does not exist before (defaulting to an
-     * empty HyperLogLog).<br>
-     * If the destination variable exists, it is treated as one of the source HyperLogLog data set.
+     * Merges multiple HyperLogLog values into a unique value.<br>
+     * If the destination variable exists, it is treated as one of the source HyperLogLog data sets,
+     * otherwise a new HyperLogLog is created.
      *
      * @see <a href="https://redis.io/commands/pfmerge/">redis.io</a> for details.
-     * @param destKey The destination where to merge HyperLogLog data sets into.
+     * @param destKey Identifier of the destination HyperLogLog where the merged data sets will be
+     *     stored.
      * @param sourceKeys The source HyperLogLog to merge.
      * @return Command Response - <code>OK</code>
      */
-    public T pfmerge(String destKey, String[] sourceKeys) {
+    public T pfmerge(@NonNull String destKey, @NonNull String[] sourceKeys) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sourceKeys, destKey));
         protobufTransaction.addCommands(buildCommand(PfMerge, commandArgs));
         return getThis();
