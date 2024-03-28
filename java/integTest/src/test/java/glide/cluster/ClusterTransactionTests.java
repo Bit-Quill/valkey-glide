@@ -15,6 +15,8 @@ import glide.api.RedisClusterClient;
 import glide.api.models.ClusterTransaction;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,7 +37,7 @@ public class ClusterTransactionTests {
                                         .address(NodeAddress.builder().port(TestConfiguration.CLUSTER_PORTS[0]).build())
                                         .requestTimeout(5000)
                                         .build())
-                        .get();
+                        .get(10, TimeUnit.SECONDS);
     }
 
     @AfterAll
@@ -48,7 +50,7 @@ public class ClusterTransactionTests {
     @SneakyThrows
     public void custom_command_info() {
         ClusterTransaction transaction = new ClusterTransaction().customCommand(new String[] {"info"});
-        Object[] result = clusterClient.exec(transaction).get();
+        Object[] result = clusterClient.exec(transaction).get(10, TimeUnit.SECONDS);
         assertTrue(((String) result[0]).contains("# Stats"));
     }
 
