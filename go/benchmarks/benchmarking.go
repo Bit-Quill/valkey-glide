@@ -82,7 +82,13 @@ func executeBenchmarks(runConfig *runConfiguration, connectionSettings *connecti
 
 func runSingleBenchmark(config *benchmarkConfig) error {
 	fmt.Printf("Running benchmarking for %s client:\n", config.ClientName)
-	fmt.Printf("\n =====> %s <===== clientCount: %d, concurrentTasks: %d, dataSize: %d \n\n", config.ClientName, config.ClientCount, config.NumConcurrentTasks, config.DataSize)
+	fmt.Printf(
+		"\n =====> %s <===== clientCount: %d, concurrentTasks: %d, dataSize: %d \n\n",
+		config.ClientName,
+		config.ClientCount,
+		config.NumConcurrentTasks,
+		config.DataSize,
+	)
 
 	clients, err := createClients(config)
 	if err != nil {
@@ -214,8 +220,10 @@ func getActions(dataSize int) map[string]operations {
 	return actions
 }
 
-const sizeNewKeyspace = 3750000
-const sizeExistingKeyspace = 3000000
+const (
+	sizeNewKeyspace      = 3750000
+	sizeExistingKeyspace = 3000000
+)
 
 func keyFromExistingKeyspace() string {
 	localRand := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -233,7 +241,12 @@ type actionLatency struct {
 	latency time.Duration
 }
 
-func runBenchmark(iterationsPerTask int, concurrentTasks int, actions map[string]operations, clients []benchmarkClient) (totalDuration time.Duration, latencies map[string][]time.Duration) {
+func runBenchmark(
+	iterationsPerTask int,
+	concurrentTasks int,
+	actions map[string]operations,
+	clients []benchmarkClient,
+) (totalDuration time.Duration, latencies map[string][]time.Duration) {
 	latencies = map[string][]time.Duration{
 		getExisting:    {},
 		getNonExisting: {},
@@ -275,8 +288,10 @@ func measureOperation(operation operations, client benchmarkClient) time.Duratio
 	return time.Since(start)
 }
 
-const probGet = 0.8
-const probGetExistingKey = 0.8
+const (
+	probGet            = 0.8
+	probGetExistingKey = 0.8
+)
 
 func randomAction() string {
 	localRand := rand.New(rand.NewSource(time.Now().UnixNano()))

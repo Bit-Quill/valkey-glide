@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+
 	"github.com/redis/go-redis/v9"
 )
 
@@ -15,7 +16,6 @@ type goRedisBenchmarkClient struct {
 }
 
 func (goRedisClient *goRedisBenchmarkClient) connect(connectionSettings *connectionSettings) error {
-
 	if connectionSettings.ClusterModeEnabled {
 		clusterOptions := &redis.ClusterOptions{
 			Addrs: []string{fmt.Sprintf("%s:%d", connectionSettings.Host, connectionSettings.Port)},
