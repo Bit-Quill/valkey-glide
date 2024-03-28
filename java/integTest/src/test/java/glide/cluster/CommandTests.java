@@ -39,7 +39,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -128,8 +127,7 @@ public class CommandTests {
     @Test
     @SneakyThrows
     public void custom_command_ping() {
-        ClusterValue<Object> data =
-                clusterClient.customCommand(new String[] {"ping"}).get(10, TimeUnit.SECONDS);
+        ClusterValue<Object> data = clusterClient.customCommand(new String[] {"ping"}).get();
         assertEquals("PONG", data.getSingleValue());
     }
 
