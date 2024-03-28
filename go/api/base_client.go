@@ -16,8 +16,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// GlideClient defines an interface for methods common to both [RedisClient] and [RedisClusterClient].
-type GlideClient interface {
+// BaseClient defines an interface for methods common to both [RedisClient] and [RedisClusterClient].
+type BaseClient interface {
 	StringCommands
 
 	// Close terminates the client by closing all associated resources.

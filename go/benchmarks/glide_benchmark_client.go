@@ -7,7 +7,7 @@ import (
 )
 
 type glideBenchmarkClient struct {
-	client api.GlideClient
+	client api.BaseClient
 }
 
 func (glideBenchmarkClient *glideBenchmarkClient) connect(connectionSettings *connectionSettings) error {
