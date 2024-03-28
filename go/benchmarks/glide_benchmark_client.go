@@ -1,16 +1,16 @@
 // Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
 
-package internal
+package main
 
 import (
 	"github.com/aws/glide-for-redis/go/glide/api"
 )
 
-type GlideBenchmarkClient struct {
+type glideBenchmarkClient struct {
 	client api.GlideClient
 }
 
-func (glideBenchmarkClient *GlideBenchmarkClient) ConnectToRedis(connectionSettings *ConnectionSettings) error {
+func (glideBenchmarkClient *glideBenchmarkClient) connect(connectionSettings *connectionSettings) error {
 	if connectionSettings.ClusterModeEnabled {
 		config := api.NewRedisClusterClientConfiguration().
 			WithAddress(&api.NodeAddress{Host: connectionSettings.Host, Port: connectionSettings.Port}).
@@ -36,19 +36,19 @@ func (glideBenchmarkClient *GlideBenchmarkClient) ConnectToRedis(connectionSetti
 	}
 }
 
-func (glideBenchmarkClient *GlideBenchmarkClient) Get(key string) (string, error) {
+func (glideBenchmarkClient *glideBenchmarkClient) get(key string) (string, error) {
 	return glideBenchmarkClient.client.Get(key)
 }
 
-func (glideBenchmarkClient *GlideBenchmarkClient) Set(key string, value string) (string, error) {
+func (glideBenchmarkClient *glideBenchmarkClient) set(key string, value string) (string, error) {
 	return glideBenchmarkClient.client.Set(key, value)
 }
 
-func (glideBenchmarkClient *GlideBenchmarkClient) CloseConnection() error {
+func (glideBenchmarkClient *glideBenchmarkClient) close() error {
 	glideBenchmarkClient.client.Close()
 	return nil
 }
 
-func (glideBenchmarkClient *GlideBenchmarkClient) GetName() string {
+func (glideBenchmarkClient *glideBenchmarkClient) getName() string {
 	return "glide"
 }
