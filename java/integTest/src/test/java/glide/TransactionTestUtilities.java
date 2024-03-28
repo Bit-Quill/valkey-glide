@@ -102,6 +102,41 @@ public class TransactionTestUtilities {
                 key9, Map.of("field2", "value2"), StreamAddOptions.builder().id("0-2").build());
         baseTransaction.xadd(
                 key9, Map.of("field3", "value3"), StreamAddOptions.builder().id("0-3").build());
+/*
+        baseTransaction.unlink(new String[] {stringKey3});
+
+        baseTransaction.hset(hashKey1, Map.of(field1, value1, field2, value2));
+        baseTransaction.hget(hashKey1, field1);
+        baseTransaction.hexists(hashKey1, field2);
+        baseTransaction.hmget(hashKey1, new String[] {field1, "non_existing_field", field2});
+        baseTransaction.hgetall(hashKey1);
+        baseTransaction.hdel(hashKey1, new String[] {field1});
+
+        baseTransaction.hincrBy(hashKey1, field3, 5);
+        baseTransaction.hincrByFloat(hashKey1, field3, 5.5);
+
+        baseTransaction.lpush(listKey1, new String[] {value1, value1, value2, value3, value3});
+        baseTransaction.llen(listKey1);
+        baseTransaction.lrem(listKey1, 1, value1);
+        baseTransaction.ltrim(listKey1, 1, -1);
+        baseTransaction.lrange(listKey1, 0, -2);
+        baseTransaction.lpop(listKey1);
+        baseTransaction.lpopCount(listKey1, 2);
+
+        baseTransaction.rpush(listKey2, new String[] {value1, value2, value2});
+        baseTransaction.rpop(listKey2);
+        baseTransaction.rpopCount(listKey2, 2);
+
+        baseTransaction.sadd(setKey1, new String[] {"baz", "foo"});
+        baseTransaction.srem(setKey1, new String[] {"foo"});
+        baseTransaction.scard(setKey1);
+        baseTransaction.smembers(setKey1);
+
+        baseTransaction.zadd(zsetKey1, Map.of("one", 1.0, "two", 2.0, "three", 3.0));
+        baseTransaction.zaddIncr(zsetKey1, "one", 3);
+        baseTransaction.zrem(zsetKey1, new String[] {"one"});
+        baseTransaction.zcard(zsetKey1);
+*/
 
         baseTransaction.configSet(Map.of("timeout", "1000"));
         baseTransaction.configGet(new String[] {"timeout"});
@@ -215,51 +250,49 @@ public class TransactionTestUtilities {
             3L, // pfcount(new String[] { hllKey3 })
 
 /*
-            OK, // set(key1, value1);
-            value1, // get(key1);
-            null, // set(key2, value2, returnOldValue(true));
-            new String[] {value1, value2}, // customCommand(new String[] {"MGET", key1, key2});
-            1L, // exists(new String[] {key1});
-            1L, // del(new String[] {key1});
-            null, // get(key1);
-            1L, // unlink(new String[] {key2});
-            null, // get(key2);
-            OK, // mset(Map.of(key1, value2, key2, value1));
-            new String[] {value2, value1}, // mget(new String[] {key1, key2});
-            1L, // incr(key3);
-            3L, // incrBy(key3, 2);
-            2L, // decr(key3);
-            0L, // decrBy(key3, 2);
-            0.5, // incrByFloat(key3, 0.5);
-            1L, // unlink(new String[] {key3});
-            2L, // hset(key4, Map.of(field1, value1, field2, value2));
-            value1, // hget(key4, field1);
-            true, // hexists(key4, field2);
-            new String[] {
-                value1, null, value2
-            }, // hmget(key4, new String[] {field1, "non_existing_field", field2});
-            Map.of(field1, value1, field2, value2), // hgetall(key4);
-            1L, // hdel(key4, new String[] {field1});
-            5L, // hincrBy(key4, field3, 5);
-            10.5, // hincrByFloat(key4, field3, 5.5);
-            5L, // lpush(key5, new String[] {value1, value1, value2, value3, value3});
-            5L, // llen(key5);
-            1L, // lrem(key5, 1, value1);
-            OK, // ltrim(key5, 1, -1);
-            new String[] {value3, value2}, // lrange(key5, 0, -2);
-            value3, // lpop(key5);
-            new String[] {value2, value1}, // lpopCount(key5, 2);
-            3L, // rpush(key6, new String[] {value1, value2, value2});
-            value2, // rpop(key6);
-            new String[] {value2, value1}, // rpopCount(key6, 2);
-            2L, // sadd(key7, new String[] {"baz", "foo"});
-            1L, // srem(key7, new String[] {"foo"});
-            1L, // scard(key7);
-            Set.of("baz"), // smembers(key7);
-            3L, // zadd(key8, Map.of("one", 1.0, "two", 2.0, "three", 3.0));
-            4.0, // zaddIncr(key8, "one", 3);
-            1L, // zrem(key8, new String[] {"one"});
-            2L, // zcard(key8);
+            OK, // set(stringKey1, value1);
+            value1, // get(stringKey1);
+            null, // set(stringKey2, value2, returnOldValue(true));
+            new String[] { value1, value2 }, // customCommand(new String[] {"MGET", ...});
+            1L, // exists(new String[] {stringKey1});
+            1L, // del(new String[] {stringKey1});
+            null, // get(stringKey1);
+            1L, // unlink(new String[] {stringKey2});
+            null, // get(stringKey2);
+            OK, // mset(Map.of(stringKey1, value2, stringKey2, value1));
+            new String[] {value2, value1}, // mget(new String[] {stringKey1, stringKey2});
+            1L, // incr(stringKey3);
+            3L, // incrBy(stringKey3, 2);
+            2L, // decr(stringKey3);
+            0L, // decrBy(stringKey3, 2);
+            0.5, // incrByFloat(stringKey3, 0.5);
+            1L, // unlink(new String[] {stringKey3});
+            2L, // hset(hashKey1, Map.of(field1, value1, field2, value2));
+            value1, // hget(hashKey1, field1);
+            true, // hexists(hashKey1, field2);
+            new String[] {value1, null, value2}, // hmget(hashKey1, new String[] {...});
+            Map.of(field1, value1, field2, value2), // hgetall(hashKey1);
+            1L, // hdel(hashKey1, new String[] {field1});
+            5L, // hincrBy(hashKey1, field3, 5);
+            10.5, // hincrByFloat(hashKey1, field3, 5.5);
+            5L, // lpush(listKey1, new String[] {value1, value1, value2, value3, value3});
+            5L, // llen(listKey1);
+            1L, // lrem(listKey1, 1, value1);
+            OK, // ltrim(listKey1, 1, -1);
+            new String[] {value3, value2}, // lrange(listKey1, 0, -2);
+            value3, // lpop(listKey1);
+            new String[] {value2, value1}, // lpopCount(listKey1, 2);
+            3L, // rpush(listKey2, new String[] {value1, value2, value2});
+            value2, // rpop(listKey2);
+            new String[] {value2, value1}, // rpopCount(listKey2, 2);
+            2L, // sadd(setKey1, new String[] {"baz", "foo"});
+            1L, // srem(setKey1, new String[] {"foo"});
+            1L, // scard(setKey1);
+            Set.of("baz"), // smembers(setKey1);
+            3L, // zadd(zsetKey1, Map.of("one", 1.0, "two", 2.0, "three", 3.0));
+            4.0, // zaddIncr(zsetKey1, "one", 3);
+            1L, // zrem(zsetKey1, new String[] {"one"});
+            2L, // zcard(zsetKey1);
             OK, // configSet(Map.of("timeout", "1000"));
             Map.of("timeout", "1000"), // configGet(new String[] {"timeout"});
             OK // configResetStat();
