@@ -253,7 +253,7 @@ export class RedisCluster {
         loadModule?: string[],
     ): Promise<RedisCluster> {
         return new Promise<RedisCluster>((resolve, reject) => {
-            let command = `python3 ../utils/cluster_manager.py start -r ${replicaCount} -n ${shardCount}`;
+            let command = `python3 ../utils/cluster_manager.py -log debug start -r ${replicaCount} -n ${shardCount}`;
 
             if (cluster_mode) {
                 command += " --cluster-mode";
