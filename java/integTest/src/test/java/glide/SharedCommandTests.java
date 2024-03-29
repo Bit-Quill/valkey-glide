@@ -1180,13 +1180,12 @@ public class SharedCommandTests {
         assertEquals(2, client.lpush(listKey1, new String[] {value1, value2}).get());
 
         var response = client.blpop(new String[] {listKey1, listKey2}, 0.5).get();
-
         assertArrayEquals(new String[] {listKey1, value2}, response);
 
         // nothing popped out
         assertNull(client.blpop(new String[] {listKey2}, 0.001).get());
 
-        // Key exists, but it is not a set
+        // Key exists, but it is not a list
         assertEquals(OK, client.set("foo", "bar").get());
         ExecutionException executionException =
                 assertThrows(
@@ -1205,13 +1204,12 @@ public class SharedCommandTests {
         assertEquals(2, client.lpush(listKey1, new String[] {value1, value2}).get());
 
         var response = client.brpop(new String[] {listKey1, listKey2}, 0.5).get();
-
         assertArrayEquals(new String[] {listKey1, value1}, response);
 
         // nothing popped out
         assertNull(client.brpop(new String[] {listKey2}, 0.001).get());
 
-        // Key exists, but it is not a set
+        // Key exists, but it is not a list
         assertEquals(OK, client.set("foo", "bar").get());
         ExecutionException executionException =
                 assertThrows(
