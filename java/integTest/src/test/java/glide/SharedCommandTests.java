@@ -1042,6 +1042,7 @@ public class SharedCommandTests {
         assertEquals(3, client.pfcount(new String[] {key1}).get());
         assertEquals(3, client.pfcount(new String[] {key2}).get());
         assertEquals(4, client.pfcount(new String[] {key1, key2}).get());
+        assertEquals(4, client.pfcount(new String[] {key1, key2, key3}).get());
         // empty HyperLogLog data set
         assertEquals(1, client.pfadd(key3, new String[0]).get());
         assertEquals(0, client.pfcount(new String[] {key3}).get());

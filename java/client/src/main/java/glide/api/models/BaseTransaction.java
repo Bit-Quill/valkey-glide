@@ -1276,9 +1276,10 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * calculates the combined cardinality of multiple keys by merging their HyperLogLogs temporarily.
      *
      * @see <a href="https://redis.io/commands/pfcount/">redis.io</a> for details.
-     * @param keys Identifiers of the HyperLogLog data structures to be analyzed.
-     * @return Command Response - The approximated cardinality of given HyperLogLogs data structures
-     *     or <code>0</code> if the variable does not exist.
+     * @param keys The keys of the HyperLogLog data structures to be analyzed.
+     * @return Command Response - The approximated cardinality of given HyperLogLog data structures.
+     *     <br>
+     *     The cardinality of a key that does not exist is <code>0</code>.
      */
     public T pfcount(@NonNull String[] keys) {
         ArgsArray commandArgs = buildArgs(keys);
