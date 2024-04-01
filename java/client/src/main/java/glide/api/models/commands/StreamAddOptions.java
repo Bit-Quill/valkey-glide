@@ -51,7 +51,7 @@ public final class StreamAddOptions {
 
         protected abstract String getThreshold();
 
-        public List<String> addTrimOptions() {
+        protected List<String> getRedisApi() {
             List<String> optionArgs = new ArrayList<>();
 
             optionArgs.add(this.getMethod());
@@ -67,6 +67,7 @@ public final class StreamAddOptions {
         }
     }
 
+    /** Option to trim the stream according to minimum ID. */
     public static class MinId extends StreamTrimOptions {
         /** Trim the stream according to entry ID. Equivalent to <code>MINID</code> in the Redis API. */
         private final String threshold;
@@ -106,6 +107,7 @@ public final class StreamAddOptions {
         }
     }
 
+    /** Option to trim the stream according to maximum stream length. */
     public static class MaxLen extends StreamTrimOptions {
         /**
          * Trim the stream according to length.<br>
@@ -161,7 +163,7 @@ public final class StreamAddOptions {
         }
 
         if (trim != null) {
-            optionArgs.addAll(trim.addTrimOptions());
+            optionArgs.addAll(trim.getRedisApi());
         }
 
         if (id != null) {
