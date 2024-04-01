@@ -236,8 +236,8 @@ public interface ListBaseCommands {
      *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
      *     Commands</a> for more details and best practices.
      * @param keys The <code>keys</code> of the lists to pop from.
-     * @param timeout The <code>timeout</code> of blocking in seconds; <code>0</code> causes to block
-     *     indefinitely.
+     * @param timeout The number of seconds to wait for a blocking <code>BLPOP</code> operation to
+     *     complete. A value of <code>0</code> will block indefinitely.
      * @return An <code>array</code> containing the <code>key</code> from which the element was popped
      *     and the <code>value</code> of the popped element, formatted as <code>[key, value]</code>.
      *     If no element could be popped and the timeout expired, returns </code>null</code>.
@@ -255,13 +255,13 @@ public interface ListBaseCommands {
      * checked in the order that they are given.<br>
      * Blocks the connection when there are no elements to pop from any of the given lists.
      *
-     * @see <a href="https://redis.io/commands/blpop/">redis.io</a> for details.
+     * @see <a href="https://redis.io/commands/brpop/">redis.io</a> for details.
      * @apiNote <code>BRPOP</code> is a client blocking command, see <a
      *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
      *     Commands</a> for more details and best practices.
      * @param keys The <code>keys</code> of the lists to pop from.
-     * @param timeout The <code>timeout</code> of blocking in seconds; <code>0</code> causes to block
-     *     indefinitely.
+     * @param timeout The number of seconds to wait for a blocking <code>BRPOP</code> operation to
+     *     complete. A value of <code>0</code> will block indefinitely.
      * @return An <code>array</code> containing the <code>key</code> from which the element was popped
      *     and the <code>value</code> of the popped element, formatted as <code>[key, value]</code>.
      *     If no element could be popped and the timeout expired, returns </code>null</code>.

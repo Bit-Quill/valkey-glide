@@ -1213,7 +1213,7 @@ public class SharedCommandTests {
         assertEquals(OK, client.set("foo", "bar").get());
         ExecutionException executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.blpop(new String[] {"foo"}, .0001).get());
+                        ExecutionException.class, () -> client.brpop(new String[] {"foo"}, .0001).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
 }
