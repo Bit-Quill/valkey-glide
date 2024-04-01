@@ -74,7 +74,7 @@ public interface HashBaseCommands {
      *     key does not exist.
      * @example
      *     <pre>{@code
-     * String[] values = client.hdel("myHash").get();
+     * String[] values = client.hvals("myHash").get();
      * assert values.equals(new String[] {"value1", "value2", "value3"}); // Returns all the values stored in the hash "myHash".
      * }</pre>
      */
