@@ -1183,7 +1183,10 @@ public class SharedCommandTests {
         assertArrayEquals(new String[] {listKey1, value2}, response);
 
         // nothing popped out
-        assertNull(client.blpop(new String[] {listKey2}, 0.001).get());
+        assertNull(
+                client
+                        .blpop(new String[] {listKey2}, REDIS_VERSION.isLowerThan("7.0.0") ? 1. : 0.001)
+                        .get());
 
         // Key exists, but it is not a list
         assertEquals(OK, client.set("foo", "bar").get());
@@ -1207,7 +1210,10 @@ public class SharedCommandTests {
         assertArrayEquals(new String[] {listKey1, value1}, response);
 
         // nothing popped out
-        assertNull(client.brpop(new String[] {listKey2}, 0.001).get());
+        assertNull(
+                client
+                        .brpop(new String[] {listKey2}, REDIS_VERSION.isLowerThan("7.0.0") ? 1. : 0.001)
+                        .get());
 
         // Key exists, but it is not a list
         assertEquals(OK, client.set("foo", "bar").get());
