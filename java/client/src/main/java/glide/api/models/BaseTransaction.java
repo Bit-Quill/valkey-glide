@@ -1243,18 +1243,20 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Adds all the elements to the HyperLogLog data structure stored and create a new structure if it
-     * is missing.
+     * Adds all elements to the HyperLogLog data structure stored at the specified <code>key</code>.
+     * <br>
+     * Creates a new structure if the <code>key</code> does not exist.
      *
-     * <p>A command call without <code>elements</code> results in no operation being performed if the
-     * <code>key</code> already exists, or just the creation of the data structure if the <code>key
-     * </code> does not exist (in the latter case <code>1</code> is returned).
+     * <p>When no <code>elements</code> are provided, and <code>key</code> exists and is a
+     * HyperLogLog, then no operation is performed. If <code>key</code> does not exist, then the
+     * HyperLogLog structure is created.
      *
      * @see <a href="https://redis.io/commands/pfadd/">redis.io</a> for details.
-     * @param key The data structure to add elements into.
-     * @param elements The elements to add.
-     * @return Command Response - <code>1</code> if a HyperLogLog internal register was altered or
-     *     <code>0</code> otherwise.
+     * @param key The <code>key</code> of the HyperLogLog data structure to add elements into.
+     * @param elements An array of members to add to the HyperLogLog stored at <code>key</code>.
+     * @return Command Response - If the HyperLogLog is newly created, or if the HyperLogLog
+     *     approximated cardinality is altered, then returns <code>1</code>. Otherwise, returns <code>
+     *     0</code>.
      */
     public T pfadd(@NonNull String key, @NonNull String[] elements) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(elements, key));
