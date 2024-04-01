@@ -9,7 +9,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Supports commands and transactions for the "Server Management Commands" group for cluster client.
+ * Supports commands and transactions for the "Server Management Commands" group for a cluster
+ * client.
  *
  * @see <a href="https://redis.io/commands/?group=server">Server Management Commands</a>
  */
