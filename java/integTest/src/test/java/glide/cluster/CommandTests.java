@@ -45,7 +45,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-@Timeout(10)
+@Timeout(10) // seconds
 public class CommandTests {
 
     private static RedisClusterClient clusterClient = null;
