@@ -1042,11 +1042,11 @@ public class SharedCommandTests {
         assertEquals(3, client.pfcount(new String[] {key1}).get());
         assertEquals(3, client.pfcount(new String[] {key2}).get());
         assertEquals(4, client.pfcount(new String[] {key1, key2}).get());
-        // empty HLL
+        // empty HyperLogLog data set
         assertEquals(1, client.pfadd(key3, new String[0]).get());
         assertEquals(0, client.pfcount(new String[] {key3}).get());
 
-        // Key exists, but it is not a HLL
+        // Key exists, but it is not a HyperLogLog
         assertEquals(OK, client.set("foo", "bar").get());
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.pfcount(new String[] {"foo"}).get());
