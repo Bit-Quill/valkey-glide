@@ -4,8 +4,8 @@ package glide.api.commands;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Supports commands and transactions for the "HyperLogLog Commands" group for standalone clients
- * and cluster clients.
+ * Supports commands and transactions for the "HyperLogLog Commands" group for standalone and
+ * cluster clients.
  *
  * @see <a href="https://redis.io/commands/?group=hyperloglog">HyperLogLog Commands</a>
  */
@@ -15,9 +15,9 @@ public interface HyperLogLogBaseCommands {
      * Adds all elements to the HyperLogLog data structure stored at the specified <code>key</code>,
      * creating a new structure if the <code>key</code> does not exist.
      *
-     * <p>A command call without elements results into no operation performed if the variable already
-     * exists, or just the creation of the data structure if the key does not exist (in the latter
-     * case <code>1</code> is returned).
+     * <p>A command call without <code>elements</code> results in no operation being performed if the
+     * <code>key</code> already exists, or just the creation of the data structure if the <code>key
+     * </code> does not exist (in the latter case <code>1</code> is returned).
      *
      * @see <a href="https://redis.io/commands/pfadd/">redis.io</a> for details.
      * @param key The data structure to add elements into.

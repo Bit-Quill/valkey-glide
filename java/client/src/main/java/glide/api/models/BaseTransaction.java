@@ -1246,17 +1246,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Adds all the elements to the HyperLogLog data structure stored and create a new structure if it
      * is missing.
      *
-     * <p>As a side effect of this command the HyperLogLog internals may be updated to reflect a
-     * different estimation of the number of unique items added so far (the cardinality of the set).
-     *
-     * <p>If the approximated cardinality estimated by the HyperLogLog changed after executing the
-     * command, <code>PFADD</code> returns <code>1</code>, otherwise <code>0</code> is returned. The
-     * command automatically creates an empty HyperLogLog structure if the specified key does not
-     * exist.
-     *
-     * <p>A command call without elements, this will result into no operation performed if the
-     * variable already exists, or just the creation of the data structure if the key does not exist
-     * (in the latter case <code>1</code> is returned).
+     * <p>A command call without <code>elements</code> results in no operation being performed if the
+     * <code>key</code> already exists, or just the creation of the data structure if the <code>key
+     * </code> does not exist (in the latter case <code>1</code> is returned).
      *
      * @see <a href="https://redis.io/commands/pfadd/">redis.io</a> for details.
      * @param key The data structure to add elements into.
