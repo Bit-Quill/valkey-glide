@@ -16,7 +16,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-@Timeout(20)
+@Timeout(10)
 public class ErrorHandlingTests {
 
     @Test

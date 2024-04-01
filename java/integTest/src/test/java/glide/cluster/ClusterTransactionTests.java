@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-@Timeout(20)
+@Timeout(10)
 public class ClusterTransactionTests {
 
     private static RedisClusterClient clusterClient = null;
