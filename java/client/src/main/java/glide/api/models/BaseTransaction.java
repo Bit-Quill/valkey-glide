@@ -54,6 +54,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRandMember;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
@@ -1270,6 +1271,60 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T zcard(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(new String[] {key});
         protobufTransaction.addCommands(buildCommand(Zcard, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns a random element from the sorted set stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/zrandmember/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @return Command Response - A <code>String</code> representing a random element from the sorted
+     *     set.<br>
+     *     If the sorted set does not exist or is empty, the response will be <code>null</code>.
+     */
+    public T zrandmember(@NonNull String key) {
+        ArgsArray commandArgs = buildArgs(key);
+        protobufTransaction.addCommands(buildCommand(ZRandMember, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Retrieves random elements from the sorted set stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/zrandmember/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param count The number of elements to return<br>
+     *     If <code>count</code> is positive, returns unique elements.<br>
+     *     If negative, allows for duplicates.<br>
+     * @return Command Response - An <code>array</code> of elements.<br>
+     *     If the sorted set does not exist or is empty, the response will be an <code>empty array
+     *     </code>.
+     */
+    public T zrandmemberWithCount(@NonNull String key, long count) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(count));
+        protobufTransaction.addCommands(buildCommand(ZRandMember, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Retrieves random elements along with their scores from the sorted set stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/zrandmember/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param count The number of elements to return<br>
+     *     If <code>count</code> is positive, returns unique elements.<br>
+     *     If negative, allows duplicates.<br>
+     * @return Command Response - An <code>array</code> of <code>[element, score]</code> <code>arrays
+     *     </code>, where element is a <code>String</code> and score is a <code>Double</code>.<br>
+     *     If the sorted set does not exist or is empty, the response will be an <code>empty array
+     *     </code>.
+     */
+    public T zrandmemberWithCountWithScores(String key, long count) {
+        String[] arguments = new String[] {key, Long.toString(count), "WITHSCORES"};
+
+        ArgsArray commandArgs = buildArgs(arguments);
+        protobufTransaction.addCommands(buildCommand(ZRandMember, commandArgs));
         return getThis();
     }
 

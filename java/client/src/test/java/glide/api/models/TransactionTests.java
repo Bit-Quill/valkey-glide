@@ -52,6 +52,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRandMember;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
@@ -384,6 +385,18 @@ public class TransactionTests {
 
         transaction.zcard("key");
         results.add(Pair.of(Zcard, ArgsArray.newBuilder().addArgs("key").build()));
+
+        transaction.zrandmember("key");
+        results.add(Pair.of(ZRandMember, ArgsArray.newBuilder().addArgs("key").build()));
+
+        transaction.zrandmemberWithCount("key", 5);
+        results.add(Pair.of(ZRandMember, ArgsArray.newBuilder().addArgs("key").addArgs("5").build()));
+
+        transaction.zrandmemberWithCountWithScores("key", 5);
+        results.add(
+                Pair.of(
+                        ZRandMember,
+                        ArgsArray.newBuilder().addArgs("key").addArgs("5").addArgs("WITHSCORES").build()));
 
         transaction.type("key");
         results.add(Pair.of(Type, ArgsArray.newBuilder().addArgs("key").build()));

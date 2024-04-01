@@ -3,6 +3,7 @@ package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.castArray;
+import static glide.utils.ArrayTransformUtils.castOneDimensionalArrayToTwoDimensional;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -46,6 +47,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRandMember;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
@@ -593,6 +595,30 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> zcard(@NonNull String key) {
         return commandManager.submitNewCommand(Zcard, new String[] {key}, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> zrandmember(@NonNull String key) {
+        return commandManager.submitNewCommand(
+                ZRandMember, new String[] {key}, this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<String[]> zrandmemberWithCount(@NonNull String key, long count) {
+        return commandManager.submitNewCommand(
+                ZRandMember,
+                new String[] {key, Long.toString(count)},
+                response -> castArray(handleArrayResponse(response), String.class));
+    }
+
+    @Override
+    public CompletableFuture<Object[][]> zrandmemberWithCountWithScores(
+            @NonNull String key, long count) {
+        String[] arguments = new String[] {key, Long.toString(count), "WITHSCORES"};
+        return commandManager.submitNewCommand(
+                ZRandMember,
+                arguments,
+                response -> castOneDimensionalArrayToTwoDimensional(handleArrayResponse(response)));
     }
 
     @Override

@@ -62,4 +62,15 @@ public class ArrayTransformUtils {
     public static <T> T[] concatenateArrays(T[]... arrays) {
         return Stream.of(arrays).flatMap(Stream::of).toArray(size -> Arrays.copyOf(arrays[0], size));
     }
+
+    /**
+     * Casts an array of Objects to a two-dimensional array, assuming each element in the input array
+     * is an Object array.
+     *
+     * @param inputArray The input array of Objects to be cast.
+     * @return A two-dimensional Object array.
+     */
+    public static Object[][] castOneDimensionalArrayToTwoDimensional(Object[] inputArray) {
+        return Arrays.stream(inputArray).map(element -> (Object[]) element).toArray(Object[][]::new);
+    }
 }

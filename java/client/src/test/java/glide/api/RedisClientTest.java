@@ -66,6 +66,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRandMember;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
@@ -1702,6 +1703,81 @@ public class RedisClientTest {
         // exercise
         CompletableFuture<Long> response = service.zcard(key);
         Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zrandmember_returns_success() {
+        // setup
+        String key = "testKey";
+        String[] arguments = new String[] {key};
+        String value = "testValue";
+
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(ZRandMember), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.zrandmember(key);
+        String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zrandmemberWithCount_returns_success() {
+        // setup
+        String key = "testKey";
+        long count = 2L;
+        String[] arguments = new String[] {key, Long.toString(count)};
+        String[] value = new String[] {"member1", "member2"};
+
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<String[]>submitNewCommand(eq(ZRandMember), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String[]> response = service.zrandmemberWithCount(key, count);
+        String[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zrandmemberWithCountWithScores_returns_success() {
+        // setup
+        String key = "testKey";
+        long count = 2L;
+        boolean withScore = true;
+        String[] arguments = new String[] {key, Long.toString(count), "WITHSCORES"};
+        Object[][] value = new Object[][] {{"member1", 2.0}, {"member2", 3.0}};
+
+        CompletableFuture<Object[][]> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Object[][]>submitNewCommand(eq(ZRandMember), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Object[][]> response = service.zrandmemberWithCountWithScores(key, count);
+        Object[] payload = response.get();
 
         // verify
         assertEquals(testResponse, response);
