@@ -75,8 +75,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
-import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
@@ -1827,7 +1827,6 @@ public class RedisClientTest {
         assertEquals(value, payload);
     }
 
-
     @SneakyThrows
     @Test
     public void xadd_returns_success() {
@@ -1846,7 +1845,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(XAdd), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String> response = service.xadd(key, fieldValues);
@@ -1866,21 +1865,21 @@ public class RedisClientTest {
         fieldValues.put("testField1", "testValue1");
         fieldValues.put("testField2", "testValue2");
         StreamAddOptions options =
-            StreamAddOptions.builder()
-                .id("id")
-                .makeStream(false)
-                .trim(new StreamAddOptions.Maxlen(true, 5L))
-                .build();
+                StreamAddOptions.builder()
+                        .id("id")
+                        .makeStream(false)
+                        .trim(new StreamAddOptions.MaxLen(true, 5L))
+                        .build();
 
         String[] arguments =
-            new String[] {
-                key,
-                NO_MAKE_STREAM_REDIS_API,
-                TRIM_MAXLEN_REDIS_API,
-                TRIM_EXACT_REDIS_API,
-                Long.toString(5L),
-                "id"
-            };
+                new String[] {
+                    key,
+                    NO_MAKE_STREAM_REDIS_API,
+                    TRIM_MAXLEN_REDIS_API,
+                    TRIM_EXACT_REDIS_API,
+                    Long.toString(5L),
+                    "id"
+                };
         arguments = ArrayUtils.addAll(arguments, convertMapToKeyValueStringArray(fieldValues));
 
         String returnId = "testId";
@@ -1890,7 +1889,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(XAdd), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String> response = service.xadd(key, fieldValues, options);
@@ -1980,7 +1979,7 @@ public class RedisClientTest {
         fieldValues.put("testField1", "testValue1");
         fieldValues.put("testField2", "testValue2");
         String[] arguments =
-            ArrayUtils.addAll(optionAndArgs.getRight(), convertMapToKeyValueStringArray(fieldValues));
+                ArrayUtils.addAll(optionAndArgs.getRight(), convertMapToKeyValueStringArray(fieldValues));
         String returnId = "testId";
 
         CompletableFuture<String> testResponse = mock(CompletableFuture.class);
@@ -1988,7 +1987,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(XAdd), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String> response = service.xadd(key, fieldValues, optionAndArgs.getLeft());

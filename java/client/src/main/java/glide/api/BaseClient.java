@@ -78,7 +78,6 @@ import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.List;
-import glide.utils.ArrayTransformUtils;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;

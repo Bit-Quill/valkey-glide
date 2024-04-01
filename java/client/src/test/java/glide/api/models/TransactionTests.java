@@ -54,8 +54,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
-import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
@@ -406,14 +406,14 @@ public class TransactionTests {
 
         transaction.xadd("key", Map.of("field1", "foo1"), StreamAddOptions.builder().id("id").build());
         results.add(
-            Pair.of(
-                XAdd,
-                ArgsArray.newBuilder()
-                    .addArgs("key")
-                    .addArgs("id")
-                    .addArgs("field1")
-                    .addArgs("foo1")
-                    .build()));
+                Pair.of(
+                        XAdd,
+                        ArgsArray.newBuilder()
+                                .addArgs("key")
+                                .addArgs("id")
+                                .addArgs("field1")
+                                .addArgs("foo1")
+                                .build()));
 
         transaction.time();
         results.add(Pair.of(Time, ArgsArray.newBuilder().build()));

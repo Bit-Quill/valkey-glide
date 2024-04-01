@@ -1143,33 +1143,33 @@ public class SharedCommandTests {
         String field2 = UUID.randomUUID().toString();
 
         assertNull(
-            client
-                .xadd(
-                    key,
-                    Map.of(field1, "foo0", field2, "bar0"),
-                    StreamAddOptions.builder().makeStream(Boolean.FALSE).build())
-                .get());
+                client
+                        .xadd(
+                                key,
+                                Map.of(field1, "foo0", field2, "bar0"),
+                                StreamAddOptions.builder().makeStream(Boolean.FALSE).build())
+                        .get());
 
         String timestamp1 = "0-1";
         assertEquals(
-            timestamp1,
-            client
-                .xadd(
-                    key,
-                    Map.of(field1, "foo1", field2, "bar1"),
-                    StreamAddOptions.builder().id(timestamp1).build())
-                .get());
+                timestamp1,
+                client
+                        .xadd(
+                                key,
+                                Map.of(field1, "foo1", field2, "bar1"),
+                                StreamAddOptions.builder().id(timestamp1).build())
+                        .get());
 
         assertNotNull(client.xadd(key, Map.of(field1, "foo2", field2, "bar2")).get());
         if (client instanceof RedisClient) {
             assertEquals(2L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
         } else if (client instanceof RedisClusterClient) {
             assertEquals(
-                2L,
-                ((RedisClusterClient) client)
-                    .customCommand(new String[] {"XLEN", key})
-                    .get()
-                    .getSingleValue());
+                    2L,
+                    ((RedisClusterClient) client)
+                            .customCommand(new String[] {"XLEN", key})
+                            .get()
+                            .getSingleValue());
         }
 
         // this will trim the first entry.
@@ -1187,32 +1187,32 @@ public class SharedCommandTests {
             assertEquals(2L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
         } else if (client instanceof RedisClusterClient) {
             assertEquals(
-                2L,
-                ((RedisClusterClient) client)
-                    .customCommand(new String[] {"XLEN", key})
-                    .get()
-                    .getSingleValue());
+                    2L,
+                    ((RedisClusterClient) client)
+                            .customCommand(new String[] {"XLEN", key})
+                            .get()
+                            .getSingleValue());
         }
 
         // this will trim the second entry.
         assertNotNull(
-            client
-                .xadd(
-                    key,
-                    Map.of(field1, "foo4", field2, "bar4"),
-                    StreamAddOptions.builder()
-                        .trim(new StreamAddOptions.MinId(Boolean.TRUE, id))
-                        .build())
-                .get());
+                client
+                        .xadd(
+                                key,
+                                Map.of(field1, "foo4", field2, "bar4"),
+                                StreamAddOptions.builder()
+                                        .trim(new StreamAddOptions.MinId(Boolean.TRUE, id))
+                                        .build())
+                        .get());
         if (client instanceof RedisClient) {
             assertEquals(2L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
         } else if (client instanceof RedisClusterClient) {
             assertEquals(
-                2L,
-                ((RedisClusterClient) client)
-                    .customCommand(new String[] {"XLEN", key})
-                    .get()
-                    .getSingleValue());
+                    2L,
+                    ((RedisClusterClient) client)
+                            .customCommand(new String[] {"XLEN", key})
+                            .get()
+                            .getSingleValue());
         }
 
         /**
