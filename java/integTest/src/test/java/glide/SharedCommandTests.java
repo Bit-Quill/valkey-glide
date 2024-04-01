@@ -1062,16 +1062,16 @@ public class SharedCommandTests {
         String key3 = "{test}-hll3-" + UUID.randomUUID();
         assertEquals(1, client.pfadd(key1, new String[] {"a", "b", "c"}).get());
         assertEquals(1, client.pfadd(key2, new String[] {"b", "c", "d"}).get());
-        // new HLL
+        // new HyperLogLog data set
         assertEquals(OK, client.pfmerge(key3, new String[] {key1, key2}).get());
         assertEquals(
                 client.pfcount(new String[] {key1, key2}).get(), client.pfcount(new String[] {key3}).get());
-        // existing HLL
+        // existing HyperLogLog data set
         assertEquals(OK, client.pfmerge(key1, new String[] {key2}).get());
         assertEquals(
                 client.pfcount(new String[] {key1, key2}).get(), client.pfcount(new String[] {key1}).get());
 
-        // Key exists, but it is not a HLL
+        // Key exists, but it is not a HyperLogLog
         assertEquals(OK, client.set("foo", "bar").get());
         ExecutionException executionException =
                 assertThrows(
