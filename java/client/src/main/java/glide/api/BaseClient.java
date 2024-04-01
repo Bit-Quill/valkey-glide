@@ -47,6 +47,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
@@ -58,11 +59,13 @@ import glide.api.commands.HashBaseCommands;
 import glide.api.commands.ListBaseCommands;
 import glide.api.commands.SetBaseCommands;
 import glide.api.commands.SortedSetBaseCommands;
+import glide.api.commands.StreamBaseCommands;
 import glide.api.commands.StringCommands;
 import glide.api.models.Script;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
+import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
 import glide.api.models.exceptions.RedisException;
@@ -96,7 +99,8 @@ public abstract class BaseClient
                 HashBaseCommands,
                 ListBaseCommands,
                 SetBaseCommands,
-                SortedSetBaseCommands {
+                SortedSetBaseCommands,
+                StreamBaseCommands {
 
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
@@ -629,6 +633,20 @@ public abstract class BaseClient
     public CompletableFuture<Double> zscore(@NonNull String key, @NonNull String member) {
         return commandManager.submitNewCommand(
                 ZScore, new String[] {key, member}, this::handleDoubleOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> xadd(@NonNull String key, @NonNull Map<String, String> values) {
+        return xadd(key, values, StreamAddOptions.builder().build());
+    }
+
+    @Override
+    public CompletableFuture<String> xadd(
+            @NonNull String key, @NonNull Map<String, String> values, @NonNull StreamAddOptions options) {
+        String[] arguments =
+                ArrayUtils.addAll(
+                        ArrayUtils.addFirst(options.toArgs(), key), convertMapToKeyValueStringArray(values));
+        return commandManager.submitNewCommand(XAdd, arguments, this::handleStringOrNullResponse);
     }
 
     @Override
