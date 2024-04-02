@@ -228,8 +228,8 @@ public interface ListBaseCommands {
     CompletableFuture<String[]> rpopCount(String key, long count);
 
     /**
-     * Inserts <code>element</code> in the <code>list</code> either before or after the reference
-     * value.
+     * Inserts <code>element</code> in the <code>list</code> either before or after the <code>pivot
+     * </code> value.
      *
      * @see <a href="https://redis.io/commands/linsert/">redis.io</a> for details.
      * @param key The key of the list.
