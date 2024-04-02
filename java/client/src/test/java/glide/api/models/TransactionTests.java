@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
+import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
@@ -54,6 +55,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.ZDiff;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
@@ -404,6 +406,22 @@ public class TransactionTests {
 
         transaction.zscore("key", "member");
         results.add(Pair.of(ZScore, ArgsArray.newBuilder().addArgs("key").addArgs("member").build()));
+
+        transaction.zdiff(new String[] {"key1", "key2"});
+        results.add(
+                Pair.of(
+                        ZDiff, ArgsArray.newBuilder().addArgs("2").addArgs("key1").addArgs("key2").build()));
+
+        transaction.zdiffWithScores(new String[] {"key1", "key2"});
+        results.add(
+                Pair.of(
+                        ZDiff,
+                        ArgsArray.newBuilder()
+                                .addArgs("2")
+                                .addArgs("key1")
+                                .addArgs("key2")
+                                .addArgs(WITH_SCORES_REDIS_API)
+                                .build()));
 
         transaction.time();
         results.add(Pair.of(Time, ArgsArray.newBuilder().build()));
