@@ -1227,6 +1227,10 @@ public class SharedCommandTests {
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.rpushx(key3, new String[] {"_"}).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+        // empty element list
+        executionException =
+                assertThrows(ExecutionException.class, () -> client.rpushx(key2, new String[0]).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
     }
 
     @SneakyThrows
@@ -1248,6 +1252,10 @@ public class SharedCommandTests {
         assertEquals(OK, client.set(key3, "bar").get());
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.lpushx(key3, new String[] {"_"}).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+        // empty element list
+        executionException =
+                assertThrows(ExecutionException.class, () -> client.lpushx(key2, new String[0]).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
 }

@@ -236,8 +236,8 @@ public interface ListBaseCommands {
      * @return The length of the list after the push operation.
      * @example
      *     <pre>{@code
-     * Long pushCount1 = client.rpushx("my_list", new String[] {"value1", "value2"}).get();
-     * assert pushCount1 == 2L;
+     * Long listLength = client.rpushx("my_list", new String[] {"value1", "value2"}).get();
+     * assert listLength > 2L;
      * }</pre>
      */
     CompletableFuture<Long> rpushx(String key, String[] elements);
@@ -252,8 +252,8 @@ public interface ListBaseCommands {
      * @return The length of the list after the push operation.
      * @example
      *     <pre>{@code
-     * Long pushCount1 = client.lpushx("my_list", new String[] {"value1", "value2"}).get();
-     * assert pushCount1 == 2L;
+     * Long listLength = client.lpushx("my_list", new String[] {"value1", "value2"}).get();
+     * assert listLength > 2L;
      * }</pre>
      */
     CompletableFuture<Long> lpushx(String key, String[] elements);
