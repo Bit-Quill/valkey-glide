@@ -3,7 +3,6 @@ package glide.api;
 
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.castArray;
-import static glide.utils.ArrayTransformUtils.castOneDimensionalArrayToTwoDimensional;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -614,11 +613,11 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Object[][]> zrandmemberWithCountWithScores(
             @NonNull String key, long count) {
-        String[] arguments = new String[] {key, Long.toString(count), "WITHSCORES"};
+        String[] arguments = new String[] {key, Long.toString(count), WITH_SCORES_REDIS_API};
         return commandManager.submitNewCommand(
                 ZRandMember,
                 arguments,
-                response -> castOneDimensionalArrayToTwoDimensional(handleArrayResponse(response)));
+                response -> castArray(handleArrayResponse(response), Object[].class));
     }
 
     @Override

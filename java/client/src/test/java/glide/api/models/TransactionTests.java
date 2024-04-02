@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
+import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
@@ -396,7 +397,11 @@ public class TransactionTests {
         results.add(
                 Pair.of(
                         ZRandMember,
-                        ArgsArray.newBuilder().addArgs("key").addArgs("5").addArgs("WITHSCORES").build()));
+                        ArgsArray.newBuilder()
+                                .addArgs("key")
+                                .addArgs("5")
+                                .addArgs(WITH_SCORES_REDIS_API)
+                                .build()));
 
         transaction.type("key");
         results.add(Pair.of(Type, ArgsArray.newBuilder().addArgs("key").build()));

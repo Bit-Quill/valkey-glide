@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
+import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -1294,10 +1295,10 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/zrandmember/">redis.io</a> for more details.
      * @param key The key of the sorted set.
-     * @param count The number of elements to return<br>
+     * @param count The number of elements to return.<br>
      *     If <code>count</code> is positive, returns unique elements.<br>
      *     If negative, allows for duplicates.<br>
-     * @return Command Response - An <code>array</code> of elements.<br>
+     * @return Command Response - An <code>array</code> of elements from the sorted set.<br>
      *     If the sorted set does not exist or is empty, the response will be an <code>empty array
      *     </code>.
      */
@@ -1308,11 +1309,12 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Retrieves random elements along with their scores from the sorted set stored at <code>key</code>.
+     * Retrieves random elements along with their scores from the sorted set stored at <code>key
+     * </code>.
      *
      * @see <a href="https://redis.io/commands/zrandmember/">redis.io</a> for more details.
      * @param key The key of the sorted set.
-     * @param count The number of elements to return<br>
+     * @param count The number of elements to return.<br>
      *     If <code>count</code> is positive, returns unique elements.<br>
      *     If negative, allows duplicates.<br>
      * @return Command Response - An <code>array</code> of <code>[element, score]</code> <code>arrays
@@ -1321,7 +1323,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     </code>.
      */
     public T zrandmemberWithCountWithScores(String key, long count) {
-        String[] arguments = new String[] {key, Long.toString(count), "WITHSCORES"};
+        String[] arguments = new String[] {key, Long.toString(count), WITH_SCORES_REDIS_API};
 
         ArgsArray commandArgs = buildArgs(arguments);
         protobufTransaction.addCommands(buildCommand(ZRandMember, commandArgs));
