@@ -1222,7 +1222,7 @@ public class SharedCommandTests {
         assertArrayEquals(
                 new String[] {"1", "1.5", "2", "3", "3.5", "4"}, client.lrange(key1, 0, -1).get());
 
-        assertEquals(0, client.linsert(UUID.randomUUID().toString(), BEFORE, "pivot", "elem").get());
+        assertEquals(0, client.linsert(key2, BEFORE, "pivot", "elem").get());
         assertEquals(-1, client.linsert(key1, AFTER, "5", "6").get());
 
         // Key exists, but it is not a list
