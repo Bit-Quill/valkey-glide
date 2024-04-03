@@ -66,7 +66,7 @@ public class ClusterTransactionTests {
     @SneakyThrows
     public void info_simple_route_test() {
         ClusterTransaction transaction = new ClusterTransaction().info().info();
-        Object[] result = clusterClient.exec(transaction, RANDOM).get(10, TimeUnit.SECONDS);
+        Object[] result = clusterClient.exec(transaction, RANDOM).get();
 
         assertTrue(((String) result[0]).contains("# Stats"));
         assertTrue(((String) result[1]).contains("# Stats"));
@@ -78,7 +78,7 @@ public class ClusterTransactionTests {
         ClusterTransaction transaction = (ClusterTransaction) transactionTest(new ClusterTransaction());
         Object[] expectedResult = transactionTestResult();
 
-        Object[] results = clusterClient.exec(transaction, RANDOM).get(10, TimeUnit.SECONDS);
+        Object[] results = clusterClient.exec(transaction, RANDOM).get();
         assertArrayEquals(expectedResult, results);
     }
 }
