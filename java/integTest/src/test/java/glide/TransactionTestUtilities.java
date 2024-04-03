@@ -18,6 +18,8 @@ public class TransactionTestUtilities {
     private static final String key6 = "{key}" + UUID.randomUUID();
     private static final String key7 = "{key}" + UUID.randomUUID();
     private static final String key8 = "{key}" + UUID.randomUUID();
+    private static final String key9 = "{key}" + UUID.randomUUID();
+
     private static final String value1 = UUID.randomUUID().toString();
     private static final String value2 = UUID.randomUUID().toString();
     private static final String value3 = UUID.randomUUID().toString();
@@ -88,6 +90,11 @@ public class TransactionTestUtilities {
         baseTransaction.zrem(key8, new String[] {"one"});
         baseTransaction.zcard(key8);
 
+        baseTransaction.zadd(key9, Map.of(value1, 1.0));
+        baseTransaction.zrandmember(key9);
+        baseTransaction.zrandmemberWithCount(key9, 1);
+        baseTransaction.zrandmemberWithCountWithScores(key9, 1);
+
         baseTransaction.configSet(Map.of("timeout", "1000"));
         baseTransaction.configGet(new String[] {"timeout"});
 
@@ -145,6 +152,10 @@ public class TransactionTestUtilities {
             4.0,
             1L,
             2L,
+            1L, // zadd(key9, Map.of("one", 1.0))
+            value1, // zrandmember(key9)
+            new String[] {value1}, // zrandmemberWithCount(key9, 1)
+            new Object[][] {{value1, 1.0}}, // zrandmemberWithCountWithScores(key9, 1)
             OK,
             Map.of("timeout", "1000"),
             OK,

@@ -1101,6 +1101,7 @@ public class SharedCommandTests {
                 Arrays.stream(randMembers)
                         .allMatch(member -> member.equals("one") || member.equals("two")));
 
+        assertArrayEquals(new String[] {}, client.zrandmemberWithCount(key1, 0).get());
         assertArrayEquals(new String[] {}, client.zrandmemberWithCount("nonExistentKey", 4).get());
 
         // Key exists, but it is not a set
@@ -1145,6 +1146,7 @@ public class SharedCommandTests {
             assertTrue(isValidPair, "Unexpected value member pairing");
         }
 
+        assertArrayEquals(new Object[][] {}, client.zrandmemberWithCountWithScores(key1, 0).get());
         assertArrayEquals(
                 new Object[][] {}, client.zrandmemberWithCountWithScores("nonExistentKey", 4).get());
 

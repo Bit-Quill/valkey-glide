@@ -1299,7 +1299,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     If <code>count</code> is positive, returns unique elements.<br>
      *     If negative, allows for duplicates.<br>
      * @return Command Response - An <code>array</code> of elements from the sorted set.<br>
-     *     If the sorted set does not exist or is empty, the response will be an <code>empty array
+     *     If the sorted set does not exist or is empty, the response will be an empty <code>array
      *     </code>.
      */
     public T zrandmemberWithCount(@NonNull String key, long count) {
@@ -1319,7 +1319,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     If negative, allows duplicates.<br>
      * @return Command Response - An <code>array</code> of <code>[element, score]</code> <code>arrays
      *     </code>, where element is a <code>String</code> and score is a <code>Double</code>.<br>
-     *     If the sorted set does not exist or is empty, the response will be an <code>empty array
+     *     If the sorted set does not exist or is empty, the response will be an empty <code>array
      *     </code>.
      */
     public T zrandmemberWithCountWithScores(String key, long count) {
