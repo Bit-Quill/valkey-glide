@@ -1890,8 +1890,8 @@ public class RedisClientTest {
         arguments = ArrayUtils.addAll(arguments, fieldValuesArgs);
         String returnId = "testId";
 
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(returnId);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(returnId);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(XAdd), eq(arguments), any()))
@@ -1933,9 +1933,8 @@ public class RedisClientTest {
         arguments = ArrayUtils.addAll(arguments, convertMapToKeyValueStringArray(fieldValues));
 
         String returnId = "testId";
-
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(returnId);
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(returnId);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(XAdd), eq(arguments), any()))
@@ -2030,10 +2029,10 @@ public class RedisClientTest {
         fieldValues.put("testField2", "testValue2");
         String[] arguments =
                 ArrayUtils.addAll(optionAndArgs.getRight(), convertMapToKeyValueStringArray(fieldValues));
-        String returnId = "testId";
 
-        CompletableFuture<String> testResponse = mock(CompletableFuture.class);
-        when(testResponse.get()).thenReturn(returnId);
+        String returnId = "testId";
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(returnId);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(XAdd), eq(arguments), any()))

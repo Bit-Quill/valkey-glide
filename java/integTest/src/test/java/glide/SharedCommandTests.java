@@ -1180,6 +1180,7 @@ public class SharedCommandTests {
                         .get());
 
         assertNotNull(client.xadd(key, Map.of(field1, "foo2", field2, "bar2")).get());
+        // TODO update test when XLEN is available
         if (client instanceof RedisClient) {
             assertEquals(2L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
         } else if (client instanceof RedisClusterClient) {
@@ -1202,6 +1203,7 @@ public class SharedCommandTests {
                                         .build())
                         .get();
         assertNotNull(id);
+        // TODO update test when XLEN is available
         if (client instanceof RedisClient) {
             assertEquals(2L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
         } else if (client instanceof RedisClusterClient) {
@@ -1223,6 +1225,7 @@ public class SharedCommandTests {
                                         .trim(new StreamAddOptions.MinId(Boolean.TRUE, id))
                                         .build())
                         .get());
+        // TODO update test when XLEN is available
         if (client instanceof RedisClient) {
             assertEquals(2L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
         } else if (client instanceof RedisClusterClient) {
