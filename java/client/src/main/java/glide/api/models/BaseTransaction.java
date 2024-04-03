@@ -1427,12 +1427,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Gets the intersection of all the given sets.<br>
-     * Missing set is interpreted as empty and causes an empty response.
+     * Gets the intersection of all the given sets.
      *
      * @see <a href="https://redis.io/commands/sinter/">redis.io</a> for details.
-     * @param keys The keys of the list.
+     * @param keys The keys of the sets.
      * @return Command Response - A <code>Set</code> of members which are present in all given sets.
+     *     <br>
+     *     Missing or empty input sets cause an empty response.
      */
     public T sinter(@NonNull String[] keys) {
         ArgsArray commandArgs = buildArgs(keys);
