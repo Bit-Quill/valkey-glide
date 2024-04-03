@@ -1353,6 +1353,22 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
+     * Returns the score of <code>member</code> in the sorted set stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/zscore/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param member The member whose score is to be retrieved.
+     * @return Command Response - The score of the member.<br>
+     *     If <code>member</code> does not exist in the sorted set, <code>null</code> is returned.<br>
+     *     If <code>key</code> does not exist, <code>null</code> is returned.
+     */
+    public T zscore(@NonNull String key, @NonNull String member) {
+        ArgsArray commandArgs = buildArgs(new String[] {key, member});
+        protobufTransaction.addCommands(buildCommand(ZScore, commandArgs));
+        return getThis();
+    }
+
+    /**
      * Returns the difference between the first sorted set and all the successive sorted sets.
      *
      * @see <a href="https://redis.io/commands/zdiff/">redis.io</a> for more details.
@@ -1383,12 +1399,6 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         arguments = ArrayUtils.add(arguments, WITH_SCORES_REDIS_API);
         ArgsArray commandArgs = buildArgs(arguments);
         protobufTransaction.addCommands(buildCommand(ZDiff, commandArgs));
-        return getThis();
-    }
-
-    public T zscore(@NonNull String key, @NonNull String member) {
-        ArgsArray commandArgs = buildArgs(new String[] {key, member});
-        protobufTransaction.addCommands(buildCommand(ZScore, commandArgs));
         return getThis();
     }
 
