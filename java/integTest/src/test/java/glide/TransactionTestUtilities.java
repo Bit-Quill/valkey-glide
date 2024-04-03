@@ -13,6 +13,7 @@ import glide.api.models.commands.StreamAddOptions;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class TransactionTestUtilities {
     private static final String key1 = "{key}" + UUID.randomUUID();
@@ -29,15 +30,17 @@ public class TransactionTestUtilities {
     private static final String hllKey1 = "{key}:hllKey1-" + UUID.randomUUID();
     private static final String hllKey2 = "{key}:hllKey2-" + UUID.randomUUID();
     private static final String hllKey3 = "{key}:hllKey3-" + UUID.randomUUID();
-    private static final String value1 = UUID.randomUUID().toString();
-    private static final String value2 = UUID.randomUUID().toString();
-    private static final String value3 = UUID.randomUUID().toString();
-    private static final String field1 = UUID.randomUUID().toString();
-    private static final String field2 = UUID.randomUUID().toString();
-    private static final String field3 = UUID.randomUUID().toString();
 
-    public static BaseTransaction<?> transactionTest(BaseTransaction<?> baseTransaction) {
+    private static final String value1 = "value1-" + UUID.randomUUID();
+    private static final String value2 = "value2-" + UUID.randomUUID();
+    private static final String value3 = "value3-" + UUID.randomUUID();
+    private static final String field1 = "field1-" + UUID.randomUUID();
+    private static final String field2 = "field2-" + UUID.randomUUID();
+    private static final String field3 = "field3-" + UUID.randomUUID();
 
+    public interface TransactionBuilder extends Function<BaseTransaction<?>, Object[]> {}
+
+/*
         baseTransaction.set(key1, value1);
         baseTransaction.get(key1);
         baseTransaction.type(key1);
@@ -102,7 +105,7 @@ public class TransactionTestUtilities {
                 key9, Map.of("field2", "value2"), StreamAddOptions.builder().id("0-2").build());
         baseTransaction.xadd(
                 key9, Map.of("field3", "value3"), StreamAddOptions.builder().id("0-3").build());
-/*
+
         baseTransaction.unlink(new String[] {stringKey3});
 
         baseTransaction.hset(hashKey1, Map.of(field1, value1, field2, value2));
@@ -136,7 +139,7 @@ public class TransactionTestUtilities {
         baseTransaction.zaddIncr(zsetKey1, "one", 3);
         baseTransaction.zrem(zsetKey1, new String[] {"one"});
         baseTransaction.zcard(zsetKey1);
-*/
+
 
         baseTransaction.configSet(Map.of("timeout", "1000"));
         baseTransaction.configGet(new String[] {"timeout"});
@@ -159,8 +162,168 @@ public class TransactionTestUtilities {
                 .pfcount(new String[] {hllKey3});
 
         return baseTransaction;
+    }*/
+
+    public static TransactionBuilder StringCommandTransactionBuilder =
+            TransactionTestUtilities::stringCommands;
+    public static TransactionBuilder HashCommandTransactionBuilder =
+            TransactionTestUtilities::hashCommands;
+    public static TransactionBuilder ListCommandTransactionBuilder =
+            TransactionTestUtilities::listCommands;
+    public static TransactionBuilder SetCommandTransactionBuilder =
+            TransactionTestUtilities::setCommands;
+    public static TransactionBuilder SortedSetCommandTransactionBuilder =
+            TransactionTestUtilities::sortedSetCommands;
+    public static TransactionBuilder ServerManagementCommandTransactionBuilder =
+            TransactionTestUtilities::serverManagementCommands;
+
+    private static Object[] stringCommands(BaseTransaction<?> transaction){
+        String key1 = "{StringKey}-1-" + UUID.randomUUID();
+        String key2 = "{StringKey}-2-" + UUID.randomUUID();
+        String key3 = "{StringKey}-3-" + UUID.randomUUID();
+
+        transaction
+            .set(key1, value1)
+            .get(key1)
+            .set(key2, value2, SetOptions.builder().returnOldValue(true).build())
+            .customCommand(new String[]{"MGET", key1, key2})
+            .exists(new String[]{key1})
+            .del(new String[]{key1})
+            .get(key1)
+            .unlink(new String[]{key2})
+            .get(key2)
+            .mset(Map.of(key1, value2, key2, value1))
+            .mget(new String[]{key1, key2})
+            .incr(key3)
+            .incrBy(key3, 2)
+            .decr(key3)
+            .decrBy(key3, 2)
+            .incrByFloat(key3, 0.5)
+            .unlink(new String[]{key3});
+
+        return new Object[] {
+            OK, // set(stringKey1, value1);
+            value1, // get(stringKey1);
+            null, // set(stringKey2, value2, returnOldValue(true));
+            new String[] {value1, value2}, // customCommand(new String[] {"MGET", ...});
+            1L, // exists(new String[] {stringKey1});
+            1L, // del(new String[] {stringKey1});
+            null, // get(stringKey1);
+            1L, // unlink(new String[] {stringKey2});
+            null, // get(stringKey2);
+            OK, // mset(Map.of(stringKey1, value2, stringKey2, value1));
+            new String[] {value2, value1}, // mget(new String[] {stringKey1, stringKey2});
+            1L, // incr(stringKey3);
+            3L, // incrBy(stringKey3, 2);
+            2L, // decr(stringKey3);
+            0L, // decrBy(stringKey3, 2);
+            0.5, // incrByFloat(stringKey3, 0.5);
+            1L, // unlink(new String[] {stringKey3});
+        };
     }
 
+      private static Object[] hashCommands(BaseTransaction<?> transaction) {
+        String hashKey1 = "{HashKey}-1-" + UUID.randomUUID();
+
+        transaction
+            .hset(hashKey1, Map.of(field1, value1, field2, value2))
+            .hget(hashKey1, field1)
+            .hexists(hashKey1, field2)
+            .hmget(hashKey1, new String[] {field1, "non_existing_field", field2})
+            .hgetall(hashKey1)
+            .hdel(hashKey1, new String[] {field1})
+            .hincrBy(hashKey1, field3, 5)
+            .hincrByFloat(hashKey1, field3, 5.5);
+
+        return new Object[] {
+            2L, // hset(hashKey1, Map.of(field1, value1, field2, value2));
+            value1, // hget(hashKey1, field1);
+            true, // hexists(hashKey1, field2);
+            new String[] {value1, null, value2}, // hmget(hashKey1, new String[] {...});
+            Map.of(field1, value1, field2, value2), // hgetall(hashKey1);
+            1L, // hdel(hashKey1, new String[] {field1});
+            5L, // hincrBy(hashKey1, field3, 5);
+            10.5, // hincrByFloat(hashKey1, field3, 5.5);
+        };
+      }
+
+      private static Object[] listCommands(BaseTransaction<?> transaction) {
+        String listKey1 = "{ListKey}-1-" + UUID.randomUUID();
+        String listKey2 = "{ListKey}-2-" + UUID.randomUUID();
+
+        transaction
+            .lpush(listKey1, new String[] {value1, value1, value2, value3, value3})
+            .llen(listKey1)
+            .lrem(listKey1, 1, value1)
+            .ltrim(listKey1, 1, -1)
+            .lrange(listKey1, 0, -2)
+            .lpop(listKey1)
+            .lpopCount(listKey1, 2)
+            .rpush(listKey2, new String[] {value1, value2, value2})
+            .rpop(listKey2)
+            .rpopCount(listKey2, 2);
+
+        return new Object[] {
+            5L, // lpush(listKey1, new String[] {value1, value1, value2, value3, value3});
+            5L, // llen(listKey1);
+            1L, // lrem(listKey1, 1, value1);
+            OK, // ltrim(listKey1, 1, -1);
+            new String[] {value3, value2}, // lrange(listKey1, 0, -2);
+            value3, // lpop(listKey1);
+            new String[] {value2, value1}, // lpopCount(listKey1, 2);
+            3L, // rpush(listKey2, new String[] {value1, value2, value2});
+            value2, // rpop(listKey2);
+            new String[] {value2, value1}, // rpopCount(listKey2, 2);
+        };
+      }
+
+      private static Object[] setCommands(BaseTransaction<?> transaction) {
+        String setKey1 = "{SetKey1}-1-" + UUID.randomUUID();
+
+        transaction
+            .sadd(setKey1, new String[] {"baz", "foo"})
+            .srem(setKey1, new String[] {"foo"})
+            .scard(setKey1)
+            .smembers(setKey1);
+
+        return new Object[] {
+            2L, // sadd(setKey1, new String[] {"baz", "foo"});
+            1L, // srem(setKey1, new String[] {"foo"});
+            1L, // scard(setKey1);
+            Set.of("baz"), // smembers(setKey1);
+        };
+      }
+
+      private static Object[] sortedSetCommands(BaseTransaction<?> transaction) {
+        String zsetKey1 = "{ZSetKey1}-1-" + UUID.randomUUID();
+
+        transaction
+            .zadd(zsetKey1, Map.of("one", 1.0, "two", 2.0, "three", 3.0))
+            .zaddIncr(zsetKey1, "one", 3)
+            .zrem(zsetKey1, new String[] {"one"})
+            .zcard(zsetKey1);
+
+        return new Object[] {
+            3L, // zadd(zsetKey1, Map.of("one", 1.0, "two", 2.0, "three", 3.0));
+            4.0, // zaddIncr(zsetKey1, "one", 3);
+            1L, // zrem(zsetKey1, new String[] {"one"});
+            2L, // zcard(zsetKey1);
+        };
+      }
+
+      private static Object[] serverManagementCommands(BaseTransaction<?> transaction) {
+        transaction
+            .configSet(Map.of("timeout", "1000"))
+            .configGet(new String[]{"timeout"})
+            .configResetStat();
+
+        return new Object[]{
+            OK, // configSet(Map.of("timeout", "1000"));
+            Map.of("timeout", "1000"), // configGet(new String[] {"timeout"});
+            OK // configResetStat();
+        };
+      }
+/*
     public static Object[] transactionTestResult() {
         return new Object[] {
             OK,
@@ -248,55 +411,5 @@ public class TransactionTestUtilities {
             3L, // pfcount(new String[] { hllKey1, hllKey2 });;
             OK, // pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
             3L, // pfcount(new String[] { hllKey3 })
-
-/*
-            OK, // set(stringKey1, value1);
-            value1, // get(stringKey1);
-            null, // set(stringKey2, value2, returnOldValue(true));
-            new String[] {value1, value2}, // customCommand(new String[] {"MGET", ...});
-            1L, // exists(new String[] {stringKey1});
-            1L, // del(new String[] {stringKey1});
-            null, // get(stringKey1);
-            1L, // unlink(new String[] {stringKey2});
-            null, // get(stringKey2);
-            OK, // mset(Map.of(stringKey1, value2, stringKey2, value1));
-            new String[] {value2, value1}, // mget(new String[] {stringKey1, stringKey2});
-            1L, // incr(stringKey3);
-            3L, // incrBy(stringKey3, 2);
-            2L, // decr(stringKey3);
-            0L, // decrBy(stringKey3, 2);
-            0.5, // incrByFloat(stringKey3, 0.5);
-            1L, // unlink(new String[] {stringKey3});
-            2L, // hset(hashKey1, Map.of(field1, value1, field2, value2));
-            value1, // hget(hashKey1, field1);
-            true, // hexists(hashKey1, field2);
-            new String[] {value1, null, value2}, // hmget(hashKey1, new String[] {...});
-            Map.of(field1, value1, field2, value2), // hgetall(hashKey1);
-            1L, // hdel(hashKey1, new String[] {field1});
-            5L, // hincrBy(hashKey1, field3, 5);
-            10.5, // hincrByFloat(hashKey1, field3, 5.5);
-            5L, // lpush(listKey1, new String[] {value1, value1, value2, value3, value3});
-            5L, // llen(listKey1);
-            1L, // lrem(listKey1, 1, value1);
-            OK, // ltrim(listKey1, 1, -1);
-            new String[] {value3, value2}, // lrange(listKey1, 0, -2);
-            value3, // lpop(listKey1);
-            new String[] {value2, value1}, // lpopCount(listKey1, 2);
-            3L, // rpush(listKey2, new String[] {value1, value2, value2});
-            value2, // rpop(listKey2);
-            new String[] {value2, value1}, // rpopCount(listKey2, 2);
-            2L, // sadd(setKey1, new String[] {"baz", "foo"});
-            1L, // srem(setKey1, new String[] {"foo"});
-            1L, // scard(setKey1);
-            Set.of("baz"), // smembers(setKey1);
-            3L, // zadd(zsetKey1, Map.of("one", 1.0, "two", 2.0, "three", 3.0));
-            4.0, // zaddIncr(zsetKey1, "one", 3);
-            1L, // zrem(zsetKey1, new String[] {"one"});
-            2L, // zcard(zsetKey1);
-            OK, // configSet(Map.of("timeout", "1000"));
-            Map.of("timeout", "1000"), // configGet(new String[] {"timeout"});
-            OK // configResetStat();
 */
-        };
-    }
 }
