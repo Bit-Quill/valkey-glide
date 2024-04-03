@@ -1448,7 +1448,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/lpushx/">redis.io</a> for details.
      * @param key The key of the list.
-     * @param elements The elements to insert at the tail of the list stored at <code>key</code>.
+     * @param elements The elements to insert at the head of the list stored at <code>key</code>.
      * @return Command Response - The length of the list after the push operation.
      */
     public T lpushx(@NonNull String key, @NonNull String[] elements) {

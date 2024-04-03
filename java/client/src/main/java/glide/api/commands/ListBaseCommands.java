@@ -248,7 +248,7 @@ public interface ListBaseCommands {
      *
      * @see <a href="https://redis.io/commands/lpushx/">redis.io</a> for details.
      * @param key The key of the list.
-     * @param elements The elements to insert at the tail of the list stored at <code>key</code>.
+     * @param elements The elements to insert at the head of the list stored at <code>key</code>.
      * @return The length of the list after the push operation.
      * @example
      *     <pre>{@code
