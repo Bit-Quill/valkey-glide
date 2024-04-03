@@ -89,7 +89,7 @@ public class RedisClusterClient extends BaseClient
     @Override
     public CompletableFuture<Object[]> exec(
             @NonNull ClusterTransaction transaction, @NonNull Route route) {
-        assert route.isSingleNodeRoute() : "Multi-node routes are not supported for transaction";
+        assert route.isSingleNodeRoute() : "Multi-node routes are not supported for exec()";
         return commandManager.submitNewCommand(
                 transaction, Optional.of(route), this::handleArrayOrNullResponse);
     }

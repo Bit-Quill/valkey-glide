@@ -205,7 +205,7 @@ public class RedisClusterClientTest {
     public void exec_supports_only_single_node_route() {
         var exception =
                 assertThrows(Throwable.class, () -> service.exec(new ClusterTransaction(), ALL_NODES));
-        assertEquals("Multi-node routes are not supported for transaction", exception.getMessage());
+        assertEquals("Multi-node routes are not supported for exec()", exception.getMessage());
     }
 
     @SneakyThrows
