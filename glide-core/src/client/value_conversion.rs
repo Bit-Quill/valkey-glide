@@ -220,7 +220,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
         b"INCRBYFLOAT" | b"HINCRBYFLOAT" => Some(ExpectedReturnType::Double),
         b"HEXISTS" | b"HSETNX" | b"EXPIRE" | b"EXPIREAT" | b"PEXPIRE" | b"PEXPIREAT"
         | b"SISMEMBER" | b"PERSIST" => Some(ExpectedReturnType::Boolean),
-        b"SMEMBERS" => Some(ExpectedReturnType::Set),
+        b"SMEMBERS" | b"SINTER" => Some(ExpectedReturnType::Set),
         b"ZSCORE" => Some(ExpectedReturnType::DoubleOrNull),
         b"ZPOPMIN" | b"ZPOPMAX" => Some(ExpectedReturnType::MapOfStringToDouble),
         b"JSON.TOGGLE" => Some(ExpectedReturnType::JsonToggleReturnType),
@@ -240,6 +240,14 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn convert_sinter_to_bool() {
+        assert!(matches!(
+            expected_type_for_cmd(redis::cmd("SINTER").arg("key")),
+            Some(ExpectedReturnType::Set)
+        ));
+    }
 
     #[test]
     fn convert_zadd_only_if_incr_is_included() {
