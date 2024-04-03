@@ -75,4 +75,19 @@ public interface SetBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> scard(String key);
+
+    /**
+     * Gets the intersection of all the given sets.<br>
+     * Missing set is interpreted as empty and causes an empty response.
+     *
+     * @see <a href="https://redis.io/commands/sinter/">redis.io</a> for details.
+     * @param keys The keys of the list.
+     * @return A <code>Set</code> of members which are present in all given sets.
+     * @example
+     *     <pre>{@code
+     * String[] values = client.sinter(new String[] {"list1", "list2"}).get();
+     * assert values.length > 1;
+     * }</pre>
+     */
+    CompletableFuture<Set<String>> sinter(String[] keys);
 }

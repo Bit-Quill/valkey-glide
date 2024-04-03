@@ -83,6 +83,7 @@ public class TransactionTestUtilities {
         baseTransaction.srem(key7, new String[] {"foo"});
         baseTransaction.scard(key7);
         baseTransaction.smembers(key7);
+        baseTransaction.sinter(new String[] {key7});
 
         baseTransaction.zadd(key8, Map.of("one", 1.0, "two", 2.0, "three", 3.0));
         baseTransaction.zaddIncr(key8, "one", 3);
@@ -146,6 +147,7 @@ public class TransactionTestUtilities {
             1L,
             1L,
             Set.of("baz"),
+            Set.of("baz"), // sinter(new String[] { key7 })
             3L,
             4.0,
             1L,
