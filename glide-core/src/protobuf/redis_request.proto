@@ -136,6 +136,7 @@ enum RequestType {
     DBSize = 92;
     Brpop = 93;
     Hkeys = 94;
+    ZDiffStore = 105;
 }
 
 message Command {
@@ -162,7 +163,7 @@ message Transaction {
 
 message RedisRequest {
     uint32 callback_idx = 1;
-    
+
     oneof command {
         Command single_command = 2;
         Transaction transaction = 3;

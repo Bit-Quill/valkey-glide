@@ -61,6 +61,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.ZDiffStore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
@@ -1461,6 +1462,24 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T zrankWithScore(@NonNull String key, @NonNull String member) {
         ArgsArray commandArgs = buildArgs(new String[] {key, member, WITH_SCORE_REDIS_API});
         protobufTransaction.addCommands(buildCommand(Zrank, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Calculates and stores the set difference between the first sorted set and all the successive
+     * sorted sets at <code>destkey</code>, overwriting it if it already exists. Non-existent keys are
+     * treated as empty sets.
+     *
+     * @see <a href="https://redis.io/commands/zdiffstore/">redis.io</a> for more details.
+     * @param destKey Destination key for the resulting sorted set.
+     * @param keys The keys of the sorted sets.
+     * @return Command Response - The number of members in the resulting sorted set at <code>destKey
+     *     </code>.
+     */
+    public T zdiffstore(@NonNull String destKey, @NonNull String[] keys) {
+        ArgsArray commandArgs =
+            buildArgs(ArrayUtils.addAll(new String[] {destKey, Long.toString(keys.length)}, keys));
+        protobufTransaction.addCommands(buildCommand(ZDiffStore, commandArgs));
         return getThis();
     }
 

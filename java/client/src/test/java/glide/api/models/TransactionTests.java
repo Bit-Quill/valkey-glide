@@ -59,6 +59,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.ZDiffStore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
@@ -439,6 +440,17 @@ public class TransactionTests {
                                 .addArgs("key")
                                 .addArgs("member")
                                 .addArgs(WITH_SCORE_REDIS_API)
+                                .build()));
+
+        transaction.zdiffstore("destKey", new String[] {"key1", "key2"});
+        results.add(
+                Pair.of(
+                        ZDiffStore,
+                        ArgsArray.newBuilder()
+                                .addArgs("destKey")
+                                .addArgs("2")
+                                .addArgs("key1")
+                                .addArgs("key2")
                                 .build()));
 
         transaction.time();
