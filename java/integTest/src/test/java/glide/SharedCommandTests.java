@@ -1277,11 +1277,11 @@ public class SharedCommandTests {
     @ParameterizedTest
     @MethodSource("getClients")
     public void zdiffstore(BaseClient client) {
-        String key1 = "{testKey:}" + UUID.randomUUID();
-        String key2 = "{testKey:}" + UUID.randomUUID();
-        String key3 = "{testKey:}" + UUID.randomUUID();
-        String key4 = "{testKey:}" + UUID.randomUUID();
-        String key5 = "{testKey:}" + UUID.randomUUID();
+        String key1 = "{testKey}:" + UUID.randomUUID();
+        String key2 = "{testKey}:" + UUID.randomUUID();
+        String key3 = "{testKey}:" + UUID.randomUUID();
+        String key4 = "{testKey}:" + UUID.randomUUID();
+        String key5 = "{testKey}:" + UUID.randomUUID();
 
         Map<String, Double> membersScores1 = Map.of("one", 1.0, "two", 2.0, "three", 3.0);
         Map<String, Double> membersScores2 = Map.of("two", 2.0);
@@ -1292,10 +1292,19 @@ public class SharedCommandTests {
         assertEquals(4, client.zadd(key3, membersScores3).get());
 
         assertEquals(2, client.zdiffstore(key4, new String[] {key1, key2}).get());
+        assertEquals(
+                Map.of("one", 1.0, "three", 3.0),
+                client.zrangeWithScores(key4, new RangeByIndex(0, -1)).get());
+
         assertEquals(1, client.zdiffstore(key4, new String[] {key3, key2, key1}).get());
+        assertEquals(Map.of("four", 4.0), client.zrangeWithScores(key4, new RangeByIndex(0, -1)).get());
 
         assertEquals(0, client.zdiffstore(key4, new String[] {key1, key3}).get());
-        assertEquals(0, client.zdiffstore(key4, new String[] {key1, key1}).get());
+        assertTrue(client.zrangeWithScores(key4, new RangeByIndex(0, -1)).get().isEmpty());
+
+        // Non-Existing key
+        assertEquals(0, client.zdiffstore(key4, new String[] {key5, key1}).get());
+        assertTrue(client.zrangeWithScores(key4, new RangeByIndex(0, -1)).get().isEmpty());
 
         // Key exists, but it is not a set
         assertEquals(OK, client.set(key5, "bar").get());
