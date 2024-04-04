@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Arguments for {@link SortedSetBaseCommands#zremrangebyscore}, {@link
- * SortedSetBaseCommands#zrange} and {@link SortedSetBaseCommands#zrangeWithScores}
+ * SortedSetBaseCommands#zrange}, and {@link SortedSetBaseCommands#zrangeWithScores}
  *
  * @see <a href="https://redis.io/commands/zremrangebyscore/">redis.io</a>
  * @see <a href="https://redis.io/commands/zrange/">redis.io</a>
