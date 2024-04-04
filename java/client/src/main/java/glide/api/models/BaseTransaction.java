@@ -793,6 +793,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Atomically moves a set element from one set to another.
      *
+     * @see <a href="https://redis.io/commands/smove/">redis.io</a> for details.
      * @param source The key of the set that the element should be taken from.
      * @param destination The key of the set that the element should be moved to.
      * @param member The set element to move.
