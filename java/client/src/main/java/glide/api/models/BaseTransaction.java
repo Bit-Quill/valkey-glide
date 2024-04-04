@@ -1478,7 +1478,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T zdiffstore(@NonNull String destKey, @NonNull String[] keys) {
         ArgsArray commandArgs =
-            buildArgs(ArrayUtils.addAll(new String[] {destKey, Long.toString(keys.length)}, keys));
+                buildArgs(ArrayUtils.addAll(new String[] {destKey, Long.toString(keys.length)}, keys));
         protobufTransaction.addCommands(buildCommand(ZDiffStore, commandArgs));
         return getThis();
     }
