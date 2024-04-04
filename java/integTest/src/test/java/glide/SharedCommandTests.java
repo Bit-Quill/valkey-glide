@@ -452,6 +452,10 @@ public class SharedCommandTests {
         Exception exception =
                 assertThrows(ExecutionException.class, () -> client.setrange(nonStringKey, 0, "_").get());
         assertTrue(exception.getCause() instanceof RequestException);
+        exception =
+                assertThrows(
+                        ExecutionException.class, () -> client.setrange("foo", Integer.MAX_VALUE, "_").get());
+        assertTrue(exception.getCause() instanceof RequestException);
     }
 
     @SneakyThrows

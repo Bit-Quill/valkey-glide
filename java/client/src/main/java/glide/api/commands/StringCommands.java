@@ -211,10 +211,11 @@ public interface StringCommands {
      * the string is padded with zero-bytes to make <code>offset</code> fit. Creates the key if it
      * doesn't exist.
      *
-     * @see <a href="https://redis.io/commands/setrange/">redis.io</a> for details
-     * @param key The key to update.
-     * @param offset The position of where <code>value</code> should be set.
-     * @param value The string to set.
+     * @see <a href="https://redis.io/commands/setrange/">redis.io</a> for details.
+     * @param key The key of the string to update.
+     * @param offset The position in the string where <code>value</code> should be written.
+     * @param value The string which should be written at the position specified by <code>offset
+     *     </code>.
      * @return The length of the string stored at <code>key</code> after it was modified.
      * @example
      *     <pre>{@code
