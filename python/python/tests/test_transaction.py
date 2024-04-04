@@ -129,6 +129,15 @@ async def transaction_test(
     transaction.hdel(key4, [key, key2])
     args.append(2)
 
+    transaction.hset(key9, {key: value})
+    args.append(1)
+    transaction.hrandfield(key9)
+    args.append(key)
+    transaction.hrandfield_count(key9, 1)
+    args.append([key])
+    transaction.hrandfield_count_withvalues(key9, 1)
+    args.append([[key, value]])
+
     transaction.client_getname()
     args.append(None)
 
