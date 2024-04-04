@@ -1213,7 +1213,7 @@ public class SharedCommandTests {
         String key2 = "{test}-2-" + UUID.randomUUID();
         String key3 = "{test}-3-" + UUID.randomUUID();
 
-        assertEquals(1, client.zadd(key1, Map.of("a", 1.0, "b", 1.5)).get());
+        assertEquals(2, client.zadd(key1, Map.of("a", 1.0, "b", 1.5)).get());
         assertEquals(1, client.zadd(key2, Map.of("c", 2.0)).get());
         assertArrayEquals(
                 new Object[] {key1, "b", 1.5}, client.bzpopmax(new String[] {key1, key2}, .5).get());
