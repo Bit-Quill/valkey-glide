@@ -4,7 +4,9 @@ package glide;
 import static glide.api.BaseClient.OK;
 
 import glide.api.models.BaseTransaction;
+import glide.api.models.commands.RangeOptions.InfScoreBound;
 import glide.api.models.commands.RangeOptions.RangeByIndex;
+import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import java.util.Map;
 import java.util.Set;
@@ -97,6 +99,7 @@ public class TransactionTestUtilities {
         baseTransaction.zscore(key8, "two");
         baseTransaction.zpopmin(key8);
         baseTransaction.zpopmax(key8);
+        baseTransaction.zremrangebyscore(key8, new ScoreBoundary(5), InfScoreBound.POSITIVE_INFINITY);
 
         baseTransaction.configSet(Map.of("timeout", "1000"));
         baseTransaction.configGet(new String[] {"timeout"});
@@ -164,6 +167,7 @@ public class TransactionTestUtilities {
             2.0, // zscore(key8, "two")
             Map.of("two", 2.0), // zpopmin(key8)
             Map.of("three", 3.0), // zpopmax(key8)
+            0L, // zremrangebyscore(key8, new ScoreBoundary(5), InfScoreBound.POSITIVE_INFINITY)
             OK,
             Map.of("timeout", "1000"),
             OK,

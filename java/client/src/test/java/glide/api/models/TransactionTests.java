@@ -2,7 +2,6 @@
 package glide.api.models;
 
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
-import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
@@ -60,6 +59,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByScore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
@@ -427,15 +427,12 @@ public class TransactionTests {
         transaction.zrank("key", "member");
         results.add(Pair.of(Zrank, ArgsArray.newBuilder().addArgs("key").addArgs("member").build()));
 
-        transaction.zrankWithScore("key", "member");
+        transaction.zremrangebyscore(
+                "key", new ScoreBoundary(5, false), InfScoreBound.POSITIVE_INFINITY);
         results.add(
                 Pair.of(
-                        Zrank,
-                        ArgsArray.newBuilder()
-                                .addArgs("key")
-                                .addArgs("member")
-                                .addArgs(WITH_SCORE_REDIS_API)
-                                .build()));
+                        ZRemRangeByScore,
+                        ArgsArray.newBuilder().addArgs("key").addArgs("(5.0").addArgs("+inf").build()));
 
         transaction.time();
         results.add(Pair.of(Time, ArgsArray.newBuilder().build()));
