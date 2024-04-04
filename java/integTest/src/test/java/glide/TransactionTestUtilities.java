@@ -97,6 +97,7 @@ public class TransactionTestUtilities {
         baseTransaction.zscore(key8, "two");
         baseTransaction.zpopmin(key8);
         baseTransaction.zpopmax(key8);
+        baseTransaction.zremrangebyrank(key8, 5, 10);
 
         baseTransaction.configSet(Map.of("timeout", "1000"));
         baseTransaction.configGet(new String[] {"timeout"});
@@ -164,6 +165,7 @@ public class TransactionTestUtilities {
             2.0, // zscore(key8, "two")
             Map.of("two", 2.0), // zpopmin(key8)
             Map.of("three", 3.0), // zpopmax(key8)
+            0L, // zremrangebyrank(key8, 5, 10)
             OK,
             Map.of("timeout", "1000"),
             OK,

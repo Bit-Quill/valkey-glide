@@ -51,6 +51,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
@@ -679,6 +680,14 @@ public abstract class BaseClient
     public CompletableFuture<Object[]> zrankWithScore(@NonNull String key, @NonNull String member) {
         return commandManager.submitNewCommand(
                 Zrank, new String[] {key, member, WITH_SCORE_REDIS_API}, this::handleArrayOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> zremrangebyrank(@NonNull String key, long start, long end) {
+        return commandManager.submitNewCommand(
+                ZRemRangeByRank,
+                new String[] {key, Long.toString(start), Long.toString(end)},
+                this::handleLongResponse);
     }
 
     @Override

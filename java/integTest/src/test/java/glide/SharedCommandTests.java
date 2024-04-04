@@ -1252,6 +1252,27 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getClients")
+    public void zremrangebyrank(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        Map<String, Double> membersScores = Map.of("one", 1.0, "two", 2.0, "three", 3.0);
+        assertEquals(3, client.zadd(key1, membersScores).get());
+
+        assertEquals(0, client.zremrangebyrank(key1, 2, 1).get());
+        assertEquals(2, client.zremrangebyrank(key1, 0, 1).get());
+        assertEquals(1, client.zremrangebyrank(key1, 0, 10).get());
+        assertEquals(0, client.zremrangebyrank("nonExistingKey", 0, 10).get());
+
+        // Key exists, but it is not a set
+        assertEquals(OK, client.set(key2, "value").get());
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.zremrangebyrank(key2, 2, 1).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
     public void type(BaseClient client) {
         String nonExistingKey = UUID.randomUUID().toString();
         String stringKey = UUID.randomUUID().toString();

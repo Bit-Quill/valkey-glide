@@ -62,6 +62,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
@@ -1444,6 +1445,29 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T zrankWithScore(@NonNull String key, @NonNull String member) {
         ArgsArray commandArgs = buildArgs(new String[] {key, member, WITH_SCORE_REDIS_API});
         protobufTransaction.addCommands(buildCommand(Zrank, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Removes all elements in the sorted set stored at <code>key</code> with rank between <code>start
+     * </code> and <code>end</code>. Both <code>start</code> and <code>end</code> are zero-based
+     * indexes with 0 being the element with the lowest score. These indexes can be negative numbers,
+     * where they indicate offsets starting at the element with the highest score.
+     *
+     * @see <a href="https://redis.io/commands/zremrangebyrank/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param start The starting point of the range.
+     * @param end The end of the range.
+     * @return Command Response - The number of members removed.<br>
+     *     If <code>start</code> exceeds the end of the sorted set, or if <code>start</code> is
+     *     greater than <code>end</code>, 0 returned.<br>
+     *     If <code>end</code> exceeds the actual end of the sorted set, the range will stop at the
+     *     actual end of the sorted set.<br>
+     *     If <code>key</code> does not exist 0 will be returned.
+     */
+    public T zremrangebyrank(@NonNull String key, long start, long end) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(start), Long.toString(end));
+        protobufTransaction.addCommands(buildCommand(ZRemRangeByRank, commandArgs));
         return getThis();
     }
 

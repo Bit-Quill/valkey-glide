@@ -456,4 +456,32 @@ public interface SortedSetBaseCommands {
      * }</pre>
      */
     CompletableFuture<Object[]> zrankWithScore(String key, String member);
+
+    /**
+     * Removes all elements in the sorted set stored at <code>key</code> with rank between <code>start
+     * </code> and <code>end</code>. Both <code>start</code> and <code>end</code> are zero-based
+     * indexes with 0 being the element with the lowest score. These indexes can be negative numbers,
+     * where they indicate offsets starting at the element with the highest score.
+     *
+     * @see <a href="https://redis.io/commands/zremrangebyrank/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param start The starting point of the range.
+     * @param end The end of the range.
+     * @return The number of members removed.<br>
+     *     If <code>start</code> exceeds the end of the sorted set, or if <code>start</code> is
+     *     greater than <code>end</code>, 0 returned.<br>
+     *     If <code>end</code> exceeds the actual end of the sorted set, the range will stop at the
+     *     actual end of the sorted set.<br>
+     *     If <code>key</code> does not exist 0 will be returned.
+     * @example
+     *     <pre>{@code
+     * Long payload1 = client.zremrangebyrank("mySortedSet", 0, 4).get();
+     * assert payload1 == 5L; // Indicates that 5 members, with ranks ranging from 0 to 4 (inclusive), have been removed from "mySortedSet".
+     *
+     * Long payload2 = client.zremrangebyrank("nonExistingSortedSet", 0, 5).get();
+     * assert payload2 == 0;
+     * }</pre>
+     */
+    // TODO add examples
+    CompletableFuture<Long> zremrangebyrank(String key, long start, long end);
 }
