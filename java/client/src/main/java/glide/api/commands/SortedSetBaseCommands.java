@@ -273,6 +273,32 @@ public interface SortedSetBaseCommands {
     CompletableFuture<Map<String, Double>> zpopmax(String key);
 
     /**
+     * Blocks the connection until removes and returns a member with the highest score from the sorted
+     * sets stored at the specified <code>keys</code>.<br>
+     * <code>BZPOPMAX</code> is the blocking variant of {@link #zpopmax(String)}.<br>
+     * A member with the highest score is popped from first sorted set that is non-empty, with the
+     * given <code>keys</code> being checked in the order that they are given.
+     *
+     * @see <a href="https://redis.io/commands/bzpopmax/">redis.io</a> for more details.
+     * @apiNote <code>BZPOPMAX</code> is a client blocking command, see <a
+     *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
+     *     Commands</a> for more details and best practices.
+     * @param keys The keys of the sorted sets.
+     * @param timeout The number of seconds to wait for a blocking <code>BZPOPMAX</code> operation to
+     *     complete. A value of <code>0</code> will block indefinitely.
+     * @return An array containing the key where element was popped out (as <code>String</code>), the
+     *     element itself (as <code>String</code>) and the element score (as <code>Double</code>).<br>
+     *     The data could be interpreted in format as <code>[key, element, score]</code><br>
+     *     . If no element could be popped and the timeout expired, returns </code>null</code>.
+     * @example
+     *     <pre>{@code
+     * Object[] data = client.bzpopmax(new String[] {"zset1", "zset2"}, 0.5).get();
+     * System.out.printf("Popped '%s' with score %d from sorted set '%s'%n", data[1], data[2], data[0]);
+     * }</pre>
+     */
+    CompletableFuture<Object[]> bzpopmax(String[] keys, double timeout);
+
+    /**
      * Returns the score of <code>member</code> in the sorted set stored at <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/zscore/">redis.io</a> for more details.
@@ -416,7 +442,7 @@ public interface SortedSetBaseCommands {
     /**
      * Returns the rank of <code>member</code> in the sorted set stored at <code>key</code>, with
      * scores ordered from low to high.<br>
-     * To get the rank of <code>member</code> with it's score, see <code>zrankWithScore</code>.
+     * To get the rank of <code>member</code> with it's score, see {@link #zrankWithScore}.
      *
      * @see <a href="https://redis.io/commands/zrank/">redis.io</a> for more details.
      * @param key The key of the sorted set.
