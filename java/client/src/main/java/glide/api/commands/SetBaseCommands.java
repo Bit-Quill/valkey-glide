@@ -82,11 +82,11 @@ public interface SetBaseCommands {
      * @see <a href="https://redis.io/commands/sinter/">redis.io</a> for details.
      * @param keys The keys of the sets.
      * @return A <code>Set</code> of members which are present in all given sets.<br>
-     *     Missing or empty input sets cause an empty response.
+     *     Missing or empty input sets cause an empty set response.
      * @example
      *     <pre>{@code
      * String[] values = client.sinter(new String[] {"list1", "list2"}).get();
-     * assert values.length > 1; // These sets have at least one common element
+     * assert values.length > 1; // Indicates that these sets have at least one common element
      * }</pre>
      */
     CompletableFuture<Set<String>> sinter(String[] keys);
