@@ -793,11 +793,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Atomically moves a set element from one set to another.
      *
-     * @param source The key from which to move the set element.
-     * @param destination The key to which to move the set element.
+     * @param source The key of the set that the element should be taken from.
+     * @param destination The key of the set that the element should be moved to.
      * @param member The set element to move.
-     * @return Command Response - <code>true</code> on success or <code>false</code> if the element is
-     *     not a member of source set.
+     * @return Command response - <code>true</code> on success or <code>false</code> if the source set
+     *     does not exist or the element is not a member of the source set.
      */
     public T smove(@NonNull String source, @NonNull String destination, @NonNull String member) {
         ArgsArray commandArgs = buildArgs(source, destination, member);
