@@ -1373,10 +1373,10 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/zdiff/">redis.io</a> for more details.
      * @param keys The keys of the sorted sets.
-     * @return Command Response - An <code>array</code> of <code>elements</code> representing the
-     *     difference between the sorted sets.<br>
+     * @return Command Response - An <code>array</code> of elements representing the difference
+     *     between the sorted sets.<br>
      *     If the first <code>key</code> does not exist, it is treated as an empty sorted set, and the
-     *     command returns an <code>empty array</code>.
+     *     command returns an empty <code>array</code>.
      */
     public T zdiff(@NonNull String[] keys) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(keys, Long.toString(keys.length)));

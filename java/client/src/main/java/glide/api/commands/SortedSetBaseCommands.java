@@ -286,13 +286,13 @@ public interface SortedSetBaseCommands {
      *
      * @see <a href="https://redis.io/commands/zdiff/">redis.io</a> for more details.
      * @param keys The keys of the sorted sets.
-     * @return An <code>array</code> of <code>elements</code> representing the difference between the
-     *     sorted sets.<br>
+     * @return An <code>array</code> of elements representing the difference between the sorted sets.
+     *     <br>
      *     If the first <code>key</code> does not exist, it is treated as an empty sorted set, and the
-     *     command returns an <code>empty array</code>.
+     *     command returns an empty <code>array</code>.
      * @example
      *     <pre>{@code
-     * String[] payload = client.zscore(new String[] {"sortedSet1", "sortedSet2", "sortedSet3"}).get();
+     * String[] payload = client.zdiff(new String[] {"sortedSet1", "sortedSet2", "sortedSet3"}).get();
      * assert payload.equals(new String[]{"element1"});
      * }</pre>
      */

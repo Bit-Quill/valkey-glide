@@ -1178,7 +1178,7 @@ public class SharedCommandTests {
         String key1 = "{testKey:}" + UUID.randomUUID();
         String key2 = "{testKey:}" + UUID.randomUUID();
         String key3 = "{testKey:}" + UUID.randomUUID();
-        String key4 = "{testKey:}" + UUID.randomUUID();
+        String nonExistentKey = "{testKey:}" + UUID.randomUUID();
 
         Map<String, Double> membersScores1 = Map.of("one", 1.0, "two", 2.0, "three", 3.0);
         Map<String, Double> membersScores2 = Map.of("two", 2.0);
@@ -1190,22 +1190,26 @@ public class SharedCommandTests {
 
         assertArrayEquals(new String[] {"one", "three"}, client.zdiff(new String[] {key1, key2}).get());
         assertArrayEquals(new String[] {}, client.zdiff(new String[] {key1, key3}).get());
+        assertArrayEquals(new String[] {}, client.zdiff(new String[] {nonExistentKey, key3}).get());
 
         assertEquals(
                 Map.of("one", 1.0, "three", 3.0), client.zdiffWithScores(new String[] {key1, key2}).get());
         assertEquals(Map.of(), client.zdiffWithScores(new String[] {key1, key3}).get());
+        assertTrue(client.zdiffWithScores(new String[] {nonExistentKey, key3}).get().isEmpty());
 
         // Key exists, but it is not a set
-        assertEquals(OK, client.set(key4, "bar").get());
+        assertEquals(OK, client.set(nonExistentKey, "bar").get());
 
         ExecutionException executionException =
-                assertThrows(ExecutionException.class, () -> client.zdiff(new String[] {key4, key2}).get());
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.zdiff(new String[] {nonExistentKey, key2}).get());
         assertTrue(executionException.getCause() instanceof RequestException);
 
         executionException =
                 assertThrows(
                         ExecutionException.class,
-                        () -> client.zdiffWithScores(new String[] {key4, key2}).get());
+                        () -> client.zdiffWithScores(new String[] {nonExistentKey, key2}).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
 

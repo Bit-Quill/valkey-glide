@@ -1922,7 +1922,6 @@ public class RedisClientTest {
         // setup
         String key1 = "testKey1";
         String key2 = "testKey2";
-        String member = "testMember";
         String[] arguments = new String[] {"2", key1, key2};
         String[] value = new String[] {"element1"};
 
