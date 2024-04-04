@@ -482,6 +482,5 @@ public interface SortedSetBaseCommands {
      * assert payload2 == 0;
      * }</pre>
      */
-    // TODO add examples
     CompletableFuture<Long> zremrangebyrank(String key, long start, long end);
 }
