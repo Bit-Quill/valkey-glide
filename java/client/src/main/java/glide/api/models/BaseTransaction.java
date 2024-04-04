@@ -1413,8 +1413,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return Command Response - An array containing the key where element was popped out (as <code>
      *     String</code>), the element itself (as <code>String</code>) and the element score (as
      *     <code>Double</code>).<br>
-     *     The data could be interpreted in format as <code>[key, element, score]</code><br>
-     *     . If no element could be popped and the timeout expired, returns </code>null</code>.
+     *     The data could be interpreted in format as <code>[key, element, score]</code>.<br>
+     *     If no element could be popped and the timeout expired, returns </code>null</code>.
      */
     public T bzpopmax(@NonNull String[] keys, double timeout) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.add(keys, Double.toString(timeout)));

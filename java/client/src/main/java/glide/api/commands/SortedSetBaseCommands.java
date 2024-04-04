@@ -288,8 +288,8 @@ public interface SortedSetBaseCommands {
      *     complete. A value of <code>0</code> will block indefinitely.
      * @return An array containing the key where element was popped out (as <code>String</code>), the
      *     element itself (as <code>String</code>) and the element score (as <code>Double</code>).<br>
-     *     The data could be interpreted in format as <code>[key, element, score]</code><br>
-     *     . If no element could be popped and the timeout expired, returns </code>null</code>.
+     *     The data could be interpreted in format as <code>[key, element, score]</code>.<br>
+     *     If no element could be popped and the timeout expired, returns </code>null</code>.
      * @example
      *     <pre>{@code
      * Object[] data = client.bzpopmax(new String[] {"zset1", "zset2"}, 0.5).get();
