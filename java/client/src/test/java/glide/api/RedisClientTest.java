@@ -1947,7 +1947,6 @@ public class RedisClientTest {
         // setup
         String key1 = "testKey1";
         String key2 = "testKey2";
-        String member = "testMember";
         String[] arguments = new String[] {"2", key1, key2, WITH_SCORES_REDIS_API};
         Map<String, Double> value = Map.of("element1", 2.0);
 
