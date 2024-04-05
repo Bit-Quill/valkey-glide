@@ -35,6 +35,7 @@ async def transaction_test(
 
     value = datetime.now(timezone.utc).strftime("%m/%d/%Y, %H:%M:%S")
     value2 = get_random_string(5)
+    value3 = get_random_string(5)
     args: List[TResult] = []
 
     transaction.dbsize()
@@ -146,6 +147,12 @@ async def transaction_test(
     args.append(0)
     transaction.lpushx(key9, ["_"])
     args.append(0)
+    transaction.lpush(key9, [value, value2, value3])
+    args.append(3)
+    transaction.blpop([key9], 1)
+    args.append([key9, value3])
+    transaction.brpop([key9], 1)
+    args.append([key9, value])
 
     transaction.sadd(key7, ["foo", "bar"])
     args.append(2)

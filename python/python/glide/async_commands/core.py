@@ -765,6 +765,37 @@ class CoreCommands(Protocol):
             await self._execute_command(RequestType.LPop, [key, str(count)]),
         )
 
+    async def blpop(self, keys: List[str], timeout: float) -> Optional[List[str]]:
+        """
+        Pops an element from the head of the first list that is non-empty, with the given keys being checked in the
+        order that they are given.
+        Blocks the connection when there are no elements to pop from any of the given lists.
+
+        See https://redis.io/commands/blpop/ for details.
+
+        Note: BLPOP is a client blocking command, see
+        https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best
+        practices.
+
+        Args:
+            keys (List[str]): The keys of the lists to pop from.
+            timeout (float): The number of seconds to wait for a blocking BLPOP operation to complete. A
+                value of `0` will block indefinitely.
+
+        Returns:
+            Optional[List[str]]: A list containing the `key` from which the element was popped and the `value` of the
+                popped element, formatted as `[key, value]`. If no element could be popped and the timeout expired,
+                returns `None`.
+
+        Examples:
+            >>> await client.blpop(["list1", "list2"], 0.5)
+                ["list1", "element"]
+        """
+        return cast(
+            Optional[List[str]],
+            await self._execute_command(RequestType.Blpop, keys + [str(timeout)])
+        )
+
     async def lrange(self, key: str, start: int, end: int) -> List[str]:
         """
         Retrieve the specified elements of the list stored at `key` within the given range.
@@ -925,6 +956,37 @@ class CoreCommands(Protocol):
         return cast(
             Optional[List[str]],
             await self._execute_command(RequestType.RPop, [key, str(count)]),
+        )
+
+    async def brpop(self, keys: List[str], timeout: float) -> Optional[List[str]]:
+        """
+        Pops an element from the tail of the first list that is non-empty, with the given keys being checked in the
+        order that they are given.
+        Blocks the connection when there are no elements to pop from any of the given lists.
+
+        See https://redis.io/commands/brpop/ for details.
+
+        Note: BRPOP is a client blocking command, see
+        https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best
+        practices.
+
+        Args:
+            keys (List[str]): The keys of the lists to pop from.
+            timeout (float): The number of seconds to wait for a blocking BRPOP operation to complete. A
+                value of `0` will block indefinitely.
+
+        Returns:
+            Optional[List[str]]: A list containing the `key` from which the element was popped and the `value` of the
+                popped element, formatted as `[key, value]`. If no element could be popped and the timeout expired,
+                returns `None`.
+
+        Examples:
+            >>> await client.brpop(["list1", "list2"], 0.5)
+                ["list1", "element"]
+        """
+        return cast(
+            Optional[List[str]],
+            await self._execute_command(RequestType.Brpop, keys + [str(timeout)])
         )
 
     async def sadd(self, key: str, members: List[str]) -> int:
