@@ -573,7 +573,7 @@ class BaseTransaction:
         """
         return self.append_command(RequestType.LPush, [key] + elements)
 
-    def lpushx(self, key: str, elements: List[str]) -> TTransaction:
+    def lpushx(self: TTransaction, key: str, elements: List[str]) -> TTransaction:
         """
         Inserts specified values at the head of the list, only if `key` already exists and holds a list.
 
@@ -679,7 +679,7 @@ class BaseTransaction:
         """
         return self.append_command(RequestType.RPush, [key] + elements)
 
-    def rpushx(self, key: str, elements: List[str]) -> TTransaction:
+    def rpushx(self: TTransaction, key: str, elements: List[str]) -> TTransaction:
         """
         Inserts specified values at the tail of the list, only if `key` already exists and holds a list.
 
