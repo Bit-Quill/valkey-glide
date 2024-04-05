@@ -10,6 +10,7 @@ import static glide.api.models.commands.InfoOptions.Section.EVERYTHING;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.NEGATIVE_INFINITY;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.POSITIVE_INFINITY;
+import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static glide.api.models.commands.ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -353,6 +354,16 @@ public class TransactionTests {
                 Pair.of(
                         ZMScore,
                         ArgsArray.newBuilder().addArgs("key").addArgs("member1").addArgs("member2").build()));
+
+        transaction.zrankWithScore("key", "member");
+        results.add(
+                Pair.of(
+                        Zrank,
+                        ArgsArray.newBuilder()
+                                .addArgs("key")
+                                .addArgs("member")
+                                .addArgs(WITH_SCORE_REDIS_API)
+                                .build()));
 
         transaction.zremrangebyscore(
             "key", new ScoreBoundary(5, false), RangeOptions.InfScoreBound.POSITIVE_INFINITY);
