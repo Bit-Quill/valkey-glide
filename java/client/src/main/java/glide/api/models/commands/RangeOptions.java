@@ -10,7 +10,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Arguments for {@link SortedSetBaseCommands#zcount}, {@link SortedSetBaseCommands#zrange} and
+ * Arguments for {@link SortedSetBaseCommands#zcount}, {@link SortedSetBaseCommands#zrange}, and
  * {@link SortedSetBaseCommands#zrangeWithScores}
  *
  * @see <a href="https://redis.io/commands/zcount/">redis.io</a>

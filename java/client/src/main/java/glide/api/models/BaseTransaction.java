@@ -1428,7 +1428,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     representing a specific score and inclusivity.
      * @return Command Response - The number of members in the specified score range.<br>
      *     If <code>key</code> does not exist, it is treated as an empty sorted set, and the command
-     *     returns 0.<br>
+     *     returns <code>0</code>.<br>
      *     If <code>maxScore < minScore</code>, <code>0</code> is returned.
      */
     public T zcount(@NonNull String key, @NonNull ScoreRange minScore, @NonNull ScoreRange maxScore) {
