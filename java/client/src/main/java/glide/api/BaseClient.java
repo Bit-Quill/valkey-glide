@@ -510,7 +510,7 @@ public abstract class BaseClient
         return commandManager.submitNewCommand(
                 SMIsMember,
                 arguments,
-                response -> castArray(handleArrayOrNullResponse(response), Boolean.class));
+                response -> castArray(handleArrayResponse(response), Boolean.class));
     }
 
     @Override
