@@ -827,6 +827,27 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getClients")
+    public void smismember(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+
+        assertEquals(2, client.sadd(key1, new String[] {"1", "2"}).get());
+        assertArrayEquals(
+                new Boolean[] {true, false}, client.smismembmer(key1, new String[] {"1", "3"}).get());
+        // empty set
+        assertArrayEquals(
+                new Boolean[] {false, false}, client.smismembmer(key2, new String[] {"1", "3"}).get());
+        // Key exists, but it is not a set
+        assertEquals(OK, client.set(key2, "value").get());
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class, () -> client.smismembmer(key2, new String[] {"_"}).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
     public void exists_multiple_keys(BaseClient client) {
         String key1 = "{key}" + UUID.randomUUID();
         String key2 = "{key}" + UUID.randomUUID();

@@ -58,6 +58,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.RPush;
 import static redis_request.RedisRequestOuterClass.RequestType.RPushX;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.SCard;
+import static redis_request.RedisRequestOuterClass.RequestType.SMIsMember;
 import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
@@ -855,6 +856,22 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         ArgsArray commandArgs = buildArgs(key);
 
         protobufTransaction.addCommands(buildCommand(SCard, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns whether each <code>member</code> is a member of the set stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/smismember/">redis.io</a> for details.
+     * @param key The key of the set to check.
+     * @param members A list of members to check their presence.
+     * @return Command Response - An array of boolean values indicating the members presence. Each
+     *     array element reflects presence of the corresponding member in <code>members</code>
+     *     argument.
+     */
+    public T smismembmer(String key, String[] members) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
+        protobufTransaction.addCommands(buildCommand(SMIsMember, commandArgs));
         return getThis();
     }
 
