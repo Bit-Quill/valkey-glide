@@ -689,9 +689,9 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> zdiffstore(@NonNull String destKey, @NonNull String[] keys) {
+    public CompletableFuture<Long> zdiffstore(@NonNull String destination, @NonNull String[] keys) {
         String[] arguments =
-                ArrayUtils.addAll(new String[] {destKey, Long.toString(keys.length)}, keys);
+                ArrayUtils.addAll(new String[] {destination, Long.toString(keys.length)}, keys);
         return commandManager.submitNewCommand(ZDiffStore, arguments, this::handleLongResponse);
     }
 

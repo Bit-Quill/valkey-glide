@@ -1467,19 +1467,17 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /**
      * Calculates the difference between the first sorted set and all the successive sorted sets at
-     * <code>keys</code> and stores the difference as a sorted-set to <code>destkey</code>,
+     * <code>keys</code> and stores the difference as a sorted set to <code>destination</code>,
      * overwriting it if it already exists. Non-existent keys are treated as empty sets.
      *
      * @see <a href="https://redis.io/commands/zdiffstore/">redis.io</a> for more details.
-     * @param destKey Destination key for the resulting sorted set.
+     * @param destination Destination key for the resulting sorted set.
      * @param keys The keys of the sorted sets to compare.
-     * @return Command Response - The number of members in the resulting sorted set stored at <code>
-     *     destKey
-     *     </code>.
+     * @return The number of members in the resulting sorted set stored at <code>destination</code>.
      */
-    public T zdiffstore(@NonNull String destKey, @NonNull String[] keys) {
+    public T zdiffstore(@NonNull String destination, @NonNull String[] keys) {
         ArgsArray commandArgs =
-                buildArgs(ArrayUtils.addAll(new String[] {destKey, Long.toString(keys.length)}, keys));
+                buildArgs(ArrayUtils.addAll(new String[] {destination, Long.toString(keys.length)}, keys));
         protobufTransaction.addCommands(buildCommand(ZDiffStore, commandArgs));
         return getThis();
     }
