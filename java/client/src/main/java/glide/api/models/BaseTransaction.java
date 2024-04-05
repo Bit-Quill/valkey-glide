@@ -69,6 +69,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
@@ -79,6 +80,9 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
+import glide.api.models.commands.RangeOptions.InfLexBound;
+import glide.api.models.commands.RangeOptions.LexBoundary;
+import glide.api.models.commands.RangeOptions.LexRange;
 import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.RangeByLex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
@@ -1468,6 +1472,29 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T zrankWithScore(@NonNull String key, @NonNull String member) {
         ArgsArray commandArgs = buildArgs(new String[] {key, member, WITH_SCORE_REDIS_API});
         protobufTransaction.addCommands(buildCommand(Zrank, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Removes all elements in the sorted set stored at <code>key</code> with a lexicographical order
+     * between <code>minLex</code> and <code>maxLex</code>.
+     *
+     * @see <a href="https://redis.io/commands/zremrangebylex/">redis.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param minLex The minimum lex to remove from. Can be an implementation of {@link InfLexBound}
+     *     representing positive/negative infinity, or {@link LexBoundary} representing a specific lex
+     *     and inclusivity.
+     * @param maxLex The maximum lex to remove to. Can be an implementation of {@link InfLexBound}
+     *     representing positive/negative infinity, or {@link LexBoundary} representing a specific lex
+     *     and inclusivity.
+     * @return CommandResponse - The number of members removed.<br>
+     *     If <code>key</code> does not exist, it is treated as an empty sorted set, and the command
+     *     returns <code>0</code>.<br>
+     *     If <code>minScore</code> is greater than <code>maxScore</code>, <code>0</code> is returned.
+     */
+    public T zremrangebylex(@NonNull String key, @NonNull LexRange minLex, @NonNull LexRange maxLex) {
+        ArgsArray commandArgs = buildArgs(key, minLex.toArgs(), maxLex.toArgs());
+        protobufTransaction.addCommands(buildCommand(ZRemRangeByLex, commandArgs));
         return getThis();
     }
 

@@ -58,6 +58,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
@@ -76,6 +77,7 @@ import glide.api.commands.StringBaseCommands;
 import glide.api.models.Script;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.RangeOptions;
+import glide.api.models.commands.RangeOptions.LexRange;
 import glide.api.models.commands.RangeOptions.RangeQuery;
 import glide.api.models.commands.RangeOptions.ScoredRangeQuery;
 import glide.api.models.commands.ScriptOptions;
@@ -696,6 +698,15 @@ public abstract class BaseClient
     public CompletableFuture<Object[]> zrankWithScore(@NonNull String key, @NonNull String member) {
         return commandManager.submitNewCommand(
                 Zrank, new String[] {key, member, WITH_SCORE_REDIS_API}, this::handleArrayOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> zremrangebylex(
+            @NonNull String key, @NonNull LexRange minLex, @NonNull LexRange maxLex) {
+        return commandManager.submitNewCommand(
+                ZRemRangeByLex,
+                new String[] {key, minLex.toArgs(), maxLex.toArgs()},
+                this::handleLongResponse);
     }
 
     @Override

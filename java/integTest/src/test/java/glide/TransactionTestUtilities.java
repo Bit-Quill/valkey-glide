@@ -4,6 +4,8 @@ package glide;
 import static glide.api.BaseClient.OK;
 
 import glide.api.models.BaseTransaction;
+import glide.api.models.commands.RangeOptions.InfLexBound;
+import glide.api.models.commands.RangeOptions.LexBoundary;
 import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.StreamAddOptions;
@@ -102,6 +104,7 @@ public class TransactionTestUtilities {
         baseTransaction.zscore(key8, "two");
         baseTransaction.zpopmin(key8);
         baseTransaction.zpopmax(key8);
+        baseTransaction.zremrangebylex(key8, new LexBoundary("j"), InfLexBound.POSITIVE_INFINITY);
 
         baseTransaction.xadd(
                 key9, Map.of("field1", "value1"), StreamAddOptions.builder().id("0-1").build());
@@ -187,6 +190,7 @@ public class TransactionTestUtilities {
             2.0, // zscore(key8, "two")
             Map.of("two", 2.0), // zpopmin(key8)
             Map.of("three", 3.0), // zpopmax(key8)
+            0L, // zremrangebylex(key8, new LexBoundary("j"), InfLexBound.POSITIVE_INFINITY)
             "0-1", // xadd(key9, Map.of("field1", "value1"),
             // StreamAddOptions.builder().id("0-1").build());
             "0-2", // xadd(key9, Map.of("field2", "value2"),
