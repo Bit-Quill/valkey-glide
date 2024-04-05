@@ -1291,7 +1291,7 @@ public class SharedCommandTests {
         // MinLex > MaxLex
         assertEquals(
                 0, client.zremrangebylex(key1, new LexBoundary("a"), InfLexBound.NEGATIVE_INFINITY).get());
-        // NonExistent Key
+        // Non Existing Key
         assertEquals(
                 0,
                 client
