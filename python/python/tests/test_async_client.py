@@ -923,9 +923,6 @@ class TestCommands:
 
         # Redis versions < 7.0.0 do not accept floating point values for the timeout, so will be rounded
         timeout = 1.0 if check_if_server_version_lt(redis_client, "7.0.0") else 0.001
-        with pytest.raises(TimeoutError):
-            await redis_client.blpop([key2], timeout)
-
         assert await redis_client.set("foo", "bar")
         with pytest.raises(RequestError) as e:
             await redis_client.blpop(["foo"], timeout)
@@ -945,9 +942,6 @@ class TestCommands:
 
         # Redis versions < 7.0.0 do not accept floating point values for the timeout, so will be rounded
         timeout = 1.0 if check_if_server_version_lt(redis_client, "7.0.0") else 0.001
-        with pytest.raises(TimeoutError):
-            await redis_client.brpop([key2], timeout)
-
         assert await redis_client.set("foo", "bar")
         with pytest.raises(RequestError) as e:
             await redis_client.brpop(["foo"], timeout)
@@ -1912,7 +1906,14 @@ class TestExceptions:
     async def test_timeout_exception_with_blpop(self, redis_client: TRedisClient):
         key = get_random_string(10)
         with pytest.raises(TimeoutError):
-            await redis_client.custom_command(["BLPOP", key, "1"])
+            await redis_client.blpop([key], 1)
+
+    @pytest.mark.parametrize("cluster_mode", [True, False])
+    @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
+    async def test_timeout_exception_with_brpop(self, redis_client: TRedisClient):
+        key = get_random_string(10)
+        with pytest.raises(TimeoutError):
+            await redis_client.brpop([key], 1)
 
 
 @pytest.mark.asyncio
