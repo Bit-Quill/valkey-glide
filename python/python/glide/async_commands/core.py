@@ -793,7 +793,7 @@ class CoreCommands(Protocol):
         """
         return cast(
             Optional[List[str]],
-            await self._execute_command(RequestType.Blpop, keys + [str(timeout)])
+            await self._execute_command(RequestType.Blpop, keys + [str(timeout)]),
         )
 
     async def lrange(self, key: str, start: int, end: int) -> List[str]:
@@ -986,7 +986,7 @@ class CoreCommands(Protocol):
         """
         return cast(
             Optional[List[str]],
-            await self._execute_command(RequestType.Brpop, keys + [str(timeout)])
+            await self._execute_command(RequestType.Brpop, keys + [str(timeout)]),
         )
 
     async def sadd(self, key: str, members: List[str]) -> int:
