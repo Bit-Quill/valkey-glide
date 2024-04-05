@@ -1261,7 +1261,8 @@ public class SharedCommandTests {
         assertEquals(0, client.zremrangebyrank(key1, 2, 1).get());
         assertEquals(2, client.zremrangebyrank(key1, 0, 1).get());
         assertEquals(1, client.zremrangebyrank(key1, 0, 10).get());
-        assertEquals(0, client.zremrangebyrank("nonExistingKey", 0, 10).get());
+        // Non Existing Key
+        assertEquals(0, client.zremrangebyrank(key2, 0, 10).get());
 
         // Key exists, but it is not a set
         assertEquals(OK, client.set(key2, "value").get());
