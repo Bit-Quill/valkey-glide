@@ -72,6 +72,7 @@ public class SharedCommandTests {
                 RedisClient.CreateClient(
                                 RedisClientConfiguration.builder()
                                         .address(NodeAddress.builder().port(STANDALONE_PORTS[0]).build())
+                                        .requestTimeout(5000)
                                         .build())
                         .get();
 
