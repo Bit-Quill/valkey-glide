@@ -35,13 +35,13 @@ jobs:
             fail-fast: false
             matrix:
                 java:
-                    - 11
+#                    - 11
                     - 17
                 redis:
                     - 6.2.14
 #                    - 7.2.3
                 os:
-#                    - ubuntu-latest
+                    - ubuntu-latest
                     - macos-latest
 
         runs-on: ${{ matrix.os }}
