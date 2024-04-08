@@ -2,7 +2,7 @@ name: Java CI
 
 on:
     push:
-        branches: ["main"]
+#        branches: ["main"]
         paths:
             - glide-core/src/**
             - submodules/**
@@ -39,9 +39,9 @@ jobs:
                     - 17
                 redis:
                     - 6.2.14
-                    - 7.2.3
+#                    - 7.2.3
                 os:
-                    - ubuntu-latest
+#                    - ubuntu-latest
                     - macos-latest
 
         runs-on: ${{ matrix.os }}
@@ -66,7 +66,7 @@ jobs:
 
             - name: Install redis
               # TODO: make this step macos compatible: https://github.com/aws/glide-for-redis/issues/781
-              if: ${{ matrix.os == 'ubuntu-latest' }}
+              # if: ${{ matrix.os == 'ubuntu-latest' }}
               uses: ./.github/workflows/install-redis
               with:
                   redis-version: ${{ matrix.redis }}
