@@ -69,6 +69,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRangeStore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
@@ -79,6 +80,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
+import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.RangeByLex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
@@ -1469,6 +1471,62 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         ArgsArray commandArgs = buildArgs(new String[] {key, member, WITH_SCORE_REDIS_API});
         protobufTransaction.addCommands(buildCommand(Zrank, commandArgs));
         return getThis();
+    }
+
+    /**
+     * Stores a specified range of elements from the sorted set at <code>source</code>, into a new
+     * sorted set at <code>destination</code>. If <code>destination</code> doesn't exist, a new sorted
+     * set is created; if it exists, it's overwritten.<br>
+     * <code>ZRANGESTORE</code> can perform different types of range queries: by index (rank), by the
+     * score, or by lexicographical order.<br>
+     *
+     * @see <a href="https://redis.io/commands/zrangestore/">redis.io</a> for more details.
+     * @param destination The key for the destination sorted set.
+     * @param source The key of the source sorted set.
+     * @param rangeQuery The range query object representing the type of range query to perform.<br>
+     *     <ul>
+     *       <li>For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.
+     *       <li>For range queries by lexicographical order, use {@link RangeOptions.RangeByLex}.
+     *       <li>For range queries by score, use {@link RangeOptions.RangeByScore}.
+     *     </ul>
+     *
+     * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
+     *     score.
+     * @return Command Response - The number of elements in the resulting sorted set.
+     */
+    public T zrangestore(
+            @NonNull String destination,
+            @NonNull String source,
+            @NonNull RangeQuery rangeQuery,
+            boolean reverse) {
+        ArgsArray commandArgs =
+                buildArgs(RangeOptions.createZrangeStoreArgs(destination, source, rangeQuery, reverse));
+        protobufTransaction.addCommands(buildCommand(ZRangeStore, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Stores a specified range of elements from the sorted set at <code>source</code>, into a new
+     * sorted set at <code>destination</code>. If <code>destination</code> doesn't exist, a new sorted
+     * set is created; if it exists, it's overwritten.<br>
+     * <code>ZRANGESTORE</code> can perform different types of range queries: by index (rank), by the
+     * score, or by lexicographical order.<br>
+     *
+     * @see <a href="https://redis.io/commands/zrangestore/">redis.io</a> for more details.
+     * @param destination The key for the destination sorted set.
+     * @param source The key of the source sorted set.
+     * @param rangeQuery The range query object representing the type of range query to perform.<br>
+     *     <ul>
+     *       <li>For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.
+     *       <li>For range queries by lexicographical order, use {@link RangeOptions.RangeByLex}.
+     *       <li>For range queries by score, use {@link RangeOptions.RangeByScore}.
+     *     </ul>
+     *
+     * @return Command Response - The number of elements in the resulting sorted set.
+     */
+    public T zrangestore(
+            @NonNull String destination, @NonNull String source, @NonNull RangeQuery rangeQuery) {
+        return getThis().zrangestore(destination, source, rangeQuery, false);
     }
 
     /**

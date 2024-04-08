@@ -10,10 +10,11 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Arguments for {@link SortedSetBaseCommands#zrange} and {@link
- * SortedSetBaseCommands#zrangeWithScores}
+ * Arguments for {@link SortedSetBaseCommands#zrange}, {@link
+ * SortedSetBaseCommands#zrangeWithScores}, and {@link SortedSetBaseCommands#zrangestore}.
  *
  * @see <a href="https://redis.io/commands/zrange/">redis.io</a>
+ * @see <a href="https://redis.io/commands/zrangestore/">redis.io</a>
  */
 public class RangeOptions {
 
@@ -292,7 +293,23 @@ public class RangeOptions {
 
     public static String[] createZrangeArgs(
             String key, RangeQuery rangeQuery, boolean reverse, boolean withScores) {
-        String[] arguments = new String[] {key, rangeQuery.getStart(), rangeQuery.getEnd()};
+        String[] arguments =
+                concatenateArrays(new String[] {key}, createZrangeBaseArgs(rangeQuery, reverse));
+        if (withScores) {
+            arguments = concatenateArrays(arguments, new String[] {WITH_SCORES_REDIS_API});
+        }
+
+        return arguments;
+    }
+
+    public static String[] createZrangeStoreArgs(
+            String destination, String source, RangeQuery rangeQuery, boolean reverse) {
+        return concatenateArrays(
+                new String[] {destination, source}, createZrangeBaseArgs(rangeQuery, reverse));
+    }
+
+    private static String[] createZrangeBaseArgs(RangeQuery rangeQuery, boolean reverse) {
+        String[] arguments = new String[] {rangeQuery.getStart(), rangeQuery.getEnd()};
 
         if (rangeQuery instanceof RangeByScore) {
             arguments = concatenateArrays(arguments, new String[] {"BYSCORE"});
@@ -313,10 +330,6 @@ public class RangeOptions {
                                 Long.toString(rangeQuery.getLimit().getOffset()),
                                 Long.toString(rangeQuery.getLimit().getCount())
                             });
-        }
-
-        if (withScores) {
-            arguments = concatenateArrays(arguments, new String[] {WITH_SCORES_REDIS_API});
         }
 
         return arguments;

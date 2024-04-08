@@ -58,6 +58,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRangeStore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
@@ -696,6 +697,24 @@ public abstract class BaseClient
     public CompletableFuture<Object[]> zrankWithScore(@NonNull String key, @NonNull String member) {
         return commandManager.submitNewCommand(
                 Zrank, new String[] {key, member, WITH_SCORE_REDIS_API}, this::handleArrayOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> zrangestore(
+            @NonNull String destination,
+            @NonNull String source,
+            @NonNull RangeQuery rangeQuery,
+            boolean reverse) {
+        String[] arguments =
+                RangeOptions.createZrangeStoreArgs(destination, source, rangeQuery, reverse);
+
+        return commandManager.submitNewCommand(ZRangeStore, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> zrangestore(
+            @NonNull String destination, @NonNull String source, @NonNull RangeQuery rangeQuery) {
+        return this.zrangestore(destination, source, rangeQuery, false);
     }
 
     @Override

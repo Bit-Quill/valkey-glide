@@ -67,6 +67,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRangeStore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
@@ -446,6 +447,27 @@ public class TransactionTests {
                                 .addArgs("key")
                                 .addArgs("member")
                                 .addArgs(WITH_SCORE_REDIS_API)
+                                .build()));
+
+        transaction.zrangestore(
+                "destination",
+                "source",
+                new RangeByScore(
+                        InfScoreBound.NEGATIVE_INFINITY, new ScoreBoundary(3, false), new Limit(1, 2)),
+                true);
+        results.add(
+                Pair.of(
+                        ZRangeStore,
+                        ArgsArray.newBuilder()
+                                .addArgs("destination")
+                                .addArgs("source")
+                                .addArgs("-inf")
+                                .addArgs("(3.0")
+                                .addArgs("BYSCORE")
+                                .addArgs("REV")
+                                .addArgs("LIMIT")
+                                .addArgs("1")
+                                .addArgs("2")
                                 .build()));
 
         transaction.xadd("key", Map.of("field1", "foo1"));

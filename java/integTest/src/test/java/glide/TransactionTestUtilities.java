@@ -99,6 +99,7 @@ public class TransactionTestUtilities {
         baseTransaction.zcard(key8);
         baseTransaction.zrange(key8, new RangeByIndex(0, 1));
         baseTransaction.zrangeWithScores(key8, new RangeByIndex(0, 1));
+        baseTransaction.zrangestore(key8, key8, new RangeByIndex(0, -1));
         baseTransaction.zscore(key8, "two");
         baseTransaction.zpopmin(key8);
         baseTransaction.zpopmax(key8);
@@ -184,6 +185,7 @@ public class TransactionTestUtilities {
             2L,
             new String[] {"two", "three"}, // zrange
             Map.of("two", 2.0, "three", 3.0), // zrangeWithScores
+            2L, // zrangestore(key8, key8, new RangeByIndex(0, -1))
             2.0, // zscore(key8, "two")
             Map.of("two", 2.0), // zpopmin(key8)
             Map.of("three", 3.0), // zpopmax(key8)
