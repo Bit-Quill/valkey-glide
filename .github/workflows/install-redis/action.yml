@@ -32,7 +32,6 @@ runs:
           shell: bash
           if: steps.cache-redis.outputs.cache-hit != 'true'
           run: |
-              sudo apt-get update
               wget https://github.com/redis/redis/archive/${{ inputs.redis-version }}.tar.gz;
               tar -xzvf ${{ inputs.redis-version }}.tar.gz;
               pushd redis-${{ inputs.redis-version }} && BUILD_TLS=yes make && sudo mv src/redis-server src/redis-cli ~/redis-binaries/${{ inputs.redis-version }} && popd;
