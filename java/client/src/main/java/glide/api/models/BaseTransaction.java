@@ -1319,7 +1319,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     return <code>0</code>.
      */
     public T zcard(@NonNull String key) {
-        ArgsArray commandArgs = buildArgs(key);
+        ArgsArray commandArgs = buildArgs(new String[] {key});
         protobufTransaction.addCommands(buildCommand(Zcard, commandArgs));
         return getThis();
     }
@@ -1339,7 +1339,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     command returns an empty <code>Map</code>.
      */
     public T zpopmin(@NonNull String key, long count) {
-        ArgsArray commandArgs = buildArgs(key, Long.toString(count));
+        ArgsArray commandArgs = buildArgs(new String[] {key, Long.toString(count)});
         protobufTransaction.addCommands(buildCommand(ZPopMin, commandArgs));
         return getThis();
     }
@@ -1355,7 +1355,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     command returns an empty <code>Map</code>.
      */
     public T zpopmin(@NonNull String key) {
-        ArgsArray commandArgs = buildArgs(key);
+        ArgsArray commandArgs = buildArgs(new String[] {key});
         protobufTransaction.addCommands(buildCommand(ZPopMin, commandArgs));
         return getThis();
     }
@@ -1375,7 +1375,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     command returns an empty <code>Map</code>.
      */
     public T zpopmax(@NonNull String key, long count) {
-        ArgsArray commandArgs = buildArgs(key, Long.toString(count));
+        ArgsArray commandArgs = buildArgs(new String[] {key, Long.toString(count)});
         protobufTransaction.addCommands(buildCommand(ZPopMax, commandArgs));
         return getThis();
     }
@@ -1391,7 +1391,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     command returns an empty <code>Map</code>.
      */
     public T zpopmax(@NonNull String key) {
-        ArgsArray commandArgs = buildArgs(key);
+        ArgsArray commandArgs = buildArgs(new String[] {key});
         protobufTransaction.addCommands(buildCommand(ZPopMax, commandArgs));
         return getThis();
     }
@@ -1432,7 +1432,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     If <code>key</code> does not exist, <code>null</code> is returned.
      */
     public T zscore(@NonNull String key, @NonNull String member) {
-        ArgsArray commandArgs = buildArgs(key, member);
+        ArgsArray commandArgs = buildArgs(new String[] {key, member});
         protobufTransaction.addCommands(buildCommand(ZScore, commandArgs));
         return getThis();
     }
@@ -1440,7 +1440,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Returns the rank of <code>member</code> in the sorted set stored at <code>key</code>, with
      * scores ordered from low to high.<br>
-     * To get the rank of <code>member</code> with its score, see {@link #zrankWithScore}.
+     * To get the rank of <code>member</code> with it's score, see <code>zrankWithScore</code>.
      *
      * @see <a href="https://redis.io/commands/zrank/">redis.io</a> for more details.
      * @param key The key of the sorted set.
@@ -1450,13 +1450,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     <code>null</code> will be returned.
      */
     public T zrank(@NonNull String key, @NonNull String member) {
-        ArgsArray commandArgs = buildArgs(key, member);
+        ArgsArray commandArgs = buildArgs(new String[] {key, member});
         protobufTransaction.addCommands(buildCommand(Zrank, commandArgs));
         return getThis();
     }
 
     /**
-     * Returns the rank of <code>member</code> in the sorted set stored at <code>key</code> with its
+     * Returns the rank of <code>member</code> in the sorted set stored at <code>key</code> with it's
      * score, where scores are ordered from the lowest to highest.
      *
      * @see <a href="https://redis.io/commands/zrank/">redis.io</a> for more details.
@@ -1468,7 +1468,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     <code>null</code> will be returned.
      */
     public T zrankWithScore(@NonNull String key, @NonNull String member) {
-        ArgsArray commandArgs = buildArgs(key, member, WITH_SCORE_REDIS_API);
+        ArgsArray commandArgs = buildArgs(new String[] {key, member, WITH_SCORE_REDIS_API});
         protobufTransaction.addCommands(buildCommand(Zrank, commandArgs));
         return getThis();
     }
@@ -1483,6 +1483,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T pttl(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
+
         protobufTransaction.addCommands(buildCommand(PTTL, commandArgs));
         return getThis();
     }
@@ -1498,7 +1499,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     have an associated timeout, <code>true</code> if the timeout has been removed.
      */
     public T persist(@NonNull String key) {
-        ArgsArray commandArgs = buildArgs(key);
+        ArgsArray commandArgs = buildArgs(new String[] {key});
         protobufTransaction.addCommands(buildCommand(Persist, commandArgs));
         return getThis();
     }
