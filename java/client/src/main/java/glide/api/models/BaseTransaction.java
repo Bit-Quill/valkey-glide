@@ -1400,20 +1400,19 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Blocks the connection until removes and returns a member with the highest score from the sorted
      * sets stored at the specified <code>keys</code>.<br>
      * <code>BZPOPMAX</code> is the blocking variant of {@link #zpopmax(String)}.<br>
-     * A member with the highest score is popped from first sorted set that is non-empty, with the
-     * given <code>keys</code> being checked in the order that they are given.
+     * The given <code>keys</code> are being checked in the order that they are given.
      *
      * @see <a href="https://redis.io/commands/bzpopmax/">redis.io</a> for more details.
      * @apiNote <code>BZPOPMAX</code> is a client blocking command, see <a
      *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
      *     Commands</a> for more details and best practices.
      * @param keys The keys of the sorted sets.
-     * @param timeout The number of seconds to wait for a blocking <code>BZPOPMAX</code> operation to
-     *     complete. A value of <code>0</code> will block indefinitely.
-     * @return Command Response - An array containing the key where element was popped out (as <code>
-     *     String</code>), the element itself (as <code>String</code>) and the element score (as
-     *     <code>Double</code>).<br>
-     *     The data could be interpreted in format as <code>[key, element, score]</code>.<br>
+     * @param timeout The number of seconds to wait for a blocking operation to complete. A value of
+     *     <code>0</code> will block indefinitely.
+     * @return Command Response - An array containing the key where element was popped out, the
+     *     element itself and the element score.<br>
+     *     The data could be interpreted in format as <code>[String key, String element,
+     *     double score]</code>.<br>
      *     If no element could be popped and the timeout expired, returns </code>null</code>.
      */
     public T bzpopmax(@NonNull String[] keys, double timeout) {

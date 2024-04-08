@@ -1218,11 +1218,14 @@ public class SharedCommandTests {
         assertEquals(1, client.zadd(key2, Map.of("c", 2.0)).get());
         assertArrayEquals(
                 new Object[] {key1, "b", 1.5}, client.bzpopmax(new String[] {key1, key2}, .5).get());
-        // nothing popped out
+        // nothing popped out - key does not exist
         assertNull(
                 client
                         .bzpopmax(new String[] {key3}, REDIS_VERSION.isLowerThan("7.0.0") ? 1. : 0.001)
                         .get());
+        // pops from the second key
+        assertArrayEquals(
+                new Object[] {key2, "c", 2.0}, client.bzpopmax(new String[] {key3, key2}, .5).get());
 
         // Key exists, but it is not a sorted set
         assertEquals(OK, client.set(key3, "value").get());
