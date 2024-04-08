@@ -53,7 +53,6 @@ jobs:
                   submodules: recursive
 
             - name: Install redis
-              # TODO: make this step macos compatible: https://github.com/aws/glide-for-redis/issues/781
               if: ${{ matrix.os == 'ubuntu-latest' }}
               uses: ./.github/workflows/install-redis
               with:
