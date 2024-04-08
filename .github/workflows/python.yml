@@ -145,6 +145,18 @@ jobs:
                   target: "x86_64-apple-darwin"
                   github-token: ${{ secrets.GITHUB_TOKEN }}
 
+            - name: Install shared software dependencies
+              uses: ./.github/workflows/install-shared-dependencies
+              with:
+                  os: "macos-latest"
+                  target: "x86_64-apple-darwin"
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Install redis
+              uses: ./.github/workflows/install-redis
+              with:
+                  redis-version: 6.2.14
+
             - name: Test compatibility with pytest
               working-directory: ./python
               run: |
@@ -177,6 +189,13 @@ jobs:
 
             - name: Build Python wrapper
               uses: ./.github/workflows/build-python-wrapper
+              with:
+                  os: "amazon-linux"
+                  target: "x86_64-unknown-linux-gnu"
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Install shared software dependencies
+              uses: ./.github/workflows/install-shared-dependencies
               with:
                   os: "amazon-linux"
                   target: "x86_64-unknown-linux-gnu"

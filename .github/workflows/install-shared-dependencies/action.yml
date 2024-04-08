@@ -46,7 +46,7 @@ runs:
           shell: bash
           if: "${{ inputs.os == 'amazon-linux' }}"
           run: |
-              yum install -y gcc pkgconfig openssl openssl-devel which curl gettext --allowerasing
+              yum install -y gcc pkgconfig openssl openssl-devel which curl gettext wget jemalloc-devel lua-devel make gcc tar gzip --allowerasing
 
         - name: Install Rust toolchain
           uses: dtolnay/rust-toolchain@stable
