@@ -28,7 +28,7 @@ runs:
                   ~/redis-binaries/${{ inputs.redis-version }}/redis-server
               key: ${{ runner.os }}-${{ inputs.redis-version }}-install-redis
 
-        - name: Install redis
+        - name: Build redis
           shell: bash
           if: steps.cache-redis.outputs.cache-hit != 'true'
           run: |
@@ -37,12 +37,7 @@ runs:
               mkdir -p ~/redis-binaries/${{ inputs.redis-version }}
               pushd redis-${{ inputs.redis-version }} && BUILD_TLS=yes make && mv src/redis-server src/redis-cli ~/redis-binaries/${{ inputs.redis-version }} && popd;
 
-        - name: Copy executable to place
+        - name: Install
           shell: bash
           run: |
-            echo runner.os = ${{ runner.os }}
-            echo RUNNER_OS = $RUNNER_OS
-            uname -a
-            # No `sudo` on `amazon-linux` and it is not required
-            ${{ runner.os == 'amazon-linux' && '' || 'sudo' }} \
-              cp ~/redis-binaries/${{ inputs.redis-version }}/redis-server ~/redis-binaries/${{ inputs.redis-version }}/redis-cli /usr/local/bin/
+            echo $HOME/redis-binaries/${{ inputs.redis-version }} >> $GITHUB_PATH
