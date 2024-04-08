@@ -40,6 +40,9 @@ runs:
         - name: Copy executable to place
           shell: bash
           run: |
+            echo runner.os = ${{ runner.os }}
+            echo RUNNER_OS = $RUNNER_OS
+            uname -a
             # No `sudo` on `amazon-linux` and it is not required
-            ${{ matrix.os == 'amazon-linux' && '' || 'sudo' }} \
+            ${{ runner.os == 'amazon-linux' && '' || 'sudo' }} \
               cp ~/redis-binaries/${{ inputs.redis-version }}/redis-server ~/redis-binaries/${{ inputs.redis-version }}/redis-cli /usr/local/bin/
