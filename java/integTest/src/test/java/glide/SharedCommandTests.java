@@ -1256,7 +1256,7 @@ public class SharedCommandTests {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
         Map<String, Double> membersScores = Map.of("one", 1.0, "two", 2.0, "three", 3.0, "four", 4.0);
-        assertEquals(3, client.zadd(key1, membersScores).get());
+        assertEquals(4, client.zadd(key1, membersScores).get());
 
         assertEquals(
                 2, client.zremrangebyscore(key1, new ScoreBoundary(1, false), new ScoreBoundary(3)).get());
