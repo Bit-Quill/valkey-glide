@@ -1487,10 +1487,10 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param maxLex The maximum lex to remove to. Can be an implementation of {@link InfLexBound}
      *     representing positive/negative infinity, or {@link LexBoundary} representing a specific lex
      *     and inclusivity.
-     * @return CommandResponse - The number of members removed.<br>
+     * @return Command Response - The number of members removed.<br>
      *     If <code>key</code> does not exist, it is treated as an empty sorted set, and the command
      *     returns <code>0</code>.<br>
-     *     If <code>minScore</code> is greater than <code>maxScore</code>, <code>0</code> is returned.
+     *     If <code>minLex</code> is greater than <code>maxLex</code>, <code>0</code> is returned.
      */
     public T zremrangebylex(@NonNull String key, @NonNull LexRange minLex, @NonNull LexRange maxLex) {
         ArgsArray commandArgs = buildArgs(key, minLex.toArgs(), maxLex.toArgs());
