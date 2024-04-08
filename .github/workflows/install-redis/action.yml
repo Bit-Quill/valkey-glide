@@ -43,4 +43,4 @@ runs:
 
         - name: Copy executable to place
           shell: bash
-          run: sudo cp ~/redis-binaries/${{ inputs.redis-version }}/redis-server ~/redis-binaries/${{ inputs.redis-version }}/redis-cli /usr/bin/
+          run: sudo cp ~/redis-binaries/${{ inputs.redis-version }}/redis-server ~/redis-binaries/${{ inputs.redis-version }}/redis-cli /usr/local/bin/
