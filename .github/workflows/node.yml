@@ -193,5 +193,7 @@ jobs:
                   redis-version: 6.2.14
 
             - name: Test compatibility
-              run: npm test -- -t "set and get flow works"
               working-directory: ./node
+              run: |
+                npm install --save-dev jest
+                npm test -- -t "set and get flow works"
