@@ -274,9 +274,9 @@ public interface SortedSetBaseCommands {
 
     /**
      * Blocks the connection until it removes and returns a member with the highest score from the
-     * sorted sets stored at the specified <code>keys</code>.<br>
+     * sorted sets stored at the specified <code>keys</code>. The sorted sets are checked in the order
+     * they are provided.<br>
      * <code>BZPOPMAX</code> is the blocking variant of {@link #zpopmax(String)}.<br>
-     * The given <code>keys</code> are checked in the order that they are given.
      *
      * @see <a href="https://redis.io/commands/bzpopmax/">redis.io</a> for more details.
      * @apiNote <code>BZPOPMAX</code> is a client blocking command, see <a
