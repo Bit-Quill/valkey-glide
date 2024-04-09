@@ -77,16 +77,16 @@ public interface SetBaseCommands {
     CompletableFuture<Long> scard(String key);
 
     /**
-     * Returns whether each member is a member of the set stored at <code>key</code>.
+     * Checks whether each member is contained in the members of the set stored at <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/smismember/">redis.io</a> for details.
      * @param key The key of the set to check.
-     * @param members A list of members to check their presence.
+     * @param members A list of members to check for existence in the set.
      * @return An array of boolean values, each indicating if the respective member exists in the set.
      * @example
      *     <pre>{@code
-     * Boolean[] presence = client.smismembmer("my_set", new String[] { "a", "b", "c" }).get();
-     * assert presence[0] && presence[1] && !presence[2]; // Only first two elements are present in the set
+     * Boolean[] areMembers = client.smismembmer("my_set", new String[] { "a", "b", "c" }).get();
+     * assert areMembers[0] && areMembers[1] && !areMembers[2]; // Only first two elements are present in the set
      * }</pre>
      */
     CompletableFuture<Boolean[]> smismember(String key, String[] members);

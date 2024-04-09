@@ -831,12 +831,12 @@ public class SharedCommandTests {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
 
-        assertEquals(2, client.sadd(key1, new String[] {"1", "2"}).get());
+        assertEquals(2, client.sadd(key1, new String[] {"one", "two"}).get());
         assertArrayEquals(
-                new Boolean[] {true, false}, client.smismember(key1, new String[] {"1", "3"}).get());
+                new Boolean[] {true, false}, client.smismember(key1, new String[] {"one", "three"}).get());
         // empty set
         assertArrayEquals(
-                new Boolean[] {false, false}, client.smismember(key2, new String[] {"1", "3"}).get());
+                new Boolean[] {false, false}, client.smismember(key2, new String[] {"one", "three"}).get());
         // Key exists, but it is not a set
         assertEquals(OK, client.set(key2, "value").get());
         ExecutionException executionException =
