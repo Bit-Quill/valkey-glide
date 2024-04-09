@@ -860,16 +860,15 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Returns whether each <code>member</code> is a member of the set stored at <code>key</code>.
+     * Returns whether each member is a member of the set stored at <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/smismember/">redis.io</a> for details.
      * @param key The key of the set to check.
      * @param members A list of members to check their presence.
-     * @return Command Response - An array of boolean values indicating the members presence. Each
-     *     array element reflects presence of the corresponding member in <code>members</code>
-     *     argument.
+     * @return Command response - An array of boolean values, each indicating if the respective member
+     *     exists in the set.
      */
-    public T smismembmer(String key, String[] members) {
+    public T smismember(@NonNull String key, @NonNull String[] members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
         protobufTransaction.addCommands(buildCommand(SMIsMember, commandArgs));
         return getThis();

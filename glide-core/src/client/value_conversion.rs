@@ -170,7 +170,7 @@ pub(crate) fn convert_to_expected_type(
             }
             _ => Err((
                 ErrorKind::TypeError,
-                "Response couldn't be converted to an array of {boolean}",
+                "Response couldn't be converted to an array of boolean",
                 format!("(response was {:?})", value),
             )
                 .into()),

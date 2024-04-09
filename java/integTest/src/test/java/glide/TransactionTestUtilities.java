@@ -91,7 +91,7 @@ public class TransactionTestUtilities {
         baseTransaction.srem(key7, new String[] {"foo"});
         baseTransaction.scard(key7);
         baseTransaction.smembers(key7);
-        baseTransaction.smismembmer(key7, new String[] {"baz", "foo"});
+        baseTransaction.smismember(key7, new String[] {"baz", "foo"});
 
         baseTransaction.zadd(key8, Map.of("one", 1.0, "two", 2.0, "three", 3.0));
         baseTransaction.zrank(key8, "one");

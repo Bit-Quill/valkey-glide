@@ -833,15 +833,15 @@ public class SharedCommandTests {
 
         assertEquals(2, client.sadd(key1, new String[] {"1", "2"}).get());
         assertArrayEquals(
-                new Boolean[] {true, false}, client.smismembmer(key1, new String[] {"1", "3"}).get());
+                new Boolean[] {true, false}, client.smismember(key1, new String[] {"1", "3"}).get());
         // empty set
         assertArrayEquals(
-                new Boolean[] {false, false}, client.smismembmer(key2, new String[] {"1", "3"}).get());
+                new Boolean[] {false, false}, client.smismember(key2, new String[] {"1", "3"}).get());
         // Key exists, but it is not a set
         assertEquals(OK, client.set(key2, "value").get());
         ExecutionException executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.smismembmer(key2, new String[] {"_"}).get());
+                        ExecutionException.class, () -> client.smismember(key2, new String[] {"_"}).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
 

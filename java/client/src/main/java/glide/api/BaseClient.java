@@ -505,7 +505,7 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Boolean[]> smismembmer(String key, String[] members) {
+    public CompletableFuture<Boolean[]> smismember(@NonNull String key, @NonNull String[] members) {
         String[] arguments = ArrayUtils.addFirst(members, key);
         return commandManager.submitNewCommand(
                 SMIsMember, arguments, response -> castArray(handleArrayResponse(response), Boolean.class));

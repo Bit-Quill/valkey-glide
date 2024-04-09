@@ -263,7 +263,7 @@ public class TransactionTests {
         transaction.scard("key");
         results.add(Pair.of(SCard, ArgsArray.newBuilder().addArgs("key").build()));
 
-        transaction.smismembmer("key", new String[] {"1", "2"});
+        transaction.smismember("key", new String[] {"1", "2"});
         results.add(
                 Pair.of(
                         SMIsMember, ArgsArray.newBuilder().addArgs("key").addArgs("1").addArgs("2").build()));

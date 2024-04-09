@@ -1606,7 +1606,7 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Boolean[]> response = service.smismembmer(key, members);
+        CompletableFuture<Boolean[]> response = service.smismember(key, members);
         Boolean[] payload = response.get();
 
         // verify
