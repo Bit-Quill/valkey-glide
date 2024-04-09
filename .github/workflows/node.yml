@@ -173,13 +173,6 @@ jobs:
               run: |
                   yum install -y nodejs
 
-            - name: Build Node wrapper
-              uses: ./.github/workflows/build-node-wrapper
-              with:
-                  os: "amazon-linux"
-                  target: "x86_64-unknown-linux-gnu"
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-
             - name: Install shared software dependencies
               uses: ./.github/workflows/install-shared-dependencies
               with:
@@ -191,6 +184,13 @@ jobs:
               uses: ./.github/workflows/install-redis
               with:
                   redis-version: 6.2.14
+
+            - name: Build Node wrapper
+              uses: ./.github/workflows/build-node-wrapper
+              with:
+                  os: "amazon-linux"
+                  target: "x86_64-unknown-linux-gnu"
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Test compatibility
               working-directory: ./node
