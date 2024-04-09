@@ -912,8 +912,8 @@ class TestCommands:
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
     async def test_blpop(self, redis_client: TRedisClient):
-        key1 = f"{{test}}-f{get_random_string(10)}"
-        key2 = f"{{test}}-f{get_random_string(10)}"
+        key1 = f"{{test}}-1-f{get_random_string(10)}"
+        key2 = f"{{test}}-2-f{get_random_string(10)}"
         value1 = "value1"
         value2 = "value2"
         value_list = [value1, value2]
@@ -923,16 +923,17 @@ class TestCommands:
 
         # Redis versions < 7.0.0 do not accept floating point values for the timeout, so will be rounded
         timeout = 1.0 if check_if_server_version_lt(redis_client, "7.0.0") else 0.001
+        assert await redis_client.blpop([key2], timeout) is None
+        # Key exists, but not a list
         assert await redis_client.set("foo", "bar")
         with pytest.raises(RequestError) as e:
             await redis_client.blpop(["foo"], timeout)
-        assert "Operation against a key holding the wrong kind of value" in str(e)
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
     async def test_brpop(self, redis_client: TRedisClient):
-        key1 = f"{{test}}-f{get_random_string(10)}"
-        key2 = f"{{test}}-f{get_random_string(10)}"
+        key1 = f"{{test}}-1-f{get_random_string(10)}"
+        key2 = f"{{test}}-2-f{get_random_string(10)}"
         value1 = "value1"
         value2 = "value2"
         value_list = [value1, value2]
@@ -942,10 +943,11 @@ class TestCommands:
 
         # Redis versions < 7.0.0 do not accept floating point values for the timeout, so will be rounded
         timeout = 1.0 if check_if_server_version_lt(redis_client, "7.0.0") else 0.001
+        assert await redis_client.brpop([key2], timeout) is None
+        # Key exists, but not a list
         assert await redis_client.set("foo", "bar")
         with pytest.raises(RequestError) as e:
             await redis_client.brpop(["foo"], timeout)
-        assert "Operation against a key holding the wrong kind of value" in str(e)
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
