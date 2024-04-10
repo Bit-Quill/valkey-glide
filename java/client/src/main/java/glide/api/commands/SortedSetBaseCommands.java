@@ -468,7 +468,7 @@ public interface SortedSetBaseCommands {
      * @example
      *     <pre>{@code
      * RangeByIndex query1 = new RangeByIndex(0, -1); // Query for all members.
-     * Long payload1 = client.zrange("destinationKey","mySortedSet",query1).get();
+     * Long payload1 = client.zrange("destinationKey", "mySortedSet", query1).get();
      * assert payload1 == 7L;
      *
      * RangeByScore query2 = new RangeByScore(InfScoreBound.NEGATIVE_INFINITY, new ScoreBoundary(3)); // Query for members with scores within the range of negative infinity to 3.
