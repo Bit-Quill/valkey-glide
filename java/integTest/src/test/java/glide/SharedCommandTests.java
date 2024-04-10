@@ -856,15 +856,19 @@ public class SharedCommandTests {
         assertEquals(3, client.sadd(key1, new String[] {"a", "b", "c"}).get());
         assertEquals(3, client.sadd(key2, new String[] {"c", "d", "e"}).get());
         assertEquals(3, client.sadd(key4, new String[] {"e", "f", "g"}).get());
+
         // create new
         assertEquals(5, client.sunionstore(key3, new String[] {key1, key2}).get());
         assertEquals(Set.of("a", "b", "c", "d", "e"), client.smembers(key3).get());
+
         // overwrite existing set
         assertEquals(5, client.sunionstore(key2, new String[] {key3, key2}).get());
         assertEquals(Set.of("a", "b", "c", "d", "e"), client.smembers(key2).get());
+
         // overwrite source
         assertEquals(6, client.sunionstore(key1, new String[] {key1, key4}).get());
         assertEquals(Set.of("a", "b", "c", "e", "f", "g"), client.smembers(key1).get());
+
         // overwrite source
         assertEquals(6, client.sunionstore(key1, new String[] {key1}).get());
         assertEquals(Set.of("a", "b", "c", "e", "f", "g"), client.smembers(key1).get());

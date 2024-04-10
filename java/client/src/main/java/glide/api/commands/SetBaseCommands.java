@@ -97,16 +97,17 @@ public interface SetBaseCommands {
     CompletableFuture<Boolean> sismember(String key, String member);
 
     /**
-     * Stores the members of the set resulting from the union of all the given sets into new set.
+     * Stores the members of the union of all given sets specified by <code>keys</code> into a new set
+     * at <code>destination</code>.
      *
      * @see <a href="https://redis.io/commands/sunionstore/">redis.io</a> for details.
-     * @param destination The key of the destination set where the merged sets will be stored.
-     * @param keys The key from which to retrieve the set members.
+     * @param destination The key of the destination set.
+     * @param keys The keys from which to retrieve the set members.
      * @return The number of elements in the resulting set.
      * @example
      *     <pre>{@code
-     * long length = client.sunionstore("mySet", new String[] { "set1", "set2" }).get();
-     * assert length == 5;
+     * Long length = client.sunionstore("mySet", new String[] { "set1", "set2" }).get();
+     * assert length == 5L;
      * }</pre>
      */
     CompletableFuture<Long> sunionstore(String destination, String[] keys);
