@@ -880,12 +880,12 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Stores the members of the difference between the first set and all the successive sets in
-     * <code>keys</code> into a new set at <code>destination</code>.
+     * Stores the difference between the first set and all the successive sets in <code>keys</code>
+     * into a new set at <code>destination</code>.
      *
      * @see <a href="https://redis.io/commands/sdiffstore/">redis.io</a> for details.
      * @param destination The key of the destination set.
-     * @param keys The keys from which to retrieve the set members.
+     * @param keys The keys of the sets.
      * @return Command Response - The number of elements in the resulting set.
      */
     public T sdiffstore(@NonNull String destination, @NonNull String[] keys) {
