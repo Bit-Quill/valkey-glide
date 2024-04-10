@@ -103,6 +103,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
+import static redis_request.RedisRequestOuterClass.RequestType.ZUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcount;
@@ -126,6 +127,8 @@ import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
 import glide.api.models.commands.StreamAddOptions;
+import glide.api.models.commands.WeightAggregateOptions;
+import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.ZaddOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
@@ -2499,6 +2502,69 @@ public class RedisClientTest {
         // exercise
         CompletableFuture<Long> response =
                 service.zremrangebylex(key, InfLexBound.NEGATIVE_INFINITY, new LexBoundary("z", true));
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zunionstore_returns_success() {
+        // setup
+        String destination = "destinationKey";
+        String[] keys = new String[] {"key1", "key2"};
+        String[] arguments = new String[] {destination, Integer.toString(keys.length), "key1", "key2"};
+        Long value = 5L;
+
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(ZUnionStore), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.zunionstore(destination, keys);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zunionstore_with_options_returns_success() {
+        // setup
+        String destination = "destinationKey";
+        String[] keys = new String[] {"key1", "key2"};
+        WeightAggregateOptions options =
+                WeightAggregateOptions.builder().weight(10.0).weight(20.0).aggregate(Aggregate.MIN).build();
+        String[] arguments =
+                new String[] {
+                    destination,
+                    Integer.toString(keys.length),
+                    "key1",
+                    "key2",
+                    "WEIGHTS",
+                    "10.0",
+                    "20.0",
+                    "AGGREGATE",
+                    "MIN"
+                };
+        Long value = 5L;
+
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(ZUnionStore), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.zunionstore(destination, keys, options);
         Long payload = response.get();
 
         // verify

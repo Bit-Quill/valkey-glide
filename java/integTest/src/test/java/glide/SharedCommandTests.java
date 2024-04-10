@@ -35,6 +35,8 @@ import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.StreamAddOptions;
+import glide.api.models.commands.WeightAggregateOptions;
+import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
@@ -1343,6 +1345,77 @@ public class SharedCommandTests {
         assertEquals(OK, client.set(key, "value").get());
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.zrank(key, "one").get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void zunionstore(BaseClient client) {
+        String key1 = "{testKey}:1-" + UUID.randomUUID();
+        String key2 = "{testKey}:2-" + UUID.randomUUID();
+        String key3 = "{testKey}:3-" + UUID.randomUUID();
+        String key4 = "{testKey}:3-" + UUID.randomUUID();
+        RangeByIndex query = new RangeByIndex(0, -1);
+        Map<String, Double> membersScores1 = Map.of("one", 1.0, "two", 2.0);
+        Map<String, Double> membersScores2 = Map.of("two", 2.5, "three", 3.0);
+
+        assertEquals(2, client.zadd(key1, membersScores1).get());
+        assertEquals(2, client.zadd(key2, membersScores2).get());
+
+        assertEquals(3, client.zunionstore(key3, new String[] {key1, key2}).get());
+        assertEquals(
+                Map.of("one", 1.0, "two", 4.5, "three", 3.0), client.zrangeWithScores(key3, query).get());
+
+        WeightAggregateOptions options =
+                WeightAggregateOptions.builder().aggregate(Aggregate.MAX).build();
+        assertEquals(3, client.zunionstore(key3, new String[] {key1, key2}, options).get());
+        assertEquals(
+                Map.of("one", 1.0, "two", 2.5, "three", 3.0), client.zrangeWithScores(key3, query).get());
+
+        options = WeightAggregateOptions.builder().aggregate(Aggregate.MIN).build();
+        assertEquals(3, client.zunionstore(key3, new String[] {key1, key2}, options).get());
+        assertEquals(
+                Map.of("one", 1.0, "two", 2.0, "three", 3.0), client.zrangeWithScores(key3, query).get());
+
+        options = WeightAggregateOptions.builder().aggregate(Aggregate.SUM).build();
+        assertEquals(3, client.zunionstore(key3, new String[] {key1, key2}, options).get());
+        assertEquals(
+                Map.of("one", 1.0, "two", 4.5, "three", 3.0), client.zrangeWithScores(key3, query).get());
+
+        options = WeightAggregateOptions.builder().weights(List.of(2.0, 2.0)).build();
+        assertEquals(3, client.zunionstore(key3, new String[] {key1, key2}, options).get());
+        assertEquals(
+                Map.of("one", 2.0, "two", 9.0, "three", 6.0), client.zrangeWithScores(key3, query).get());
+
+        options =
+                WeightAggregateOptions.builder()
+                        .aggregate(Aggregate.MAX)
+                        .weights(List.of(1.0, 2.0))
+                        .build();
+        assertEquals(3, client.zunionstore(key3, new String[] {key1, key2}, options).get());
+        assertEquals(
+                Map.of("one", 1.0, "two", 5.0, "three", 6.0), client.zrangeWithScores(key3, query).get());
+
+        // Key exists, but it is not a set
+        assertEquals(OK, client.set(key4, "value").get());
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.zunionstore(key3, new String[] {key4, key2}).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Keys.length != Weights.length
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .zunionstore(
+                                                key3,
+                                                new String[] {key1, key2},
+                                                WeightAggregateOptions.builder().weights(List.of(2.0)).build())
+                                        .get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
 

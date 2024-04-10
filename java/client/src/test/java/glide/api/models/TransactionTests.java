@@ -87,6 +87,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
+import static redis_request.RedisRequestOuterClass.RequestType.ZUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcount;
@@ -103,6 +104,8 @@ import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.StreamAddOptions;
+import glide.api.models.commands.WeightAggregateOptions;
+import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.ZaddOptions;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -373,6 +376,39 @@ public class TransactionTests {
                                 .addArgs("key1")
                                 .addArgs("key2")
                                 .addArgs(WITH_SCORES_REDIS_API)
+                                .build()));
+
+        transaction.zunionstore("destination", new String[] {"key1", "key2"});
+        results.add(
+                Pair.of(
+                        ZUnionStore,
+                        ArgsArray.newBuilder()
+                                .addArgs("destination")
+                                .addArgs("2")
+                                .addArgs("key1")
+                                .addArgs("key2")
+                                .build()));
+
+        transaction.zunionstore(
+                "destination",
+                new String[] {"key1", "key2"},
+                WeightAggregateOptions.builder()
+                        .weights(List.of(10.0, 20.0))
+                        .aggregate(Aggregate.MAX)
+                        .build());
+        results.add(
+                Pair.of(
+                        ZUnionStore,
+                        ArgsArray.newBuilder()
+                                .addArgs("destination")
+                                .addArgs("2")
+                                .addArgs("key1")
+                                .addArgs("key2")
+                                .addArgs("WEIGHTS")
+                                .addArgs("10.0")
+                                .addArgs("20.0")
+                                .addArgs("AGGREGATE")
+                                .addArgs(Aggregate.MAX.toString())
                                 .build()));
 
         transaction.zdiffstore("destKey", new String[] {"key1", "key2"});

@@ -5,6 +5,7 @@ import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 
 import glide.api.commands.SortedSetBaseCommands;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
  * @see <a href="https://redis.io/commands/zremrangebylex/">redis.io</a>
  * @see <a href="https://redis.io/commands/zrange/">redis.io</a>
  */
+@Builder
 public class RangeOptions {
 
     /**
