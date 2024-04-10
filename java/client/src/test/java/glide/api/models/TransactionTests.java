@@ -79,6 +79,7 @@ import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
 import glide.api.models.commands.RangeOptions.Limit;
+import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
@@ -468,6 +469,17 @@ public class TransactionTests {
                                 .addArgs("LIMIT")
                                 .addArgs("1")
                                 .addArgs("2")
+                                .build()));
+
+        transaction.zrangestore("destination", "source", new RangeByIndex(2, 3));
+        results.add(
+                Pair.of(
+                        ZRangeStore,
+                        ArgsArray.newBuilder()
+                                .addArgs("destination")
+                                .addArgs("source")
+                                .addArgs("2")
+                                .addArgs("3")
                                 .build()));
 
         transaction.xadd("key", Map.of("field1", "foo1"));

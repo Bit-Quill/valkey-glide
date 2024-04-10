@@ -1485,13 +1485,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param source The key of the source sorted set.
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
      *     <ul>
-     *       <li>For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.
-     *       <li>For range queries by lexicographical order, use {@link RangeOptions.RangeByLex}.
-     *       <li>For range queries by score, use {@link RangeOptions.RangeByScore}.
+     *       <li>For range queries by index (rank), use {@link RangeByIndex}.
+     *       <li>For range queries by lexicographical order, use {@link RangeByLex}.
+     *       <li>For range queries by score, use {@link RangeByScore}.
      *     </ul>
      *
-     * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
-     *     score.
+     * @param reverse If <code>true</code>, reverses the sorted set, with index <code>0</code> as the
+     *     element with the highest score.
      * @return Command Response - The number of elements in the resulting sorted set.
      */
     public T zrangestore(
@@ -1517,9 +1517,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param source The key of the source sorted set.
      * @param rangeQuery The range query object representing the type of range query to perform.<br>
      *     <ul>
-     *       <li>For range queries by index (rank), use {@link RangeOptions.RangeByIndex}.
-     *       <li>For range queries by lexicographical order, use {@link RangeOptions.RangeByLex}.
-     *       <li>For range queries by score, use {@link RangeOptions.RangeByScore}.
+     *       <li>For range queries by index (rank), use {@link RangeByIndex}.
+     *       <li>For range queries by lexicographical order, use {@link RangeByLex}.
+     *       <li>For range queries by score, use {@link RangeByScore}.
      *     </ul>
      *
      * @return Command Response - The number of elements in the resulting sorted set.

@@ -430,13 +430,13 @@ public interface SortedSetBaseCommands {
      *       <li>For range queries by score, use {@link RangeByScore}.
      *     </ul>
      *
-     * @param reverse If true, reverses the sorted set, with index 0 as the element with the highest
-     *     score.
+     * @param reverse If <code>true</code>, reverses the sorted set, with index <code>0</code> as the
+     *     element with the highest score.
      * @return The number of elements in the resulting sorted set.
      * @example
      *     <pre>{@code
      * RangeByIndex query1 = new RangeByIndex(0, -1); // Query for all members.
-     * Long payload1 = client.zrange("destinationKey","mySortedSet",query1, true).get();
+     * Long payload1 = client.zrange("destinationKey", "mySortedSet", query1, true).get();
      * assert payload1 == 7L;
      *
      * RangeByScore query2 = new RangeByScore(InfScoreBound.NEGATIVE_INFINITY, new ScoreBoundary(3)); // Query for members with scores within the range of negative infinity to 3.

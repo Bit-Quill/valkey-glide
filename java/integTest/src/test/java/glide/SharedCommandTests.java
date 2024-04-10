@@ -1297,7 +1297,7 @@ public class SharedCommandTests {
                 Map.of("three", 3.0, "two", 2.0),
                 client.zrangeWithScores(destination, new RangeByIndex(0, -1)).get());
 
-        // Non-existent range as start > stop.
+        // Incorrect range as start > stop.
         assertEquals(0, client.zrangestore(destination, source, new RangeByIndex(3, 1)).get());
         assertEquals(Map.of(), client.zrangeWithScores(destination, new RangeByIndex(0, -1)).get());
 
@@ -1348,7 +1348,7 @@ public class SharedCommandTests {
                 Map.of("two", 2.0, "three", 3.0),
                 client.zrangeWithScores(destination, new RangeByIndex(0, -1)).get());
 
-        //  Range from positive to negative infinity with rev set to true.Limited to ranks 1 to 2.
+        // Range from positive to negative infinity with rev set to true.Limited to ranks 1 to 2.
         query =
                 new RangeByScore(
                         InfScoreBound.POSITIVE_INFINITY, InfScoreBound.NEGATIVE_INFINITY, new Limit(1, 2));
@@ -1357,7 +1357,7 @@ public class SharedCommandTests {
                 Map.of("two", 2.0, "one", 1.0),
                 client.zrangeWithScores(destination, new RangeByIndex(0, -1)).get());
 
-        // Non-existent range as start > stop.
+        // Incorrect range as start > stop.
         query = new RangeByScore(new ScoreBoundary(3, false), InfScoreBound.NEGATIVE_INFINITY);
         assertEquals(0, client.zrangestore(destination, source, query).get());
         assertEquals(Map.of(), client.zrangeWithScores(destination, new RangeByIndex(0, -1)).get());
@@ -1415,7 +1415,7 @@ public class SharedCommandTests {
                 Map.of("b", 2.0, "c", 3.0),
                 client.zrangeWithScores(destination, new RangeByIndex(0, -1)).get());
 
-        //  Range from positive to negative infinity with rev set to true.Limited to ranks 1 to 2.
+        // Range from positive to negative infinity with rev set to true.Limited to ranks 1 to 2.
         query =
                 new RangeByLex(
                         InfLexBound.POSITIVE_INFINITY, InfLexBound.NEGATIVE_INFINITY, new Limit(1, 2));
