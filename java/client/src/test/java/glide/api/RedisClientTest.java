@@ -2311,11 +2311,11 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(ZRemRangeByScore), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Long> response =
-            service.zremrangebyscore(key, InfScoreBound.NEGATIVE_INFINITY, new ScoreBoundary(10, true));
+                service.zremrangebyscore(key, InfScoreBound.NEGATIVE_INFINITY, new ScoreBoundary(10, true));
         Long payload = response.get();
 
         // verify

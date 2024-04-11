@@ -86,8 +86,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
-import glide.api.models.commands.RangeOptions.InfScoreBound;
 import glide.api.models.commands.LInsertOptions.InsertPosition;
+import glide.api.models.commands.RangeOptions.InfScoreBound;
 import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.RangeByLex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
@@ -1514,7 +1514,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     If <code>minScore</code> is greater than <code>maxScore</code>, <code>0</code> is returned.
      */
     public T zremrangebyscore(
-        @NonNull String key, @NonNull ScoreRange minScore, @NonNull ScoreRange maxScore) {
+            @NonNull String key, @NonNull ScoreRange minScore, @NonNull ScoreRange maxScore) {
         ArgsArray commandArgs = buildArgs(key, minScore.toArgs(), maxScore.toArgs());
         protobufTransaction.addCommands(buildCommand(ZRemRangeByScore, commandArgs));
         return getThis();
