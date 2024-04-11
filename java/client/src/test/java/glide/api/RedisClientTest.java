@@ -14,6 +14,8 @@ import static glide.api.models.commands.StreamAddOptions.TRIM_LIMIT_REDIS_API;
 import static glide.api.models.commands.StreamAddOptions.TRIM_MAXLEN_REDIS_API;
 import static glide.api.models.commands.StreamAddOptions.TRIM_MINID_REDIS_API;
 import static glide.api.models.commands.StreamAddOptions.TRIM_NOT_EXACT_REDIS_API;
+import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_API;
+import static glide.api.models.commands.WeightAggregateOptions.WEIGHTS_REDIS_API;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -2548,10 +2550,10 @@ public class RedisClientTest {
                     Integer.toString(keys.length),
                     "key1",
                     "key2",
-                    "WEIGHTS",
+                    WEIGHTS_REDIS_API,
                     "10.0",
                     "20.0",
-                    "AGGREGATE",
+                    AGGREGATE_REDIS_API,
                     "MIN"
                 };
         Long value = 5L;

@@ -9,12 +9,16 @@ import lombok.Builder;
 import lombok.Singular;
 
 /**
- * Optional arguments to {@link SortedSetBaseCommands#zunionstore}
+ * Optional arguments to {@link SortedSetBaseCommands#zunionstore(String, String[],
+ * WeightAggregateOptions)}
  *
  * @see <a href="https://redis.io/commands/zunionstore/">redis.io</a> for more details.
  */
 @Builder
 public final class WeightAggregateOptions {
+    public static final String WEIGHTS_REDIS_API = "WEIGHTS";
+    public static final String AGGREGATE_REDIS_API = "AGGREGATE";
+
     /**
      * Represents multiplication factors for each sorted set, ready for aggregation. Each
      * multiplication factor corresponds one-to-one with the sets. The score of every element in these
@@ -50,13 +54,13 @@ public final class WeightAggregateOptions {
         List<String> optionArgs = new ArrayList<>();
 
         if (!weights.isEmpty()) {
-            optionArgs.add("WEIGHTS");
+            optionArgs.add(WEIGHTS_REDIS_API);
             optionArgs.addAll(
                     weights.stream().map(element -> Double.toString(element)).collect(Collectors.toList()));
         }
 
         if (aggregate != null) {
-            optionArgs.addAll(List.of("AGGREGATE", aggregate.toString()));
+            optionArgs.addAll(List.of(AGGREGATE_REDIS_API, aggregate.toString()));
         }
 
         return optionArgs.toArray(new String[0]);

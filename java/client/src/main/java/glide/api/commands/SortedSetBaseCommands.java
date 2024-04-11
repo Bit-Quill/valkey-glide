@@ -622,7 +622,7 @@ public interface SortedSetBaseCommands {
      *
      * @see <a href="https://redis.io/commands/zunionstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
-     * @param keys The keys of sorted sets subjected to the aggregation operation.
+     * @param keys The keys of sorted sets.
      * @param options Weight and Aggregate options.
      * @return The number of elements in the resulting sorted set.
      * @example
@@ -633,7 +633,7 @@ public interface SortedSetBaseCommands {
      *             .weights(List.of(1.0, 2.0))
      *             .build();
      * Long payload = client.zunionstore("newSortedSet", new String[] {"mySortedSet1", "mySortedSet2"}, options).get()
-     * assert payload == 3L; // Indicates the new sorted set contains three members from the union of "mySortedSet1" and "mySortedSet2."
+     * assert payload == 3L; // Indicates the new sorted set contains three members from the union of "mySortedSet1" and "mySortedSet2".
      * }</pre>
      */
     CompletableFuture<Long> zunionstore(
@@ -646,7 +646,7 @@ public interface SortedSetBaseCommands {
      *
      * @see <a href="https://redis.io/commands/zunionstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
-     * @param keys The keys of sorted sets subjected to the aggregation operation.
+     * @param keys The keys of sorted sets.
      * @return The number of elements in the resulting sorted set.
      * @example
      *     <pre>{@code

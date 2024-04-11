@@ -11,6 +11,8 @@ import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.NEGATIVE_INFINITY;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.POSITIVE_INFINITY;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
+import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_API;
+import static glide.api.models.commands.WeightAggregateOptions.WEIGHTS_REDIS_API;
 import static glide.api.models.commands.ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static redis_request.RedisRequestOuterClass.RequestType.Blpop;
@@ -404,10 +406,10 @@ public class TransactionTests {
                                 .addArgs("2")
                                 .addArgs("key1")
                                 .addArgs("key2")
-                                .addArgs("WEIGHTS")
+                                .addArgs(WEIGHTS_REDIS_API)
                                 .addArgs("10.0")
                                 .addArgs("20.0")
-                                .addArgs("AGGREGATE")
+                                .addArgs(AGGREGATE_REDIS_API)
                                 .addArgs(Aggregate.MAX.toString())
                                 .build()));
 

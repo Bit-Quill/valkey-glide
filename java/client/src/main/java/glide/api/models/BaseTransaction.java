@@ -1656,7 +1656,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/zunionstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
-     * @param keys The keys of sorted sets subjected to the aggregation operation.
+     * @param keys The keys of sorted sets.
      * @param options Weight and Aggregate options.
      * @return Command Response - The number of elements in the resulting sorted set.
      */
@@ -1679,7 +1679,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/zunionstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
-     * @param keys The keys of sorted sets subjected to the aggregation operation.
+     * @param keys The keys of sorted sets.
      * @return Command Response - The number of elements in the resulting sorted set.
      */
     public T zunionstore(@NonNull String destination, @NonNull String[] keys) {
