@@ -1,12 +1,15 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.cluster;
 
-import static glide.TransactionTestUtilities.HashCommandTransactionBuilder;
-import static glide.TransactionTestUtilities.ListCommandTransactionBuilder;
-import static glide.TransactionTestUtilities.ServerManagementCommandTransactionBuilder;
-import static glide.TransactionTestUtilities.SetCommandTransactionBuilder;
-import static glide.TransactionTestUtilities.SortedSetCommandTransactionBuilder;
-import static glide.TransactionTestUtilities.StringCommandTransactionBuilder;
+import static glide.TransactionTestUtilities.ConnectionManagementCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.GenericCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.HashCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.HyperLogLogCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.ListCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.ServerManagementCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.SetCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.SortedSetCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.StringCommandsTransactionBuilder;
 import static glide.api.BaseClient.OK;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleSingleNodeRoute.RANDOM;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -20,7 +23,6 @@ import glide.api.RedisClusterClient;
 import glide.api.models.ClusterTransaction;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
@@ -86,12 +88,16 @@ public class ClusterTransactionTests {
 
     public static Stream<Arguments> getTransactionBuilders() {
         return Stream.of(
-                Arguments.of("String Commands", StringCommandTransactionBuilder),
-                Arguments.of("Hash Commands", HashCommandTransactionBuilder),
-                Arguments.of("List Commands", ListCommandTransactionBuilder),
-                Arguments.of("Set Commands", SetCommandTransactionBuilder),
-                Arguments.of("Sorted Set Commands", SortedSetCommandTransactionBuilder),
-                Arguments.of("Server Management Commands", ServerManagementCommandTransactionBuilder));
+                Arguments.of("Generic Commands", GenericCommandsTransactionBuilder),
+                Arguments.of("String Commands", StringCommandsTransactionBuilder),
+                Arguments.of("Hash Commands", HashCommandsTransactionBuilder),
+                Arguments.of("List Commands", ListCommandsTransactionBuilder),
+                Arguments.of("Set Commands", SetCommandsTransactionBuilder),
+                Arguments.of("Sorted Set Commands", SortedSetCommandsTransactionBuilder),
+                Arguments.of("Server Management Commands", ServerManagementCommandsTransactionBuilder),
+                Arguments.of("HyperLogLog Commands", HyperLogLogCommandsTransactionBuilder),
+                Arguments.of(
+                        "Connection Management Commands", ConnectionManagementCommandsTransactionBuilder));
     }
 
     @SneakyThrows

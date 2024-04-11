@@ -1,12 +1,12 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.standalone;
 
-import static glide.TransactionTestUtilities.HashCommandTransactionBuilder;
-import static glide.TransactionTestUtilities.ListCommandTransactionBuilder;
-import static glide.TransactionTestUtilities.ServerManagementCommandTransactionBuilder;
-import static glide.TransactionTestUtilities.SetCommandTransactionBuilder;
-import static glide.TransactionTestUtilities.SortedSetCommandTransactionBuilder;
-import static glide.TransactionTestUtilities.StringCommandTransactionBuilder;
+import static glide.TransactionTestUtilities.HashCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.ListCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.ServerManagementCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.SetCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.SortedSetCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.StringCommandsTransactionBuilder;
 import static glide.api.BaseClient.OK;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,6 +22,8 @@ import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import glide.cluster.ClusterTransactionTests;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -99,13 +101,7 @@ public class TransactionTests {
     }
 
     public static Stream<Arguments> getTransactionBuilders() {
-        return Stream.of(
-                Arguments.of("String Commands", StringCommandTransactionBuilder),
-                Arguments.of("Hash Commands", HashCommandTransactionBuilder),
-                Arguments.of("List Commands", ListCommandTransactionBuilder),
-                Arguments.of("Set Commands", SetCommandTransactionBuilder),
-                Arguments.of("Sorted Set Commands", SortedSetCommandTransactionBuilder),
-                Arguments.of("Server Management Commands", ServerManagementCommandTransactionBuilder));
+        return ClusterTransactionTests.getTransactionBuilders();
     }
 
     @SneakyThrows
