@@ -1357,15 +1357,19 @@ public class SharedCommandTests {
         assertEquals(
                 3,
                 client.zlexcount(key1, InfLexBound.NEGATIVE_INFINITY, InfLexBound.POSITIVE_INFINITY).get());
+
         // In range a (exclusive) to c (inclusive)
         assertEquals(
                 2, client.zlexcount(key1, new LexBoundary("a", false), new LexBoundary("c", true)).get());
+
         // In range negative infinity to c (inclusive)
         assertEquals(
                 3, client.zlexcount(key1, InfLexBound.NEGATIVE_INFINITY, new LexBoundary("c", true)).get());
+
         // Incorrect range start > end
         assertEquals(
                 0, client.zlexcount(key1, InfLexBound.POSITIVE_INFINITY, new LexBoundary("c", true)).get());
+
         // Non-existing key
         assertEquals(
                 0,
