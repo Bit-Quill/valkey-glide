@@ -2,7 +2,7 @@
 package glide.api.models;
 
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
-import static glide.api.models.commands.RangeOptions.createZrangeArgs;
+import static glide.api.models.commands.RangeOptions.createZRangeArgs;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -1500,7 +1500,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull RangeQuery rangeQuery,
             boolean reverse) {
         ArgsArray commandArgs =
-                buildArgs(RangeOptions.createZrangeStoreArgs(destination, source, rangeQuery, reverse));
+                buildArgs(RangeOptions.createZRangeStoreArgs(destination, source, rangeQuery, reverse));
         protobufTransaction.addCommands(buildCommand(ZRangeStore, commandArgs));
         return getThis();
     }
@@ -1720,7 +1720,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     array.
      */
     public T zrange(@NonNull String key, @NonNull RangeQuery rangeQuery, boolean reverse) {
-        ArgsArray commandArgs = buildArgs(createZrangeArgs(key, rangeQuery, reverse, false));
+        ArgsArray commandArgs = buildArgs(createZRangeArgs(key, rangeQuery, reverse, false));
         protobufTransaction.addCommands(buildCommand(Zrange, commandArgs));
         return getThis();
     }
@@ -1768,7 +1768,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T zrangeWithScores(
             @NonNull String key, @NonNull ScoredRangeQuery rangeQuery, boolean reverse) {
-        ArgsArray commandArgs = buildArgs(createZrangeArgs(key, rangeQuery, reverse, true));
+        ArgsArray commandArgs = buildArgs(createZRangeArgs(key, rangeQuery, reverse, true));
         protobufTransaction.addCommands(buildCommand(Zrange, commandArgs));
         return getThis();
     }

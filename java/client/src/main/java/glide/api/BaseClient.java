@@ -706,7 +706,7 @@ public abstract class BaseClient
             @NonNull RangeQuery rangeQuery,
             boolean reverse) {
         String[] arguments =
-                RangeOptions.createZrangeStoreArgs(destination, source, rangeQuery, reverse);
+                RangeOptions.createZRangeStoreArgs(destination, source, rangeQuery, reverse);
 
         return commandManager.submitNewCommand(ZRangeStore, arguments, this::handleLongResponse);
     }
@@ -776,7 +776,7 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<String[]> zrange(
             @NonNull String key, @NonNull RangeQuery rangeQuery, boolean reverse) {
-        String[] arguments = RangeOptions.createZrangeArgs(key, rangeQuery, reverse, false);
+        String[] arguments = RangeOptions.createZRangeArgs(key, rangeQuery, reverse, false);
 
         return commandManager.submitNewCommand(
                 Zrange,
@@ -792,7 +792,7 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Map<String, Double>> zrangeWithScores(
             @NonNull String key, @NonNull ScoredRangeQuery rangeQuery, boolean reverse) {
-        String[] arguments = RangeOptions.createZrangeArgs(key, rangeQuery, reverse, true);
+        String[] arguments = RangeOptions.createZRangeArgs(key, rangeQuery, reverse, true);
 
         return commandManager.submitNewCommand(Zrange, arguments, this::handleMapResponse);
     }

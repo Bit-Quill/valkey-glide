@@ -291,10 +291,10 @@ public class RangeOptions {
         }
     }
 
-    public static String[] createZrangeArgs(
+    public static String[] createZRangeArgs(
             String key, RangeQuery rangeQuery, boolean reverse, boolean withScores) {
         String[] arguments =
-                concatenateArrays(new String[] {key}, createZrangeBaseArgs(rangeQuery, reverse));
+                concatenateArrays(new String[] {key}, createZRangeBaseArgs(rangeQuery, reverse));
         if (withScores) {
             arguments = concatenateArrays(arguments, new String[] {WITH_SCORES_REDIS_API});
         }
@@ -302,13 +302,13 @@ public class RangeOptions {
         return arguments;
     }
 
-    public static String[] createZrangeStoreArgs(
+    public static String[] createZRangeStoreArgs(
             String destination, String source, RangeQuery rangeQuery, boolean reverse) {
         return concatenateArrays(
-                new String[] {destination, source}, createZrangeBaseArgs(rangeQuery, reverse));
+                new String[] {destination, source}, createZRangeBaseArgs(rangeQuery, reverse));
     }
 
-    private static String[] createZrangeBaseArgs(RangeQuery rangeQuery, boolean reverse) {
+    private static String[] createZRangeBaseArgs(RangeQuery rangeQuery, boolean reverse) {
         String[] arguments = new String[] {rangeQuery.getStart(), rangeQuery.getEnd()};
 
         if (rangeQuery instanceof RangeByScore) {
