@@ -91,7 +91,6 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
-import glide.api.models.commands.RangeOptions.InfScoreBound;
 import glide.api.models.commands.RangeOptions.LexBoundary;
 import glide.api.models.commands.RangeOptions.Limit;
 import glide.api.models.commands.RangeOptions.RangeByScore;
@@ -357,9 +356,7 @@ public class TransactionTests {
                         ArgsArray.newBuilder().addArgs("key").addArgs("member1").addArgs("member2").build()));
 
         transaction.zlexcount("key", new LexBoundary("c", false), InfLexBound.POSITIVE_INFINITY);
-        results.add(
-                Pair.of(
-                        ZLexCount, ArgsArray.newBuilder().addArgs("key").addArgs("(c").addArgs("+").build()));
+        results.add(Pair.of(ZLexCount, buildArgs("key", "(c", "+")));
 
         transaction.xadd("key", Map.of("field1", "foo1"));
         results.add(Pair.of(XAdd, buildArgs("key", "*", "field1", "foo1")));
