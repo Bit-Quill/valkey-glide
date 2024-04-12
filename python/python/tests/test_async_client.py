@@ -1908,14 +1908,14 @@ class TestExceptions:
     async def test_timeout_exception_with_blpop(self, redis_client: TRedisClient):
         key = get_random_string(10)
         with pytest.raises(TimeoutError):
-            await redis_client.blpop([key], 1)
+            await redis_client.blpop([key], 3)
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
     async def test_timeout_exception_with_brpop(self, redis_client: TRedisClient):
         key = get_random_string(10)
         with pytest.raises(TimeoutError):
-            await redis_client.brpop([key], 1)
+            await redis_client.brpop([key], 3)
 
 
 @pytest.mark.asyncio
