@@ -476,6 +476,39 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest
     @MethodSource("getClients")
+    public void getrange(BaseClient client) {
+        String stringKey = UUID.randomUUID().toString();
+        String nonStringKey = UUID.randomUUID().toString();
+
+        assertEquals(OK, client.set(stringKey, "This is a string").get());
+        assertEquals("This", client.getrange(stringKey, 0, 3).get());
+        assertEquals("ing", client.getrange(stringKey, -3, -1).get());
+        assertEquals("This is a string", client.getrange(stringKey, 0, -1).get());
+
+        // out of range
+        assertEquals("string", client.getrange(stringKey, 10, 100).get());
+        assertEquals("This is a stri", client.getrange(stringKey, -200, -3).get());
+        assertEquals("", client.getrange(stringKey, 100, 200).get());
+
+        // incorrect range
+        assertEquals("", client.getrange(stringKey, -1, -3).get());
+
+        // a redis bug lol kek
+        assertEquals("T", client.getrange(stringKey, -200, -100).get());
+
+        // empty key
+        assertEquals("", client.getrange(nonStringKey, 0, -1).get());
+
+        // non-string key
+        assertEquals(1, client.lpush(nonStringKey, new String[] {"_"}).get());
+        Exception exception =
+                assertThrows(ExecutionException.class, () -> client.getrange(nonStringKey, 0, -1).get());
+        assertTrue(exception.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
     public void hset_hget_existing_fields_non_existing_fields(BaseClient client) {
         String key = UUID.randomUUID().toString();
         String field1 = UUID.randomUUID().toString();
