@@ -3241,7 +3241,7 @@ public class RedisClientTest {
                 StreamAddOptions.builder()
                         .id("id")
                         .makeStream(false)
-                        .trim(new StreamAddOptions.MaxLen(true, 5L))
+                        .trim(new MaxLen(true, 5L))
                         .build();
 
         String[] arguments =

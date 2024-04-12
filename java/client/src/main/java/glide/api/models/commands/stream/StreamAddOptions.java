@@ -2,6 +2,7 @@
 package glide.api.models.commands.stream;
 
 import glide.api.commands.StreamBaseCommands;
+import glide.api.models.commands.StreamTrimOptions.TrimLimit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
