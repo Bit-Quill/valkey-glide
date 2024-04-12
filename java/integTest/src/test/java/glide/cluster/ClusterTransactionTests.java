@@ -9,6 +9,7 @@ import static glide.TransactionTestUtilities.ListCommandsTransactionBuilder;
 import static glide.TransactionTestUtilities.ServerManagementCommandsTransactionBuilder;
 import static glide.TransactionTestUtilities.SetCommandsTransactionBuilder;
 import static glide.TransactionTestUtilities.SortedSetCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.StreamCommandsTransactionBuilder;
 import static glide.TransactionTestUtilities.StringCommandsTransactionBuilder;
 import static glide.api.BaseClient.OK;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleSingleNodeRoute.RANDOM;
@@ -23,7 +24,6 @@ import glide.api.RedisClusterClient;
 import glide.api.models.ClusterTransaction;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -48,7 +48,7 @@ public class ClusterTransactionTests {
                                         .address(NodeAddress.builder().port(TestConfiguration.CLUSTER_PORTS[0]).build())
                                         .requestTimeout(5000)
                                         .build())
-                        .get(10, TimeUnit.SECONDS);
+                        .get();
     }
 
     @AfterAll
@@ -61,7 +61,7 @@ public class ClusterTransactionTests {
     @SneakyThrows
     public void custom_command_info() {
         ClusterTransaction transaction = new ClusterTransaction().customCommand(new String[] {"info"});
-        Object[] result = clusterClient.exec(transaction).get(10, TimeUnit.SECONDS);
+        Object[] result = clusterClient.exec(transaction).get();
         assertTrue(((String) result[0]).contains("# Stats"));
     }
 
@@ -96,6 +96,7 @@ public class ClusterTransactionTests {
                 Arguments.of("Sorted Set Commands", SortedSetCommandsTransactionBuilder),
                 Arguments.of("Server Management Commands", ServerManagementCommandsTransactionBuilder),
                 Arguments.of("HyperLogLog Commands", HyperLogLogCommandsTransactionBuilder),
+                Arguments.of("Stream Commands", StreamCommandsTransactionBuilder),
                 Arguments.of(
                         "Connection Management Commands", ConnectionManagementCommandsTransactionBuilder));
     }

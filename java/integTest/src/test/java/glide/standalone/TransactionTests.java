@@ -1,12 +1,6 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.standalone;
 
-import static glide.TransactionTestUtilities.HashCommandsTransactionBuilder;
-import static glide.TransactionTestUtilities.ListCommandsTransactionBuilder;
-import static glide.TransactionTestUtilities.ServerManagementCommandsTransactionBuilder;
-import static glide.TransactionTestUtilities.SetCommandsTransactionBuilder;
-import static glide.TransactionTestUtilities.SortedSetCommandsTransactionBuilder;
-import static glide.TransactionTestUtilities.StringCommandsTransactionBuilder;
 import static glide.api.BaseClient.OK;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,10 +14,9 @@ import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
+import glide.cluster.ClusterTransactionTests;
 import java.util.UUID;
 import java.util.stream.Stream;
-
-import glide.cluster.ClusterTransactionTests;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

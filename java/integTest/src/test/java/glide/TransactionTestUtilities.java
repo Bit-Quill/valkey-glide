@@ -25,6 +25,7 @@ public class TransactionTestUtilities {
     private static final String field2 = "field2-" + UUID.randomUUID();
     private static final String field3 = "field3-" + UUID.randomUUID();
 
+    @FunctionalInterface
     public interface TransactionBuilder extends Function<BaseTransaction<?>, Object[]> {}
 
     public static TransactionBuilder GenericCommandsTransactionBuilder =
@@ -43,6 +44,8 @@ public class TransactionTestUtilities {
             TransactionTestUtilities::serverManagementCommands;
     public static TransactionBuilder HyperLogLogCommandsTransactionBuilder =
             TransactionTestUtilities::hyperLogLogCommands;
+    public static TransactionBuilder StreamCommandsTransactionBuilder =
+            TransactionTestUtilities::streamCommands;
     public static TransactionBuilder ConnectionManagementCommandsTransactionBuilder =
             TransactionTestUtilities::connectionManagementCommands;
 
@@ -55,14 +58,16 @@ public class TransactionTestUtilities {
                 .customCommand(new String[] {"MGET", genericKey1, genericKey2})
                 .exists(new String[] {genericKey1})
                 .persist(genericKey1)
+                .type(genericKey1)
                 .del(new String[] {genericKey1})
                 .get(genericKey1)
+                .set(genericKey2, value2)
                 .unlink(new String[] {genericKey2})
                 .get(genericKey2)
-                .type(genericKey1)
+                .set(genericKey1, value1)
                 .expire(genericKey1, 100500)
                 .expire(genericKey1, 42, ExpireOptions.HAS_NO_EXPIRY)
-                .expireAt(genericKey1, 42) // expire key immediately
+                .expireAt(genericKey1, 42) // expire (delete) key immediately
                 .expireAt(genericKey1, 500, ExpireOptions.HAS_EXISTING_EXPIRY)
                 .pexpire(genericKey1, 42)
                 .pexpire(genericKey1, 42, ExpireOptions.NEW_EXPIRY_GREATER_THAN_CURRENT)
@@ -72,14 +77,16 @@ public class TransactionTestUtilities {
 
         return new Object[] {
             OK, // set(genericKey1, value1)
-            new String[] {value1, value2}, // customCommand(new String[] {"MGET", ...})
+            new String[] {value1, null}, // customCommand(new String[] {"MGET", genericKey1, genericKey2})
             1L, // exists(new String[] {genericKey1})
             false, // persist(key1)
+            "string", // type(genericKey1)
             1L, // del(new String[] {genericKey1})
             null, // get(genericKey1)
+            OK, // set(genericKey2, value2)
             1L, // unlink(new String[] {genericKey2})
             null, // get(genericKey2)
-            "string", // type(genericKey1)
+            OK, // set(genericKey1, value1)
             true, // expire(genericKey1, 100500)
             false, // expire(genericKey1, 42, ExpireOptions.HAS_NO_EXPIRY)
             true, // expireAt(genericKey1, 42)
@@ -279,12 +286,12 @@ public class TransactionTestUtilities {
 
     private static Object[] connectionManagementCommands(BaseTransaction<?> transaction) {
         transaction.ping().ping(value1).echo(value2);
-        // TODO
+        // untested:
         // clientId
         // clientGetName
 
         return new Object[] {
-            OK, // ping()
+            "PONG", // ping()
             value1, // ping(value1)
             value2, // echo(value2)
         };
