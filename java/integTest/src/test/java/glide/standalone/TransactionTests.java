@@ -1,14 +1,17 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.standalone;
 
+import static glide.TestConfiguration.REDIS_VERSION;
+import static glide.TransactionTestUtilities.redisV7plusCommands;
 import static glide.api.BaseClient.OK;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.TestConfiguration;
-import glide.TransactionTestUtilities;
+import glide.TransactionTestUtilities.TransactionBuilder;
 import glide.api.RedisClient;
 import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
@@ -100,8 +103,7 @@ public class TransactionTests {
     @SneakyThrows
     @ParameterizedTest(name = "{0}")
     @MethodSource("getTransactionBuilders")
-    public void transactions_with_group_of_command(
-            String testName, TransactionTestUtilities.TransactionBuilder builder) {
+    public void transactions_with_group_of_commands(String testName, TransactionBuilder builder) {
         Transaction transaction = new Transaction();
         Object[] expectedResult = builder.apply(transaction);
 
@@ -122,5 +124,17 @@ public class TransactionTests {
 
         Object[] result = client.exec(transaction).get();
         assertArrayEquals(expectedResult, result);
+    }
+
+    // Test commands supported by redis >= 7 only
+    @SneakyThrows
+    @Test
+    public void test_transactions_redis_7() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+        Transaction transaction = new Transaction();
+        Object[] expectedResult = redisV7plusCommands(transaction);
+
+        Object[] results = client.exec(transaction).get();
+        assertArrayEquals(expectedResult, results);
     }
 }

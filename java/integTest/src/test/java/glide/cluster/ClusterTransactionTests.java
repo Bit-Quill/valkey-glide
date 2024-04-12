@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.cluster;
 
+import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TransactionTestUtilities.ConnectionManagementCommandsTransactionBuilder;
 import static glide.TransactionTestUtilities.GenericCommandsTransactionBuilder;
 import static glide.TransactionTestUtilities.HashCommandsTransactionBuilder;
@@ -11,12 +12,14 @@ import static glide.TransactionTestUtilities.SetCommandsTransactionBuilder;
 import static glide.TransactionTestUtilities.SortedSetCommandsTransactionBuilder;
 import static glide.TransactionTestUtilities.StreamCommandsTransactionBuilder;
 import static glide.TransactionTestUtilities.StringCommandsTransactionBuilder;
+import static glide.TransactionTestUtilities.redisV7plusCommands;
 import static glide.api.BaseClient.OK;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleSingleNodeRoute.RANDOM;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.TestConfiguration;
 import glide.TransactionTestUtilities.TransactionBuilder;
@@ -104,11 +107,23 @@ public class ClusterTransactionTests {
     @SneakyThrows
     @ParameterizedTest(name = "{0}")
     @MethodSource("getTransactionBuilders")
-    public void transactions_with_group_of_command(String testName, TransactionBuilder builder) {
+    public void transactions_with_group_of_commands(String testName, TransactionBuilder builder) {
         ClusterTransaction transaction = new ClusterTransaction();
         Object[] expectedResult = builder.apply(transaction);
 
         Object[] results = clusterClient.exec(transaction, RANDOM).get();
+        assertArrayEquals(expectedResult, results);
+    }
+
+    // Test commands supported by redis >= 7 only
+    @SneakyThrows
+    @Test
+    public void test_cluster_transactions_redis_7() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+        ClusterTransaction transaction = new ClusterTransaction();
+        Object[] expectedResult = redisV7plusCommands(transaction);
+
+        Object[] results = clusterClient.exec(transaction).get();
         assertArrayEquals(expectedResult, results);
     }
 }

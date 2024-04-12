@@ -66,13 +66,9 @@ public class TransactionTestUtilities {
                 .get(genericKey2)
                 .set(genericKey1, value1)
                 .expire(genericKey1, 100500)
-                .expire(genericKey1, 42, ExpireOptions.HAS_NO_EXPIRY)
                 .expireAt(genericKey1, 42) // expire (delete) key immediately
-                .expireAt(genericKey1, 500, ExpireOptions.HAS_EXISTING_EXPIRY)
                 .pexpire(genericKey1, 42)
-                .pexpire(genericKey1, 42, ExpireOptions.NEW_EXPIRY_GREATER_THAN_CURRENT)
                 .pexpireAt(genericKey1, 42)
-                .pexpireAt(genericKey1, 42, ExpireOptions.HAS_NO_EXPIRY)
                 .ttl(genericKey2);
 
         return new Object[] {
@@ -88,13 +84,9 @@ public class TransactionTestUtilities {
             null, // get(genericKey2)
             OK, // set(genericKey1, value1)
             true, // expire(genericKey1, 100500)
-            false, // expire(genericKey1, 42, ExpireOptions.HAS_NO_EXPIRY)
             true, // expireAt(genericKey1, 42)
-            false, // expireAt(genericKey1, 500, ExpireOptions.HAS_EXISTING_EXPIRY)
             false, // pexpire(genericKey1, 42)
-            false, // pexpire(genericKey1, 42, ExpireOptions.NEW_EXPIRY_GREATER_THAN_CURRENT)
             false, // pexpireAt(genericKey1, 42)
-            false, // pexpireAt(genericKey1, 42, ExpireOptions.HAS_NO_EXPIRY)
             -2L, // ttl(genericKey2)
         };
     }
@@ -328,6 +320,27 @@ public class TransactionTestUtilities {
             "0-1", // xadd(streamKey1, Map.of("field1", "value1"), ... .id("0-1").build());
             "0-2", // xadd(streamKey1, Map.of("field2", "value2"), ... .id("0-2").build());
             "0-3", // xadd(streamKey1, Map.of("field3", "value3"), ... .id("0-3").build());
+        };
+    }
+
+    /** Commands supported by redis version 7.0 and higher */
+    public static Object[] redisV7plusCommands(BaseTransaction<?> transaction) {
+        String genericKey1 = "{GenericKey}-1-" + UUID.randomUUID();
+
+        transaction
+                .set(genericKey1, value1)
+                .expire(genericKey1, 42, ExpireOptions.HAS_NO_EXPIRY)
+                .expireAt(genericKey1, 500, ExpireOptions.HAS_EXISTING_EXPIRY)
+                .pexpire(genericKey1, 42, ExpireOptions.NEW_EXPIRY_GREATER_THAN_CURRENT)
+                .pexpireAt(genericKey1, 42, ExpireOptions.HAS_NO_EXPIRY);
+        // TODO add BZMPOP from #194 here
+
+        return new Object[] {
+            OK, // set(genericKey1, value1)
+            true, // expire(genericKey1, 42, ExpireOptions.HAS_NO_EXPIRY)
+            true, // expireAt(genericKey1, 500, ExpireOptions.HAS_EXISTING_EXPIRY)
+            false, // pexpire(genericKey1, 42, ExpireOptions.NEW_EXPIRY_GREATER_THAN_CURRENT)
+            false, // pexpireAt(genericKey1, 42, ExpireOptions.HAS_NO_EXPIRY)
         };
     }
 }
