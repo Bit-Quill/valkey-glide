@@ -2,6 +2,8 @@
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
 
+#![deny(unsafe_op_in_unsafe_fn)]
+
 use redis::RedisError;
 
 #[repr(C)]

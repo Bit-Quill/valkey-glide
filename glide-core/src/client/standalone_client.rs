@@ -1,6 +1,9 @@
-/**
+/*
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
+
+#![deny(unsafe_op_in_unsafe_fn)]
+
 use super::get_redis_connection_info;
 use super::reconnecting_connection::ReconnectingConnection;
 use super::{ConnectionRequest, NodeAddress, TlsMode};
