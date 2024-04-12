@@ -74,6 +74,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiff;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiffStore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZMScore;
@@ -109,6 +110,7 @@ import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.StreamTrimOptions;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import lombok.Getter;
@@ -1679,6 +1681,21 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                         ArrayUtils.addFirst(options.toArgs(), key), convertMapToKeyValueStringArray(values));
         ArgsArray commandArgs = buildArgs(arguments);
         protobufTransaction.addCommands(buildCommand(XAdd, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Trims the stream by evicting older entries.
+     *
+     * @see <a href="https://redis.io/commands/xtrim/">redis.io</a> for details.
+     * @param key The key of the stream.
+     * @param limit Stream trim options.
+     * @return Command Response - The number of entries deleted from the stream.
+     */
+    public T xtrim(@NonNull String key, @NonNull StreamTrimOptions.TrimLimit limit) {
+        ArgsArray commandArgs =
+                buildArgs(ArrayUtils.addFirst(StreamTrimOptions.createXtrimArgs(limit), key));
+        protobufTransaction.addCommands(buildCommand(XTrim, commandArgs));
         return getThis();
     }
 

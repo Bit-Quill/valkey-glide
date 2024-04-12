@@ -3,6 +3,7 @@ package glide.api.commands;
 
 import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.StreamTrimOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -52,4 +53,20 @@ public interface StreamBaseCommands {
      * }</pre>
      */
     CompletableFuture<String> xadd(String key, Map<String, String> values, StreamAddOptions options);
+
+    /**
+     * Trims the stream by evicting older entries.
+     *
+     * @see <a href="https://redis.io/commands/xtrim/">redis.io</a> for details.
+     * @param key The key of the stream.
+     * @param limit Stream trim options.
+     * @return The number of entries deleted from the stream.
+     * @example
+     *     <pre>{@code
+     * StreamTrimOptions options = StreamTrimOptions.builder().build();
+     * Long trimmed = client.xtrim("key", options).get();
+     * System.out.println("Number of trimmed entries from stream: " + trimmed);
+     * }</pre>
+     */
+    CompletableFuture<Long> xtrim(String key, StreamTrimOptions.TrimLimit limit);
 }

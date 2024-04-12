@@ -9,11 +9,11 @@ import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_N
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static glide.api.models.commands.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
-import static glide.api.models.commands.StreamAddOptions.TRIM_EXACT_REDIS_API;
-import static glide.api.models.commands.StreamAddOptions.TRIM_LIMIT_REDIS_API;
-import static glide.api.models.commands.StreamAddOptions.TRIM_MAXLEN_REDIS_API;
-import static glide.api.models.commands.StreamAddOptions.TRIM_MINID_REDIS_API;
-import static glide.api.models.commands.StreamAddOptions.TRIM_NOT_EXACT_REDIS_API;
+import static glide.api.models.commands.StreamTrimOptions.TRIM_EXACT_REDIS_API;
+import static glide.api.models.commands.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
+import static glide.api.models.commands.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
+import static glide.api.models.commands.StreamTrimOptions.TRIM_MINID_REDIS_API;
+import static glide.api.models.commands.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -95,6 +95,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiff;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiffStore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZMScore;
@@ -126,6 +127,7 @@ import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
 import glide.api.models.commands.StreamAddOptions;
+import glide.api.models.commands.StreamTrimOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
@@ -2547,7 +2549,7 @@ public class RedisClientTest {
                 StreamAddOptions.builder()
                         .id("id")
                         .makeStream(false)
-                        .trim(new StreamAddOptions.MaxLen(true, 5L))
+                        .trim(new StreamTrimOptions.MaxLen(true, 5L))
                         .build();
 
         String[] arguments =
@@ -2590,7 +2592,7 @@ public class RedisClientTest {
                                 StreamAddOptions.builder()
                                         .id("id")
                                         .makeStream(Boolean.TRUE)
-                                        .trim(new StreamAddOptions.MaxLen(Boolean.TRUE, 5L, 10L))
+                                        .trim(new StreamTrimOptions.MaxLen(Boolean.TRUE, 5L, 10L))
                                         .build(),
                                 new String[] {
                                     "testKey",
@@ -2605,7 +2607,7 @@ public class RedisClientTest {
                                 // MAXLEN with non exact match
                                 StreamAddOptions.builder()
                                         .makeStream(Boolean.FALSE)
-                                        .trim(new StreamAddOptions.MaxLen(Boolean.FALSE, 2L))
+                                        .trim(new StreamTrimOptions.MaxLen(Boolean.FALSE, 2L))
                                         .build(),
                                 new String[] {
                                     "testKey",
@@ -2620,7 +2622,7 @@ public class RedisClientTest {
                                 StreamAddOptions.builder()
                                         .id("id")
                                         .makeStream(Boolean.TRUE)
-                                        .trim(new StreamAddOptions.MinId(Boolean.TRUE, "testKey", 10L))
+                                        .trim(new StreamTrimOptions.MinId(Boolean.TRUE, "testKey", 10L))
                                         .build(),
                                 new String[] {
                                     "testKey",
@@ -2635,7 +2637,7 @@ public class RedisClientTest {
                                 // MIN ID with non exact match
                                 StreamAddOptions.builder()
                                         .makeStream(Boolean.FALSE)
-                                        .trim(new StreamAddOptions.MinId(Boolean.FALSE, "testKey"))
+                                        .trim(new StreamTrimOptions.MinId(Boolean.FALSE, "testKey"))
                                         .build(),
                                 new String[] {
                                     "testKey",
@@ -2674,6 +2676,62 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(returnId, payload);
+    }
+
+    @Test
+    @SneakyThrows
+    public void xtrim_with_MinId() {
+        // setup
+        String key = "testKey";
+        StreamTrimOptions.TrimLimit limit = new StreamTrimOptions.MinId(true, "id", 5);
+        String[] arguments =
+                new String[] {
+                    key, TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "id", TRIM_LIMIT_REDIS_API, "5"
+                };
+        Long completedResult = 1L;
+
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(completedResult);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(XTrim), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.xtrim(key, limit);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(completedResult, payload);
+    }
+
+    @Test
+    @SneakyThrows
+    public void xtrim_with_MaxLen() {
+        // setup
+        String key = "testKey";
+        StreamTrimOptions.TrimLimit limit = new StreamTrimOptions.MaxLen(false, 8, 5);
+        String[] arguments =
+                new String[] {
+                    key, TRIM_MAXLEN_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "8", TRIM_LIMIT_REDIS_API, "5"
+                };
+        Long completedResult = 1L;
+
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(completedResult);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(XTrim), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.xtrim(key, limit);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(completedResult, payload);
     }
 
     @SneakyThrows
