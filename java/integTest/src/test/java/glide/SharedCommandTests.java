@@ -2735,6 +2735,9 @@ public class SharedCommandTests {
         // Key does not exist - returns 0
         assertEquals(0L, client.xtrim(key, new MaxLen(true, 1)).get());
 
+        // Key does not exist - returns 0
+        assertEquals(0L, client.xtrim(key, new MaxLen(true, 1)).get());
+
         // Key exists, but it is not a stream
         assertEquals(OK, client.set(key2, "xtrimtest").get());
         ExecutionException executionException =
