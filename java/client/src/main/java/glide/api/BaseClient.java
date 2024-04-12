@@ -803,8 +803,8 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> xtrim(@NonNull String key, @NonNull TrimLimit limit) {
-        String[] arguments = ArrayUtils.addFirst(createXtrimArgs(limit), key);
+    public CompletableFuture<Long> xtrim(@NonNull String key, @NonNull TrimLimit options) {
+        String[] arguments = ArrayUtils.addFirst(createXtrimArgs(options), key);
         return commandManager.submitNewCommand(XTrim, arguments, this::handleLongResponse);
     }
 

@@ -59,14 +59,18 @@ public interface StreamBaseCommands {
      *
      * @see <a href="https://redis.io/commands/xtrim/">redis.io</a> for details.
      * @param key The key of the stream.
-     * @param limit Stream trim options.
+     * @param options Stream trim options.
      * @return The number of entries deleted from the stream.
      * @example
      *     <pre>{@code
-     * StreamTrimOptions options = StreamTrimOptions.builder().build();
-     * Long trimmed = client.xtrim("key", options).get();
+     * // A nearly exact trimming of the stream to at least a length of 10, limited to 10 entries
+     * Long trimmed = client.xtrim("key", new StreamTrimOptions.MaxLen(false, 10L)).get();
+     * System.out.println("Number of trimmed entries from stream: " + trimmed);
+     *
+     * // An exact trimming of the stream by minimum id of "0-3", limit of 10 entries
+     * Long trimmed = client.xtrim("key", new StreamTrimOptions.MinId(true, "0-3", 10L)).get();
      * System.out.println("Number of trimmed entries from stream: " + trimmed);
      * }</pre>
      */
-    CompletableFuture<Long> xtrim(String key, TrimLimit limit);
+    CompletableFuture<Long> xtrim(String key, TrimLimit options);
 }
