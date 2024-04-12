@@ -1661,13 +1661,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return Command Response - The number of elements in the resulting sorted set.
      */
     public T zunionstore(
-        @NonNull String destination,
-        @NonNull String[] keys,
-        @NonNull WeightAggregateOptions options) {
+            @NonNull String destination,
+            @NonNull String[] keys,
+            @NonNull WeightAggregateOptions options) {
         ArgsArray commandArgs =
-            buildArgs(
-                concatenateArrays(
-                    new String[] {destination, Integer.toString(keys.length)}, keys, options.toArgs()));
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {destination, Integer.toString(keys.length)}, keys, options.toArgs()));
         protobufTransaction.addCommands(buildCommand(ZUnionStore, commandArgs));
         return getThis();
     }

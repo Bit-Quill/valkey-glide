@@ -122,8 +122,6 @@ public class TransactionTestUtilities {
         baseTransaction.zadd(zSetKey2, Map.of("one", 1.0, "two", 2.0));
         baseTransaction.zdiff(new String[] {zSetKey2, key8});
         baseTransaction.zdiffWithScores(new String[] {zSetKey2, key8});
-
-        baseTransaction.zadd(zSetKey2, Map.of("one", 1.0, "two", 2.0));
         baseTransaction.zunionstore(zSetKey2, new String[] {zSetKey2, key8});
 
         baseTransaction.xadd(
@@ -224,8 +222,6 @@ public class TransactionTestUtilities {
             2L, // zadd(zSetKey2, Map.of("one", 1.0, "two", 2.0))
             new String[] {"one", "two"}, // zdiff(new String[] {zSetKey2, key8})
             Map.of("one", 1.0, "two", 2.0), // zdiffWithScores(new String[] {zSetKey2, key8})
-            Map.of("three", 3.0), // zpopmax(key8),
-            2L, // zadd(zSetKey2, Map.of("one", 1.0, "two", 2.0))
             2L, // zunionstore(zSetKey2, new String[] {zSetKey2, key8})
             "0-1", // xadd(key9, Map.of("field1", "value1"),
             // StreamAddOptions.builder().id("0-1").build());

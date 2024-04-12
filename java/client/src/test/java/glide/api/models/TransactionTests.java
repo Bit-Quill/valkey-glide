@@ -380,39 +380,6 @@ public class TransactionTests {
                                 .addArgs(WITH_SCORES_REDIS_API)
                                 .build()));
 
-        transaction.zunionstore("destination", new String[] {"key1", "key2"});
-        results.add(
-                Pair.of(
-                        ZUnionStore,
-                        ArgsArray.newBuilder()
-                                .addArgs("destination")
-                                .addArgs("2")
-                                .addArgs("key1")
-                                .addArgs("key2")
-                                .build()));
-
-        transaction.zunionstore(
-                "destination",
-                new String[] {"key1", "key2"},
-                WeightAggregateOptions.builder()
-                        .weights(List.of(10.0, 20.0))
-                        .aggregate(Aggregate.MAX)
-                        .build());
-        results.add(
-                Pair.of(
-                        ZUnionStore,
-                        ArgsArray.newBuilder()
-                                .addArgs("destination")
-                                .addArgs("2")
-                                .addArgs("key1")
-                                .addArgs("key2")
-                                .addArgs(WEIGHTS_REDIS_API)
-                                .addArgs("10.0")
-                                .addArgs("20.0")
-                                .addArgs(AGGREGATE_REDIS_API)
-                                .addArgs(Aggregate.MAX.toString())
-                                .build()));
-
         transaction.zdiffstore("destKey", new String[] {"key1", "key2"});
         results.add(Pair.of(ZDiffStore, buildArgs("destKey", "2", "key1", "key2")));
 
@@ -424,6 +391,30 @@ public class TransactionTests {
 
         transaction.zremrangebylex("key", new LexBoundary("a", false), InfLexBound.POSITIVE_INFINITY);
         results.add(Pair.of(ZRemRangeByLex, buildArgs("key", "(a", "+")));
+
+        transaction.zunionstore("destination", new String[] {"key1", "key2"});
+        results.add(Pair.of(ZUnionStore, buildArgs("destination", "2", "key1", "key2")));
+
+        transaction.zunionstore(
+                "destination",
+                new String[] {"key1", "key2"},
+                WeightAggregateOptions.builder()
+                        .weights(List.of(10.0, 20.0))
+                        .aggregate(Aggregate.MAX)
+                        .build());
+        results.add(
+                Pair.of(
+                        ZUnionStore,
+                        buildArgs(
+                                "destination",
+                                "2",
+                                "key1",
+                                "key2",
+                                WEIGHTS_REDIS_API,
+                                "10.0",
+                                "20.0",
+                                AGGREGATE_REDIS_API,
+                                Aggregate.MAX.toString())));
 
         transaction.xadd("key", Map.of("field1", "foo1"));
         results.add(Pair.of(XAdd, buildArgs("key", "*", "field1", "foo1")));
