@@ -2321,11 +2321,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/xtrim/">redis.io</a> for details.
      * @param key The key of the stream.
-     * @param limit Stream trim options.
+     * @param options Stream trim options.
      * @return Command Response - The number of entries deleted from the stream.
      */
-    public T xtrim(@NonNull String key, @NonNull TrimLimit limit) {
-        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(createXtrimArgs(limit), key));
+    public T xtrim(@NonNull String key, @NonNull TrimLimit options) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(createXtrimArgs(options), key));
         protobufTransaction.addCommands(buildCommand(XTrim, commandArgs));
         return getThis();
     }
