@@ -2,6 +2,7 @@
 package glide.api.models.commands;
 
 import glide.api.commands.StreamBaseCommands;
+import glide.api.models.commands.StreamTrimOptions.TrimLimit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,7 @@ public final class StreamAddOptions {
     private final Boolean makeStream;
 
     /** If set, the add operation will also trim the older entries in the stream. */
-    private final StreamTrimOptions.TrimLimit trim;
+    private final TrimLimit trim;
 
     /**
      * Converts options for Xadd into a String[].

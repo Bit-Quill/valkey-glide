@@ -143,7 +143,7 @@ public final class StreamTrimOptions {
      *
      * @return String[]
      */
-    public static String[] createXtrimArgs(StreamTrimOptions.TrimLimit limit) {
+    public static String[] createXtrimArgs(TrimLimit limit) {
         List<String> optionArgs = new ArrayList<>();
 
         if (limit.getRedisApi() != null) {

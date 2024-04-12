@@ -35,7 +35,8 @@ import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.StreamTrimOptions;
+import glide.api.models.commands.StreamTrimOptions.MaxLen;
+import glide.api.models.commands.StreamTrimOptions.MinId;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
@@ -1573,6 +1574,7 @@ public class SharedCommandTests {
         String key = UUID.randomUUID().toString();
         String field1 = UUID.randomUUID().toString();
         String field2 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
 
         assertNull(
                 client
@@ -1611,9 +1613,7 @@ public class SharedCommandTests {
                         .xadd(
                                 key,
                                 Map.of(field1, "foo3", field2, "bar3"),
-                                StreamAddOptions.builder()
-                                        .trim(new StreamTrimOptions.MaxLen(Boolean.TRUE, 2L))
-                                        .build())
+                                StreamAddOptions.builder().trim(new MaxLen(Boolean.TRUE, 2L)).build())
                         .get();
         assertNotNull(id);
         // TODO update test when XLEN is available
@@ -1634,9 +1634,7 @@ public class SharedCommandTests {
                         .xadd(
                                 key,
                                 Map.of(field1, "foo4", field2, "bar4"),
-                                StreamAddOptions.builder()
-                                        .trim(new StreamTrimOptions.MinId(Boolean.TRUE, id))
-                                        .build())
+                                StreamAddOptions.builder().trim(new MinId(Boolean.TRUE, id)).build())
                         .get());
         // TODO update test when XLEN is available
         if (client instanceof RedisClient) {
@@ -1650,7 +1648,13 @@ public class SharedCommandTests {
                             .getSingleValue());
         }
 
-        assertEquals(1L, client.xtrim(key, new StreamTrimOptions.MaxLen(true, 1)).get());
+        assertEquals(1L, client.xtrim(key, new MaxLen(true, 1)).get());
+
+        // Key exists, but it is not a stream
+        assertEquals(OK, client.set(key2, "xtrimtest").get());
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.xtrim(key2, new MinId("0-1")).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
     }
 
     @SneakyThrows

@@ -3,7 +3,7 @@ package glide.api.commands;
 
 import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.StreamAddOptions.StreamAddOptionsBuilder;
-import glide.api.models.commands.StreamTrimOptions;
+import glide.api.models.commands.StreamTrimOptions.TrimLimit;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -68,5 +68,5 @@ public interface StreamBaseCommands {
      * System.out.println("Number of trimmed entries from stream: " + trimmed);
      * }</pre>
      */
-    CompletableFuture<Long> xtrim(String key, StreamTrimOptions.TrimLimit limit);
+    CompletableFuture<Long> xtrim(String key, TrimLimit limit);
 }

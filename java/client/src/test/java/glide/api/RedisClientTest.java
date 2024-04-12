@@ -127,7 +127,9 @@ import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
 import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.StreamTrimOptions;
+import glide.api.models.commands.StreamTrimOptions.MaxLen;
+import glide.api.models.commands.StreamTrimOptions.MinId;
+import glide.api.models.commands.StreamTrimOptions.TrimLimit;
 import glide.api.models.commands.ZaddOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
@@ -2546,11 +2548,7 @@ public class RedisClientTest {
         fieldValues.put("testField1", "testValue1");
         fieldValues.put("testField2", "testValue2");
         StreamAddOptions options =
-                StreamAddOptions.builder()
-                        .id("id")
-                        .makeStream(false)
-                        .trim(new StreamTrimOptions.MaxLen(true, 5L))
-                        .build();
+                StreamAddOptions.builder().id("id").makeStream(false).trim(new MaxLen(true, 5L)).build();
 
         String[] arguments =
                 new String[] {
@@ -2592,7 +2590,7 @@ public class RedisClientTest {
                                 StreamAddOptions.builder()
                                         .id("id")
                                         .makeStream(Boolean.TRUE)
-                                        .trim(new StreamTrimOptions.MaxLen(Boolean.TRUE, 5L, 10L))
+                                        .trim(new MaxLen(Boolean.TRUE, 5L, 10L))
                                         .build(),
                                 new String[] {
                                     "testKey",
@@ -2607,7 +2605,7 @@ public class RedisClientTest {
                                 // MAXLEN with non exact match
                                 StreamAddOptions.builder()
                                         .makeStream(Boolean.FALSE)
-                                        .trim(new StreamTrimOptions.MaxLen(Boolean.FALSE, 2L))
+                                        .trim(new MaxLen(Boolean.FALSE, 2L))
                                         .build(),
                                 new String[] {
                                     "testKey",
@@ -2622,7 +2620,7 @@ public class RedisClientTest {
                                 StreamAddOptions.builder()
                                         .id("id")
                                         .makeStream(Boolean.TRUE)
-                                        .trim(new StreamTrimOptions.MinId(Boolean.TRUE, "testKey", 10L))
+                                        .trim(new MinId(Boolean.TRUE, "testKey", 10L))
                                         .build(),
                                 new String[] {
                                     "testKey",
@@ -2637,7 +2635,7 @@ public class RedisClientTest {
                                 // MIN ID with non exact match
                                 StreamAddOptions.builder()
                                         .makeStream(Boolean.FALSE)
-                                        .trim(new StreamTrimOptions.MinId(Boolean.FALSE, "testKey"))
+                                        .trim(new MinId(Boolean.FALSE, "testKey"))
                                         .build(),
                                 new String[] {
                                     "testKey",
@@ -2683,7 +2681,7 @@ public class RedisClientTest {
     public void xtrim_with_MinId() {
         // setup
         String key = "testKey";
-        StreamTrimOptions.TrimLimit limit = new StreamTrimOptions.MinId(true, "id", 5);
+        TrimLimit limit = new MinId(true, "id", 5);
         String[] arguments =
                 new String[] {
                     key, TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "id", TRIM_LIMIT_REDIS_API, "5"
@@ -2711,7 +2709,7 @@ public class RedisClientTest {
     public void xtrim_with_MaxLen() {
         // setup
         String key = "testKey";
-        StreamTrimOptions.TrimLimit limit = new StreamTrimOptions.MaxLen(false, 8, 5);
+        TrimLimit limit = new MaxLen(false, 8, 5);
         String[] arguments =
                 new String[] {
                     key, TRIM_MAXLEN_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "8", TRIM_LIMIT_REDIS_API, "5"

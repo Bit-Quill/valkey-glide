@@ -4,6 +4,7 @@ package glide.api.models;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.RangeOptions.createZrangeArgs;
+import static glide.api.models.commands.StreamTrimOptions.createXtrimArgs;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -110,7 +111,7 @@ import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.StreamAddOptions.StreamAddOptionsBuilder;
-import glide.api.models.commands.StreamTrimOptions;
+import glide.api.models.commands.StreamTrimOptions.TrimLimit;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import lombok.Getter;
@@ -1692,9 +1693,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param limit Stream trim options.
      * @return Command Response - The number of entries deleted from the stream.
      */
-    public T xtrim(@NonNull String key, @NonNull StreamTrimOptions.TrimLimit limit) {
-        ArgsArray commandArgs =
-                buildArgs(ArrayUtils.addFirst(StreamTrimOptions.createXtrimArgs(limit), key));
+    public T xtrim(@NonNull String key, @NonNull TrimLimit limit) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(createXtrimArgs(limit), key));
         protobufTransaction.addCommands(buildCommand(XTrim, commandArgs));
         return getThis();
     }

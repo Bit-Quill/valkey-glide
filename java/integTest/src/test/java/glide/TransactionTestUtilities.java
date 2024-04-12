@@ -12,7 +12,7 @@ import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.StreamTrimOptions;
+import glide.api.models.commands.StreamTrimOptions.MinId;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -130,7 +130,7 @@ public class TransactionTestUtilities {
                 key9, Map.of("field2", "value2"), StreamAddOptions.builder().id("0-2").build());
         baseTransaction.xadd(
                 key9, Map.of("field3", "value3"), StreamAddOptions.builder().id("0-3").build());
-        baseTransaction.xtrim(key9, new StreamTrimOptions.MinId(true, "0-2"));
+        baseTransaction.xtrim(key9, new MinId(true, "0-2"));
 
         baseTransaction.configSet(Map.of("timeout", "1000"));
         baseTransaction.configGet(new String[] {"timeout"});
