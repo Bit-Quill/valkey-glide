@@ -651,7 +651,7 @@ public interface SortedSetBaseCommands {
      * @example
      *     <pre>{@code
      * Long payload = client.zunionstore("newSortedSet", new String[] {"mySortedSet1", "mySortedSet2"}).get()
-     * assert payload == 3L; // Indicates the new sorted set contains three members from the union of "mySortedSet1" and "mySortedSet2."
+     * assert payload == 3L; // Indicates the new sorted set contains three members from the union of "mySortedSet1" and "mySortedSet2".
      * }</pre>
      */
     CompletableFuture<Long> zunionstore(String destination, String[] keys);

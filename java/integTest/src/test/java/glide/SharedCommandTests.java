@@ -1367,27 +1367,33 @@ public class SharedCommandTests {
         assertEquals(
                 Map.of("one", 1.0, "two", 4.5, "three", 3.0), client.zrangeWithScores(key3, query).get());
 
+        // Union results are aggregated by the max score of elements
         WeightAggregateOptions options =
                 WeightAggregateOptions.builder().aggregate(Aggregate.MAX).build();
         assertEquals(3, client.zunionstore(key3, new String[] {key1, key2}, options).get());
         assertEquals(
                 Map.of("one", 1.0, "two", 2.5, "three", 3.0), client.zrangeWithScores(key3, query).get());
 
+        // Union results are aggregated by the min score of elements
         options = WeightAggregateOptions.builder().aggregate(Aggregate.MIN).build();
         assertEquals(3, client.zunionstore(key3, new String[] {key1, key2}, options).get());
         assertEquals(
                 Map.of("one", 1.0, "two", 2.0, "three", 3.0), client.zrangeWithScores(key3, query).get());
 
+        // Union results are aggregated by the sum of the scores of elements
         options = WeightAggregateOptions.builder().aggregate(Aggregate.SUM).build();
         assertEquals(3, client.zunionstore(key3, new String[] {key1, key2}, options).get());
         assertEquals(
                 Map.of("one", 1.0, "two", 4.5, "three", 3.0), client.zrangeWithScores(key3, query).get());
 
+        // Scores are multiplied by 2.0 for key1 and key2 during aggregation.
         options = WeightAggregateOptions.builder().weights(List.of(2.0, 2.0)).build();
         assertEquals(3, client.zunionstore(key3, new String[] {key1, key2}, options).get());
         assertEquals(
                 Map.of("one", 2.0, "two", 9.0, "three", 6.0), client.zrangeWithScores(key3, query).get());
 
+        // Union results are aggregated by the maximum score, with scores for key1 multiplied by 1.0 and
+        // for key2 by 2.0.
         options =
                 WeightAggregateOptions.builder()
                         .aggregate(Aggregate.MAX)

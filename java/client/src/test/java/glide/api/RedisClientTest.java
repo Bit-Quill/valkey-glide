@@ -2554,7 +2554,7 @@ public class RedisClientTest {
                     "10.0",
                     "20.0",
                     AGGREGATE_REDIS_API,
-                    "MIN"
+                    Aggregate.MIN.toString()
                 };
         Long value = 5L;
 
