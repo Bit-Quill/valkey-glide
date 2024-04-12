@@ -124,6 +124,7 @@ async def create_client(
             credentials=credentials,
             client_name=client_name,
             protocol=protocol,
+            request_timeout=3000
         )
         return await RedisClusterClient.create(cluster_config)
     else:
@@ -137,5 +138,6 @@ async def create_client(
             database_id=database_id,
             client_name=client_name,
             protocol=protocol,
+            request_timeout=3000
         )
         return await RedisClient.create(config)
