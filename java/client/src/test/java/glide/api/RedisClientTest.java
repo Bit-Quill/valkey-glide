@@ -2,6 +2,7 @@
 package glide.api;
 
 import static glide.api.BaseClient.OK;
+import static glide.api.commands.ServerManagementCommands.SCHEDULE;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.BEFORE;
@@ -27,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static redis_request.RedisRequestOuterClass.RequestType.BgSave;
 import static redis_request.RedisRequestOuterClass.RequestType.Blpop;
 import static redis_request.RedisRequestOuterClass.RequestType.Brpop;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
@@ -2718,6 +2720,28 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(payload, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void bgsave_returns_success() {
+        // setup
+        String[] arguments = new String[] {SCHEDULE};
+        String value = OK;
+
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(BgSave), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.bgsave(true);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, response.get());
     }
 
     @SneakyThrows

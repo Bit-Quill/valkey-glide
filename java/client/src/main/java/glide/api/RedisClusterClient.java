@@ -1,9 +1,11 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static glide.api.commands.ServerManagementCommands.SCHEDULE;
 import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.castMapOfArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
+import static redis_request.RedisRequestOuterClass.RequestType.BgSave;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -278,5 +280,24 @@ public class RedisClusterClient extends BaseClient
                                 ? ClusterValue.ofSingleValue(castArray(handleArrayResponse(response), String.class))
                                 : ClusterValue.ofMultiValue(
                                         castMapOfArrays(handleMapResponse(response), String.class)));
+    }
+
+    @Override
+    public CompletableFuture<String> bgsave(boolean schedule) {
+        String[] arguments = schedule ? new String[] {SCHEDULE} : new String[0];
+        return commandManager.submitNewCommand(BgSave, arguments, this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<ClusterValue<String>> bgsave(boolean schedule, Route route) {
+        String[] arguments = schedule ? new String[] {SCHEDULE} : new String[0];
+        return commandManager.submitNewCommand(
+                BgSave,
+                arguments,
+                route,
+                response ->
+                        route instanceof SingleNodeRoute
+                                ? ClusterValue.ofSingleValue(handleStringResponse(response))
+                                : ClusterValue.ofMultiValue(handleMapResponse(response)));
     }
 }

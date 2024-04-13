@@ -5,6 +5,7 @@ import static glide.TestConfiguration.CLUSTER_PORTS;
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestUtilities.getFirstEntryFromMultiValue;
 import static glide.TestUtilities.getValueFromInfo;
+import static glide.TestUtilities.tryCommandWithExpectedError;
 import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.InfoOptions.Section.CLIENTS;
 import static glide.api.models.commands.InfoOptions.Section.CLUSTER;
@@ -28,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClusterClient;
+import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
@@ -555,5 +557,47 @@ public class CommandTests {
                 Long.parseLong((String) serverTime[0]) > now,
                 "Time() result (" + serverTime[0] + ") should be greater than now (" + now + ")");
         assertTrue(Long.parseLong((String) serverTime[1]) < 1000000);
+    }
+
+    @Test
+    @SneakyThrows
+    public void bgsave() {
+        var error = "Background save already in progress";
+        // bgsave may fail with given error and may keep failing on retries regardless of the
+        // timings/delays
+
+        var response = tryCommandWithExpectedError(() -> clusterClient.bgsave(false), error);
+        assertTrue(response.getValue() != null || response.getKey().startsWith("Background saving"));
+        Thread.sleep(2000); // next save call without delay will likely throw an error
+        response = tryCommandWithExpectedError(() -> clusterClient.bgsave(true), error);
+        assertTrue(response.getValue() != null || response.getKey().startsWith("Background saving"));
+        Thread.sleep(2000); // next save call without delay will likely throw an error
+
+        var transactionResponse =
+                tryCommandWithExpectedError(
+                        () -> clusterClient.exec(new ClusterTransaction().bgsave(true)), error);
+        assertTrue(
+                transactionResponse.getValue() != null
+                        || ((String) transactionResponse.getKey()[0]).startsWith("Background saving"));
+    }
+
+    @Test
+    @SneakyThrows
+    public void bgsave_with_route() {
+        var error = "Background save already in progress";
+        // bgsave may fail with given error and may keep failing on retries regardless of the
+        // timings/delays
+
+        var response = tryCommandWithExpectedError(() -> clusterClient.bgsave(false, ALL_NODES), error);
+        if (response.getValue() == null) {
+            for (var nodeResponse : response.getKey().getMultiValue().values()) {
+                assertTrue(nodeResponse.startsWith("Background saving"));
+            }
+        }
+        Thread.sleep(2000); // next save call without delay will likely throw an error
+        response = tryCommandWithExpectedError(() -> clusterClient.bgsave(true, RANDOM), error);
+        if (response.getValue() == null) {
+            assertTrue(response.getKey().getSingleValue().startsWith("Background saving"));
+        }
     }
 }

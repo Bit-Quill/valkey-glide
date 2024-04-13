@@ -13,6 +13,7 @@ import static glide.api.models.commands.RangeOptions.InfScoreBound.POSITIVE_INFI
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static glide.api.models.commands.ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static redis_request.RedisRequestOuterClass.RequestType.BgSave;
 import static redis_request.RedisRequestOuterClass.RequestType.Blpop;
 import static redis_request.RedisRequestOuterClass.RequestType.Brpop;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
@@ -395,6 +396,9 @@ public class TransactionTests {
 
         transaction.time();
         results.add(Pair.of(Time, buildArgs()));
+
+        transaction.bgsave(false);
+        results.add(Pair.of(BgSave, buildArgs()));
 
         transaction.persist("key");
         results.add(Pair.of(Persist, buildArgs("key")));

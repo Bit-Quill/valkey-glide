@@ -2,6 +2,7 @@
 package glide.api;
 
 import static glide.api.BaseClient.OK;
+import static glide.api.commands.ServerManagementCommands.SCHEDULE;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_NODES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_PRIMARIES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleSingleNodeRoute.RANDOM;
@@ -13,6 +14,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static redis_request.RedisRequestOuterClass.RequestType.BgSave;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -770,5 +772,50 @@ public class RedisClusterClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(payload, response.get().getSingleValue());
+    }
+
+    @SneakyThrows
+    @Test
+    public void bgsave_returns_success() {
+        // setup
+        String[] arguments = new String[] {SCHEDULE};
+        String value = OK;
+
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(BgSave), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.bgsave(true);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void bgsave_with_route_returns_success() {
+        // setup
+        String[] arguments = new String[] {SCHEDULE};
+        ClusterValue<String> value = ClusterValue.ofSingleValue(OK);
+
+        CompletableFuture<ClusterValue<String>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<ClusterValue<String>>submitNewCommand(
+                        eq(BgSave), eq(arguments), eq(RANDOM), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<ClusterValue<String>> response = service.bgsave(true, RANDOM);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, response.get());
     }
 }

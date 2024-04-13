@@ -13,6 +13,9 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface ServerManagementCommands {
 
+    /** Flag for {@link #bgsave} command to schedule the save operation. */
+    String SCHEDULE = "SCHEDULE";
+
     /**
      * Gets information and statistics about the Redis server using the {@link Section#DEFAULT}
      * option.
@@ -133,4 +136,20 @@ public interface ServerManagementCommands {
      * }</pre>
      */
     CompletableFuture<String[]> time();
+
+    /**
+     * Saves the DataBase in background.
+     *
+     * @see <a href="https://redis.io/commands/bgsave/">redis.io</a> for details.
+     * @param schedule Flag to schedule save on the next opportunity.
+     * @return A server confirmation whether background save started or scheduled.<br>
+     *     An error is returned if there is already a background save running
+     * @example
+     *     <pre>{@code
+     * String response = client.bgsave().get();
+     * assert response.equals("Background saving started")
+     *     || response.equals("Background saving scheduled");
+     * }</pre>
+     */
+    CompletableFuture<String> bgsave(boolean schedule);
 }
