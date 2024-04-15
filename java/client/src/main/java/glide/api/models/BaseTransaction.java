@@ -1,7 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
-import static glide.api.commands.ServerManagementCommands.SCHEDULE;
+import static glide.api.commands.ServerManagementCommands.SCHEDULE_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.RangeOptions.createZrangeArgs;
@@ -1738,7 +1738,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     An error is returned if there is already a background save running
      */
     public T bgsave(boolean schedule) {
-        ArgsArray commandArgs = buildArgs(schedule ? new String[] {SCHEDULE} : new String[0]);
+        ArgsArray commandArgs = buildArgs(schedule ? new String[] {SCHEDULE_REDIS_API} : new String[0]);
         protobufTransaction.addCommands(buildCommand(BgSave, commandArgs));
         return getThis();
     }

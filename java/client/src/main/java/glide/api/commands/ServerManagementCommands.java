@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 public interface ServerManagementCommands {
 
     /** Flag for {@link #bgsave} command to schedule the save operation. */
-    String SCHEDULE = "SCHEDULE";
+    String SCHEDULE_REDIS_API = "SCHEDULE";
 
     /**
      * Gets information and statistics about the Redis server using the {@link Section#DEFAULT}

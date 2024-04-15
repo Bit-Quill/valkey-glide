@@ -2,7 +2,7 @@
 package glide.api;
 
 import static glide.api.BaseClient.OK;
-import static glide.api.commands.ServerManagementCommands.SCHEDULE;
+import static glide.api.commands.ServerManagementCommands.SCHEDULE_REDIS_API;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_NODES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_PRIMARIES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleSingleNodeRoute.RANDOM;
@@ -778,7 +778,7 @@ public class RedisClusterClientTest {
     @Test
     public void bgsave_returns_success() {
         // setup
-        String[] arguments = new String[] {SCHEDULE};
+        String[] arguments = new String[] {SCHEDULE_REDIS_API};
         String value = OK;
 
         CompletableFuture<String> testResponse = new CompletableFuture<>();
@@ -800,7 +800,7 @@ public class RedisClusterClientTest {
     @Test
     public void bgsave_with_route_returns_success() {
         // setup
-        String[] arguments = new String[] {SCHEDULE};
+        String[] arguments = new String[] {SCHEDULE_REDIS_API};
         ClusterValue<String> value = ClusterValue.ofSingleValue(OK);
 
         CompletableFuture<ClusterValue<String>> testResponse = new CompletableFuture<>();

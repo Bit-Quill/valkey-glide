@@ -136,7 +136,7 @@ public class RedisClient extends BaseClient
 
     @Override
     public CompletableFuture<String> bgsave(boolean schedule) {
-        String[] arguments = schedule ? new String[] {SCHEDULE} : new String[0];
+        String[] arguments = schedule ? new String[] {SCHEDULE_REDIS_API} : new String[0];
         return commandManager.submitNewCommand(BgSave, arguments, this::handleStringResponse);
     }
 }

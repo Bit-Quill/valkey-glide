@@ -2,7 +2,7 @@
 package glide.api;
 
 import static glide.api.BaseClient.OK;
-import static glide.api.commands.ServerManagementCommands.SCHEDULE;
+import static glide.api.commands.ServerManagementCommands.SCHEDULE_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.BEFORE;
@@ -2726,7 +2726,7 @@ public class RedisClientTest {
     @Test
     public void bgsave_returns_success() {
         // setup
-        String[] arguments = new String[] {SCHEDULE};
+        String[] arguments = new String[] {SCHEDULE_REDIS_API};
         String value = OK;
 
         CompletableFuture<String> testResponse = new CompletableFuture<>();

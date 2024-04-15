@@ -1,7 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
-import static glide.api.commands.ServerManagementCommands.SCHEDULE;
+import static glide.api.commands.ServerManagementCommands.SCHEDULE_REDIS_API;
 import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.castMapOfArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
@@ -284,13 +284,13 @@ public class RedisClusterClient extends BaseClient
 
     @Override
     public CompletableFuture<String> bgsave(boolean schedule) {
-        String[] arguments = schedule ? new String[] {SCHEDULE} : new String[0];
+        String[] arguments = schedule ? new String[] {SCHEDULE_REDIS_API} : new String[0];
         return commandManager.submitNewCommand(BgSave, arguments, this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<ClusterValue<String>> bgsave(boolean schedule, Route route) {
-        String[] arguments = schedule ? new String[] {SCHEDULE} : new String[0];
+        String[] arguments = schedule ? new String[] {SCHEDULE_REDIS_API} : new String[0];
         return commandManager.submitNewCommand(
                 BgSave,
                 arguments,
