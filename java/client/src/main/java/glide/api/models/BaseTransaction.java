@@ -1650,7 +1650,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Returns the union of members from sorted sets specified by the given <code>keys</code>.
+     * Returns the union of members from sorted sets specified by the given <code>keys</code>.<br>
+     * To get the elements with their scores, see {@link #zunionWithScores}.
      *
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
      * @param keys The keys of sorted sets.
@@ -1668,8 +1669,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /**
      * Returns the union of members from sorted sets specified by the given <code>keys</code>.<br>
-     * To perform a zunion operation while specifying custom weights and aggregation settings, use
-     * {@link #zunion(String[], WeightAggregateOptions)}
+     * To get the elements with their scores, see {@link #zunionWithScores}.<br>
+     * To perform a <code>zunion</code> operation while specifying custom weights and aggregation
+     * settings, use {@link #zunion(String[], WeightAggregateOptions)}
      *
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
      * @param keys The keys of sorted sets.
@@ -1703,8 +1705,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Returns the union of members and their scores from sorted sets specified by the given <code>
      * keys</code>.<br>
-     * To perform a zunionWithScores operation while specifying custom weights and aggregation
-     * settings, use {@link #zunionWithScores(String[], WeightAggregateOptions)}
+     * To perform a <code>zunionWithScores</code> operation while specifying custom weights and
+     * aggregation settings, use {@link #zunionWithScores(String[], WeightAggregateOptions)}
      *
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
      * @param keys The keys of sorted sets.

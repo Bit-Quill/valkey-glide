@@ -616,7 +616,8 @@ public interface SortedSetBaseCommands {
     CompletableFuture<Long> zremrangebylex(String key, LexRange minLex, LexRange maxLex);
 
     /**
-     * Returns the union of members from sorted sets specified by the given <code>keys</code>.
+     * Returns the union of members from sorted sets specified by the given <code>keys</code>.<br>
+     * To get the elements with their scores, see {@link #zunionWithScores}.
      *
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
      * @param keys The keys of sorted sets.
@@ -629,7 +630,7 @@ public interface SortedSetBaseCommands {
      *             .aggregate(Aggregate.MAX)
      *             .weights(List.of(1.0, 2.0))
      *             .build();
-     * String[] payload = client.zunionstore("newSortedSet", new String[] {"mySortedSet1", "mySortedSet2"}, options).get()
+     * String[] payload = client.zunion(new String[] {"mySortedSet1", "mySortedSet2"}, options).get()
      * assert payload.equals(new String[] {"elem1", "elem2", "elem3"});
      * }</pre>
      */
@@ -637,15 +638,16 @@ public interface SortedSetBaseCommands {
 
     /**
      * Returns the union of members from sorted sets specified by the given <code>keys</code>.<br>
-     * To perform a zunion operation while specifying custom weights and aggregation settings, use
-     * {@link #zunion(String[], WeightAggregateOptions)}
+     * To get the elements with their scores, see {@link #zunionWithScores}.<br>
+     * To perform a <code>zunion</code> operation while specifying custom weights and aggregation
+     * settings, use {@link #zunion(String[], WeightAggregateOptions)}
      *
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
      * @param keys The keys of sorted sets.
      * @return The resulting sorted set from the union.
      * @example
      *     <pre>{@code
-     * String[] payload = client.zunionstore("newSortedSet", new String[] {"mySortedSet1", "mySortedSet2"}).get()
+     * String[] payload = client.zunion(new String[] {"mySortedSet1", "mySortedSet2"}).get()
      * assert payload.equals(new String[] {"elem1", "elem2", "elem3"});
      * }</pre>
      */
@@ -666,7 +668,7 @@ public interface SortedSetBaseCommands {
      *             .aggregate(Aggregate.MAX)
      *             .weights(List.of(1.0, 2.0))
      *             .build();
-     * Map<String, Double> payload = client.zunionstoreWithScores("newSortedSet", new String[] {"mySortedSet1", "mySortedSet2"}, options).get()
+     * Map<String, Double> payload = client.zunionWithScores(new String[] {"mySortedSet1", "mySortedSet2"}, options).get()
      * assert payload.equals(Map.of("elem1", 1.0, "elem2", 2.0, "elem3", 3.0));
      * }</pre>
      */
@@ -676,15 +678,15 @@ public interface SortedSetBaseCommands {
     /**
      * Returns the union of members and their scores from sorted sets specified by the given <code>
      * keys</code>.<br>
-     * To perform a zunionWithScores operation while specifying custom weights and aggregation
-     * settings, use {@link #zunionWithScores(String[], WeightAggregateOptions)}
+     * To perform a <code>zunionWithScores</code> operation while specifying custom weights and
+     * aggregation settings, use {@link #zunionWithScores(String[], WeightAggregateOptions)}
      *
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
      * @param keys The keys of sorted sets.
      * @return The resulting sorted set from the union with their scores.
      * @example
      *     <pre>{@code
-     * Map<String, Double> payload = client.zunionstoreWithScores("newSortedSet", new String[] {"mySortedSet1", "mySortedSet2"}).get()
+     * Map<String, Double> payload = client.zunionWithScores(new String[] {"mySortedSet1", "mySortedSet2"}).get()
      * assert payload.equals(Map.of("elem1", 1.0, "elem2", 2.0, "elem3", 3.0));
      * }</pre>
      */

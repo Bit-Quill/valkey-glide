@@ -9,9 +9,10 @@ import lombok.Builder;
 import lombok.Singular;
 
 /**
- * Optional arguments to {@link SortedSetBaseCommands#zunion}
+ * Optional arguments to {@link SortedSetBaseCommands#zunion(String[], WeightAggregateOptions)}, and
+ * {@link SortedSetBaseCommands#zunionWithScores(String[], WeightAggregateOptions)}.
  *
- * @see <a href="https://redis.io/commands/zunionstore/">redis.io</a> for more details.
+ * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
  */
 @Builder
 public final class WeightAggregateOptions {

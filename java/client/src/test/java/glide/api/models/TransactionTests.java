@@ -417,6 +417,26 @@ public class TransactionTests {
         transaction.zunionWithScores(new String[] {"key1", "key2"});
         results.add(Pair.of(ZUnion, buildArgs("2", "key1", "key2", WITH_SCORES_REDIS_API)));
 
+        transaction.zunionWithScores(
+                new String[] {"key1", "key2"},
+                WeightAggregateOptions.builder()
+                        .weights(List.of(10.0, 20.0))
+                        .aggregate(Aggregate.MAX)
+                        .build());
+        results.add(
+                Pair.of(
+                        ZUnion,
+                        buildArgs(
+                                "2",
+                                "key1",
+                                "key2",
+                                WEIGHTS_REDIS_API,
+                                "10.0",
+                                "20.0",
+                                AGGREGATE_REDIS_API,
+                                Aggregate.MAX.toString(),
+                                WITH_SCORES_REDIS_API)));
+
         transaction.xadd("key", Map.of("field1", "foo1"));
         results.add(Pair.of(XAdd, buildArgs("key", "*", "field1", "foo1")));
 
