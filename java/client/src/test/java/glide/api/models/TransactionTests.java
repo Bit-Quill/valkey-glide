@@ -11,6 +11,8 @@ import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.NEGATIVE_INFINITY;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.POSITIVE_INFINITY;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
+import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_API;
+import static glide.api.models.commands.WeightAggregateOptions.WEIGHTS_REDIS_API;
 import static glide.api.models.commands.ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static redis_request.RedisRequestOuterClass.RequestType.Blpop;
@@ -87,6 +89,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
+import static redis_request.RedisRequestOuterClass.RequestType.ZUnion;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcount;
@@ -103,6 +106,8 @@ import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.StreamAddOptions;
+import glide.api.models.commands.WeightAggregateOptions;
+import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.ZaddOptions;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -386,6 +391,31 @@ public class TransactionTests {
 
         transaction.zremrangebylex("key", new LexBoundary("a", false), InfLexBound.POSITIVE_INFINITY);
         results.add(Pair.of(ZRemRangeByLex, buildArgs("key", "(a", "+")));
+
+        transaction.zunion(new String[] {"key1", "key2"});
+        results.add(Pair.of(ZUnion, buildArgs("2", "key1", "key2")));
+
+        transaction.zunion(
+                new String[] {"key1", "key2"},
+                WeightAggregateOptions.builder()
+                        .weights(List.of(10.0, 20.0))
+                        .aggregate(Aggregate.MAX)
+                        .build());
+        results.add(
+                Pair.of(
+                        ZUnion,
+                        buildArgs(
+                                "2",
+                                "key1",
+                                "key2",
+                                WEIGHTS_REDIS_API,
+                                "10.0",
+                                "20.0",
+                                AGGREGATE_REDIS_API,
+                                Aggregate.MAX.toString())));
+
+        transaction.zunionWithScores(new String[] {"key1", "key2"});
+        results.add(Pair.of(ZUnion, buildArgs("2", "key1", "key2", WITH_SCORES_REDIS_API)));
 
         transaction.xadd("key", Map.of("field1", "foo1"));
         results.add(Pair.of(XAdd, buildArgs("key", "*", "field1", "foo1")));

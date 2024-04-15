@@ -82,6 +82,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
+import static redis_request.RedisRequestOuterClass.RequestType.ZUnion;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcount;
@@ -109,6 +110,7 @@ import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.WeightAggregateOptions;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import lombok.Getter;
@@ -1645,6 +1647,71 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         ArgsArray commandArgs = buildArgs(key, minLex.toArgs(), maxLex.toArgs());
         protobufTransaction.addCommands(buildCommand(ZRemRangeByLex, commandArgs));
         return getThis();
+    }
+
+    /**
+     * Returns the union of members from sorted sets specified by the given <code>keys</code>.
+     *
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param keys The keys of sorted sets.
+     * @param options Weight and Aggregate options.
+     * @return Command Response - The resulting sorted set from the union.
+     */
+    public T zunion(@NonNull String[] keys, @NonNull WeightAggregateOptions options) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {Integer.toString(keys.length)}, keys, options.toArgs()));
+        protobufTransaction.addCommands(buildCommand(ZUnion, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the union of members from sorted sets specified by the given <code>keys</code>.<br>
+     * To perform a zunion operation while specifying custom weights and aggregation settings, use
+     * {@link #zunion(String[], WeightAggregateOptions)}
+     *
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param keys The keys of sorted sets.
+     * @return Command Response - The resulting sorted set from the union.
+     */
+    public T zunion(@NonNull String[] keys) {
+        return zunion(keys, WeightAggregateOptions.builder().build());
+    }
+
+    /**
+     * Returns the union of members and their scores from sorted sets specified by the given <code>
+     * keys</code>.
+     *
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param keys The keys of sorted sets.
+     * @param options Weight and Aggregate options.
+     * @return Command Response - The resulting sorted set from the union with their scores.
+     */
+    public T zunionWithScores(@NonNull String[] keys, @NonNull WeightAggregateOptions options) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {Integer.toString(keys.length)},
+                                keys,
+                                options.toArgs(),
+                                new String[] {WITH_SCORES_REDIS_API}));
+        protobufTransaction.addCommands(buildCommand(ZUnion, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the union of members and their scores from sorted sets specified by the given <code>
+     * keys</code>.<br>
+     * To perform a zunionWithScores operation while specifying custom weights and aggregation
+     * settings, use {@link #zunionWithScores(String[], WeightAggregateOptions)}
+     *
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param keys The keys of sorted sets.
+     * @return Command Response - The resulting sorted set from the union with their scores.
+     */
+    public T zunionWithScores(@NonNull String[] keys) {
+        return zunionWithScores(keys, WeightAggregateOptions.builder().build());
     }
 
     /**
