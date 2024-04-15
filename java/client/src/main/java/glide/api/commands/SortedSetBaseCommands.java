@@ -643,8 +643,8 @@ public interface SortedSetBaseCommands {
      * Computes the union of sorted sets given by the specified <code>keys</code>, and stores the
      * result in <code>destination</code>. If <code>destination</code> already exists, it is
      * overwritten. Otherwise, a new sorted set will be created.<br>
-     * To get the union with non-default aggregation, use {@link #zunionstore(String, String[],
-     * WeightAggregateOptions)}.
+     * To perform a zunionstore operation while specifying custom weights and aggregation settings,
+     * use {@link #zunionstore(String, String[], WeightAggregateOptions)}
      *
      * @see <a href="https://redis.io/commands/zunionstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
