@@ -27,8 +27,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static redis_request.RedisRequestOuterClass.RequestType.Blpop;
-import static redis_request.RedisRequestOuterClass.RequestType.Brpop;
+import static redis_request.RedisRequestOuterClass.RequestType.BLPop;
+import static redis_request.RedisRequestOuterClass.RequestType.BRPop;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -44,21 +44,22 @@ import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
+import static redis_request.RedisRequestOuterClass.RequestType.HDel;
+import static redis_request.RedisRequestOuterClass.RequestType.HExists;
+import static redis_request.RedisRequestOuterClass.RequestType.HGet;
+import static redis_request.RedisRequestOuterClass.RequestType.HGetAll;
+import static redis_request.RedisRequestOuterClass.RequestType.HIncrBy;
+import static redis_request.RedisRequestOuterClass.RequestType.HIncrByFloat;
 import static redis_request.RedisRequestOuterClass.RequestType.HLen;
-import static redis_request.RedisRequestOuterClass.RequestType.HSetNX;
-import static redis_request.RedisRequestOuterClass.RequestType.HashDel;
-import static redis_request.RedisRequestOuterClass.RequestType.HashExists;
-import static redis_request.RedisRequestOuterClass.RequestType.HashGet;
-import static redis_request.RedisRequestOuterClass.RequestType.HashGetAll;
-import static redis_request.RedisRequestOuterClass.RequestType.HashIncrBy;
-import static redis_request.RedisRequestOuterClass.RequestType.HashIncrByFloat;
-import static redis_request.RedisRequestOuterClass.RequestType.HashMGet;
-import static redis_request.RedisRequestOuterClass.RequestType.HashSet;
-import static redis_request.RedisRequestOuterClass.RequestType.Hvals;
+import static redis_request.RedisRequestOuterClass.RequestType.HMGet;
+import static redis_request.RedisRequestOuterClass.RequestType.HSet;
+import static redis_request.RedisRequestOuterClass.RequestType.HSetNx;
+import static redis_request.RedisRequestOuterClass.RequestType.HVals;
 import static redis_request.RedisRequestOuterClass.RequestType.Incr;
 import static redis_request.RedisRequestOuterClass.RequestType.IncrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.IncrByFloat;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
+import static redis_request.RedisRequestOuterClass.RequestType.LIndex;
 import static redis_request.RedisRequestOuterClass.RequestType.LInsert;
 import static redis_request.RedisRequestOuterClass.RequestType.LLen;
 import static redis_request.RedisRequestOuterClass.RequestType.LPop;
@@ -67,12 +68,11 @@ import static redis_request.RedisRequestOuterClass.RequestType.LPushX;
 import static redis_request.RedisRequestOuterClass.RequestType.LRange;
 import static redis_request.RedisRequestOuterClass.RequestType.LRem;
 import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
-import static redis_request.RedisRequestOuterClass.RequestType.Lindex;
 import static redis_request.RedisRequestOuterClass.RequestType.MGet;
 import static redis_request.RedisRequestOuterClass.RequestType.MSet;
 import static redis_request.RedisRequestOuterClass.RequestType.PExpire;
 import static redis_request.RedisRequestOuterClass.RequestType.PExpireAt;
-import static redis_request.RedisRequestOuterClass.RequestType.PTTL;
+import static redis_request.RedisRequestOuterClass.RequestType.PTtl;
 import static redis_request.RedisRequestOuterClass.RequestType.Persist;
 import static redis_request.RedisRequestOuterClass.RequestType.PfAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.PfCount;
@@ -90,27 +90,27 @@ import static redis_request.RedisRequestOuterClass.RequestType.Select;
 import static redis_request.RedisRequestOuterClass.RequestType.SetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.SetString;
 import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
-import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
+import static redis_request.RedisRequestOuterClass.RequestType.Ttl;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.ZAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.ZCard;
+import static redis_request.RedisRequestOuterClass.RequestType.ZCount;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiff;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiffStore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZLexCount;
 import static redis_request.RedisRequestOuterClass.RequestType.ZMScore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.ZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRange;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRank;
+import static redis_request.RedisRequestOuterClass.RequestType.ZRem;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByScore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
-import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
-import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
-import static redis_request.RedisRequestOuterClass.RequestType.Zcount;
-import static redis_request.RedisRequestOuterClass.RequestType.Zrange;
-import static redis_request.RedisRequestOuterClass.RequestType.Zrank;
-import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
 import glide.api.models.Script;
 import glide.api.models.Transaction;
@@ -128,7 +128,7 @@ import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
 import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.ZaddOptions;
+import glide.api.models.commands.ZAddOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.LinkedHashMap;
@@ -388,7 +388,7 @@ public class RedisClientTest {
                         .returnOldValue(false)
                         .expiry(Expiry.KeepExisting())
                         .build();
-        String[] arguments = new String[] {key, value, ONLY_IF_EXISTS.getRedisApi(), "KEEPTTL"};
+        String[] arguments = new String[] {key, value, ONLY_IF_EXISTS.getRedisApi(), "KEEPTtl"};
 
         CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete(null);
@@ -649,7 +649,7 @@ public class RedisClientTest {
         testResponse.complete(ttl);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(TTL), eq(new String[] {key}), any()))
+        when(commandManager.<Long>submitNewCommand(eq(Ttl), eq(new String[] {key}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -723,7 +723,7 @@ public class RedisClientTest {
         testResponse.complete(pttl);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(PTTL), eq(new String[] {key}), any()))
+        when(commandManager.<Long>submitNewCommand(eq(PTtl), eq(new String[] {key}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1049,7 +1049,7 @@ public class RedisClientTest {
 
         CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
-        when(commandManager.<String>submitNewCommand(eq(HashGet), eq(args), any()))
+        when(commandManager.<String>submitNewCommand(eq(HGet), eq(args), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1074,8 +1074,7 @@ public class RedisClientTest {
 
         CompletableFuture<Long> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
-        when(commandManager.<Long>submitNewCommand(eq(HashSet), eq(args), any()))
-                .thenReturn(testResponse);
+        when(commandManager.<Long>submitNewCommand(eq(HSet), eq(args), any())).thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Long> response = service.hset(key, fieldValueMap);
@@ -1099,7 +1098,7 @@ public class RedisClientTest {
         testResponse.complete(Boolean.TRUE);
 
         // match on protobuf request
-        when(commandManager.<Boolean>submitNewCommand(eq(HSetNX), eq(args), any()))
+        when(commandManager.<Boolean>submitNewCommand(eq(HSetNx), eq(args), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1124,8 +1123,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(HashDel), eq(args), any()))
-                .thenReturn(testResponse);
+        when(commandManager.<Long>submitNewCommand(eq(HDel), eq(args), any())).thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Long> response = service.hdel(key, fields);
@@ -1171,7 +1169,7 @@ public class RedisClientTest {
         testResponse.complete(values);
 
         // match on protobuf request
-        when(commandManager.<String[]>submitNewCommand(eq(Hvals), eq(args), any()))
+        when(commandManager.<String[]>submitNewCommand(eq(HVals), eq(args), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1196,7 +1194,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String[]>submitNewCommand(eq(HashMGet), eq(args), any()))
+        when(commandManager.<String[]>submitNewCommand(eq(HMGet), eq(args), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1221,7 +1219,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Boolean>submitNewCommand(eq(HashExists), eq(args), any()))
+        when(commandManager.<Boolean>submitNewCommand(eq(HExists), eq(args), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1247,7 +1245,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Map<String, String>>submitNewCommand(eq(HashGetAll), eq(args), any()))
+        when(commandManager.<Map<String, String>>submitNewCommand(eq(HGetAll), eq(args), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1273,7 +1271,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(
-                        eq(HashIncrBy), eq(new String[] {key, field, Long.toString(amount)}), any()))
+                        eq(HIncrBy), eq(new String[] {key, field, Long.toString(amount)}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1299,7 +1297,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Double>submitNewCommand(
-                        eq(HashIncrByFloat), eq(new String[] {key, field, Double.toString(amount)}), any()))
+                        eq(HIncrByFloat), eq(new String[] {key, field, Double.toString(amount)}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1424,7 +1422,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(Lindex), eq(args), any()))
+        when(commandManager.<String>submitNewCommand(eq(LIndex), eq(args), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1719,12 +1717,12 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(Zadd), eq(arguments), any()))
+        when(commandManager.<Long>submitNewCommand(eq(ZAdd), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Long> response =
-                service.zadd(key, membersScores, ZaddOptions.builder().build(), false);
+                service.zadd(key, membersScores, ZAddOptions.builder().build(), false);
         Long payload = response.get();
 
         // verify
@@ -1737,10 +1735,10 @@ public class RedisClientTest {
     public void zadd_withOptions_returns_success() {
         // setup
         String key = "testKey";
-        ZaddOptions options =
-                ZaddOptions.builder()
-                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_EXISTS)
-                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
+        ZAddOptions options =
+                ZAddOptions.builder()
+                        .conditionalChange(ZAddOptions.ConditionalChange.ONLY_IF_EXISTS)
+                        .updateOptions(ZAddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
                         .build();
         Map<String, Double> membersScores = new LinkedHashMap<>();
         membersScores.put("testMember1", 1.0);
@@ -1754,7 +1752,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(Zadd), eq(arguments), any()))
+        when(commandManager.<Long>submitNewCommand(eq(ZAdd), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1771,10 +1769,10 @@ public class RedisClientTest {
     public void zadd_withIllegalArgument_throws_exception() {
         // setup
         String key = "testKey";
-        ZaddOptions options =
-                ZaddOptions.builder()
-                        .conditionalChange(ZaddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
-                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
+        ZAddOptions options =
+                ZAddOptions.builder()
+                        .conditionalChange(ZAddOptions.ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
+                        .updateOptions(ZAddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
                         .build();
         Map<String, Double> membersScores = new LinkedHashMap<>();
         membersScores.put("testMember1", 1.0);
@@ -1798,12 +1796,12 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Double>submitNewCommand(eq(Zadd), eq(arguments), any()))
+        when(commandManager.<Double>submitNewCommand(eq(ZAdd), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Double> response =
-                service.zaddIncr(key, member, increment, ZaddOptions.builder().build());
+                service.zaddIncr(key, member, increment, ZAddOptions.builder().build());
         Double payload = response.get();
 
         // verify
@@ -1816,9 +1814,9 @@ public class RedisClientTest {
     public void zaddIncr_withOptions_returns_success() {
         // setup
         String key = "testKey";
-        ZaddOptions options =
-                ZaddOptions.builder()
-                        .updateOptions(ZaddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
+        ZAddOptions options =
+                ZAddOptions.builder()
+                        .updateOptions(ZAddOptions.UpdateOptions.SCORE_GREATER_THAN_CURRENT)
                         .build();
         String member = "member";
         double increment = 3.0;
@@ -1833,7 +1831,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Double>submitNewCommand(eq(Zadd), eq(arguments), any()))
+        when(commandManager.<Double>submitNewCommand(eq(ZAdd), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -1978,7 +1976,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(Zrem), eq(arguments), any()))
+        when(commandManager.<Long>submitNewCommand(eq(ZRem), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2002,7 +2000,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(Zcard), eq(arguments), any()))
+        when(commandManager.<Long>submitNewCommand(eq(ZCard), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2150,7 +2148,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String[]>submitNewCommand(eq(Zrange), eq(arguments), any()))
+        when(commandManager.<String[]>submitNewCommand(eq(ZRange), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2177,7 +2175,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String[]>submitNewCommand(eq(Zrange), eq(arguments), any()))
+        when(commandManager.<String[]>submitNewCommand(eq(ZRange), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2203,7 +2201,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String[]>submitNewCommand(eq(Zrange), eq(arguments), any()))
+        when(commandManager.<String[]>submitNewCommand(eq(ZRange), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2229,7 +2227,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Map<String, Double>>submitNewCommand(eq(Zrange), eq(arguments), any()))
+        when(commandManager.<Map<String, Double>>submitNewCommand(eq(ZRange), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2268,7 +2266,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Map<String, Double>>submitNewCommand(eq(Zrange), eq(arguments), any()))
+        when(commandManager.<Map<String, Double>>submitNewCommand(eq(ZRange), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2294,7 +2292,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(Zrank), eq(arguments), any()))
+        when(commandManager.<Long>submitNewCommand(eq(ZRank), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2319,7 +2317,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Object[]>submitNewCommand(eq(Zrank), eq(arguments), any()))
+        when(commandManager.<Object[]>submitNewCommand(eq(ZRank), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2444,7 +2442,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(Zcount), eq(arguments), any()))
+        when(commandManager.<Long>submitNewCommand(eq(ZCount), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2812,7 +2810,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String[]>submitNewCommand(eq(Blpop), eq(arguments), any()))
+        when(commandManager.<String[]>submitNewCommand(eq(BLPop), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -2887,7 +2885,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String[]>submitNewCommand(eq(Brpop), eq(arguments), any()))
+        when(commandManager.<String[]>submitNewCommand(eq(BRPop), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise

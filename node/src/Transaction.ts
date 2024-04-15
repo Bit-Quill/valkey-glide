@@ -13,8 +13,8 @@ import {
     StreamAddOptions,
     StreamReadOptions,
     StreamTrimOptions,
-    ZaddOptions,
-    createBrpop,
+    ZAddOptions,
+    createBRPop,
     createClientGetName,
     createClientId,
     createConfigGet,
@@ -39,57 +39,57 @@ import {
     createHLen,
     createHMGet,
     createHSet,
-    createHSetNX,
-    createHvals,
+    createHSetNx,
+    createHVals,
     createIncr,
     createIncrBy,
     createIncrByFloat,
     createInfo,
+    createLIndex,
     createLLen,
     createLPop,
     createLPush,
     createLRange,
     createLRem,
     createLTrim,
-    createLindex,
     createMGet,
     createMSet,
     createPExpire,
     createPExpireAt,
+    createPTtl,
     createPersist,
     createPing,
-    createPttl,
     createRPop,
     createRPush,
     createRename,
     createSAdd,
     createSCard,
+    createSIsMember,
     createSMembers,
     createSPop,
     createSRem,
     createSelect,
     createSet,
-    createSismember,
     createStrlen,
     createTTL,
     createTime,
     createType,
     createUnlink,
-    createXadd,
-    createXread,
-    createXtrim,
-    createZadd,
-    createZcard,
-    createZcount,
-    createZpopmax,
-    createZpopmin,
-    createZrange,
-    createZrangeWithScores,
-    createZrank,
-    createZrem,
-    createZremRangeByRank,
-    createZremRangeByScore,
-    createZscore,
+    createXAdd,
+    createXRead,
+    createXTrim,
+    createZAdd,
+    createZCard,
+    createZCount,
+    createZPopMax,
+    createZPopMin,
+    createZRange,
+    createZRangeWithScores,
+    createZRank,
+    createZRem,
+    createZRemRangeByRank,
+    createZRemRangeByScore,
+    createZScore,
 } from "./Commands";
 import { redis_request } from "./ProtobufMessage";
 
@@ -367,7 +367,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * Command Response - `true` if the field was set, `false` if the field already existed and was not set.
      */
     public hsetnx(key: string, field: string, value: string): T {
-        return this.addAndReturn(createHSetNX(key, field, value));
+        return this.addAndReturn(createHSetNx(key, field, value));
     }
 
     /** Removes the specified fields from the hash stored at `key`.
@@ -472,7 +472,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * Command Response - a list of values in the hash, or an empty list when the key does not exist.
      */
     public hvals(key: string): T {
-        return this.addAndReturn(createHvals(key));
+        return this.addAndReturn(createHVals(key));
     }
 
     /** Inserts all the specified values at the head of the list stored at `key`.
@@ -680,7 +680,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If `key` doesn't exist, it is treated as an empty set and the command returns `false`.
      */
     public sismember(key: string, member: string): T {
-        return this.addAndReturn(createSismember(key, member));
+        return this.addAndReturn(createSIsMember(key, member));
     }
 
     /** Removes and returns one random member from the set value store at `key`.
@@ -833,7 +833,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @param key - The key of the sorted set.
      * @param membersScoresMap - A mapping of members to their corresponding scores.
-     * @param options - The Zadd options.
+     * @param options - The ZAdd options.
      * @param changed - Modify the return value from the number of new elements added, to the total number of elements changed.
      *
      * Command Response - The number of elements added to the sorted set.
@@ -842,11 +842,11 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
     public zadd(
         key: string,
         membersScoresMap: Record<string, number>,
-        options?: ZaddOptions,
+        options?: ZAddOptions,
         changed?: boolean,
     ): T {
         return this.addAndReturn(
-            createZadd(
+            createZAdd(
                 key,
                 membersScoresMap,
                 options,
@@ -863,7 +863,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key - The key of the sorted set.
      * @param member - A member in the sorted set to increment.
      * @param increment - The score to increment the member.
-     * @param options - The Zadd options.
+     * @param options - The ZAdd options.
      *
      * Command Response - The score of the member.
      * If there was a conflict with the options, the operation aborts and null is returned.
@@ -872,10 +872,10 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         key: string,
         member: string,
         increment: number,
-        options?: ZaddOptions,
+        options?: ZAddOptions,
     ): T {
         return this.addAndReturn(
-            createZadd(key, { [member]: increment }, options, "INCR"),
+            createZAdd(key, { [member]: increment }, options, "INCR"),
         );
     }
 
@@ -890,7 +890,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If `key` does not exist, it is treated as an empty sorted set, and this command returns 0.
      */
     public zrem(key: string, members: string[]): T {
-        return this.addAndReturn(createZrem(key, members));
+        return this.addAndReturn(createZRem(key, members));
     }
 
     /** Returns the cardinality (number of elements) of the sorted set stored at `key`.
@@ -902,7 +902,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If `key` does not exist, it is treated as an empty sorted set, and this command returns 0.
      */
     public zcard(key: string): T {
-        return this.addAndReturn(createZcard(key));
+        return this.addAndReturn(createZCard(key));
     }
 
     /** Returns the score of `member` in the sorted set stored at `key`.
@@ -916,7 +916,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If `key` does not exist, null is returned.
      */
     public zscore(key: string, member: string): T {
-        return this.addAndReturn(createZscore(key, member));
+        return this.addAndReturn(createZScore(key, member));
     }
 
     /** Returns the number of members in the sorted set stored at `key` with scores between `minScore` and `maxScore`.
@@ -935,7 +935,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         minScore: ScoreBoundary<number>,
         maxScore: ScoreBoundary<number>,
     ): T {
-        return this.addAndReturn(createZcount(key, minScore, maxScore));
+        return this.addAndReturn(createZCount(key, minScore, maxScore));
     }
 
     /** Returns the specified range of elements in the sorted set stored at `key`.
@@ -959,7 +959,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         rangeQuery: RangeByScore | RangeByLex | RangeByIndex,
         reverse: boolean = false,
     ): T {
-        return this.addAndReturn(createZrange(key, rangeQuery, reverse));
+        return this.addAndReturn(createZRange(key, rangeQuery, reverse));
     }
 
     /** Returns the specified range of elements with their scores in the sorted set stored at `key`.
@@ -982,7 +982,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         reverse: boolean = false,
     ): T {
         return this.addAndReturn(
-            createZrangeWithScores(key, rangeQuery, reverse),
+            createZRangeWithScores(key, rangeQuery, reverse),
         );
     }
 
@@ -1022,7 +1022,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If `count` is higher than the sorted set's cardinality, returns all members and their scores.
      */
     public zpopmin(key: string, count?: number): T {
-        return this.addAndReturn(createZpopmin(key, count));
+        return this.addAndReturn(createZPopMin(key, count));
     }
 
     /** Removes and returns the members with the highest scores from the sorted set stored at `key`.
@@ -1038,7 +1038,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If `count` is higher than the sorted set's cardinality, returns all members and their scores, ordered from highest to lowest.
      */
     public zpopmax(key: string, count?: number): T {
-        return this.addAndReturn(createZpopmax(key, count));
+        return this.addAndReturn(createZPopMax(key, count));
     }
 
     /** Echoes the provided `message` back.
@@ -1060,7 +1060,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * Command Response - TTL in milliseconds. -2 if `key` does not exist, -1 if `key` exists but has no associated expire.
      */
     public pttl(key: string): T {
-        return this.addAndReturn(createPttl(key));
+        return this.addAndReturn(createPTtl(key));
     }
 
     /** Removes all elements in the sorted set stored at `key` with rank between `start` and `end`.
@@ -1078,7 +1078,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If `key` does not exist 0 will be returned.
      */
     public zremRangeByRank(key: string, start: number, end: number): T {
-        return this.addAndReturn(createZremRangeByRank(key, start, end));
+        return this.addAndReturn(createZRemRangeByRank(key, start, end));
     }
 
     /** Removes all elements in the sorted set stored at `key` with a score between `minScore` and `maxScore`.
@@ -1098,7 +1098,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         maxScore: ScoreBoundary<number>,
     ): T {
         return this.addAndReturn(
-            createZremRangeByScore(key, minScore, maxScore),
+            createZRemRangeByScore(key, minScore, maxScore),
         );
     }
 
@@ -1113,7 +1113,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If `key` doesn't exist, or if `member` is not present in the set, null will be returned.
      */
     public zrank(key: string, member: string): T {
-        return this.addAndReturn(createZrank(key, member));
+        return this.addAndReturn(createZRank(key, member));
     }
 
     /** Returns the rank of `member` in the sorted set stored at `key` with its score, where scores are ordered from the lowest to highest.
@@ -1128,7 +1128,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * since - Redis version 7.2.0.
      */
     public zrankWithScore(key: string, member: string): T {
-        return this.addAndReturn(createZrank(key, member, true));
+        return this.addAndReturn(createZRank(key, member, true));
     }
 
     /** Remove the existing timeout on `key`, turning the key from volatile (a key with an expire set) to
@@ -1170,7 +1170,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If `index` is out of range or if `key` does not exist, null is returned.
      */
     public lindex(key: string, index: number): T {
-        return this.addAndReturn(createLindex(key, index));
+        return this.addAndReturn(createLIndex(key, index));
     }
 
     /**
@@ -1186,7 +1186,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         values: [string, string][],
         options?: StreamAddOptions,
     ): T {
-        return this.addAndReturn(createXadd(key, values, options));
+        return this.addAndReturn(createXAdd(key, values, options));
     }
 
     /**
@@ -1198,7 +1198,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * @returns The number of entries deleted from the stream. If `key` doesn't exist, 0 is returned.
      */
     public xtrim(key: string, options: StreamTrimOptions): T {
-        return this.addAndReturn(createXtrim(key, options));
+        return this.addAndReturn(createXTrim(key, options));
     }
 
     /** Returns the server time.
@@ -1224,7 +1224,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         keys_and_ids: Record<string, string>,
         options?: StreamReadOptions,
     ): T {
-        return this.addAndReturn(createXread(keys_and_ids, options));
+        return this.addAndReturn(createXRead(keys_and_ids, options));
     }
 
     /**
@@ -1256,7 +1256,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * formatted as [key, value]. If no element could be popped and the timeout expired, returns Null.
      */
     public brpop(keys: string[], timeout: number): T {
-        return this.addAndReturn(createBrpop(keys, timeout));
+        return this.addAndReturn(createBRPop(keys, timeout));
     }
 }
 

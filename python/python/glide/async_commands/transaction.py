@@ -393,7 +393,7 @@ class BaseTransaction:
         field_value_list: List[str] = [key]
         for pair in field_value_map.items():
             field_value_list.extend(pair)
-        return self.append_command(RequestType.HashSet, field_value_list)
+        return self.append_command(RequestType.HSet, field_value_list)
 
     def hget(self: TTransaction, key: str, field: str) -> TTransaction:
         """
@@ -408,7 +408,7 @@ class BaseTransaction:
             Optional[str]: The value associated `field` in the hash.
             Returns None if `field` is not presented in the hash or `key` does not exist.
         """
-        return self.append_command(RequestType.HashGet, [key, field])
+        return self.append_command(RequestType.HGet, [key, field])
 
     def hsetnx(
         self: TTransaction,
@@ -430,7 +430,7 @@ class BaseTransaction:
         Commands response:
             bool: True if the field was set, False if the field already existed and was not set.
         """
-        return self.append_command(RequestType.HSetNX, [key, field, value])
+        return self.append_command(RequestType.HSetNx, [key, field, value])
 
     def hincrby(self: TTransaction, key: str, field: str, amount: int) -> TTransaction:
         """
@@ -448,7 +448,7 @@ class BaseTransaction:
         Command response:
             int: The value of the specified field in the hash stored at `key` after the increment or decrement.
         """
-        return self.append_command(RequestType.HashIncrBy, [key, field, str(amount)])
+        return self.append_command(RequestType.HIncrBy, [key, field, str(amount)])
 
     def hincrbyfloat(
         self: TTransaction, key: str, field: str, amount: float
@@ -470,7 +470,7 @@ class BaseTransaction:
             float: The value of the specified field in the hash stored at `key` after the increment as a string.
         """
         return self.append_command(
-            RequestType.HashIncrByFloat, [key, field, str(amount)]
+            RequestType.HIncrByFloat, [key, field, str(amount)]
         )
 
     def hexists(self: TTransaction, key: str, field: str) -> TTransaction:
@@ -486,7 +486,7 @@ class BaseTransaction:
             bool: Returns 'True' if the hash contains the specified field. If the hash does not contain the field,
                 or if the key does not exist, it returns 'False'.
         """
-        return self.append_command(RequestType.HashExists, [key, field])
+        return self.append_command(RequestType.HExists, [key, field])
 
     def hlen(self: TTransaction, key: str) -> TTransaction:
         """
@@ -527,7 +527,7 @@ class BaseTransaction:
             its value.
             If `key` does not exist, it returns an empty dictionary.
         """
-        return self.append_command(RequestType.HashGetAll, [key])
+        return self.append_command(RequestType.HGetAll, [key])
 
     def hmget(self: TTransaction, key: str, fields: List[str]) -> TTransaction:
         """
@@ -543,7 +543,7 @@ class BaseTransaction:
             For every field that does not exist in the hash, a null value is returned.
             If `key` does not exist, it is treated as an empty hash, and the function returns a list of null values.
         """
-        return self.append_command(RequestType.HashMGet, [key] + fields)
+        return self.append_command(RequestType.HMGet, [key] + fields)
 
     def hdel(self: TTransaction, key: str, fields: List[str]) -> TTransaction:
         """
@@ -558,7 +558,7 @@ class BaseTransaction:
             int: The number of fields that were removed from the hash, excluding specified but non-existing fields.
             If `key` does not exist, it is treated as an empty hash, and the function returns 0.
         """
-        return self.append_command(RequestType.HashDel, [key] + fields)
+        return self.append_command(RequestType.HDel, [key] + fields)
 
     def hvals(self: TTransaction, key: str) -> TTransaction:
         """
@@ -572,7 +572,7 @@ class BaseTransaction:
         Command response:
             List[str]: A list of values in the hash, or an empty list when the key does not exist.
         """
-        return self.append_command(RequestType.Hvals, [key])
+        return self.append_command(RequestType.HVals, [key])
 
     def hkeys(self: TTransaction, key: str) -> TTransaction:
         """
@@ -586,7 +586,7 @@ class BaseTransaction:
         Command response:
             List[str]: A list of field names for the hash, or an empty list when the key does not exist.
         """
-        return self.append_command(RequestType.Hkeys, [key])
+        return self.append_command(RequestType.HKeys, [key])
 
     def lpush(self: TTransaction, key: str, elements: List[str]) -> TTransaction:
         """
@@ -692,7 +692,7 @@ class BaseTransaction:
             Optional[str]: The element at `index` in the list stored at `key`.
                 If `index` is out of range or if `key` does not exist, None is returned.
         """
-        return self.append_command(RequestType.Lindex, [key, str(index)])
+        return self.append_command(RequestType.LIndex, [key, str(index)])
 
     def rpush(self: TTransaction, key: str, elements: List[str]) -> TTransaction:
         """Inserts all the specified values at the tail of the list stored at `key`.
@@ -828,7 +828,7 @@ class BaseTransaction:
             Optional[str]: The value of the popped member.
             If `key` does not exist, None will be returned.
         """
-        return self.append_command(RequestType.Spop, [key])
+        return self.append_command(RequestType.SPop, [key])
 
     def spop_count(self: TTransaction, key: str, count: int) -> TTransaction:
         """
@@ -845,7 +845,7 @@ class BaseTransaction:
             Set[str]: A set of popped elements will be returned depending on the set's length.
                   If `key` does not exist, an empty set will be returned.
         """
-        return self.append_command(RequestType.Spop, [key, str(count)])
+        return self.append_command(RequestType.SPop, [key, str(count)])
 
     def sismember(
         self: TTransaction,
@@ -1083,7 +1083,7 @@ class BaseTransaction:
         Commands response:
             int: TTL in seconds, -2 if `key` does not exist or -1 if `key` exists but has no associated expire.
         """
-        return self.append_command(RequestType.TTL, [key])
+        return self.append_command(RequestType.Ttl, [key])
 
     def pttl(
         self: TTransaction,
@@ -1099,7 +1099,7 @@ class BaseTransaction:
         Commands Response:
             int: TTL in milliseconds. -2 if `key` does not exist, -1 if `key` exists but has no associated expire.
         """
-        return self.append_command(RequestType.PTTL, [key])
+        return self.append_command(RequestType.PTtl, [key])
 
     def persist(
         self: TTransaction,
@@ -1199,7 +1199,7 @@ class BaseTransaction:
         ]
         args += members_scores_list
 
-        return self.append_command(RequestType.Zadd, args)
+        return self.append_command(RequestType.ZAdd, args)
 
     def zadd_incr(
         self: TTransaction,
@@ -1248,7 +1248,7 @@ class BaseTransaction:
                 )
 
         args += [str(increment), member]
-        return self.append_command(RequestType.Zadd, args)
+        return self.append_command(RequestType.ZAdd, args)
 
     def zcard(self: TTransaction, key: str) -> TTransaction:
         """
@@ -1263,7 +1263,7 @@ class BaseTransaction:
             int: The number of elements in the sorted set.
             If `key` does not exist, it is treated as an empty sorted set, and the command returns 0.
         """
-        return self.append_command(RequestType.Zcard, [key])
+        return self.append_command(RequestType.ZCard, [key])
 
     def zcount(
         self: TTransaction,
@@ -1300,7 +1300,7 @@ class BaseTransaction:
             if type(max_score) == InfBound
             else max_score.value
         )
-        return self.append_command(RequestType.Zcount, [key, score_min, score_max])
+        return self.append_command(RequestType.ZCount, [key, score_min, score_max])
 
     def zpopmax(
         self: TTransaction, key: str, count: Optional[int] = None
@@ -1375,7 +1375,7 @@ class BaseTransaction:
         """
         args = _create_zrange_args(key, range_query, reverse, with_scores=False)
 
-        return self.append_command(RequestType.Zrange, args)
+        return self.append_command(RequestType.ZRange, args)
 
     def zrange_withscores(
         self: TTransaction,
@@ -1402,7 +1402,7 @@ class BaseTransaction:
         """
         args = _create_zrange_args(key, range_query, reverse, with_scores=True)
 
-        return self.append_command(RequestType.Zrange, args)
+        return self.append_command(RequestType.ZRange, args)
 
     def zrank(
         self: TTransaction,
@@ -1424,7 +1424,7 @@ class BaseTransaction:
             Optional[int]: The rank of `member` in the sorted set.
             If `key` doesn't exist, or if `member` is not present in the set, None will be returned.
         """
-        return self.append_command(RequestType.Zrank, [key, member])
+        return self.append_command(RequestType.ZRank, [key, member])
 
     def zrank_withscore(
         self: TTransaction,
@@ -1446,7 +1446,7 @@ class BaseTransaction:
 
         Since: Redis version 7.2.0.
         """
-        return self.append_command(RequestType.Zrank, [key, member, "WITHSCORE"])
+        return self.append_command(RequestType.ZRank, [key, member, "WITHSCORE"])
 
     def zrem(
         self: TTransaction,
@@ -1467,7 +1467,7 @@ class BaseTransaction:
             int: The number of members that were removed from the sorted set, not including non-existing members.
             If `key` does not exist, it is treated as an empty sorted set, and the command returns 0.
         """
-        return self.append_command(RequestType.Zrem, [key] + members)
+        return self.append_command(RequestType.ZRem, [key] + members)
 
     def zremrangebyscore(
         self: TTransaction,
@@ -1533,7 +1533,7 @@ class BaseTransaction:
         Commands response:
             int: The number of keys in the database.
         """
-        return self.append_command(RequestType.DBSize, [])
+        return self.append_command(RequestType.DbSize, [])
 
 
 class Transaction(BaseTransaction):

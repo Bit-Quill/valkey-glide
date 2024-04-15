@@ -76,7 +76,7 @@ public final class SetOptions {
         }
 
         /**
-         * Retain the time to live associated with the key. Equivalent to <code>KEEPTTL</code> in the
+         * Retain the time to live associated with the key. Equivalent to <code>KEEPTtl</code> in the
          * Redis API.
          */
         public static Expiry KeepExisting() {
@@ -130,7 +130,7 @@ public final class SetOptions {
     /** Types of value expiration configuration. */
     @RequiredArgsConstructor
     protected enum ExpiryType {
-        KEEP_EXISTING("KEEPTTL"),
+        KEEP_EXISTING("KEEPTtl"),
         SECONDS("EX"),
         MILLISECONDS("PX"),
         UNIX_SECONDS("EXAT"),
