@@ -1625,7 +1625,7 @@ public class SharedCommandTests {
                 Map.of("one", 2.0, "three", 6.0, "two", 11.0),
                 client.zunionWithScores(new String[] {key1, key2}, options).get());
 
-        // Union results are aggregated by the maximum score, with scores for key1 multiplied by 1.0 and
+        // Union results are aggregated by the minimum score, with scores for key1 multiplied by 1.0 and
         // for key2 by -2.0.
         options =
                 WeightAggregateOptions.builder()
