@@ -493,11 +493,14 @@ public class SharedCommandTests {
         // incorrect range
         assertEquals("", client.getrange(stringKey, -1, -3).get());
 
-        // a redis bug lol kek
-        assertEquals("T", client.getrange(stringKey, -200, -100).get());
+        // a redis bug, fixed in version 8: https://github.com/redis/redis/issues/13207
+        assertEquals(
+                REDIS_VERSION.isLowerThan("8.0.0") ? "T" : "",
+                client.getrange(stringKey, -200, -100).get());
 
-        // empty key
-        assertEquals("", client.getrange(nonStringKey, 0, -1).get());
+        // empty key (returning null isn't implemented)
+        assertEquals(
+                REDIS_VERSION.isLowerThan("8.0.0") ? "" : null, client.getrange(nonStringKey, 0, -1).get());
 
         // non-string key
         assertEquals(1, client.lpush(nonStringKey, new String[] {"_"}).get());
