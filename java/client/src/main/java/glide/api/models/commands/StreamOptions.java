@@ -8,11 +8,7 @@ import java.util.Map;
 import lombok.Builder;
 import lombok.NonNull;
 
-/**
- * Optional arguments for {@link StreamBaseCommands}
- *
- * @see <a href="https://redis.io/commands/xtrim/">redis.io</a>
- */
+/** Optional arguments for {@link StreamBaseCommands} */
 public final class StreamOptions {
 
     /**
@@ -65,8 +61,7 @@ public final class StreamOptions {
     }
 
     /**
-     * Optional arguments for {@link StreamBaseCommands#xadd(String, Map, StreamAddOptions)} and
-     * {@link StreamBaseCommands#xtrim(String, StreamTrimOptions)}
+     * Optional arguments for {@link StreamBaseCommands#xtrim(String, StreamTrimOptions)}
      *
      * @see <a href="https://redis.io/commands/xtrim/">redis.io</a>
      */
