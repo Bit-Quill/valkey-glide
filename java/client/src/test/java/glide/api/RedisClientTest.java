@@ -2590,7 +2590,7 @@ public class RedisClientTest {
                                 StreamAddOptions.builder()
                                         .id("id")
                                         .makeStream(Boolean.TRUE)
-                                        .trim(new MaxLen(Boolean.TRUE, 5L, 10L))
+                                        .trim(new MaxLen(5L, 10L))
                                         .build(),
                                 new String[] {
                                     "testKey",
@@ -2620,7 +2620,7 @@ public class RedisClientTest {
                                 StreamAddOptions.builder()
                                         .id("id")
                                         .makeStream(Boolean.TRUE)
-                                        .trim(new MinId(Boolean.TRUE, "testKey", 10L))
+                                        .trim(new MinId("testKey", 10L))
                                         .build(),
                                 new String[] {
                                     "testKey",
@@ -2678,13 +2678,38 @@ public class RedisClientTest {
 
     @Test
     @SneakyThrows
-    public void xtrim_with_MinId() {
+    public void xtrim_with_exact_MinId() {
         // setup
         String key = "testKey";
-        TrimLimit limit = new MinId(true, "id", 5);
+        TrimLimit limit = new MinId(true, "id");
+        String[] arguments = new String[] {key, TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "id"};
+        Long completedResult = 1L;
+
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(completedResult);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(XTrim), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.xtrim(key, limit);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(completedResult, payload);
+    }
+
+    @Test
+    @SneakyThrows
+    public void xtrim_with_limited_MinId() {
+        // setup
+        String key = "testKey";
+        TrimLimit limit = new MinId("id", 5);
         String[] arguments =
                 new String[] {
-                    key, TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "id", TRIM_LIMIT_REDIS_API, "5"
+                    key, TRIM_MINID_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "id", TRIM_LIMIT_REDIS_API, "5"
                 };
         Long completedResult = 1L;
 
@@ -2706,14 +2731,36 @@ public class RedisClientTest {
 
     @Test
     @SneakyThrows
-    public void xtrim_with_MaxLen() {
+    public void xtrim_with_exact_MaxLen() {
         // setup
         String key = "testKey";
-        TrimLimit limit = new MaxLen(false, 8, 5);
-        String[] arguments =
-                new String[] {
-                    key, TRIM_MAXLEN_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "8", TRIM_LIMIT_REDIS_API, "5"
-                };
+        TrimLimit limit = new MaxLen(8);
+        String[] arguments = new String[] {key, TRIM_MAXLEN_REDIS_API, "8"};
+        Long completedResult = 1L;
+
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(completedResult);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(XTrim), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.xtrim(key, limit);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(completedResult, payload);
+    }
+
+    @Test
+    @SneakyThrows
+    public void xtrim_with_not_exact_MaxLen() {
+        // setup
+        String key = "testKey";
+        TrimLimit limit = new MaxLen(false, 8);
+        String[] arguments = new String[] {key, TRIM_MAXLEN_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "8"};
         Long completedResult = 1L;
 
         CompletableFuture<Long> testResponse = new CompletableFuture<>();

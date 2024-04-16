@@ -1649,7 +1649,7 @@ public class SharedCommandTests {
         }
 
         // test xtrim to remove 1 element
-        assertEquals(1L, client.xtrim(key, new MaxLen(true, 1)).get());
+        assertEquals(1L, client.xtrim(key, new MaxLen(1)).get());
 
         // Key does not exist - returns 0
         assertEquals(0L, client.xtrim(key, new MaxLen(true, 1)).get());
