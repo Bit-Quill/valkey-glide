@@ -139,7 +139,7 @@ public interface ServerManagementCommands {
      * was made since then.
      *
      * @see <a href="https://redis.io/commands/lastsave/">redis.io</a> for details.
-     * @return <code>Unix time</code> of the last DB save executed with success.
+     * @return <code>UNIX TIME</code> of the last DB save executed with success.
      * @example
      *     <pre>{@code
      * Long timestamp = client.lastsave().get();

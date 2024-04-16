@@ -28,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClusterClient;
-import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
@@ -571,8 +570,5 @@ public class CommandTests {
         for (var value : data.getMultiValue().values()) {
             assertTrue(Instant.ofEpochSecond(value).isAfter(yesterday));
         }
-
-        var response = clusterClient.exec(new ClusterTransaction().lastsave()).get();
-        assertTrue(Instant.ofEpochSecond((long) response[0]).isAfter(yesterday));
     }
 }

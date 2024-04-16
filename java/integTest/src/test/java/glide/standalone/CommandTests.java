@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClient;
-import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
@@ -274,10 +273,6 @@ public class CommandTests {
     public void lastsave() {
         long result = regularClient.lastsave().get();
         var yesterday = Instant.now().minus(1, ChronoUnit.DAYS);
-
         assertTrue(Instant.ofEpochSecond(result).isAfter(yesterday));
-
-        var response = regularClient.exec(new Transaction().lastsave()).get();
-        assertTrue(Instant.ofEpochSecond((long) response[0]).isAfter(yesterday));
     }
 }

@@ -289,7 +289,7 @@ public interface ServerManagementClusterCommands {
      * The command will be routed to a random node.
      *
      * @see <a href="https://redis.io/commands/lastsave/">redis.io</a> for details.
-     * @return <code>Unix time</code> of the last DB save executed with success.
+     * @return <code>UNIX TIME</code> of the last DB save executed with success.
      * @example
      *     <pre>{@code
      * Long timestamp = client.lastsave().get();
@@ -305,7 +305,7 @@ public interface ServerManagementClusterCommands {
      * @see <a href="https://redis.io/commands/lastsave/">redis.io</a> for details.
      * @param route Specifies the routing configuration for the command. The client will route the
      *     command to the nodes defined by <code>route</code>.
-     * @return <code>Unix time</code> of the last DB save executed with success.
+     * @return <code>UNIX TIME</code> of the last DB save executed with success.
      * @example
      *     <pre>{@code
      * ClusterValue<Long> data = client.lastsave(ALL_NODES).get();
