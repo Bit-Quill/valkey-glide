@@ -289,11 +289,10 @@ public interface ServerManagementClusterCommands {
      *
      * @see <a href="https://redis.io/commands/bgsave/">redis.io</a> for details.
      * @param schedule Flag to schedule save on the next opportunity.
-     * @return A server confirmation whether background save started or scheduled.<br>
-     *     An error is returned if there is already a background save running
+     * @return A server confirmation whether background save started or scheduled.
      * @example
      *     <pre>{@code
-     * String response = client.bgsave().get();
+     * String response = client.bgsave(true).get();
      * assert response.equals("Background saving started")
      *     || response.equals("Background saving scheduled");
      * }</pre>
@@ -307,11 +306,10 @@ public interface ServerManagementClusterCommands {
      * @param schedule Flag to schedule save on the next opportunity.
      * @param route Specifies the routing configuration for the command. The client will route the
      *     command to the nodes defined by <code>route</code>.
-     * @return A server confirmation whether background save started or scheduled.<br>
-     *     An error is returned if there is already a background save running
+     * @return A server confirmation whether background save started or scheduled.
      * @example
      *     <pre>{@code
-     * ClusterValue<String> response = client.bgsave(ALL_NODES).get();
+     * ClusterValue<String> response = client.bgsave(true, ALL_NODES).get();
      * for (String nodeResponse : response.getMultiValue().values()) {
      *     assert nodeResponse.equals("Background saving started")
      *         || nodeResponse.equals("Background saving scheduled");
