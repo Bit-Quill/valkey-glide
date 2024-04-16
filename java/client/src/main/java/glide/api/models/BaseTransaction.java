@@ -6,7 +6,6 @@ import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.RangeOptions.createZRangeArgs;
 import static glide.api.models.commands.RangeOptions.createZrangeArgs;
-import static glide.api.models.commands.StreamTrimOptions.createXtrimArgs;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -152,6 +151,9 @@ import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.StreamAddOptions.StreamAddOptionsBuilder;
 import glide.api.models.commands.StreamTrimOptions.TrimLimit;
+import glide.api.models.commands.StreamOptions.StreamAddOptions;
+import glide.api.models.commands.StreamOptions.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.StreamOptions.StreamTrimOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeospatialData;
@@ -2324,8 +2326,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param options Stream trim options.
      * @return Command Response - The number of entries deleted from the stream.
      */
-    public T xtrim(@NonNull String key, @NonNull TrimLimit options) {
-        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(createXtrimArgs(options), key));
+    public T xtrim(@NonNull String key, @NonNull StreamTrimOptions options) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(options.toArgs(), key));
         protobufTransaction.addCommands(buildCommand(XTrim, commandArgs));
         return getThis();
     }

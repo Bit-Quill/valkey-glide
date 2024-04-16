@@ -22,6 +22,8 @@ import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamTrimOptions.MinId;
 import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.StreamTrimOptions.MinId;
+import glide.api.models.commands.StreamOptions.MinId;
+import glide.api.models.commands.StreamOptions.StreamAddOptions;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
