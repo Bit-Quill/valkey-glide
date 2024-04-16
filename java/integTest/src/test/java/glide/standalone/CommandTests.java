@@ -4,6 +4,7 @@ package glide.standalone;
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestConfiguration.STANDALONE_PORTS;
 import static glide.TestUtilities.getValueFromInfo;
+import static glide.TestUtilities.tryCommandWithExpectedError;
 import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.InfoOptions.Section.CLUSTER;
 import static glide.api.models.commands.InfoOptions.Section.CPU;
@@ -14,12 +15,14 @@ import static glide.cluster.CommandTests.DEFAULT_INFO_SECTIONS;
 import static glide.cluster.CommandTests.EVERYTHING_INFO_SECTIONS;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClient;
+import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
@@ -48,6 +51,7 @@ public class CommandTests {
                 RedisClient.CreateClient(
                                 RedisClientConfiguration.builder()
                                         .address(NodeAddress.builder().port(STANDALONE_PORTS[0]).build())
+                                        .requestTimeout(10000)
                                         .build())
                         .get();
     }
@@ -265,5 +269,20 @@ public class CommandTests {
                 Long.parseLong(result[0]) > now,
                 "Time() result (" + result[0] + ") should be greater than now (" + now + ")");
         assertTrue(Long.parseLong(result[1]) < 1000000);
+    }
+
+    @Test
+    @SneakyThrows
+    public void save() {
+        String error = "Background save already in progress";
+        var response = tryCommandWithExpectedError(() -> regularClient.save(), error);
+        assertTrue(response.getValue() != null || response.getKey().equals(OK));
+
+        Exception ex =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> regularClient.exec(new Transaction().customCommand(new String[] {"save"})).get());
+        assertInstanceOf(RequestException.class, ex.getCause());
+        assertTrue(ex.getCause().getMessage().contains("Command not allowed inside a transaction"));
     }
 }
