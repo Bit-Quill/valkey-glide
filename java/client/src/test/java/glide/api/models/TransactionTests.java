@@ -17,6 +17,8 @@ import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_A
 import static glide.api.models.commands.WeightAggregateOptions.WEIGHTS_REDIS_API;
 import static glide.api.models.commands.StreamTrimOptions.TRIM_EXACT_REDIS_API;
 import static glide.api.models.commands.StreamTrimOptions.TRIM_MINID_REDIS_API;
+import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_EXACT_REDIS_API;
+import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MINID_REDIS_API;
 import static glide.api.models.commands.ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT;
 import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_EXACT_REDIS_API;
