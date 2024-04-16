@@ -47,6 +47,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LPushX;
 import static redis_request.RedisRequestOuterClass.RequestType.LRange;
 import static redis_request.RedisRequestOuterClass.RequestType.LRem;
 import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
+import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
 import static redis_request.RedisRequestOuterClass.RequestType.Lindex;
 import static redis_request.RedisRequestOuterClass.RequestType.MGet;
 import static redis_request.RedisRequestOuterClass.RequestType.MSet;
@@ -1772,6 +1773,18 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T time() {
         protobufTransaction.addCommands(buildCommand(Time));
+        return getThis();
+    }
+
+    /**
+     * Returns <code>unix time</code> of the last DB save timestamp or startup timestamp if no save
+     * was done since that.
+     *
+     * @see <a href="https://redis.io/commands/lastsave/">redis.io</a> for details.
+     * @return Command Response - <code>Unix time</code> of the last DB save executed with success.
+     */
+    public T lastsave() {
+        protobufTransaction.addCommands(buildCommand(LastSave));
         return getThis();
     }
 

@@ -133,4 +133,18 @@ public interface ServerManagementCommands {
      * }</pre>
      */
     CompletableFuture<String[]> time();
+
+    /**
+     * Returns <code>unix time</code> of the last DB save timestamp or startup timestamp if no save
+     * was done since that.
+     *
+     * @see <a href="https://redis.io/commands/lastsave/">redis.io</a> for details.
+     * @return <code>Unix time</code> of the last DB save executed with success.
+     * @example
+     *     <pre>{@code
+     * Long timestamp = client.lastsave().get();
+     * System.out.printf("Last DB save was done at %s%n", Instant.ofEpochSecond(timestamp));
+     * }</pre>
+     */
+    CompletableFuture<Long> lastsave();
 }

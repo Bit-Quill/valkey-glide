@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClusterClient;
+import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
@@ -36,6 +37,7 @@ import glide.api.models.configuration.RequestRoutingConfiguration.SlotKeyRoute;
 import glide.api.models.exceptions.RedisException;
 import glide.api.models.exceptions.RequestException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -555,5 +557,22 @@ public class CommandTests {
                 Long.parseLong((String) serverTime[0]) > now,
                 "Time() result (" + serverTime[0] + ") should be greater than now (" + now + ")");
         assertTrue(Long.parseLong((String) serverTime[1]) < 1000000);
+    }
+
+    @Test
+    @SneakyThrows
+    public void lastsave() {
+        long result = clusterClient.lastsave().get();
+        var yesterday = Instant.now().minus(1, ChronoUnit.DAYS);
+
+        assertTrue(Instant.ofEpochSecond(result).isAfter(yesterday));
+
+        ClusterValue<Long> data = clusterClient.lastsave(ALL_NODES).get();
+        for (var value : data.getMultiValue().values()) {
+            assertTrue(Instant.ofEpochSecond(value).isAfter(yesterday));
+        }
+
+        var response = clusterClient.exec(new ClusterTransaction().lastsave()).get();
+        assertTrue(Instant.ofEpochSecond((long) response[0]).isAfter(yesterday));
     }
 }

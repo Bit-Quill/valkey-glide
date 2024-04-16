@@ -282,4 +282,37 @@ public interface ServerManagementClusterCommands {
      * }</pre>
      */
     CompletableFuture<ClusterValue<String[]>> time(Route route);
+
+    /**
+     * Returns <code>unix time</code> of the last DB save timestamp or startup timestamp if no save
+     * was done since that.<br>
+     * The command will be routed to a random node.
+     *
+     * @see <a href="https://redis.io/commands/lastsave/">redis.io</a> for details.
+     * @return <code>Unix time</code> of the last DB save executed with success.
+     * @example
+     *     <pre>{@code
+     * Long timestamp = client.lastsave().get();
+     * System.out.printf("Last DB save was done at %s%n", Instant.ofEpochSecond(timestamp));
+     * }</pre>
+     */
+    CompletableFuture<Long> lastsave();
+
+    /**
+     * Returns <code>unix time</code> of the last DB save timestamp or startup timestamp if no save
+     * was done since that.
+     *
+     * @see <a href="https://redis.io/commands/lastsave/">redis.io</a> for details.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return <code>Unix time</code> of the last DB save executed with success.
+     * @example
+     *     <pre>{@code
+     * ClusterValue<Long> data = client.lastsave(ALL_NODES).get();
+     * for (Map.Entry<String, Long> entry : data.getMultiValue().entrySet()) {
+     *     System.out.printf("Last DB save on node %s was done at %s%n", entry.getKey(), Instant.ofEpochSecond(entry.getValue()));
+     * }
+     * }</pre>
+     */
+    CompletableFuture<ClusterValue<Long>> lastsave(Route route);
 }
