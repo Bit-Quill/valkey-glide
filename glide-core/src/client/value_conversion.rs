@@ -279,7 +279,7 @@ mod tests {
     }
 
     #[test]
-    fn convert_zunion_only_if_withsocres_is_included() {
+    fn convert_zunion_only_if_withscores_is_included() {
         // Test ZUNION without options
         assert!(matches!(
             expected_type_for_cmd(
