@@ -17,6 +17,7 @@ pub(crate) enum ExpectedReturnType {
     ZrankReturnType,
     JsonToggleReturnType,
     ArrayOfBools,
+    ArrayOfKeyValuePairs,
 }
 
 pub(crate) fn convert_to_expected_type(
@@ -175,6 +176,20 @@ pub(crate) fn convert_to_expected_type(
             )
                 .into()),
         },
+        ExpectedReturnType::ArrayOfKeyValuePairs => match value {
+            Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Array(_)) => {
+                Ok(value)
+            },
+            Value::Array(ref array) if matches!(array[0], Value::BulkString(_)) => {
+                convert_flat_array_to_key_value_pairs(array.clone())
+            },
+            _ => Err((
+                ErrorKind::TypeError,
+                "Response couldn't be converted to an array of key-value pairs",
+                format!("(response was {:?})", value),
+            )
+                .into()),
+        },
     }
 }
 
@@ -226,6 +241,23 @@ fn convert_array_to_map(
     Ok(Value::Map(map))
 }
 
+fn convert_flat_array_to_key_value_pairs(array: &[Value]) -> RedisResult<Value> {
+    if array.len() % 2 != 0 {
+        return Err((
+            ErrorKind::TypeError,
+            "Response has odd number of items, and cannot be converted to an array of key-value pairs"
+        )
+            .into());
+    }
+
+    let mut result = Vec::new();
+    for i in (0..array.len()).step_by(2) {
+        let pair = vec![array[i], array[i + 1]];
+        result.push(Value::Array(pair));
+    }
+    Ok(Value::Array(result))
+}
+
 pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
     let command = cmd.command()?;
 
@@ -241,6 +273,9 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
         b"SMEMBERS" | b"SINTER" => Some(ExpectedReturnType::Set),
         b"ZSCORE" => Some(ExpectedReturnType::DoubleOrNull),
         b"ZPOPMIN" | b"ZPOPMAX" => Some(ExpectedReturnType::MapOfStringToDouble),
+        b"HRANDFIELD" => cmd
+            .position(b"WITHVALUES")
+            .map(|_| ExpectedReturnType::ArrayOfKeyValuePairs),
         b"JSON.TOGGLE" => Some(ExpectedReturnType::JsonToggleReturnType),
         b"ZADD" => cmd
             .position(b"INCR")
