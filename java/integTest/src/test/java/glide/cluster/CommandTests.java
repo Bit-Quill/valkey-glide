@@ -571,14 +571,24 @@ public class CommandTests {
         assertTrue(
                 routedResponse.getValue() != null || routedResponse.getKey().getSingleValue().equals(OK));
 
-        Exception ex =
-                assertThrows(
-                        ExecutionException.class,
-                        () ->
-                                clusterClient
-                                        .exec(new ClusterTransaction().customCommand(new String[] {"save"}))
-                                        .get());
-        assertInstanceOf(RequestException.class, ex.getCause());
-        assertTrue(ex.getCause().getMessage().contains("Command not allowed inside a transaction"));
+        if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
+            Exception ex =
+                    assertThrows(
+                            ExecutionException.class,
+                            () ->
+                                    clusterClient
+                                            .exec(new ClusterTransaction().customCommand(new String[] {"save"}))
+                                            .get());
+            assertInstanceOf(RequestException.class, ex.getCause());
+            assertTrue(ex.getCause().getMessage().contains("Command not allowed inside a transaction"));
+        } else {
+            var transactionResponse =
+                    tryCommandWithExpectedError(
+                            () ->
+                                    clusterClient.exec(new ClusterTransaction().customCommand(new String[] {"save"})),
+                            error);
+            assertTrue(
+                    transactionResponse.getValue() != null || transactionResponse.getKey()[0].equals(OK));
+        }
     }
 }

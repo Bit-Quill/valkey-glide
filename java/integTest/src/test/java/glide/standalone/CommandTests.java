@@ -278,11 +278,21 @@ public class CommandTests {
         var response = tryCommandWithExpectedError(() -> regularClient.save(), error);
         assertTrue(response.getValue() != null || response.getKey().equals(OK));
 
-        Exception ex =
-                assertThrows(
-                        ExecutionException.class,
-                        () -> regularClient.exec(new Transaction().customCommand(new String[] {"save"})).get());
-        assertInstanceOf(RequestException.class, ex.getCause());
-        assertTrue(ex.getCause().getMessage().contains("Command not allowed inside a transaction"));
+        if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
+            Exception ex =
+                    assertThrows(
+                            ExecutionException.class,
+                            () ->
+                                    regularClient.exec(new Transaction().customCommand(new String[] {"save"})).get());
+            assertInstanceOf(RequestException.class, ex.getCause());
+            assertTrue(ex.getCause().getMessage().contains("Command not allowed inside a transaction"));
+        } else {
+            var transactionResponse =
+                    tryCommandWithExpectedError(
+                            () -> regularClient.exec(new Transaction().customCommand(new String[] {"save"})),
+                            error);
+            assertTrue(
+                    transactionResponse.getValue() != null || transactionResponse.getKey()[0].equals(OK));
+        }
     }
 }
