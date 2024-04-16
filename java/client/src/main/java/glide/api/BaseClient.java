@@ -1,7 +1,6 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
-import static glide.api.models.commands.StreamTrimOptions.createXtrimArgs;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
@@ -97,8 +96,8 @@ import glide.api.models.commands.RangeOptions.ScoreRange;
 import glide.api.models.commands.RangeOptions.ScoredRangeQuery;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
-import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.StreamTrimOptions.TrimLimit;
+import glide.api.models.commands.StreamOptions.StreamAddOptions;
+import glide.api.models.commands.StreamOptions.StreamTrimOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
 import glide.api.models.exceptions.RedisException;
@@ -803,8 +802,8 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> xtrim(@NonNull String key, @NonNull TrimLimit options) {
-        String[] arguments = ArrayUtils.addFirst(createXtrimArgs(options), key);
+    public CompletableFuture<Long> xtrim(@NonNull String key, @NonNull StreamTrimOptions options) {
+        String[] arguments = ArrayUtils.addFirst(options.toArgs(), key);
         return commandManager.submitNewCommand(XTrim, arguments, this::handleLongResponse);
     }
 

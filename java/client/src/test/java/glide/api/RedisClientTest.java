@@ -8,12 +8,12 @@ import static glide.api.models.commands.LInsertOptions.InsertPosition.BEFORE;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
-import static glide.api.models.commands.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
-import static glide.api.models.commands.StreamTrimOptions.TRIM_EXACT_REDIS_API;
-import static glide.api.models.commands.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
-import static glide.api.models.commands.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
-import static glide.api.models.commands.StreamTrimOptions.TRIM_MINID_REDIS_API;
-import static glide.api.models.commands.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
+import static glide.api.models.commands.StreamOptions.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
+import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_EXACT_REDIS_API;
+import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
+import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
+import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MINID_REDIS_API;
+import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -126,10 +126,10 @@ import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
-import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.StreamTrimOptions.MaxLen;
-import glide.api.models.commands.StreamTrimOptions.MinId;
-import glide.api.models.commands.StreamTrimOptions.TrimLimit;
+import glide.api.models.commands.StreamOptions.MaxLen;
+import glide.api.models.commands.StreamOptions.MinId;
+import glide.api.models.commands.StreamOptions.StreamAddOptions;
+import glide.api.models.commands.StreamOptions.StreamTrimOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
@@ -2681,7 +2681,7 @@ public class RedisClientTest {
     public void xtrim_with_exact_MinId() {
         // setup
         String key = "testKey";
-        TrimLimit limit = new MinId(true, "id");
+        StreamTrimOptions limit = new MinId(true, "id");
         String[] arguments = new String[] {key, TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "id"};
         Long completedResult = 1L;
 
@@ -2706,7 +2706,7 @@ public class RedisClientTest {
     public void xtrim_with_limited_MinId() {
         // setup
         String key = "testKey";
-        TrimLimit limit = new MinId("id", 5);
+        StreamTrimOptions limit = new MinId("id", 5);
         String[] arguments =
                 new String[] {
                     key, TRIM_MINID_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "id", TRIM_LIMIT_REDIS_API, "5"
@@ -2734,7 +2734,7 @@ public class RedisClientTest {
     public void xtrim_with_exact_MaxLen() {
         // setup
         String key = "testKey";
-        TrimLimit limit = new MaxLen(8);
+        StreamTrimOptions limit = new MaxLen(8);
         String[] arguments = new String[] {key, TRIM_MAXLEN_REDIS_API, "8"};
         Long completedResult = 1L;
 
@@ -2759,7 +2759,7 @@ public class RedisClientTest {
     public void xtrim_with_not_exact_MaxLen() {
         // setup
         String key = "testKey";
-        TrimLimit limit = new MaxLen(false, 8);
+        StreamTrimOptions limit = new MaxLen(false, 8);
         String[] arguments = new String[] {key, TRIM_MAXLEN_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "8"};
         Long completedResult = 1L;
 

@@ -11,8 +11,8 @@ import glide.api.models.commands.RangeOptions.LexBoundary;
 import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
-import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.StreamTrimOptions.MinId;
+import glide.api.models.commands.StreamOptions.MinId;
+import glide.api.models.commands.StreamOptions.StreamAddOptions;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -223,13 +223,10 @@ public class TransactionTestUtilities {
             2L, // zadd(zSetKey2, Map.of("one", 1.0, "two", 2.0))
             new String[] {"one", "two"}, // zdiff(new String[] {zSetKey2, key8})
             Map.of("one", 1.0, "two", 2.0), // zdiffWithScores(new String[] {zSetKey2, key8})
-            "0-1", // xadd(key9, Map.of("field1", "value1"),
-            // StreamAddOptions.builder().id("0-1").build());
-            "0-2", // xadd(key9, Map.of("field2", "value2"),
-            // StreamAddOptions.builder().id("0-2").build());
-            "0-3", // xadd(key9, Map.of("field3", "value3"),
-            // StreamAddOptions.builder().id("0-3").build());
-            1L, // xtrim(key9, new StreamTrimOptions.MinId(true, "0-2"))
+            "0-1", // xadd(key9, Map.of("field1", "value1"), id("0-1"));
+            "0-2", // xadd(key9, Map.of("field2", "value2"), id("0-2"));
+            "0-3", // xadd(key9, Map.of("field3", "value3"), id("0-3"));
+            1L, // xtrim(key9, new MinId(true, "0-2"));
             OK,
             Map.of("timeout", "1000"),
             OK,

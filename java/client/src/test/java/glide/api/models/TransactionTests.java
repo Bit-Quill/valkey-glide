@@ -105,8 +105,8 @@ import glide.api.models.commands.RangeOptions.Limit;
 import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
-import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.StreamTrimOptions;
+import glide.api.models.commands.StreamOptions.MinId;
+import glide.api.models.commands.StreamOptions.StreamAddOptions;
 import glide.api.models.commands.ZaddOptions;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -400,7 +400,7 @@ public class TransactionTests {
         transaction.xadd("key", Map.of("field1", "foo1"), StreamAddOptions.builder().id("id").build());
         results.add(Pair.of(XAdd, buildArgs("key", "id", "field1", "foo1")));
 
-        transaction.xtrim("key", new StreamTrimOptions.MinId(true, "id"));
+        transaction.xtrim("key", new MinId(true, "id"));
         results.add(Pair.of(XTrim, buildArgs("key", TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "id")));
 
         transaction.time();

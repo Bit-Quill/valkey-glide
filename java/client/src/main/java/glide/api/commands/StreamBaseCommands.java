@@ -1,9 +1,9 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
-import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.StreamAddOptions.StreamAddOptionsBuilder;
-import glide.api.models.commands.StreamTrimOptions.TrimLimit;
+import glide.api.models.commands.StreamOptions.StreamAddOptions;
+import glide.api.models.commands.StreamOptions.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.StreamOptions.StreamTrimOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -72,5 +72,5 @@ public interface StreamBaseCommands {
      * System.out.println("Number of trimmed entries from stream: " + trimmed);
      * }</pre>
      */
-    CompletableFuture<Long> xtrim(String key, TrimLimit options);
+    CompletableFuture<Long> xtrim(String key, StreamTrimOptions options);
 }
