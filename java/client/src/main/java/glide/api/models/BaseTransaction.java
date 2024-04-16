@@ -1681,9 +1681,10 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/zinterstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
-     * @param keys The keys of sorted sets.
+     * @param keys The keys of sorted sets to intersect..
      * @param options Weight and Aggregate options.
-     * @return Command Response - The number of elements in the resulting sorted set.
+     * @return Command Response - The number of elements in the resulting sorted set stored at <code>
+     *     destination</code>.
      */
     public T zinterstore(
             @NonNull String destination,
@@ -1706,8 +1707,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/zinterstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
-     * @param keys The keys of sorted sets.
-     * @return Command Response - The number of elements in the resulting sorted set.
+     * @param keys The keys of sorted sets to intersect..
+     * @return Command Response - The number of elements in the resulting sorted set stored at <code>
+     *     destination</code>.
      */
     public T zinterstore(@NonNull String destination, @NonNull String[] keys) {
         return zinterstore(destination, keys, WeightAggregateOptions.builder().build());

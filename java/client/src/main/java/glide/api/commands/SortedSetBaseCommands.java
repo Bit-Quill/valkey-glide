@@ -649,9 +649,9 @@ public interface SortedSetBaseCommands {
      *
      * @see <a href="https://redis.io/commands/zinterstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
-     * @param keys The keys of sorted sets.
+     * @param keys The keys of sorted sets to intersect..
      * @param options Weight and Aggregate options.
-     * @return The number of elements in the resulting sorted set.
+     * @return The number of elements in the resulting sorted set stored at <code>destination</code>.
      * @example
      *     <pre>{@code
      * WeightAggregateOptions options =
@@ -675,8 +675,8 @@ public interface SortedSetBaseCommands {
      *
      * @see <a href="https://redis.io/commands/zinterstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
-     * @param keys The keys of sorted sets.
-     * @return The number of elements in the resulting sorted set.
+     * @param keys The keys of sorted sets to intersect..
+     * @return The number of elements in the resulting sorted set stored at <code>destination</code>.
      * @example
      *     <pre>{@code
      * Long payload = client.zinterstore("newSortedSet", new String[] {"mySortedSet1", "mySortedSet2"}).get()
