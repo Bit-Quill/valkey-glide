@@ -1767,8 +1767,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/time/">redis.io</a> for details.
      * @return Command Response - The current server time as a <code>String</code> array with two
-     *     elements: A Unix timestamp and the amount of microseconds already elapsed in the current
-     *     second. The returned array is in a <code>[Unix timestamp, Microseconds already elapsed]
+     *     elements: A <code>UNIX TIME</code> and the amount of microseconds already elapsed in the
+     *     current second. The returned array is in a <code>[UNIX TIME, Microseconds already elapsed]
      *     </code> format.
      */
     public T time() {
@@ -1777,8 +1777,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Returns <code>unix time</code> of the last DB save timestamp or startup timestamp if no save
-     * was done since that.
+     * Returns <code>UNIX TIME</code> of the last DB save timestamp or startup timestamp if no save
+     * was made since then.
      *
      * @see <a href="https://redis.io/commands/lastsave/">redis.io</a> for details.
      * @return Command Response - <code>Unix time</code> of the last DB save executed with success.

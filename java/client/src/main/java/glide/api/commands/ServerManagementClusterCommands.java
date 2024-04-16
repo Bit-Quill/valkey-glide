@@ -246,9 +246,9 @@ public interface ServerManagementClusterCommands {
      * The command will be routed to a random node.
      *
      * @see <a href="https://redis.io/commands/time/">redis.io</a> for details.
-     * @return The current server time as a <code>String</code> array with two elements: A Unix
-     *     timestamp and the amount of microseconds already elapsed in the current second. The
-     *     returned array is in a <code>[Unix timestamp, Microseconds already elapsed]</code> format.
+     * @return The current server time as a <code>String</code> array with two elements: A <code>
+     *     UNIX TIME</code> and the amount of microseconds already elapsed in the current second. The
+     *     returned array is in a <code>[UNIX TIME, Microseconds already elapsed]</code> format.
      * @example
      *     <pre>{@code
      * String[] serverTime = client.time().get();
@@ -263,9 +263,9 @@ public interface ServerManagementClusterCommands {
      * @see <a href="https://redis.io/commands/time/">redis.io</a> for details.
      * @param route Specifies the routing configuration for the command. The client will route the
      *     command to the nodes defined by <code>route</code>.
-     * @return The current server time as a <code>String</code> array with two elements: A Unix
-     *     timestamp and the amount of microseconds already elapsed in the current second. The
-     *     returned array is in a <code>[Unix timestamp, Microseconds already elapsed]</code> format.
+     * @return The current server time as a <code>String</code> array with two elements: A <code>
+     *     UNIX TIME</code> and the amount of microseconds already elapsed in the current second. The
+     *     returned array is in a <code>[UNIX TIME, Microseconds already elapsed]</code> format.
      * @example
      *     <pre>{@code
      * // Command sent to a single random node via RANDOM route, expecting a SingleValue result.
@@ -284,8 +284,8 @@ public interface ServerManagementClusterCommands {
     CompletableFuture<ClusterValue<String[]>> time(Route route);
 
     /**
-     * Returns <code>unix time</code> of the last DB save timestamp or startup timestamp if no save
-     * was done since that.<br>
+     * Returns <code>UNIX TIME</code> of the last DB save timestamp or startup timestamp if no save
+     * was made since then.<br>
      * The command will be routed to a random node.
      *
      * @see <a href="https://redis.io/commands/lastsave/">redis.io</a> for details.
@@ -299,8 +299,8 @@ public interface ServerManagementClusterCommands {
     CompletableFuture<Long> lastsave();
 
     /**
-     * Returns <code>unix time</code> of the last DB save timestamp or startup timestamp if no save
-     * was done since that.
+     * Returns <code>UNIX TIME</code> of the last DB save timestamp or startup timestamp if no save
+     * was made since then.
      *
      * @see <a href="https://redis.io/commands/lastsave/">redis.io</a> for details.
      * @param route Specifies the routing configuration for the command. The client will route the
@@ -310,7 +310,7 @@ public interface ServerManagementClusterCommands {
      *     <pre>{@code
      * ClusterValue<Long> data = client.lastsave(ALL_NODES).get();
      * for (Map.Entry<String, Long> entry : data.getMultiValue().entrySet()) {
-     *     System.out.printf("Last DB save on node %s was done at %s%n", entry.getKey(), Instant.ofEpochSecond(entry.getValue()));
+     *     System.out.printf("Last DB save on node %s was made at %s%n", entry.getKey(), Instant.ofEpochSecond(entry.getValue()));
      * }
      * }</pre>
      */
