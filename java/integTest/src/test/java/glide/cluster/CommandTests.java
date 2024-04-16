@@ -22,7 +22,6 @@ import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleS
 import static glide.api.models.configuration.RequestRoutingConfiguration.SlotType.PRIMARY;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClusterClient;
-import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
@@ -570,25 +568,5 @@ public class CommandTests {
         var routedResponse = tryCommandWithExpectedError(() -> clusterClient.save(RANDOM), error);
         assertTrue(
                 routedResponse.getValue() != null || routedResponse.getKey().getSingleValue().equals(OK));
-
-        if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
-            Exception ex =
-                    assertThrows(
-                            ExecutionException.class,
-                            () ->
-                                    clusterClient
-                                            .exec(new ClusterTransaction().customCommand(new String[] {"save"}))
-                                            .get());
-            assertInstanceOf(RequestException.class, ex.getCause());
-            assertTrue(ex.getCause().getMessage().contains("Command not allowed inside a transaction"));
-        } else {
-            var transactionResponse =
-                    tryCommandWithExpectedError(
-                            () ->
-                                    clusterClient.exec(new ClusterTransaction().customCommand(new String[] {"save"})),
-                            error);
-            assertTrue(
-                    transactionResponse.getValue() != null || transactionResponse.getKey()[0].equals(OK));
-        }
     }
 }

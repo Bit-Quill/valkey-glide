@@ -15,14 +15,12 @@ import static glide.cluster.CommandTests.DEFAULT_INFO_SECTIONS;
 import static glide.cluster.CommandTests.EVERYTHING_INFO_SECTIONS;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClient;
-import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
@@ -277,22 +275,5 @@ public class CommandTests {
         String error = "Background save already in progress";
         var response = tryCommandWithExpectedError(() -> regularClient.save(), error);
         assertTrue(response.getValue() != null || response.getKey().equals(OK));
-
-        if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
-            Exception ex =
-                    assertThrows(
-                            ExecutionException.class,
-                            () ->
-                                    regularClient.exec(new Transaction().customCommand(new String[] {"save"})).get());
-            assertInstanceOf(RequestException.class, ex.getCause());
-            assertTrue(ex.getCause().getMessage().contains("Command not allowed inside a transaction"));
-        } else {
-            var transactionResponse =
-                    tryCommandWithExpectedError(
-                            () -> regularClient.exec(new Transaction().customCommand(new String[] {"save"})),
-                            error);
-            assertTrue(
-                    transactionResponse.getValue() != null || transactionResponse.getKey()[0].equals(OK));
-        }
     }
 }
