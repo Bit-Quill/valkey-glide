@@ -287,7 +287,7 @@ public class RedisClusterClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<ClusterValue<Long>> lastsave(Route route) {
+    public CompletableFuture<ClusterValue<Long>> lastsave(@NonNull Route route) {
         return commandManager.submitNewCommand(
                 LastSave,
                 new String[0],
