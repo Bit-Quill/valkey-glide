@@ -64,11 +64,11 @@ public interface StreamBaseCommands {
      * @example
      *     <pre>{@code
      * // A nearly exact trimming of the stream to at least a length of 10, limited to 10 entries
-     * Long trimmed = client.xtrim("key", new StreamTrimOptions.MaxLen(false, 10L)).get();
+     * Long trimmed = client.xtrim("key", new MaxLen(false, 10L)).get();
      * System.out.println("Number of trimmed entries from stream: " + trimmed);
      *
      * // An exact trimming of the stream by minimum id of "0-3", limit of 10 entries
-     * Long trimmed = client.xtrim("key", new StreamTrimOptions.MinId(true, "0-3", 10L)).get();
+     * Long trimmed = client.xtrim("key", new MinId(true, "0-3", 10L)).get();
      * System.out.println("Number of trimmed entries from stream: " + trimmed);
      * }</pre>
      */
