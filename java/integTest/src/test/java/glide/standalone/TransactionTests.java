@@ -7,6 +7,7 @@ import static glide.api.BaseClient.OK;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import glide.TestConfiguration;
@@ -109,5 +110,15 @@ public class TransactionTests {
 
         Object[] result = client.exec(transaction).get();
         assertArrayEquals(expectedResult, result);
+    }
+
+    @Test
+    @SneakyThrows
+    public void WATCH_transaction_failure_returns_null() {
+        Transaction transaction = new Transaction();
+        transaction.get("key");
+        assertEquals(OK, client.customCommand(new String[] {"WATCH", "key"}).get());
+        assertEquals(OK, client.set("key", "foo").get());
+        assertNull(client.exec(transaction).get());
     }
 }
