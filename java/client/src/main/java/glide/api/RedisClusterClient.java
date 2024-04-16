@@ -289,7 +289,7 @@ public class RedisClusterClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<ClusterValue<String>> bgsave(boolean schedule, Route route) {
+    public CompletableFuture<ClusterValue<String>> bgsave(boolean schedule, @NonNull Route route) {
         String[] arguments = schedule ? new String[] {SCHEDULE_REDIS_API} : new String[0];
         return commandManager.submitNewCommand(
                 BgSave,
