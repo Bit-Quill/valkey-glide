@@ -649,7 +649,7 @@ public interface SortedSetBaseCommands {
      *
      * @see <a href="https://redis.io/commands/zinterstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
-     * @param keys The keys of sorted sets to intersect..
+     * @param keys The keys of sorted sets to intersect.
      * @param options Weight and Aggregate options.
      * @return The number of elements in the resulting sorted set stored at <code>destination</code>.
      * @example
@@ -675,7 +675,7 @@ public interface SortedSetBaseCommands {
      *
      * @see <a href="https://redis.io/commands/zinterstore/">redis.io</a> for more details.
      * @param destination The key of the destination sorted set.
-     * @param keys The keys of sorted sets to intersect..
+     * @param keys The keys of sorted sets to intersect.
      * @return The number of elements in the resulting sorted set stored at <code>destination</code>.
      * @example
      *     <pre>{@code
