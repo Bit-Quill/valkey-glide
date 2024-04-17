@@ -1551,11 +1551,7 @@ class BaseTransaction:
         """
         return self.append_command(RequestType.DBSize, [])
 
-    def pfadd(
-            self: TTransaction,
-            key: str,
-            elements: List[str]
-    ) -> TTransaction:
+    def pfadd(self: TTransaction, key: str, elements: List[str]) -> TTransaction:
         """
         Adds all elements to the HyperLogLog data structure stored at the specified `key`.
         Creates a new structure if the `key` does not exist.
@@ -1573,9 +1569,8 @@ class BaseTransaction:
             int: If the HyperLogLog is newly created, or if the HyperLogLog approximated cardinality is
             altered, then returns `1`. Otherwise, returns `0`.
         """
-        return self.append_command(
-            RequestType.PfAdd, [key] + elements
-        )
+        return self.append_command(RequestType.PfAdd, [key] + elements)
+
 
 class Transaction(BaseTransaction):
     """
