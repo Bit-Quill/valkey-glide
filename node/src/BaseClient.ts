@@ -2193,6 +2193,7 @@ export class BaseClient {
      * Note: BRPOP is a blocking command,
      * see [Blocking Commands](https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands) for more details and best practices.
      *
+     * @remarks When in cluster mode, all `keys` must map to the same `hash slot`.
      * @param keys - The `keys` of the lists to pop from.
      * @param timeout - The `timeout` in seconds.
      * @returns - An `array` containing the `key` from which the element was popped and the value of the popped element,

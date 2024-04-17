@@ -2049,6 +2049,19 @@ export function runBaseTests<Context>(config: {
                 expect(await client.del(["brpop-test"])).toEqual(1);
                 // Test null return when key doesn't exist
                 expect(await client.brpop(["brpop-test"], 0.1)).toEqual(null);
+
+                // Same-slot requirement
+                if (client instanceof RedisClusterClient) {
+                    try {
+                        expect(
+                            await client.brpop(["abc", "zxy", "lkn"], 0.1),
+                        ).toThrow();
+                    } catch (e) {
+                        expect((e as Error).message.toLowerCase()).toMatch(
+                            "crossslot",
+                        );
+                    }
+                }
             }, protocol);
         },
         config.timeout,

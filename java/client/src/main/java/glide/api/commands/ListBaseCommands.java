@@ -281,6 +281,8 @@ public interface ListBaseCommands {
      * checked in the order that they are given.<br>
      * Blocks the connection when there are no elements to pop from any of the given lists.
      *
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *     </code>.
      * @see <a href="https://redis.io/commands/blpop/">redis.io</a> for details.
      * @apiNote <code>BLPOP</code> is a client blocking command, see <a
      *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
@@ -306,6 +308,8 @@ public interface ListBaseCommands {
      * checked in the order that they are given.<br>
      * Blocks the connection when there are no elements to pop from any of the given lists.
      *
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *     </code>.
      * @see <a href="https://redis.io/commands/brpop/">redis.io</a> for details.
      * @apiNote <code>BRPOP</code> is a client blocking command, see <a
      *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking

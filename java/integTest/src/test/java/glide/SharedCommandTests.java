@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.BaseClient;
 import glide.api.RedisClient;
@@ -129,6 +130,11 @@ public class SharedCommandTests {
 
         Long unlinkedKeysNum = client.unlink(new String[] {key1, key2, key3}).get();
         assertEquals(3L, unlinkedKeysNum);
+
+        // command can handle cross-slot case
+        if (client instanceof RedisClusterClient) {
+            client.unlink(new String[] {"abc", "zxy", "lkn"}).get();
+        }
     }
 
     @SneakyThrows
@@ -176,6 +182,11 @@ public class SharedCommandTests {
 
         Long deletedKeysNum = client.del(new String[] {key1, key2, key3}).get();
         assertEquals(3L, deletedKeysNum);
+
+        // command can handle cross-slot case
+        if (client instanceof RedisClusterClient) {
+            client.del(new String[] {"abc", "zxy", "lkn"}).get();
+        }
     }
 
     @SneakyThrows
@@ -335,6 +346,7 @@ public class SharedCommandTests {
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void mset_mget_existing_non_existing_key(BaseClient client) {
+        // keys are from different slots
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
         String key3 = UUID.randomUUID().toString();
@@ -1106,6 +1118,16 @@ public class SharedCommandTests {
         executionException =
                 assertThrows(ExecutionException.class, () -> client.sinterstore(key5, new String[0]).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+
+        // same-slot requirement
+        if (client instanceof RedisClusterClient) {
+            executionException =
+                    assertThrows(
+                            ExecutionException.class,
+                            () -> client.sinterstore("abc", new String[] {"zxy", "lkn"}).get());
+            assertInstanceOf(RequestException.class, executionException.getCause());
+            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
+        }
     }
 
     @SneakyThrows
@@ -1328,6 +1350,11 @@ public class SharedCommandTests {
         Long existsKeysNum =
                 client.exists(new String[] {key1, key2, key1, UUID.randomUUID().toString()}).get();
         assertEquals(3L, existsKeysNum);
+
+        // command can handle cross-slot case
+        if (client instanceof RedisClusterClient) {
+            client.exists(new String[] {"abc", "zxy", "lkn"}).get();
+        }
     }
 
     @SneakyThrows
@@ -1857,6 +1884,23 @@ public class SharedCommandTests {
                         ExecutionException.class,
                         () -> client.zdiffWithScores(new String[] {nonExistentKey, key2}).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+
+        // same-slot requirement
+        if (client instanceof RedisClusterClient) {
+            executionException =
+                    assertThrows(
+                            ExecutionException.class,
+                            () -> client.zdiff(new String[] {"abc", "zxy", "lkn"}).get());
+            assertInstanceOf(RequestException.class, executionException.getCause());
+            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
+
+            executionException =
+                    assertThrows(
+                            ExecutionException.class,
+                            () -> client.zdiffWithScores(new String[] {"abc", "zxy", "lkn"}).get());
+            assertInstanceOf(RequestException.class, executionException.getCause());
+            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
+        }
     }
 
     @SneakyThrows
@@ -1926,6 +1970,16 @@ public class SharedCommandTests {
                         ExecutionException.class,
                         () -> client.zdiffstore(key4, new String[] {key5, key1}).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+
+        // same-slot requirement
+        if (client instanceof RedisClusterClient) {
+            executionException =
+                    assertThrows(
+                            ExecutionException.class,
+                            () -> client.zdiffstore("abc", new String[] {"zxy", "lkn"}).get());
+            assertInstanceOf(RequestException.class, executionException.getCause());
+            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
+        }
     }
 
     @SneakyThrows
@@ -2394,6 +2448,20 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
+    public void zrangestore_same_slot(BaseClient client) {
+        assumeTrue(client instanceof RedisClusterClient);
+
+        var executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.zrangestore("abc", "zxy", new RangeByIndex(3, 1)).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+        assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
     public void zinterstore(BaseClient client) {
         String key1 = "{testKey}:1-" + UUID.randomUUID();
         String key2 = "{testKey}:2-" + UUID.randomUUID();
@@ -2647,6 +2715,16 @@ public class SharedCommandTests {
                 assertThrows(
                         ExecutionException.class, () -> client.brpop(new String[] {"foo"}, .0001).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+
+        // same-slot requirement
+        if (client instanceof RedisClusterClient) {
+            executionException =
+                    assertThrows(
+                            ExecutionException.class,
+                            () -> client.brpop(new String[] {"abc", "zxy", "lkn"}, .1).get());
+            assertInstanceOf(RequestException.class, executionException.getCause());
+            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
+        }
     }
 
     @SneakyThrows
@@ -2700,6 +2778,16 @@ public class SharedCommandTests {
                 assertThrows(
                         ExecutionException.class, () -> client.blpop(new String[] {"foo"}, .0001).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+
+        // same-slot requirement
+        if (client instanceof RedisClusterClient) {
+            executionException =
+                    assertThrows(
+                            ExecutionException.class,
+                            () -> client.blpop(new String[] {"abc", "zxy", "lkn"}, .1).get());
+            assertInstanceOf(RequestException.class, executionException.getCause());
+            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
+        }
     }
 
     @SneakyThrows
@@ -2889,6 +2977,16 @@ public class SharedCommandTests {
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.pfcount(new String[] {"foo"}).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+
+        // same-slot requirement
+        if (client instanceof RedisClusterClient) {
+            executionException =
+                    assertThrows(
+                            ExecutionException.class,
+                            () -> client.pfcount(new String[] {"abc", "zxy", "lkn"}).get());
+            assertInstanceOf(RequestException.class, executionException.getCause());
+            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
+        }
     }
 
     @SneakyThrows
@@ -2919,6 +3017,16 @@ public class SharedCommandTests {
                 assertThrows(
                         ExecutionException.class, () -> client.pfmerge(key1, new String[] {"foo"}).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+
+        // same-slot requirement
+        if (client instanceof RedisClusterClient) {
+            executionException =
+                    assertThrows(
+                            ExecutionException.class,
+                            () -> client.pfmerge("abc", new String[] {"zxy", "lkn"}).get());
+            assertInstanceOf(RequestException.class, executionException.getCause());
+            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
+        }
     }
 
     @SneakyThrows
