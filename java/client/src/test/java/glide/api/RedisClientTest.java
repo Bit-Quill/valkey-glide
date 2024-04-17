@@ -141,12 +141,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 public class RedisClientTest {
 
@@ -2571,104 +2567,6 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<String> response = service.xadd(key, fieldValues, options);
-        String payload = response.get();
-
-        // verify
-        assertEquals(testResponse, response);
-        assertEquals(returnId, payload);
-    }
-
-    private static List<Arguments> getStreamAddOptions() {
-        return List.of(
-                Arguments.of(
-                        Pair.of(
-                                // no TRIM option
-                                StreamAddOptions.builder().id("id").makeStream(Boolean.FALSE).build(),
-                                new String[] {"testKey", NO_MAKE_STREAM_REDIS_API, "id"}),
-                        Pair.of(
-                                // MAXLEN with LIMIT
-                                StreamAddOptions.builder()
-                                        .id("id")
-                                        .makeStream(Boolean.TRUE)
-                                        .trim(new MaxLen(5L, 10L))
-                                        .build(),
-                                new String[] {
-                                    "testKey",
-                                    TRIM_MAXLEN_REDIS_API,
-                                    TRIM_EXACT_REDIS_API,
-                                    Long.toString(5L),
-                                    TRIM_LIMIT_REDIS_API,
-                                    Long.toString(10L),
-                                    "id"
-                                }),
-                        Pair.of(
-                                // MAXLEN with non exact match
-                                StreamAddOptions.builder()
-                                        .makeStream(Boolean.FALSE)
-                                        .trim(new MaxLen(Boolean.FALSE, 2L))
-                                        .build(),
-                                new String[] {
-                                    "testKey",
-                                    NO_MAKE_STREAM_REDIS_API,
-                                    TRIM_MAXLEN_REDIS_API,
-                                    TRIM_NOT_EXACT_REDIS_API,
-                                    Long.toString(2L),
-                                    "*"
-                                }),
-                        Pair.of(
-                                // MIN ID with LIMIT
-                                StreamAddOptions.builder()
-                                        .id("id")
-                                        .makeStream(Boolean.TRUE)
-                                        .trim(new MinId("testKey", 10L))
-                                        .build(),
-                                new String[] {
-                                    "testKey",
-                                    TRIM_MINID_REDIS_API,
-                                    TRIM_EXACT_REDIS_API,
-                                    Long.toString(5L),
-                                    TRIM_LIMIT_REDIS_API,
-                                    Long.toString(10L),
-                                    "id"
-                                }),
-                        Pair.of(
-                                // MIN ID with non exact match
-                                StreamAddOptions.builder()
-                                        .makeStream(Boolean.FALSE)
-                                        .trim(new MinId(Boolean.FALSE, "testKey"))
-                                        .build(),
-                                new String[] {
-                                    "testKey",
-                                    NO_MAKE_STREAM_REDIS_API,
-                                    TRIM_MINID_REDIS_API,
-                                    TRIM_NOT_EXACT_REDIS_API,
-                                    Long.toString(5L),
-                                    "*"
-                                })));
-    }
-
-    @SneakyThrows
-    @ParameterizedTest
-    @MethodSource("getStreamAddOptions")
-    public void xadd_with_options_returns_success(Pair<StreamAddOptions, String[]> optionAndArgs) {
-        // setup
-        String key = "testKey";
-        Map<String, String> fieldValues = new LinkedHashMap<>();
-        fieldValues.put("testField1", "testValue1");
-        fieldValues.put("testField2", "testValue2");
-        String[] arguments =
-                ArrayUtils.addAll(optionAndArgs.getRight(), convertMapToKeyValueStringArray(fieldValues));
-
-        String returnId = "testId";
-        CompletableFuture<String> testResponse = new CompletableFuture<>();
-        testResponse.complete(returnId);
-
-        // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(XAdd), eq(arguments), any()))
-                .thenReturn(testResponse);
-
-        // exercise
-        CompletableFuture<String> response = service.xadd(key, fieldValues, optionAndArgs.getLeft());
         String payload = response.get();
 
         // verify

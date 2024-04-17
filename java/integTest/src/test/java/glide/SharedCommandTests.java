@@ -1613,7 +1613,7 @@ public class SharedCommandTests {
                         .xadd(
                                 key,
                                 Map.of(field1, "foo3", field2, "bar3"),
-                                StreamAddOptions.builder().trim(new MaxLen(Boolean.TRUE, 2L)).build())
+                                StreamAddOptions.builder().trim(new MaxLen(true, 2L)).build())
                         .get();
         assertNotNull(id);
         // TODO update test when XLEN is available
@@ -1634,7 +1634,7 @@ public class SharedCommandTests {
                         .xadd(
                                 key,
                                 Map.of(field1, "foo4", field2, "bar4"),
-                                StreamAddOptions.builder().trim(new MinId(Boolean.TRUE, id)).build())
+                                StreamAddOptions.builder().trim(new MinId(true, id)).build())
                         .get());
         // TODO update test when XLEN is available
         if (client instanceof RedisClient) {
@@ -1650,6 +1650,17 @@ public class SharedCommandTests {
 
         // test xtrim to remove 1 element
         assertEquals(1L, client.xtrim(key, new MaxLen(1)).get());
+        // TODO update test when XLEN is available
+        if (client instanceof RedisClient) {
+            assertEquals(1L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
+        } else if (client instanceof RedisClusterClient) {
+            assertEquals(
+                    1L,
+                    ((RedisClusterClient) client)
+                            .customCommand(new String[] {"XLEN", key})
+                            .get()
+                            .getSingleValue());
+        }
 
         // Key does not exist - returns 0
         assertEquals(0L, client.xtrim(key, new MaxLen(true, 1)).get());
