@@ -141,14 +141,26 @@ public interface ServerManagementCommands {
      * Saves the DataBase in the background.
      *
      * @see <a href="https://redis.io/commands/bgsave/">redis.io</a> for details.
-     * @param schedule Flag to schedule save on the next opportunity.
+     * @return A server confirmation whether background save started.
+     * @example
+     *     <pre>{@code
+     * String response = client.bgsave().get();
+     * assert response.equals("Background saving started");
+     * }</pre>
+     */
+    CompletableFuture<String> bgsave();
+
+    /**
+     * Schedules the background save of the DataBase on the next opportunity.
+     *
+     * @see <a href="https://redis.io/commands/bgsave/">redis.io</a> for details.
      * @return A server confirmation whether background save started or scheduled.
      * @example
      *     <pre>{@code
-     * String response = client.bgsave(true).get();
+     * String response = client.bgsaveSchedule().get();
      * assert response.equals("Background saving started")
      *     || response.equals("Background saving scheduled");
      * }</pre>
      */
-    CompletableFuture<String> bgsave(boolean schedule);
+    CompletableFuture<String> bgsaveSchedule();
 }

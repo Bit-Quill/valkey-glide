@@ -778,6 +778,28 @@ public class RedisClusterClientTest {
     @Test
     public void bgsave_returns_success() {
         // setup
+        String[] arguments = new String[0];
+        String value = OK;
+
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(BgSave), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.bgsave();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void bgsaveSchedule_returns_success() {
+        // setup
         String[] arguments = new String[] {SCHEDULE_REDIS_API};
         String value = OK;
 
@@ -789,7 +811,7 @@ public class RedisClusterClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<String> response = service.bgsave(true);
+        CompletableFuture<String> response = service.bgsaveSchedule();
 
         // verify
         assertEquals(testResponse, response);
@@ -799,6 +821,29 @@ public class RedisClusterClientTest {
     @SneakyThrows
     @Test
     public void bgsave_with_route_returns_success() {
+        // setup
+        String[] arguments = new String[0];
+        ClusterValue<String> value = ClusterValue.ofSingleValue(OK);
+
+        CompletableFuture<ClusterValue<String>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<ClusterValue<String>>submitNewCommand(
+                        eq(BgSave), eq(arguments), eq(RANDOM), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<ClusterValue<String>> response = service.bgsave(RANDOM);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void bgsaveSchedule_with_route_returns_success() {
         // setup
         String[] arguments = new String[] {SCHEDULE_REDIS_API};
         ClusterValue<String> value = ClusterValue.ofSingleValue(OK);
@@ -812,7 +857,7 @@ public class RedisClusterClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<ClusterValue<String>> response = service.bgsave(true, RANDOM);
+        CompletableFuture<ClusterValue<String>> response = service.bgsaveSchedule(RANDOM);
 
         // verify
         assertEquals(testResponse, response);

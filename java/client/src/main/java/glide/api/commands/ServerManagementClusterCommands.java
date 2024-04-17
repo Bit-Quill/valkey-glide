@@ -288,33 +288,62 @@ public interface ServerManagementClusterCommands {
      * The command will be routed to a random node.
      *
      * @see <a href="https://redis.io/commands/bgsave/">redis.io</a> for details.
-     * @param schedule Flag to schedule save on the next opportunity.
-     * @return A server confirmation whether background save started or scheduled.
+     * @return A server confirmation whether background save started.
      * @example
      *     <pre>{@code
      * String response = client.bgsave(true).get();
-     * assert response.equals("Background saving started")
-     *     || response.equals("Background saving scheduled");
+     * assert response.equals("Background saving started");
      * }</pre>
      */
-    CompletableFuture<String> bgsave(boolean schedule);
+    CompletableFuture<String> bgsave();
 
     /**
      * Saves the DataBase in background.
      *
      * @see <a href="https://redis.io/commands/bgsave/">redis.io</a> for details.
-     * @param schedule Flag to schedule save on the next opportunity.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return A server confirmation whether background save started.
+     * @example
+     *     <pre>{@code
+     * ClusterValue<String> response = client.bgsave(true, ALL_NODES).get();
+     * for (String nodeResponse : response.getMultiValue().values()) {
+     *     assert nodeResponse.equals("Background saving started");
+     * }
+     * }</pre>
+     */
+    CompletableFuture<ClusterValue<String>> bgsave(Route route);
+
+    /**
+     * Schedules the background save of the DataBase on the next opportunity.<br>
+     * The command will be routed to a random node.
+     *
+     * @see <a href="https://redis.io/commands/bgsave/">redis.io</a> for details.
+     * @return A server confirmation whether background save started or scheduled.
+     * @example
+     *     <pre>{@code
+     * String response = client.bgsaveSchedule().get();
+     * assert response.equals("Background saving started")
+     *     || response.equals("Background saving scheduled");;
+     * }</pre>
+     */
+    CompletableFuture<String> bgsaveSchedule();
+
+    /**
+     * Schedules the background save of the DataBase on the next opportunity.
+     *
+     * @see <a href="https://redis.io/commands/bgsave/">redis.io</a> for details.
      * @param route Specifies the routing configuration for the command. The client will route the
      *     command to the nodes defined by <code>route</code>.
      * @return A server confirmation whether background save started or scheduled.
      * @example
      *     <pre>{@code
-     * ClusterValue<String> response = client.bgsave(true, ALL_NODES).get();
+     * ClusterValue<String> response = client.bgsaveSchedule(ALL_NODES).get();
      * for (String nodeResponse : response.getMultiValue().values()) {
      *     assert nodeResponse.equals("Background saving started")
-     *         || nodeResponse.equals("Background saving scheduled");
+     *         || nodeResponse.equals("Background saving scheduled");;
      * }
      * }</pre>
      */
-    CompletableFuture<ClusterValue<String>> bgsave(boolean schedule, Route route);
+    CompletableFuture<ClusterValue<String>> bgsaveSchedule(Route route);
 }

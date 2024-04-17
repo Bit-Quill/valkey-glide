@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClusterClient;
-import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
@@ -566,19 +565,11 @@ public class CommandTests {
         // bgsave may fail with given error and may keep failing on retries regardless of the
         // timings/delays
 
-        var response = tryCommandWithExpectedError(() -> clusterClient.bgsave(false), error);
+        var response = tryCommandWithExpectedError(() -> clusterClient.bgsave(), error);
         assertTrue(response.getValue() != null || response.getKey().startsWith("Background saving"));
         Thread.sleep(2000); // next save call without delay will likely throw an error
-        response = tryCommandWithExpectedError(() -> clusterClient.bgsave(true), error);
+        response = tryCommandWithExpectedError(() -> clusterClient.bgsaveSchedule(), error);
         assertTrue(response.getValue() != null || response.getKey().startsWith("Background saving"));
-        Thread.sleep(2000); // next save call without delay will likely throw an error
-
-        var transactionResponse =
-                tryCommandWithExpectedError(
-                        () -> clusterClient.exec(new ClusterTransaction().bgsave(true)), error);
-        assertTrue(
-                transactionResponse.getValue() != null
-                        || ((String) transactionResponse.getKey()[0]).startsWith("Background saving"));
     }
 
     @Test
@@ -588,14 +579,14 @@ public class CommandTests {
         // bgsave may fail with given error and may keep failing on retries regardless of the
         // timings/delays
 
-        var response = tryCommandWithExpectedError(() -> clusterClient.bgsave(false, ALL_NODES), error);
+        var response = tryCommandWithExpectedError(() -> clusterClient.bgsave(ALL_NODES), error);
         if (response.getValue() == null) {
             for (var nodeResponse : response.getKey().getMultiValue().values()) {
                 assertTrue(nodeResponse.startsWith("Background saving"));
             }
         }
         Thread.sleep(2000); // next save call without delay will likely throw an error
-        response = tryCommandWithExpectedError(() -> clusterClient.bgsave(true, RANDOM), error);
+        response = tryCommandWithExpectedError(() -> clusterClient.bgsaveSchedule(RANDOM), error);
         if (response.getValue() == null) {
             assertTrue(response.getKey().getSingleValue().startsWith("Background saving"));
         }

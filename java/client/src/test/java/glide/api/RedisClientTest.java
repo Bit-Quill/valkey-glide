@@ -2726,6 +2726,28 @@ public class RedisClientTest {
     @Test
     public void bgsave_returns_success() {
         // setup
+        String[] arguments = new String[0];
+        String value = OK;
+
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(BgSave), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.bgsave();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void bgsaveSchedule_returns_success() {
+        // setup
         String[] arguments = new String[] {SCHEDULE_REDIS_API};
         String value = OK;
 
@@ -2737,7 +2759,7 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<String> response = service.bgsave(true);
+        CompletableFuture<String> response = service.bgsaveSchedule();
 
         // verify
         assertEquals(testResponse, response);

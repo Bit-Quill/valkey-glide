@@ -1732,11 +1732,21 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Saves the DataBase in the background.
      *
      * @see <a href="https://redis.io/commands/bgsave/">redis.io</a> for details.
-     * @param schedule Flag to schedule save on the next opportunity.
+     * @return Command Response - A server confirmation whether background save started.
+     */
+    public T bgsave() {
+        protobufTransaction.addCommands(buildCommand(BgSave));
+        return getThis();
+    }
+
+    /**
+     * Schedules the background save of the DataBase on the next opportunity.
+     *
+     * @see <a href="https://redis.io/commands/bgsave/">redis.io</a> for details.
      * @return Command Response - A server confirmation whether background save started or scheduled.
      */
-    public T bgsave(boolean schedule) {
-        ArgsArray commandArgs = buildArgs(schedule ? new String[] {SCHEDULE_REDIS_API} : new String[0]);
+    public T bgsaveSchedule() {
+        ArgsArray commandArgs = buildArgs(SCHEDULE_REDIS_API);
         protobufTransaction.addCommands(buildCommand(BgSave, commandArgs));
         return getThis();
     }

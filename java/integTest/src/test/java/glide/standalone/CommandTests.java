@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClient;
-import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
@@ -276,18 +275,10 @@ public class CommandTests {
         // bgsave may fail with given error and may keep failing on retries regardless of the
         // timings/delays
 
-        var response = tryCommandWithExpectedError(() -> regularClient.bgsave(false), error);
+        var response = tryCommandWithExpectedError(() -> regularClient.bgsave(), error);
         assertTrue(response.getValue() != null || response.getKey().startsWith("Background saving"));
         Thread.sleep(2000); // next save call without delay will likely throw an error
-        response = tryCommandWithExpectedError(() -> regularClient.bgsave(true), error);
+        response = tryCommandWithExpectedError(() -> regularClient.bgsaveSchedule(), error);
         assertTrue(response.getValue() != null || response.getKey().startsWith("Background saving"));
-        Thread.sleep(2000); // next save call without delay will likely throw an error
-
-        var transactionResponse =
-                tryCommandWithExpectedError(
-                        () -> regularClient.exec(new Transaction().bgsave(true)), error);
-        assertTrue(
-                transactionResponse.getValue() != null
-                        || ((String) transactionResponse.getKey()[0]).startsWith("Background saving"));
     }
 }

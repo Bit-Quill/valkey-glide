@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
+import static glide.api.commands.ServerManagementCommands.SCHEDULE_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.ExpireOptions.HAS_EXISTING_EXPIRY;
@@ -397,8 +398,9 @@ public class TransactionTests {
         transaction.time();
         results.add(Pair.of(Time, buildArgs()));
 
-        transaction.bgsave(false);
+        transaction.bgsave().bgsaveSchedule();
         results.add(Pair.of(BgSave, buildArgs()));
+        results.add(Pair.of(BgSave, buildArgs(SCHEDULE_REDIS_API)));
 
         transaction.persist("key");
         results.add(Pair.of(Persist, buildArgs("key")));
