@@ -1360,35 +1360,37 @@ class TestCommands:
         assert await redis_client.zadd(key1, members_scores) == 4
 
         assert (
-                await redis_client.zremrangebylex(
-                    key1, LexBoundary("a", False), LexBoundary("c")
-                )
-                == 2
+            await redis_client.zremrangebylex(
+                key1, LexBoundary("a", False), LexBoundary("c")
+            )
+            == 2
         )
         assert await redis_client.zrange_withscores(key1, range) == {"a": 1.0, "d": 4.0}
 
         assert (
-                await redis_client.zremrangebylex(key1, LexBoundary("d"), InfBound.POS_INF)
-                == 1
+            await redis_client.zremrangebylex(key1, LexBoundary("d"), InfBound.POS_INF)
+            == 1
         )
         assert await redis_client.zrange_withscores(key1, range) == {"a": 1.0}
 
         # min_lex > max_lex
         assert (
-                await redis_client.zremrangebylex(key1, LexBoundary("a"), InfBound.NEG_INF)
-                == 0
+            await redis_client.zremrangebylex(key1, LexBoundary("a"), InfBound.NEG_INF)
+            == 0
         )
         assert await redis_client.zrange_withscores(key1, range) == {"a": 1.0}
 
         # non-existing key
         assert (
-                await redis_client.zremrangebylex(key2, InfBound.NEG_INF, InfBound.POS_INF)
-                == 0
+            await redis_client.zremrangebylex(key2, InfBound.NEG_INF, InfBound.POS_INF)
+            == 0
         )
 
         assert await redis_client.set(key2, "value") == OK
         with pytest.raises(RequestError):
-            await redis_client.zremrangebylex(key2, LexBoundary("a", False), LexBoundary("c"))
+            await redis_client.zremrangebylex(
+                key2, LexBoundary("a", False), LexBoundary("c")
+            )
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])

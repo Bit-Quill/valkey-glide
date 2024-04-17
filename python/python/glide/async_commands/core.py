@@ -18,11 +18,12 @@ from typing import (
 
 from glide.async_commands.sorted_set import (
     InfBound,
+    LexBoundary,
     RangeByIndex,
     RangeByLex,
     RangeByScore,
     ScoreBoundary,
-    _create_zrange_args, LexBoundary,
+    _create_zrange_args,
 )
 from glide.constants import TOK, TResult
 from glide.protobuf.redis_request_pb2 import RequestType
@@ -2019,14 +2020,10 @@ class CoreCommands(Protocol):
                 0  # Indicates that no members were removed as the sorted set "non_existing_sorted_set" does not exist.
         """
         lex_min = (
-            min_lex.value["lex_arg"]
-            if type(min_lex) == InfBound
-            else min_lex.value
+            min_lex.value["lex_arg"] if type(min_lex) == InfBound else min_lex.value
         )
         lex_max = (
-            max_lex.value["lex_arg"]
-            if type(max_lex) == InfBound
-            else max_lex.value
+            max_lex.value["lex_arg"] if type(max_lex) == InfBound else max_lex.value
         )
 
         return cast(
