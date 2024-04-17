@@ -5,6 +5,7 @@ from typing import List, Union
 
 import pytest
 from glide import RequestError
+from glide.async_commands.core import InsertPosition
 from glide.async_commands.sorted_set import InfBound, RangeByIndex, ScoreBoundary
 from glide.async_commands.transaction import (
     BaseTransaction,
@@ -32,6 +33,7 @@ async def transaction_test(
     key7 = "{{{}}}:{}".format(keyslot, get_random_string(3))
     key8 = "{{{}}}:{}".format(keyslot, get_random_string(3))
     key9 = "{{{}}}:{}".format(keyslot, get_random_string(3))
+    key10 = "{{{}}}:{}".format(keyslot, get_random_string(3))
 
     value = datetime.now(timezone.utc).strftime("%m/%d/%Y, %H:%M:%S")
     value2 = get_random_string(5)
@@ -141,6 +143,11 @@ async def transaction_test(
     args.append([value2, value])
     transaction.lpop_count(key5, 2)
     args.append([value2, value])
+
+    transaction.lpush(key10, [value, value2])
+    args.append(2)
+    transaction.linsert(key10, InsertPosition.BEFORE, value2, value)
+    args.append(3)
 
     transaction.rpush(key6, [value, value2, value2])
     args.append(3)
