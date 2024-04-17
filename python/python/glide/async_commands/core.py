@@ -2042,11 +2042,7 @@ class CoreCommands(Protocol):
         """
         return await self._execute_script(script.get_hash(), keys, args)
 
-    async def pfadd(
-            self,
-            key: str,
-            elements: List[str]
-    ) -> int:
+    async def pfadd(self, key: str, elements: List[str]) -> int:
         """
         Adds all elements to the HyperLogLog data structure stored at the specified `key`.
         Creates a new structure if the `key` does not exist.

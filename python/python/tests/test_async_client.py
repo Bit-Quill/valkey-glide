@@ -1754,6 +1754,7 @@ class TestCommands:
         with pytest.raises(RequestError):
             await redis_client.pfadd("foo", [])
 
+
 class TestCommandsUnitTests:
     def test_expiry_cmd_args(self):
         exp_sec = ExpirySet(ExpiryType.SEC, 5)
