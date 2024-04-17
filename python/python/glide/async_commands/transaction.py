@@ -790,7 +790,9 @@ class BaseTransaction:
                 If the `key` doesn't exist returns `-1`.
                 If the `pivot` wasn't found, returns `0`.
         """
-        return self.append_command(RequestType.LInsert, [key, position.value, pivot, element])
+        return self.append_command(
+            RequestType.LInsert, [key, position.value, pivot, element]
+        )
 
     def sadd(self: TTransaction, key: str, members: List[str]) -> TTransaction:
         """
