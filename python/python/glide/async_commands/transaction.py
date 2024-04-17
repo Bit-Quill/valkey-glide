@@ -637,8 +637,7 @@ class BaseTransaction:
 
         Command response:
             Optional[List[str]]: A two-element list containing the `key` from which the element was popped and the `value` of the
-                popped element, formatted as `[key, value]`. If no element could be popped and the timeout expired,
-                returns `None`.
+                popped element, formatted as `[key, value]`. If no element could be popped and the timeout expired, returns `None`.
         """
         return self.append_command(RequestType.Blpop, keys + [str(timeout)])
 
@@ -767,8 +766,7 @@ class BaseTransaction:
 
         Command response:
             Optional[List[str]]: A two-element list containing the `key` from which the element was popped and the `value` of the
-                popped element, formatted as `[key, value]`. If no element could be popped and the timeout expired,
-                returns `None`.
+                popped element, formatted as `[key, value]`. If no element could be popped and the timeout expired, returns `None`.
         """
         return self.append_command(RequestType.Brpop, keys + [str(timeout)])
 

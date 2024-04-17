@@ -773,9 +773,9 @@ class CoreCommands(Protocol):
 
         See https://redis.io/commands/blpop/ for details.
 
-        Note: BLPOP is a client blocking command, see
-        https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best
-        practices.
+        Notes:
+            1: BLPOP is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
+            2: When in cluster mode, all `keys` must map to the same `hash slot`.
 
         Args:
             keys (List[str]): The keys of the lists to pop from.
@@ -784,8 +784,7 @@ class CoreCommands(Protocol):
 
         Returns:
             Optional[List[str]]: A two-element list containing the `key` from which the element was popped and the `value` of the
-                popped element, formatted as `[key, value]`. If no element could be popped and the timeout expired,
-                returns `None`.
+                popped element, formatted as `[key, value]`. If no element could be popped and the timeout expired, returns `None`.
 
         Examples:
             >>> await client.blpop(["list1", "list2"], 0.5)
@@ -966,9 +965,9 @@ class CoreCommands(Protocol):
 
         See https://redis.io/commands/brpop/ for details.
 
-        Note: BRPOP is a client blocking command, see
-        https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best
-        practices.
+        Notes:
+            1: BRPOP is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
+            2: When in cluster mode, all `keys` must map to the same `hash slot`.
 
         Args:
             keys (List[str]): The keys of the lists to pop from.
@@ -977,8 +976,7 @@ class CoreCommands(Protocol):
 
         Returns:
             Optional[List[str]]: A two-element list containing the `key` from which the element was popped and the `value` of the
-                popped element, formatted as `[key, value]`. If no element could be popped and the timeout expired,
-                returns `None`.
+                popped element, formatted as `[key, value]`. If no element could be popped and the timeout expired, returns `None`.
 
         Examples:
             >>> await client.brpop(["list1", "list2"], 0.5)
