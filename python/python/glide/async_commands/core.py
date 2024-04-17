@@ -1994,8 +1994,8 @@ class CoreCommands(Protocol):
         max_lex: Union[InfBound, LexBoundary],
     ) -> int:
         """
-        Removes all elements in the sorted set stored at <code>key</code> with a lexicographical order
-        between <code>minLex</code> and <code>maxLex</code>.
+        Removes all elements in the sorted set stored at `key` with a lexicographical order between `min_lex` and
+        `max_lex`.
 
         See https://redis.io/commands/zremrangebylex/ for more details.
 
