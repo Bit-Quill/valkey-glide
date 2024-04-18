@@ -17,6 +17,7 @@ pub(crate) enum ExpectedReturnType {
     ZrankReturnType,
     JsonToggleReturnType,
     ArrayOfBools,
+    ArrayOfDoubles,
     Lolwut,
     ArrayOfArraysOfDoubleOrNull,
 }
@@ -176,6 +177,21 @@ pub(crate) fn convert_to_expected_type(
             _ => Err((
                 ErrorKind::TypeError,
                 "Response couldn't be converted to an array of boolean",
+                format!("(response was {:?})", value),
+            )
+                .into()),
+        },
+        ExpectedReturnType::ArrayOfDoubles => match value {
+            Value::Array(array) => {
+                let array_of_doubles = array
+                    .iter()
+                    .map(|v| Value::Double(from_owned_redis_value::<f64>(v.clone()).unwrap()))
+                    .collect();
+                Ok(Value::Array(array_of_doubles))
+            }
+            _ => Err((
+                ErrorKind::TypeError,
+                "Response couldn't be converted to an array of doubles",
                 format!("(response was {:?})", value),
             )
                 .into()),
@@ -347,6 +363,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
         b"SMISMEMBER" => Some(ExpectedReturnType::ArrayOfBools),
         b"SMEMBERS" | b"SINTER" => Some(ExpectedReturnType::Set),
         b"ZSCORE" | b"GEODIST" => Some(ExpectedReturnType::DoubleOrNull),
+        b"ZMSCORE" => Some(ExpectedReturnType::ArrayOfDoubles),
         b"ZPOPMIN" | b"ZPOPMAX" => Some(ExpectedReturnType::MapOfStringToDouble),
         b"JSON.TOGGLE" => Some(ExpectedReturnType::JsonToggleReturnType),
         b"GEOPOS" => Some(ExpectedReturnType::ArrayOfArraysOfDoubleOrNull),
