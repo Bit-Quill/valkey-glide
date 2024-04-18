@@ -12,6 +12,7 @@ import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.StreamAddOptions;
+import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -136,6 +137,8 @@ public class TransactionTestUtilities {
         baseTransaction.zadd(zSetKey2, Map.of("one", 1.0, "two", 2.0));
         baseTransaction.zdiff(new String[] {zSetKey2, key8});
         baseTransaction.zdiffWithScores(new String[] {zSetKey2, key8});
+        baseTransaction.zunion(new KeyArray(new String[] {zSetKey2, key8}));
+        baseTransaction.zunionWithScores(new KeyArray(new String[] {zSetKey2, key8}));
 
         baseTransaction.xadd(
                 key9, Map.of("field1", "value1"), StreamAddOptions.builder().id("0-1").build());
@@ -246,6 +249,9 @@ public class TransactionTestUtilities {
             2L, // zadd(zSetKey2, Map.of("one", 1.0, "two", 2.0))
             new String[] {"one", "two"}, // zdiff(new String[] {zSetKey2, key8})
             Map.of("one", 1.0, "two", 2.0), // zdiffWithScores(new String[] {zSetKey2, key8})
+            new String[] {"one", "two"}, // zunion(new KeyArray(new String[] {zSetKey2, key8}))
+            Map.of(
+                    "one", 1.0, "two", 2.0), // zunionWithScores(new KeyArray(new String[] {zSetKey2, key8}));
             "0-1", // xadd(key9, Map.of("field1", "value1"),
             // StreamAddOptions.builder().id("0-1").build());
             "0-2", // xadd(key9, Map.of("field2", "value2"),

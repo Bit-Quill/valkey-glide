@@ -14,6 +14,8 @@ import static glide.api.models.commands.StreamAddOptions.TRIM_LIMIT_REDIS_API;
 import static glide.api.models.commands.StreamAddOptions.TRIM_MAXLEN_REDIS_API;
 import static glide.api.models.commands.StreamAddOptions.TRIM_MINID_REDIS_API;
 import static glide.api.models.commands.StreamAddOptions.TRIM_NOT_EXACT_REDIS_API;
+import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_API;
+import static glide.api.models.commands.WeightAggregateOptions.WEIGHTS_REDIS_API;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -114,6 +116,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByScore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
+import static redis_request.RedisRequestOuterClass.RequestType.ZUnion;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcount;
@@ -137,6 +140,9 @@ import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
 import glide.api.models.commands.StreamAddOptions;
+import glide.api.models.commands.WeightAggregateOptions.Aggregate;
+import glide.api.models.commands.WeightAggregateOptions.KeyArray;
+import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZaddOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
@@ -2823,6 +2829,130 @@ public class RedisClientTest {
         CompletableFuture<Long> response =
                 service.zrangestore(source, destination, rangeByScore, reversed);
         Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zunion_returns_success() {
+        // setup
+        String[] keys = new String[] {"key1", "key2"};
+        String[] arguments = new String[] {Integer.toString(keys.length), "key1", "key2"};
+        String[] value = new String[] {"elem1", "elem2"};
+
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<String[]>submitNewCommand(eq(ZUnion), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String[]> response = service.zunion(new KeyArray(keys));
+        String[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zunion_with_options_returns_success() {
+        // setup
+        Map<String, Double> weightedKeys = new LinkedHashMap<>();
+        weightedKeys.put("key1", 10.0);
+        weightedKeys.put("key2", 20.0);
+        String[] arguments =
+                new String[] {
+                    "2",
+                    "key1",
+                    "key2",
+                    WEIGHTS_REDIS_API,
+                    "10.0",
+                    "20.0",
+                    AGGREGATE_REDIS_API,
+                    Aggregate.MIN.toString()
+                };
+        String[] value = new String[] {"elem1", "elem2"};
+
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<String[]>submitNewCommand(eq(ZUnion), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String[]> response =
+                service.zunion(new WeightedKeys(weightedKeys), Aggregate.MIN);
+        String[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zunionWithScores_returns_success() {
+        // setup
+        String[] keys = new String[] {"key1", "key2"};
+        String[] arguments =
+                new String[] {Integer.toString(keys.length), "key1", "key2", WITH_SCORES_REDIS_API};
+        Map<String, Double> value = Map.of("elem1", 1.0, "elem2", 2.0);
+
+        CompletableFuture<Map<String, Double>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, Double>>submitNewCommand(eq(ZUnion), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, Double>> response = service.zunionWithScores(new KeyArray(keys));
+        Map<String, Double> payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void zunionWithScores_with_options_returns_success() {
+        // setup
+        Map<String, Double> weightedKeys = new LinkedHashMap<>();
+        weightedKeys.put("key1", 10.0);
+        weightedKeys.put("key2", 20.0);
+        String[] arguments =
+                new String[] {
+                    "2",
+                    "key1",
+                    "key2",
+                    WEIGHTS_REDIS_API,
+                    "10.0",
+                    "20.0",
+                    AGGREGATE_REDIS_API,
+                    Aggregate.MIN.toString(),
+                    WITH_SCORES_REDIS_API
+                };
+        Map<String, Double> value = Map.of("elem1", 1.0, "elem2", 2.0);
+
+        CompletableFuture<Map<String, Double>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, Double>>submitNewCommand(eq(ZUnion), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, Double>> response =
+                service.zunionWithScores(new WeightedKeys(weightedKeys), Aggregate.MIN);
+        Map<String, Double> payload = response.get();
 
         // verify
         assertEquals(testResponse, response);

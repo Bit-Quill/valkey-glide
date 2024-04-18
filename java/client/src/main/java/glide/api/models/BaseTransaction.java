@@ -4,6 +4,7 @@ package glide.api.models;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.RangeOptions.createZRangeArgs;
+import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_API;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -93,6 +94,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByScore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
+import static redis_request.RedisRequestOuterClass.RequestType.ZUnion;
 import static redis_request.RedisRequestOuterClass.RequestType.Zadd;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcard;
 import static redis_request.RedisRequestOuterClass.RequestType.Zcount;
@@ -121,6 +123,10 @@ import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
 import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.WeightAggregateOptions.Aggregate;
+import glide.api.models.commands.WeightAggregateOptions.KeyArray;
+import glide.api.models.commands.WeightAggregateOptions.WeightableKeys;
+import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import lombok.Getter;
@@ -1866,6 +1872,108 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T zlexcount(@NonNull String key, @NonNull LexRange minLex, @NonNull LexRange maxLex) {
         ArgsArray commandArgs = buildArgs(key, minLex.toArgs(), maxLex.toArgs());
         protobufTransaction.addCommands(buildCommand(ZLexCount, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the union of members from sorted sets specified by the given <code>weightableKeys
+     * </code>.<br>
+     * To get the elements with their scores, see {@link #zunionWithScores}.<br>
+     *
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *     </code>.
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     *     <ul>
+     *       <li>When only keys are required, use {@link KeyArray}.
+     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *     </ul>
+     *
+     * @param aggregate Specifies the aggregation strategy to apply when combining the scores of
+     *     elements.
+     * @return Command Response - The resulting sorted set from the union.
+     */
+    public T zunion(@NonNull WeightableKeys weightableKeys, @NonNull Aggregate aggregate) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        concatenateArrays(
+                                weightableKeys.toArgs(), new String[] {AGGREGATE_REDIS_API, aggregate.toString()}));
+        protobufTransaction.addCommands(buildCommand(ZUnion, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the union of members from sorted sets specified by the given <code>weightableKeys
+     * </code>.<br>
+     * To perform a <code>zunion</code> operation while specifying aggregation settings, use {@link
+     * #zunion(WeightableKeys, Aggregate)} To get the elements with their scores, see {@link
+     * #zunionWithScores}.<br>
+     *
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *     </code>.
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     *     <ul>
+     *       <li>When only keys are required, use {@link KeyArray}.
+     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *     </ul>
+     *
+     * @return Command Response - The resulting sorted set from the union.
+     */
+    public T zunion(@NonNull WeightableKeys weightableKeys) {
+        ArgsArray commandArgs = buildArgs(weightableKeys.toArgs());
+        protobufTransaction.addCommands(buildCommand(ZUnion, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the union of members and their scores from sorted sets specified by the given <code>
+     * weightableKeys</code>.
+     *
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *     </code>.
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     *     <ul>
+     *       <li>When only keys are required, use {@link KeyArray}.
+     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *     </ul>
+     *
+     * @param aggregate Specifies the aggregation strategy to apply when combining the scores of
+     *     elements.
+     * @return Command Response - The resulting sorted set from the union.
+     */
+    public T zunionWithScores(@NonNull WeightableKeys weightableKeys, @NonNull Aggregate aggregate) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        concatenateArrays(
+                                weightableKeys.toArgs(),
+                                new String[] {AGGREGATE_REDIS_API, aggregate.toString(), WITH_SCORES_REDIS_API}));
+        protobufTransaction.addCommands(buildCommand(ZUnion, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the union of members and their scores from sorted sets specified by the given <code>
+     * weightableKeys</code>.<br>
+     * To perform a <code>zunion</code> operation while specifying aggregation settings, use {@link
+     * #zunionWithScores(WeightableKeys, Aggregate)}
+     *
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *     </code>.
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     *     <ul>
+     *       <li>When only keys are required, use {@link KeyArray}.
+     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *     </ul>
+     *
+     * @return Command Response - The resulting sorted set from the union.
+     */
+    public T zunionWithScores(@NonNull WeightableKeys weightableKeys) {
+        ArgsArray commandArgs =
+                buildArgs(concatenateArrays(weightableKeys.toArgs(), new String[] {WITH_SCORES_REDIS_API}));
+        protobufTransaction.addCommands(buildCommand(ZUnion, commandArgs));
         return getThis();
     }
 

@@ -12,6 +12,10 @@ import glide.api.models.commands.RangeOptions.RangeQuery;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.RangeOptions.ScoreRange;
 import glide.api.models.commands.RangeOptions.ScoredRangeQuery;
+import glide.api.models.commands.WeightAggregateOptions.Aggregate;
+import glide.api.models.commands.WeightAggregateOptions.KeyArray;
+import glide.api.models.commands.WeightAggregateOptions.WeightableKeys;
+import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -728,4 +732,83 @@ public interface SortedSetBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> zlexcount(String key, LexRange minLex, LexRange maxLex);
+
+    /**
+     * Returns the union of members from sorted sets specified by the given <code>weightableKeys
+     * </code>.<br>
+     * To get the elements with their scores, see {@link #zunionWithScores}.<br>
+     *
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *     </code>.
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     *     <ul>
+     *       <li>When only keys are required, use {@link KeyArray}.
+     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *     </ul>
+     *
+     * @param aggregate Specifies the aggregation strategy to apply when combining the scores of
+     *     elements.
+     * @return The resulting sorted set from the union.
+     */
+    CompletableFuture<String[]> zunion(WeightableKeys weightableKeys, Aggregate aggregate);
+
+    /**
+     * Returns the union of members from sorted sets specified by the given <code>weightableKeys
+     * </code>.<br>
+     * To perform a <code>zunion</code> operation while specifying aggregation settings, use {@link
+     * #zunion(WeightableKeys, Aggregate)} To get the elements with their scores, see {@link
+     * #zunionWithScores}.<br>
+     *
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *     </code>.
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     *     <ul>
+     *       <li>When only keys are required, use {@link KeyArray}.
+     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *     </ul>
+     *
+     * @return The resulting sorted set from the union.
+     */
+    CompletableFuture<String[]> zunion(WeightableKeys weightableKeys);
+
+    /**
+     * Returns the union of members and their scores from sorted sets specified by the given <code>
+     * weightableKeys</code>.
+     *
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *     </code>.
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     *     <ul>
+     *       <li>When only keys are required, use {@link KeyArray}.
+     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *     </ul>
+     *
+     * @param aggregate Specifies the aggregation strategy to apply when combining the scores of
+     *     elements.
+     * @return The resulting sorted set from the union.
+     */
+    CompletableFuture<Map<String, Double>> zunionWithScores(
+            WeightableKeys weightableKeys, Aggregate aggregate);
+
+    /**
+     * Returns the union of members and their scores from sorted sets specified by the given <code>
+     * weightableKeys</code>.<br>
+     * To perform a <code>zunion</code> operation while specifying aggregation settings, use {@link
+     * #zunionWithScores(WeightableKeys, Aggregate)}
+     *
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *     </code>.
+     * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
+     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     *     <ul>
+     *       <li>When only keys are required, use {@link KeyArray}.
+     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *     </ul>
+     *
+     * @return The resulting sorted set from the union.
+     */
+    CompletableFuture<Map<String, Double>> zunionWithScores(WeightableKeys weightableKeys);
 }
