@@ -1052,6 +1052,7 @@ class CoreCommands(Protocol):
     ) -> int:
         """
         Inserts `element` in the list at `key` either before or after the `pivot`.
+
         See https://redis.io/commands/linsert/ for details.
 
         Args:

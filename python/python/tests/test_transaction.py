@@ -33,7 +33,7 @@ async def transaction_test(
     key7 = "{{{}}}:{}".format(keyslot, get_random_string(3))
     key8 = "{{{}}}:{}".format(keyslot, get_random_string(3))
     key9 = "{{{}}}:{}".format(keyslot, get_random_string(3))
-    key10 = "{{{}}}:{}".format(keyslot, get_random_string(3))
+    key10 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # list
 
     value = datetime.now(timezone.utc).strftime("%m/%d/%Y, %H:%M:%S")
     value2 = get_random_string(5)
