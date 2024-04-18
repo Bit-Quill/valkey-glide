@@ -1532,21 +1532,21 @@ class BaseTransaction:
         max_lex: Union[InfBound, LexBoundary],
     ) -> TTransaction:
         """
-        Returns the number of members in the sorted set stored at `key` with scores between `min_lex` and `max_lex`.
+        Returns the number of members in the sorted set stored at `key` with lexographical values between `min_lex` and `max_lex`.
 
         See https://redis.io/commands/zlexcount/ for more details.
 
         Args:
             key (str): The key of the sorted set.
-            min_lex (Union[InfBound, LexBoundary]): The minimum lex to count from.
+            min_lex (Union[InfBound, LexBoundary]): The minimum lexicographical value to count from.
                 Can be an instance of InfBound representing positive/negative infinity,
-                or LexBoundary representing a specific lex and inclusivity.
-            max_lex (Union[InfBound, LexBoundary]): The maximum lex to count up to.
+                or LexBoundary representing a specific lexicographical value and inclusivity.
+            max_lex (Union[InfBound, LexBoundary]): The maximum lexicographical value to count up to.
                 Can be an instance of InfBound representing positive/negative infinity,
-                or LexBoundary representing a specific lex and inclusivity.
+                or LexBoundary representing a specific lexicographical value and inclusivity.
 
         Command response:
-            int: The number of members in the specified lex range.
+            int: The number of members in the specified lexicographical range.
                 If `key` does not exist, it is treated as an empty sorted set, and the command returns `0`.
                 If `max_lex < min_lex`, `0` is returned.
         """
