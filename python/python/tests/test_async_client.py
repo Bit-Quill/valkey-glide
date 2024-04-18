@@ -1386,6 +1386,7 @@ class TestCommands:
             == 0
         )
 
+        # key exists, but it is not a sorted set
         assert await redis_client.set(key2, "value") == OK
         with pytest.raises(RequestError):
             await redis_client.zremrangebylex(
