@@ -2213,7 +2213,7 @@ export class BaseClient {
      *
      * @param key - The `key` of the HyperLogLog data structure to add elements into.
      * @param elements - An array of members to add to the HyperLogLog stored at `key`.
-     * @returns If the HyperLogLog is newly created, or if the HyperLogLog approximated cardinality is
+     * @returns - If the HyperLogLog is newly created, or if the HyperLogLog approximated cardinality is
      *     altered, then returns `1`. Otherwise, returns `0`.
      * @example
      * ```typescript

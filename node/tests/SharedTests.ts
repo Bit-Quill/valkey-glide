@@ -2287,7 +2287,7 @@ export function runBaseTests<Context>(config: {
     );
 
     it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
-        "rename pfadd_%p",
+        "pfadd test_%p",
         async (protocol) => {
             await runTest(async (client: BaseClient) => {
                 const key = uuidv4();
@@ -2296,7 +2296,7 @@ export function runBaseTests<Context>(config: {
                 expect(await client.pfadd(key, ["two"])).toEqual(0);
                 expect(await client.pfadd(key, [])).toEqual(0);
 
-                // key exists, but it is not a HyperHyperLogLog
+                // key exists, but it is not a HyperLogLog
                 expect(await client.set("foo", "value")).toEqual("OK");
                 await expect(client.pfadd("foo", [])).rejects.toThrow();
             }, protocol);

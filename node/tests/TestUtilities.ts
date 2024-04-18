@@ -64,7 +64,7 @@ export async function transactionTest(
     const key8 = "{key}" + uuidv4();
     const key9 = "{key}" + uuidv4();
     const key10 = "{key}" + uuidv4();
-    const key11 = "{key}" + uuidv4(); // hyper hyper log log
+    const key11 = "{key}" + uuidv4(); // hyper log log
     const field = uuidv4();
     const value = uuidv4();
     const args: ReturnType[] = [];
