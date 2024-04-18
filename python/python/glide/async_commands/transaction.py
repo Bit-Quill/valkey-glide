@@ -12,11 +12,12 @@ from glide.async_commands.core import (
 )
 from glide.async_commands.sorted_set import (
     InfBound,
+    LexBoundary,
     RangeByIndex,
     RangeByLex,
     RangeByScore,
     ScoreBoundary,
-    _create_zrange_args, LexBoundary,
+    _create_zrange_args,
 )
 from glide.protobuf.redis_request_pb2 import RequestType
 
@@ -1550,14 +1551,10 @@ class BaseTransaction:
                 If `max_lex < min_lex`, `0` is returned.
         """
         lex_min = (
-            min_lex.value["lex_arg"]
-            if type(min_lex) == InfBound
-            else min_lex.value
+            min_lex.value["lex_arg"] if type(min_lex) == InfBound else min_lex.value
         )
         lex_max = (
-            max_lex.value["lex_arg"]
-            if type(max_lex) == InfBound
-            else max_lex.value
+            max_lex.value["lex_arg"] if type(max_lex) == InfBound else max_lex.value
         )
 
         return self.append_command(RequestType.ZLexCount, [key, lex_min, lex_max])

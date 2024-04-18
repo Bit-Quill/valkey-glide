@@ -1358,12 +1358,36 @@ class TestCommands:
         members_scores = {"a": 1.0, "b": 2.0, "c": 3.0}
 
         assert await redis_client.zadd(key1, members_scores) == 3
-        assert await redis_client.zlexcount(key1, InfBound.NEG_INF, InfBound.POS_INF) == 3
-        assert await redis_client.zlexcount(key1, LexBoundary("a", is_inclusive=False), LexBoundary("c", is_inclusive=True)) == 2
-        assert await redis_client.zlexcount(key1, InfBound.NEG_INF, LexBoundary("c", is_inclusive=True)) == 3
+        assert (
+            await redis_client.zlexcount(key1, InfBound.NEG_INF, InfBound.POS_INF) == 3
+        )
+        assert (
+            await redis_client.zlexcount(
+                key1,
+                LexBoundary("a", is_inclusive=False),
+                LexBoundary("c", is_inclusive=True),
+            )
+            == 2
+        )
+        assert (
+            await redis_client.zlexcount(
+                key1, InfBound.NEG_INF, LexBoundary("c", is_inclusive=True)
+            )
+            == 3
+        )
         # Incorrect range; start > end
-        assert await redis_client.zlexcount(key1, InfBound.POS_INF, LexBoundary("c", is_inclusive=True)) == 0
-        assert await redis_client.zlexcount("non_existing_key", InfBound.NEG_INF, InfBound.POS_INF) == 0
+        assert (
+            await redis_client.zlexcount(
+                key1, InfBound.POS_INF, LexBoundary("c", is_inclusive=True)
+            )
+            == 0
+        )
+        assert (
+            await redis_client.zlexcount(
+                "non_existing_key", InfBound.NEG_INF, InfBound.POS_INF
+            )
+            == 0
+        )
 
         assert await redis_client.set(key2, "value") == OK
         with pytest.raises(RequestError):

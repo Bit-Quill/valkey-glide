@@ -5,7 +5,12 @@ from typing import List, Union
 
 import pytest
 from glide import RequestError
-from glide.async_commands.sorted_set import InfBound, RangeByIndex, ScoreBoundary, LexBoundary
+from glide.async_commands.sorted_set import (
+    InfBound,
+    LexBoundary,
+    RangeByIndex,
+    ScoreBoundary,
+)
 from glide.async_commands.transaction import (
     BaseTransaction,
     ClusterTransaction,

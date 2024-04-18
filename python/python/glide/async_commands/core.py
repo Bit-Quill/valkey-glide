@@ -18,11 +18,12 @@ from typing import (
 
 from glide.async_commands.sorted_set import (
     InfBound,
+    LexBoundary,
     RangeByIndex,
     RangeByLex,
     RangeByScore,
     ScoreBoundary,
-    _create_zrange_args, LexBoundary,
+    _create_zrange_args,
 )
 from glide.constants import TOK, TResult
 from glide.protobuf.redis_request_pb2 import RequestType
@@ -2018,21 +2019,15 @@ class CoreCommands(Protocol):
                 1  # Indicates that there is one member with LexBoundary "c" <= lex value < "k" in the sorted set "my_sorted_set".
         """
         lex_min = (
-            min_lex.value["lex_arg"]
-            if type(min_lex) == InfBound
-            else min_lex.value
+            min_lex.value["lex_arg"] if type(min_lex) == InfBound else min_lex.value
         )
         lex_max = (
-            max_lex.value["lex_arg"]
-            if type(max_lex) == InfBound
-            else max_lex.value
+            max_lex.value["lex_arg"] if type(max_lex) == InfBound else max_lex.value
         )
 
         return cast(
             int,
-            await self._execute_command(
-                RequestType.ZLexCount, [key, lex_min, lex_max]
-            ),
+            await self._execute_command(RequestType.ZLexCount, [key, lex_min, lex_max]),
         )
 
     async def zscore(self, key: str, member: str) -> Optional[float]:
