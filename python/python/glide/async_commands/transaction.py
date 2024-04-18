@@ -786,6 +786,7 @@ class BaseTransaction:
                 `InsertPosition.AFTER` the `pivot`.
             pivot (str): An element of the list.
             element (str): The new element to insert.
+
         Command response:
             int: The list length after a successful insert operation.
                 If the `key` doesn't exist returns `-1`.
