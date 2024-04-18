@@ -22,7 +22,7 @@ from glide.async_commands.sorted_set import (
     RangeByLex,
     RangeByScore,
     ScoreBoundary,
-    _create_zrange_args,
+    _create_zrange_args, LexBoundary,
 )
 from glide.constants import TOK, TResult
 from glide.protobuf.redis_request_pb2 import RequestType
@@ -1983,6 +1983,55 @@ class CoreCommands(Protocol):
             int,
             await self._execute_command(
                 RequestType.ZRemRangeByScore, [key, score_min, score_max]
+            ),
+        )
+
+    async def zlexcount(
+        self,
+        key: str,
+        min_lex: Union[InfBound, LexBoundary],
+        max_lex: Union[InfBound, LexBoundary],
+    ) -> int:
+        """
+        Returns the number of members in the sorted set stored at `key` with scores between `min_lex` and `max_lex`.
+
+        See https://redis.io/commands/zlexcount/ for more details.
+
+        Args:
+            key (str): The key of the sorted set.
+            min_lex (Union[InfBound, LexBoundary]): The minimum lex to count from.
+                Can be an instance of InfBound representing positive/negative infinity,
+                or LexBoundary representing a specific lex and inclusivity.
+            max_lex (Union[InfBound, LexBoundary]): The maximum lex to count up to.
+                Can be an instance of InfBound representing positive/negative infinity,
+                or LexBoundary representing a specific lex and inclusivity.
+
+        Returns:
+            int: The number of members in the specified lex range.
+                If `key` does not exist, it is treated as an empty sorted set, and the command returns `0`.
+                If `max_lex < min_lex`, `0` is returned.
+
+        Examples:
+            >>> await client.zlexcount("my_sorted_set",  LexBoundary("c" , is_inclusive=True), InfBound.POS_INF)
+                2  # Indicates that there are 2 members with lex values between "c" (inclusive) and positive infinity in the sorted set "my_sorted_set".
+            >>> await client.zlexcount("my_sorted_set", LexBoundary("c" , is_inclusive=True), LexBoundary("k" , is_inclusive=False))
+                1  # Indicates that there is one member with LexBoundary "c" <= lex value < "k" in the sorted set "my_sorted_set".
+        """
+        lex_min = (
+            min_lex.value["lex_arg"]
+            if type(min_lex) == InfBound
+            else min_lex.value
+        )
+        lex_max = (
+            max_lex.value["lex_arg"]
+            if type(max_lex) == InfBound
+            else max_lex.value
+        )
+
+        return cast(
+            int,
+            await self._execute_command(
+                RequestType.ZLexCount, [key, lex_min, lex_max]
             ),
         )
 

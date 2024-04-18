@@ -16,7 +16,7 @@ from glide.async_commands.sorted_set import (
     RangeByLex,
     RangeByScore,
     ScoreBoundary,
-    _create_zrange_args,
+    _create_zrange_args, LexBoundary,
 )
 from glide.protobuf.redis_request_pb2 import RequestType
 
@@ -1523,6 +1523,44 @@ class BaseTransaction:
         return self.append_command(
             RequestType.ZRemRangeByScore, [key, score_min, score_max]
         )
+
+    def zlexcount(
+        self: TTransaction,
+        key: str,
+        min_lex: Union[InfBound, LexBoundary],
+        max_lex: Union[InfBound, LexBoundary],
+    ) -> TTransaction:
+        """
+        Returns the number of members in the sorted set stored at `key` with scores between `min_lex` and `max_lex`.
+
+        See https://redis.io/commands/zlexcount/ for more details.
+
+        Args:
+            key (str): The key of the sorted set.
+            min_lex (Union[InfBound, LexBoundary]): The minimum lex to count from.
+                Can be an instance of InfBound representing positive/negative infinity,
+                or LexBoundary representing a specific lex and inclusivity.
+            max_lex (Union[InfBound, LexBoundary]): The maximum lex to count up to.
+                Can be an instance of InfBound representing positive/negative infinity,
+                or LexBoundary representing a specific lex and inclusivity.
+
+        Command response:
+            int: The number of members in the specified lex range.
+                If `key` does not exist, it is treated as an empty sorted set, and the command returns `0`.
+                If `max_lex < min_lex`, `0` is returned.
+        """
+        lex_min = (
+            min_lex.value["lex_arg"]
+            if type(min_lex) == InfBound
+            else min_lex.value
+        )
+        lex_max = (
+            max_lex.value["lex_arg"]
+            if type(max_lex) == InfBound
+            else max_lex.value
+        )
+
+        return self.append_command(RequestType.ZLexCount, [key, lex_min, lex_max])
 
     def zscore(self: TTransaction, key: str, member: str) -> TTransaction:
         """
