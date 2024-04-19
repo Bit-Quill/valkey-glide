@@ -7,14 +7,8 @@ import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_LIM
 import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
 import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MINID_REDIS_API;
 import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
-import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
-import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 
 import glide.api.models.commands.StreamOptions.MaxLen;
 import glide.api.models.commands.StreamOptions.MinId;
@@ -22,13 +16,8 @@ import glide.api.models.commands.StreamOptions.StreamAddOptions;
 import glide.api.models.commands.StreamOptions.StreamTrimOptions;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -52,13 +41,13 @@ public class StreamCommandsTest {
     private static List<Arguments> getStreamAddOptions() {
         return List.of(
                 Arguments.of(
-                                // no TRIM option
-                                "test_xadd_no_trim",
-                                StreamAddOptions.builder().id("id").makeStream(Boolean.FALSE).build(),
-                                new String[] {NO_MAKE_STREAM_REDIS_API, "id"},
+                        // no TRIM option
+                        "test_xadd_no_trim",
+                        StreamAddOptions.builder().id("id").makeStream(Boolean.FALSE).build(),
+                        new String[] {NO_MAKE_STREAM_REDIS_API, "id"},
                         Arguments.of(
                                 // MAXLEN with LIMIT
-                            "test_xadd_maxlen_with_limit",
+                                "test_xadd_maxlen_with_limit",
                                 StreamAddOptions.builder()
                                         .id("id")
                                         .makeStream(Boolean.TRUE)
@@ -72,9 +61,9 @@ public class StreamCommandsTest {
                                     Long.toString(10L),
                                     "id"
                                 }),
-                    Arguments.of(
+                        Arguments.of(
                                 // MAXLEN with non exact match
-                        "test_xadd_maxlen_with_non_exact_match",
+                                "test_xadd_maxlen_with_non_exact_match",
                                 StreamAddOptions.builder()
                                         .makeStream(Boolean.FALSE)
                                         .trim(new MaxLen(false, 2L))
@@ -86,9 +75,9 @@ public class StreamCommandsTest {
                                     Long.toString(2L),
                                     "*"
                                 }),
-                    Arguments.of(
+                        Arguments.of(
                                 // MIN ID with LIMIT
-                        "test_xadd_minid_with_limit",
+                                "test_xadd_minid_with_limit",
                                 StreamAddOptions.builder()
                                         .id("id")
                                         .makeStream(Boolean.TRUE)
@@ -102,9 +91,9 @@ public class StreamCommandsTest {
                                     Long.toString(10L),
                                     "id"
                                 }),
-                    Arguments.of(
+                        Arguments.of(
                                 // MIN ID with non exact match
-                        "test_xadd_minid_with_non_exact_match",
+                                "test_xadd_minid_with_non_exact_match",
                                 StreamAddOptions.builder()
                                         .makeStream(Boolean.FALSE)
                                         .trim(new MinId(false, "testKey"))
@@ -121,88 +110,50 @@ public class StreamCommandsTest {
     @SneakyThrows
     @ParameterizedTest(name = "{0}")
     @MethodSource("getStreamAddOptions")
-    public void xadd_with_options_returns_success(String testName, StreamAddOptions options, String[] expectedArgs) {
-        // setup
-        String key = "testKey";
-        Map<String, String> fieldValues = new LinkedHashMap<>();
-        fieldValues.put("testField1", "testValue1");
-        fieldValues.put("testField2", "testValue2");
-        String[] arguments =
-                ArrayUtils.addFirst(
-                        ArrayUtils.addAll(
-                                optionAndArgs.getRight(), convertMapToKeyValueStringArray(fieldValues)),
-                        key);
-
-        String returnId = "testId";
-        CompletableFuture<String> testResponse = new CompletableFuture<>();
-        testResponse.complete(returnId);
-
-        // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(XAdd), eq(arguments), any()))
-                .thenReturn(testResponse);
-
-        // exercise
-        CompletableFuture<String> response = service.xadd(key, fieldValues, optionAndArgs.getLeft());
-        String payload = response.get();
-
-        // verify
-        assertEquals(testResponse, response);
-        assertEquals(returnId, payload);
+    public void xadd_with_options_returns_success(
+            String testName, StreamAddOptions options, String[] expectedArgs) {
+        assertArrayEquals(expectedArgs, options.toArgs());
     }
 
     private static List<Arguments> getStreamTrimOptions() {
         return List.of(
                 Arguments.of(
-                        Pair.of(
-                                // MAXLEN just THRESHOLD
-                                new MaxLen(5L), new String[] {TRIM_MAXLEN_REDIS_API, "5"}),
-                        Pair.of(
-                                // MAXLEN with LIMIT
-                                new MaxLen(5L, 10L),
-                                new String[] {
-                                    TRIM_MAXLEN_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "5", TRIM_LIMIT_REDIS_API, "10"
-                                }),
-                        Pair.of(
-                                // MAXLEN with exact
-                                new MaxLen(true, 10L),
-                                new String[] {TRIM_MAXLEN_REDIS_API, TRIM_EXACT_REDIS_API, "10"}),
-                        Pair.of(
-                                // MINID just THRESHOLD
-                                new MinId("0-1"), new String[] {TRIM_MINID_REDIS_API, "0-1"}),
-                        Pair.of(
-                                // MINID with exact
-                                new MinId(true, "0-2"),
-                                new String[] {TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "0-2"}),
-                        Pair.of(
-                                // MINID with LIMIT
-                                new MinId("0-3", 10L),
-                                new String[] {
-                                    TRIM_MINID_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "0-3", TRIM_LIMIT_REDIS_API, "10"
-                                })));
+                        // MAXLEN just THRESHOLD
+                        "test_xtrim_maxlen", new MaxLen(5L), new String[] {TRIM_MAXLEN_REDIS_API, "5"}),
+                Arguments.of(
+                        // MAXLEN with LIMIT
+                        "test_xtrim_maxlen_with_limit",
+                        new MaxLen(5L, 10L),
+                        new String[] {
+                            TRIM_MAXLEN_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "5", TRIM_LIMIT_REDIS_API, "10"
+                        }),
+                Arguments.of(
+                        // MAXLEN with exact
+                        "test_xtrim_exact_maxlen",
+                        new MaxLen(true, 10L),
+                        new String[] {TRIM_MAXLEN_REDIS_API, TRIM_EXACT_REDIS_API, "10"}),
+                Arguments.of(
+                        // MINID just THRESHOLD
+                        "test_xtrim_minid", new MinId("0-1"), new String[] {TRIM_MINID_REDIS_API, "0-1"}),
+                Arguments.of(
+                        // MINID with exact
+                        "test_xtrim_exact_minid",
+                        new MinId(true, "0-2"),
+                        new String[] {TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "0-2"}),
+                Arguments.of(
+                        // MINID with LIMIT
+                        "test_xtrim_minid_with_limit",
+                        new MinId("0-3", 10L),
+                        new String[] {
+                            TRIM_MINID_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "0-3", TRIM_LIMIT_REDIS_API, "10"
+                        }));
     }
 
     @SneakyThrows
-    @ParameterizedTest
+    @ParameterizedTest(name = "{0}")
     @MethodSource("getStreamTrimOptions")
-    public void xtrim_with_options_returns_success(Pair<StreamTrimOptions, String[]> optionAndArgs) {
-        // setup
-        String key = "testKey";
-        String[] arguments = ArrayUtils.addFirst(optionAndArgs.getRight(), key);
-
-        Long expectedPayload = 0L;
-        CompletableFuture<Long> testResponse = new CompletableFuture<>();
-        testResponse.complete(expectedPayload);
-
-        // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(XTrim), eq(arguments), any()))
-                .thenReturn(testResponse);
-
-        // exercise
-        CompletableFuture<Long> response = service.xtrim(key, optionAndArgs.getLeft());
-        Long payload = response.get();
-
-        // verify
-        assertEquals(testResponse, response);
-        assertEquals(expectedPayload, payload);
+    public void xtrim_with_options_returns_success(
+            String testName, StreamTrimOptions options, String[] expectedArgs) {
+        assertArrayEquals(expectedArgs, options.toArgs());
     }
 }

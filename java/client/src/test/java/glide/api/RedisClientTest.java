@@ -19,8 +19,10 @@ import static glide.api.models.commands.StreamTrimOptions.TRIM_MINID_REDIS_API;
 import static glide.api.models.commands.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
 import static glide.api.models.commands.StreamOptions.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
 import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_EXACT_REDIS_API;
+import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
 import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
 import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MINID_REDIS_API;
+import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -189,6 +191,9 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class RedisClientTest {
 
