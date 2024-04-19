@@ -2,6 +2,7 @@
 package glide.api;
 
 import static glide.utils.ArrayTransformUtils.castArray;
+import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
@@ -26,6 +27,7 @@ import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
@@ -113,7 +115,7 @@ public class RedisClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<Map<String, String>> configGet(@NonNull String[] parameters) {
+    public CompletableFuture<Map<String, String>> configGet(@NonNull String @NonNull [] parameters) {
         return commandManager.submitNewCommand(ConfigGet, parameters, this::handleMapResponse);
     }
 
@@ -146,10 +148,26 @@ public class RedisClient extends BaseClient
     }
 
     @Override
+    public CompletableFuture<String> lolwut(int[] parameters) {
+        String[] arguments =
+                Arrays.stream(parameters).mapToObj(Integer::toString).toArray(String[]::new);
+        return commandManager.submitNewCommand(LOLWUT, arguments, this::handleStringResponse);
+    }
+
+    @Override
     public CompletableFuture<String> lolwut(int version) {
         return commandManager.submitNewCommand(
                 LOLWUT,
                 new String[] {VERSION_REDIS_API, Integer.toString(version)},
                 this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> lolwut(int version, int @NonNull [] parameters) {
+        String[] arguments =
+                concatenateArrays(
+                        new String[] {VERSION_REDIS_API, Integer.toString(version)},
+                        Arrays.stream(parameters).mapToObj(Integer::toString).toArray(String[]::new));
+        return commandManager.submitNewCommand(LOLWUT, arguments, this::handleStringResponse);
     }
 }

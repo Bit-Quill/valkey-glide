@@ -457,9 +457,11 @@ public class TransactionTests {
         transaction.lastsave();
         results.add(Pair.of(LastSave, buildArgs()));
 
-        transaction.lolwut().lolwut(5);
+        transaction.lolwut().lolwut(5).lolwut(new int[] {1, 2}).lolwut(6, new int[] {42});
         results.add(Pair.of(LOLWUT, buildArgs()));
         results.add(Pair.of(LOLWUT, buildArgs(VERSION_REDIS_API, "5")));
+        results.add(Pair.of(LOLWUT, buildArgs("1", "2")));
+        results.add(Pair.of(LOLWUT, buildArgs(VERSION_REDIS_API, "6", "42")));
 
         transaction.persist("key");
         results.add(Pair.of(Persist, buildArgs("key")));

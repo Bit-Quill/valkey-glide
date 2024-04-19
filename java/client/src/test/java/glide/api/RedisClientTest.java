@@ -3085,6 +3085,28 @@ public class RedisClientTest {
 
     @SneakyThrows
     @Test
+    public void lolwut_with_params_returns_success() {
+        // setup
+        String value = "pewpew";
+        String[] arguments = new String[] {"1", "2"};
+        int[] params = new int[] {1, 2};
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(LOLWUT), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.lolwut(params);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, response.get());
+    }
+
+    @SneakyThrows
+    @Test
     public void lolwut_with_version_returns_success() {
         // setup
         String value = "pewpew";
@@ -3098,6 +3120,28 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<String> response = service.lolwut(42);
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, response.get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void lolwut_with_version_and_params_returns_success() {
+        // setup
+        String value = "pewpew";
+        String[] arguments = new String[] {VERSION_REDIS_API, "42", "1", "2"};
+        int[] params = new int[] {1, 2};
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(LOLWUT), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.lolwut(42, params);
 
         // verify
         assertEquals(testResponse, response);
