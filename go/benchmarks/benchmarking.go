@@ -346,6 +346,7 @@ func getLatencyStats(actionLatencies map[string][]time.Duration) map[string]*lat
 		})
 
 		results[action] = &latencyStats{
+			// TODO: Replace with a stats library, eg https://pkg.go.dev/github.com/montanaflynn/stats
 			avgLatency:   average(latencies),
 			p50Latency:   percentile(latencies, 50),
 			p90Latency:   percentile(latencies, 90),

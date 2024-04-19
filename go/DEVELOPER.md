@@ -207,6 +207,18 @@ Run from the main `/go` folder
 make format
 ```
 
+### Benchmarks
+
+To run the benchmarks, execute the following:
+
+```bash
+cd go/benchmarks
+# To see a list of available options and their defaults:
+go run . -help
+# An example command setting various options:
+go run . -resultsFile gobenchmarks.json -dataSize "100 1000" -concurrentTasks "10 100" -clients all -host localhost -port 6379 -clientCount "1 5" -tls
+```
+
 ### Recommended extensions for VS Code
 
 -   [Go](https://marketplace.visualstudio.com/items?itemName=golang.Go)
