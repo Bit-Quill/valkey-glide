@@ -5,6 +5,7 @@ from typing import List, Mapping, Optional, Tuple, TypeVar, Union
 
 from glide.async_commands.core import (
     ConditionalChange,
+    CoreCommands,
     ExpireOptions,
     ExpirySet,
     GeospatialData,
@@ -1966,6 +1967,41 @@ class BaseTransaction:
         """
         return self.append_command(
             RequestType.ZDiffStore, [destination, str(len(keys))] + keys
+        )
+
+    def zdiff(self: TTransaction, keys: List[str]) -> TTransaction:
+        """
+        Returns the difference between the first sorted set and all the successive sorted sets.
+        To get the elements with their scores, see `zdiff_withscores`.
+
+        See https://redis.io/commands/zdiff/ for more details.
+
+        Args:
+            keys (List[str]): The keys of the sorted sets.
+
+        Command response:
+            List[str]: A list of elements representing the difference between the sorted sets.
+                If the first `key` does not exist, it is treated as an empty sorted set, and the command returns an
+                empty list.
+        """
+        return self.append_command(RequestType.ZDiff, [str(len(keys))] + keys)
+
+    def zdiff_withscores(self: TTransaction, keys: List[str]) -> TTransaction:
+        """
+        Returns the difference between the first sorted set and all the successive sorted sets.
+
+        See https://redis.io/commands/zdiff/ for more details.
+
+        Args:
+            keys (List[str]): The keys of the sorted sets.
+
+        Command response:
+            Dict[str, float]: A dictionary of elements and their scores representing the difference between the sorted sets.
+                If the first `key` does not exist, it is treated as an empty sorted set, and the command returns an
+                empty list.
+        """
+        return self.append_command(
+            RequestType.ZDiff, [str(len(keys))] + keys + [CoreCommands.WITH_SCORES]
         )
 
     def dbsize(self: TTransaction) -> TTransaction:

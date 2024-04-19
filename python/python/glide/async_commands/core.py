@@ -2754,6 +2754,58 @@ class CoreCommands(Protocol):
             ),
         )
 
+    async def zdiff(self, keys: List[str]) -> List[str]:
+        """
+        Returns the difference between the first sorted set and all the successive sorted sets.
+        To get the elements with their scores, see `zdiff_withscores`.
+
+        See https://redis.io/commands/zdiff/ for more details.
+
+        Args:
+            keys (List[str]): The keys of the sorted sets.
+
+        Returns:
+            List[str]: A list of elements representing the difference between the sorted sets.
+                If the first `key` does not exist, it is treated as an empty sorted set, and the command returns an
+                empty list.
+
+        Examples:
+            >>> await client.zdiff("sorted_set1", "sorted_set2", "sorted_set3")
+                ["element1"]  # Indicates that "element1" is in "sorted_set1" but not "sorted_set2" or "sorted_set3".
+        """
+        return cast(
+            List[str],
+            await self._execute_command(RequestType.ZDiff, [str(len(keys))] + keys),
+        )
+
+    WITH_SCORES: str = "WITHSCORES"
+
+    async def zdiff_withscores(self, keys: List[str]) -> Dict[str, float]:
+        """
+        Returns the difference between the first sorted set and all the successive sorted sets.
+
+        See https://redis.io/commands/zdiff/ for more details.
+
+        Args:
+            keys (List[str]): The keys of the sorted sets.
+
+        Returns:
+            Dict[str, float]: A dictionary of elements and their scores representing the difference between the sorted
+                sets.
+                If the first `key` does not exist, it is treated as an empty sorted set, and the command returns an
+                empty list.
+
+        Examples:
+            >>> await client.zdiff_withscores("sorted_set1", "sorted_set2", "sorted_set3")
+                {"element1": 1.0}  # Indicates that "element1" is in "sorted_set1" but not "sorted_set2" or "sorted_set3".
+        """
+        return cast(
+            Dict[str, float],
+            await self._execute_command(
+                RequestType.ZDiff, [str(len(keys))] + keys + [self.WITH_SCORES]
+            ),
+        )
+
     async def invoke_script(
         self,
         script: Script,
