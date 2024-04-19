@@ -52,11 +52,12 @@ type benchmarkConfig struct {
 }
 
 func executeBenchmarks(runConfig *runConfiguration, connectionSettings *connectionSettings) error {
+	var benchmarkConfigs []benchmarkConfig
 	for _, clientName := range runConfig.clientNames {
 		for _, numConcurrentTasks := range runConfig.concurrentTasks {
 			for _, clientCount := range runConfig.clientCount {
 				for _, dataSize := range runConfig.dataSize {
-					benchmarkConfig := &benchmarkConfig{
+					benchmarkConfig := benchmarkConfig{
 						clientName:         clientName,
 						numConcurrentTasks: numConcurrentTasks,
 						clientCount:        clientCount,
@@ -66,11 +67,15 @@ func executeBenchmarks(runConfig *runConfiguration, connectionSettings *connecti
 						resultsFile:        runConfig.resultsFile,
 					}
 
-					err := runSingleBenchmark(benchmarkConfig)
-					if err != nil {
-						return err
-					}
+					benchmarkConfigs = append(benchmarkConfigs, benchmarkConfig)
 				}
+			}
+		}
+
+		for _, config := range benchmarkConfigs {
+			err := runSingleBenchmark(&config)
+			if err != nil {
+				return err
 			}
 		}
 
@@ -148,10 +153,29 @@ func closeClients(clients []benchmarkClient) error {
 var jsonResults []map[string]interface{}
 
 func writeResults(file *os.File) error {
-	encoder := json.NewEncoder(file)
-	err := encoder.Encode(jsonResults)
+	fileInfo, err := file.Stat()
 	if err != nil {
-		return fmt.Errorf("error encoding JSON: %v", err)
+		return err
+	}
+
+	if fileInfo.Size() != 0 {
+		decoder := json.NewDecoder(file)
+		var existingData []map[string]interface{}
+		err = decoder.Decode(&existingData)
+		if err != nil {
+			return err
+		}
+
+		jsonResults = append(existingData, jsonResults...)
+	}
+
+	marshalledJson, err := json.Marshal(jsonResults)
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteAt(marshalledJson, 0)
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -105,7 +106,14 @@ func verifyOptions(opts *options) (*runConfiguration, error) {
 
 	if opts.resultsFile == "" {
 		runConfig.resultsFile = os.Stdout
-	} else {
+	} else if _, err = os.Stat(opts.resultsFile); err == nil {
+		// File exists
+		runConfig.resultsFile, err = os.OpenFile(opts.resultsFile, os.O_RDWR, os.ModePerm)
+		if err != nil {
+			return nil, err
+		}
+	} else if errors.Is(err, os.ErrNotExist) {
+		// File does not exist
 		err = os.MkdirAll(filepath.Dir(opts.resultsFile), os.ModePerm)
 		if err != nil {
 			return nil, err
@@ -115,6 +123,9 @@ func verifyOptions(opts *options) (*runConfiguration, error) {
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		// Some other error occurred
+		return nil, err
 	}
 
 	runConfig.concurrentTasks, err = parseOptionsIntList(opts.concurrentTasks)
