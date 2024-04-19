@@ -104,7 +104,7 @@ jobs:
               with:
                   name: test-reports-python-redis-${{ matrix.redis }}
                   path: |
-                      python/pytest_report.html
+                      python/python/tests/pytest_report.html
                       utils/clusters/**
                       benchmarks/results/**
 
