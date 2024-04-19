@@ -1,9 +1,7 @@
 /**
  * Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
  */
-// TODO: uncomment
-// #![deny(unsafe_op_in_unsafe_fn)]
-
+#![deny(unsafe_op_in_unsafe_fn)]
 use glide_core::client::Client as GlideClient;
 use glide_core::connection_request;
 use glide_core::errors;
@@ -368,7 +366,7 @@ pub unsafe extern "C" fn command(
     arg_count: usize,
     args: *const *const c_char,
 ) {
-let client = unsafe { Box::leak(Box::from_raw(client_ptr as *mut Client)) };
+    let client = unsafe { Box::leak(Box::from_raw(client_ptr as *mut Client)) };
     // The safety of this needs to be ensured by the calling code. Cannot dispose of the pointer before all operations have completed.
     let ptr_address = client_ptr as usize;
 
