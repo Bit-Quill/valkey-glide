@@ -177,11 +177,12 @@ pub(crate) fn convert_to_expected_type(
                 .into()),
         },
         ExpectedReturnType::ArrayOfKeyValuePairs => match value {
+            Value::Nil => Ok(value.clone()),
             Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Array(_)) => {
                 Ok(value)
             },
             Value::Array(ref array) if matches!(array[0], Value::BulkString(_)) => {
-                convert_flat_array_to_key_value_pairs(array.clone())
+                convert_flat_array_to_key_value_pairs(&array[..])
             },
             _ => Err((
                 ErrorKind::TypeError,
@@ -252,7 +253,7 @@ fn convert_flat_array_to_key_value_pairs(array: &[Value]) -> RedisResult<Value> 
 
     let mut result = Vec::new();
     for i in (0..array.len()).step_by(2) {
-        let pair = vec![array[i], array[i + 1]];
+        let pair = vec![array[i].clone(), array[i + 1].clone()];
         result.push(Value::Array(pair));
     }
     Ok(Value::Array(result))
