@@ -230,7 +230,6 @@ fn convert_lolwut_string(data: &str) -> String {
         data.replace("\x1b[0;97;107m \x1b[0m", "\u{2591}")
             .replace("\x1b[0;37;47m \x1b[0m", "\u{2592}")
             .replace("\x1b[0;90;100m \x1b[0m", "\u{2593}")
-            //.replace("\x1b[0;30;40m \x1b[0m", "\u{2588}")
             .replace("\x1b[0;30;40m \x1b[0m", " ")
     } else {
         data.to_owned()
