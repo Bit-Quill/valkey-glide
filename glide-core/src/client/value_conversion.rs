@@ -17,7 +17,7 @@ pub(crate) enum ExpectedReturnType {
     ZrankReturnType,
     JsonToggleReturnType,
     ArrayOfBools,
-    LolwutVer6, // todo rename
+    Lolwut,
 }
 
 pub(crate) fn convert_to_expected_type(
@@ -176,25 +176,22 @@ pub(crate) fn convert_to_expected_type(
             )
                 .into()),
         },
-        ExpectedReturnType::LolwutVer6 => {
+        ExpectedReturnType::Lolwut => {
             match value {
                 // cluster (multi-node) response
                 Value::Map(map) => {
-                    dbg!("Map");
                     let result = map
                         .into_iter()
                         .map(|(key, inner_value)| {
-                            let key_str = match key {
-                                Value::BulkString(_) => key,
-                                _ => {
-                                    Value::BulkString(from_owned_redis_value::<String>(key)?.into())
-                                }
-                            };
-                            let converted = convert_to_expected_type(
-                                inner_value,
-                                Some(ExpectedReturnType::LolwutVer6),
+                            let converted_key = convert_to_expected_type(
+                                key,
+                                Some(ExpectedReturnType::BulkString),
                             )?;
-                            Ok((key_str, converted))
+                            let converted_value = convert_to_expected_type(
+                                inner_value,
+                                Some(ExpectedReturnType::Lolwut),
+                            )?;
+                            Ok((converted_key, converted_value))
                         })
                         .collect::<RedisResult<_>>();
 
@@ -202,9 +199,8 @@ pub(crate) fn convert_to_expected_type(
                 }
                 // RESP 2 response
                 Value::BulkString(bytes) => {
-                    dbg!("BulkString");
                     let text = std::str::from_utf8(&bytes).unwrap();
-                    let res = convert_lolwut_ver_6_string(text);
+                    let res = convert_lolwut_string(text);
                     Ok(Value::BulkString(Vec::from(res)))
                 }
                 // RESP 3 response
@@ -212,15 +208,13 @@ pub(crate) fn convert_to_expected_type(
                     format: _,
                     ref text,
                 } => {
-                    dbg!("VerbatimString");
-                    let res = convert_lolwut_ver_6_string(text);
-
+                    let res = convert_lolwut_string(text);
                     Ok(Value::BulkString(Vec::from(res)))
                 }
                 _ => Err((
                     ErrorKind::TypeError,
                     "Response couldn't be processed",
-                    format!("(response was {:?})", value), // TODO trim value/message
+                    (&format!("(response was {:?}...)", value)[..100]).into(),
                 )
                     .into()),
             }
@@ -228,15 +222,16 @@ pub(crate) fn convert_to_expected_type(
     }
 }
 
-// todo doc + rename
-fn convert_lolwut_ver_6_string(data: &str) -> String {
-    // TODO replace ESC with hex
-    if data.contains("[0m") {
-        data.replace("[0;97;107m [0m", "\u{2591}")
-            .replace("[0;37;47m [0m", "\u{2592}")
-            .replace("[0;90;100m [0m", "\u{2593}")
-            //.replace("[0;30;40m [0m", "\u{2588}")
-            .replace("[0;30;40m [0m", " ")
+/// Convert string returned by `LOLWUT` command.
+/// The input string is shell-friendly and contains color codes and escape sequences.
+/// The output string is user-friendly, colored whitespaces replaced with corresponding symbols.
+fn convert_lolwut_string(data: &str) -> String {
+    if data.contains("\x1b[0m") {
+        data.replace("\x1b[0;97;107m \x1b[0m", "\u{2591}")
+            .replace("\x1b[0;37;47m \x1b[0m", "\u{2592}")
+            .replace("\x1b[0;90;100m \x1b[0m", "\u{2593}")
+            //.replace("\x1b[0;30;40m \x1b[0m", "\u{2588}")
+            .replace("\x1b[0;30;40m \x1b[0m", " ")
     } else {
         data.to_owned()
     }
@@ -322,26 +317,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
                 None
             }
         }
-        b"LOLWUT" => {
-            /*
-            let has_version = cmd
-                .arg_idx(1)
-                .and_then(|arg| {
-                    dbg!(std::str::from_utf8(arg).unwrap());
-                    let val = Some(std::str::from_utf8(arg).unwrap().to_lowercase().eq("version"));
-                    dbg!(val)
-                }).or(Some(false)).unwrap();
-            let version = cmd.arg_idx(2).map(|arg| std::str::from_utf8(arg).unwrap()).or(Some("0")).unwrap();
-            if has_version && version.eq("6") {
-                dbg!("Some(LolwutVer6)");
-                Some(LolwutVer6)
-            } else {
-                dbg!(format!("None, has = {}, ver = {}", has_version, version));
-                None
-            }*/
-
-            Some(ExpectedReturnType::LolwutVer6)
-        }
+        b"LOLWUT" => Some(ExpectedReturnType::Lolwut),
         _ => None,
     }
 }
