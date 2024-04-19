@@ -321,7 +321,7 @@ public interface ServerManagementClusterCommands {
      * The command will be routed to a random node.
      *
      * @see <a href="https://redis.io/commands/lolwut/">redis.io</a> for details.
-     * @return Redis response.
+     * @return A piece of generative computer art along with the current Redis version.
      * @example
      *     <pre>{@code
      * String data = client.lolwut().get();
@@ -337,7 +337,7 @@ public interface ServerManagementClusterCommands {
      *
      * @see <a href="https://redis.io/commands/lolwut/">redis.io</a> for details.
      * @param parameters Additional set of arguments in order to change the output.
-     * @return Redis response.
+     * @return A piece of generative computer art along with the current Redis version.
      * @example
      *     <pre>{@code
      * String data = client.lolwut(new int[] { 40, 20 }).get();
