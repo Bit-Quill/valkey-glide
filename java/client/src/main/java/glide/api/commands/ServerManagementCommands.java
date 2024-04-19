@@ -13,6 +13,9 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface ServerManagementCommands {
 
+    /** A keyword for {@link #lolwut(int)}. */
+    String VERSION_REDIS_API = "VERSION";
+
     /**
      * Gets information and statistics about the Redis server using the {@link Section#DEFAULT}
      * option.
@@ -147,4 +150,33 @@ public interface ServerManagementCommands {
      * }</pre>
      */
     CompletableFuture<Long> lastsave();
+
+    /**
+     * Displays a piece of generative computer art and the Redis version.
+     *
+     * @see <a href="https://redis.io/commands/lolwut/">redis.io</a> for details.
+     * @return Redis response.
+     * @example
+     *     <pre>{@code
+     * String data = client.lolwut().get();
+     * System.out.println(data);
+     * assert data.contains("Redis ver. 7.2.3");
+     * }</pre>
+     */
+    CompletableFuture<String> lolwut();
+
+    /**
+     * Displays a piece of generative computer art and the Redis version.
+     *
+     * @apiNote Versions 5 and 6 produce graphical things.
+     * @see <a href="https://redis.io/commands/lolwut/">redis.io</a> for details.
+     * @return Redis response.
+     * @example
+     *     <pre>{@code
+     * String data = client.lolwut(6).get();
+     * System.out.println(data);
+     * assert data.contains("Redis ver. 7.2.3");
+     * }</pre>
+     */
+    CompletableFuture<String> lolwut(int version);
 }

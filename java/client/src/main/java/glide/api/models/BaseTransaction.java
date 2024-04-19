@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
+import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.RangeOptions.createZRangeArgs;
@@ -42,6 +43,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.IncrByFloat;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.LInsert;
 import static redis_request.RedisRequestOuterClass.RequestType.LLen;
+import static redis_request.RedisRequestOuterClass.RequestType.LOLWUT;
 import static redis_request.RedisRequestOuterClass.RequestType.LPop;
 import static redis_request.RedisRequestOuterClass.RequestType.LPush;
 import static redis_request.RedisRequestOuterClass.RequestType.LPushX;
@@ -1957,6 +1959,32 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T lastsave() {
         protobufTransaction.addCommands(buildCommand(LastSave));
+        return getThis();
+    }
+
+    /**
+     * Displays a piece of generative computer art and the Redis version.<br>
+     * The command will be routed to a random node.
+     *
+     * @see <a href="https://redis.io/commands/lolwut/">redis.io</a> for details.
+     * @return Command Response - Redis response.
+     */
+    public T lolwut() {
+        protobufTransaction.addCommands(buildCommand(LOLWUT));
+        return getThis();
+    }
+
+    /**
+     * Displays a piece of generative computer art and the Redis version.<br>
+     * The command will be routed to a random node.
+     *
+     * @apiNote Versions 5 and 6 produce graphical things.
+     * @see <a href="https://redis.io/commands/lolwut/">redis.io</a> for details.
+     * @return Command Response - Redis response.
+     */
+    public T lolwut(int version) {
+        ArgsArray commandArgs = buildArgs(VERSION_REDIS_API, Integer.toString(version));
+        protobufTransaction.addCommands(buildCommand(LOLWUT, commandArgs));
         return getThis();
     }
 

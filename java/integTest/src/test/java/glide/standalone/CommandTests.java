@@ -275,4 +275,16 @@ public class CommandTests {
         var yesterday = Instant.now().minus(1, ChronoUnit.DAYS);
         assertTrue(Instant.ofEpochSecond(result).isAfter(yesterday));
     }
+
+    @Test
+    @SneakyThrows
+    public void lolwut_lolwut() {
+        var response = regularClient.lolwut().get();
+        System.out.printf("%nLOLWUT standalone client standard response%n%s%n", response);
+        assertTrue(response.contains("Redis ver. " + REDIS_VERSION));
+
+        response = regularClient.lolwut(5).get();
+        System.out.printf("%nLOLWUT standalone client ver 6 response%n%s%n", response);
+        assertTrue(response.contains("Redis ver. " + REDIS_VERSION));
+    }
 }

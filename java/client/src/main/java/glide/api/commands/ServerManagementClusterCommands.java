@@ -315,4 +315,72 @@ public interface ServerManagementClusterCommands {
      * }</pre>
      */
     CompletableFuture<ClusterValue<Long>> lastsave(Route route);
+
+    /**
+     * Displays a piece of generative computer art and the Redis version.<br>
+     * The command will be routed to a random node.
+     *
+     * @see <a href="https://redis.io/commands/lolwut/">redis.io</a> for details.
+     * @return Redis response.
+     * @example
+     *     <pre>{@code
+     * String data = client.lolwut().get();
+     * System.out.println(data);
+     * assert data.contains("Redis ver. 7.2.3");
+     * }</pre>
+     */
+    CompletableFuture<String> lolwut();
+
+    /**
+     * Displays a piece of generative computer art and the Redis version.<br>
+     * The command will be routed to a random node.
+     *
+     * @apiNote Versions 5 and 6 produce graphical things.
+     * @see <a href="https://redis.io/commands/lolwut/">redis.io</a> for details.
+     * @return Redis response.
+     * @example
+     *     <pre>{@code
+     * String data = client.lolwut(6).get();
+     * System.out.println(data);
+     * assert data.contains("Redis ver. 7.2.3");
+     * }</pre>
+     */
+    CompletableFuture<String> lolwut(int version);
+
+    /**
+     * Displays a piece of generative computer art and the Redis version.
+     *
+     * @see <a href="https://redis.io/commands/lolwut/">redis.io</a> for details.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return Redis response.
+     * @example
+     *     <pre>{@code
+     * ClusterValue<String> response = client.lolwut(ALL_NODES).get();
+     * for (String data : response.getMultiValue().values()) {
+     *     System.out.println(data);
+     *     assert data.contains("Redis ver. 7.2.3");
+     * }
+     * }</pre>
+     */
+    CompletableFuture<ClusterValue<String>> lolwut(Route route);
+
+    /**
+     * Displays a piece of generative computer art and the Redis version.
+     *
+     * @apiNote Versions 5 and 6 produce graphical things.
+     * @see <a href="https://redis.io/commands/lolwut/">redis.io</a> for details.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return Redis response.
+     * @example
+     *     <pre>{@code
+     * ClusterValue<String> response = client.lolwut(6, ALL_NODES).get();
+     * for (String data : response.getMultiValue().values()) {
+     *     System.out.println(data);
+     *     assert data.contains("Redis ver. 7.2.3");
+     * }
+     * }</pre>
+     */
+    CompletableFuture<ClusterValue<String>> lolwut(int version, Route route);
 }

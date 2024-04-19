@@ -571,4 +571,24 @@ public class CommandTests {
             assertTrue(Instant.ofEpochSecond(value).isAfter(yesterday));
         }
     }
+
+    @Test
+    @SneakyThrows
+    public void lolwut_lolwut() {
+        var response = clusterClient.lolwut().get();
+        System.out.printf("%nLOLWUT cluster client standard response%n%s%n", response);
+        assertTrue(response.contains("Redis ver. " + REDIS_VERSION));
+
+        response = clusterClient.lolwut(6).get();
+        System.out.printf("%nLOLWUT cluster client ver 6 response%n%s%n", response);
+        assertTrue(response.contains("Redis ver. " + REDIS_VERSION));
+
+        var clusterResponse = clusterClient.lolwut(ALL_NODES).get();
+        for (var nodeResponse : clusterResponse.getMultiValue().values()) {
+            assertTrue(nodeResponse.contains("Redis ver. " + REDIS_VERSION));
+        }
+
+        clusterResponse = clusterClient.lolwut(2, RANDOM).get();
+        assertTrue(clusterResponse.getSingleValue().contains("Redis ver. " + REDIS_VERSION));
+    }
 }
