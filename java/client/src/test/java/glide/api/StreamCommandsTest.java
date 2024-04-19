@@ -52,12 +52,13 @@ public class StreamCommandsTest {
     private static List<Arguments> getStreamAddOptions() {
         return List.of(
                 Arguments.of(
-                        Pair.of(
                                 // no TRIM option
+                                "test_xadd_no_trim",
                                 StreamAddOptions.builder().id("id").makeStream(Boolean.FALSE).build(),
-                                new String[] {NO_MAKE_STREAM_REDIS_API, "id"}),
-                        Pair.of(
+                                new String[] {NO_MAKE_STREAM_REDIS_API, "id"},
+                        Arguments.of(
                                 // MAXLEN with LIMIT
+                            "test_xadd_maxlen_with_limit",
                                 StreamAddOptions.builder()
                                         .id("id")
                                         .makeStream(Boolean.TRUE)
@@ -71,8 +72,9 @@ public class StreamCommandsTest {
                                     Long.toString(10L),
                                     "id"
                                 }),
-                        Pair.of(
+                    Arguments.of(
                                 // MAXLEN with non exact match
+                        "test_xadd_maxlen_with_non_exact_match",
                                 StreamAddOptions.builder()
                                         .makeStream(Boolean.FALSE)
                                         .trim(new MaxLen(false, 2L))
@@ -84,8 +86,9 @@ public class StreamCommandsTest {
                                     Long.toString(2L),
                                     "*"
                                 }),
-                        Pair.of(
+                    Arguments.of(
                                 // MIN ID with LIMIT
+                        "test_xadd_minid_with_limit",
                                 StreamAddOptions.builder()
                                         .id("id")
                                         .makeStream(Boolean.TRUE)
@@ -99,8 +102,9 @@ public class StreamCommandsTest {
                                     Long.toString(10L),
                                     "id"
                                 }),
-                        Pair.of(
+                    Arguments.of(
                                 // MIN ID with non exact match
+                        "test_xadd_minid_with_non_exact_match",
                                 StreamAddOptions.builder()
                                         .makeStream(Boolean.FALSE)
                                         .trim(new MinId(false, "testKey"))
@@ -115,9 +119,9 @@ public class StreamCommandsTest {
     }
 
     @SneakyThrows
-    @ParameterizedTest
+    @ParameterizedTest(name = "{0}")
     @MethodSource("getStreamAddOptions")
-    public void xadd_with_options_returns_success(Pair<StreamAddOptions, String[]> optionAndArgs) {
+    public void xadd_with_options_returns_success(String testName, StreamAddOptions options, String[] expectedArgs) {
         // setup
         String key = "testKey";
         Map<String, String> fieldValues = new LinkedHashMap<>();
