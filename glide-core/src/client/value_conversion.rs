@@ -182,14 +182,26 @@ pub(crate) fn convert_to_expected_type(
                 .into()),
         },
         ExpectedReturnType::ArrayOfDoubles => match value {
+            Value::Nil => Ok(value),
             Value::Array(array) => {
+                println!("{:?}", array);
                 let array_of_doubles = array
                     .iter()
                     .map(|v| {
-                        convert_to_expected_type(v.clone(), Some(ExpectedReturnType::Double))
-                            .unwrap()
+                        match v {
+                            Value::Nil | Value::Double(_) => Ok(v.clone()),
+                            Value::BulkString(_) => {
+                                Ok(convert_to_expected_type(v.clone(), Some(ExpectedReturnType::Double)).unwrap())
+                            },
+                            _ => Err((
+                                ErrorKind::TypeError,
+                                "Unexpected element type in response array",
+                                format!("(element was {:?})", v.clone()),
+                            )
+                                .into()),
+                        }
                     })
-                    .collect();
+                    .collect::<RedisResult<Vec<Value>>>()?;
                 Ok(Value::Array(array_of_doubles))
             }
             _ => Err((
