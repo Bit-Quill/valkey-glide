@@ -61,7 +61,7 @@ jobs:
               working-directory: ./python
               run: |
                   python -m pip install --upgrade pip
-                  pip install mypy-protobuf pytest-html
+                  pip install mypy-protobuf
 
             - name: Build Python wrapper
               uses: ./.github/workflows/build-python-wrapper
