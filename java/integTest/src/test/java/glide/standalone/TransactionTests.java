@@ -213,4 +213,26 @@ public class TransactionTests {
         assertEquals(OK, client.set("key", "foo").get());
         assertNull(client.exec(transaction).get());
     }
+
+    // TODO rework after https://github.com/aws/glide-for-redis/pull/1284
+    @Test
+    @SneakyThrows
+    public void zintercard() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"));
+        String zSetKey1 = "{key}:zsetKey1-" + UUID.randomUUID();
+        String zSetKey2 = "{key}:zsetKey2-" + UUID.randomUUID();
+        Transaction transaction = new Transaction();
+
+        transaction
+                .zadd(zSetKey1, Map.of("one", 1.0, "two", 2.0))
+                .zadd(zSetKey2, Map.of("one", 1.0, "two", 2.0, "three", 3.0))
+                .zintercard(new String[] {zSetKey1, zSetKey2})
+                .zintercard(new String[] {zSetKey1, zSetKey2}, 1);
+
+        Object[] result = client.exec(transaction).get();
+        assertEquals(2L, result[0]);
+        assertEquals(3L, result[1]);
+        assertEquals(2L, result[2]);
+        assertEquals(1L, result[3]);
+    }
 }

@@ -175,4 +175,26 @@ public class ClusterTransactionTests {
         assertArrayEquals(new Object[] {0L, 1.0}, (Object[]) result[1]);
         assertArrayEquals(new Object[] {2L, 1.0}, (Object[]) result[2]);
     }
+
+    // TODO rework after https://github.com/aws/glide-for-redis/pull/1284
+    // @Test // depends on https://github.com/amazon-contributing/redis-rs/pull/143
+    @SneakyThrows
+    public void zintercard() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"));
+        String zSetKey1 = "{key}:zsetKey1-" + UUID.randomUUID();
+        String zSetKey2 = "{key}:zsetKey2-" + UUID.randomUUID();
+        ClusterTransaction transaction = new ClusterTransaction();
+
+        transaction
+                .zadd(zSetKey1, Map.of("one", 1.0, "two", 2.0))
+                .zadd(zSetKey2, Map.of("one", 1.0, "two", 2.0, "three", 3.0))
+                .zintercard(new String[] {zSetKey1, zSetKey2})
+                .zintercard(new String[] {zSetKey1, zSetKey2}, 1);
+
+        Object[] result = clusterClient.exec(transaction).get();
+        assertEquals(2L, result[0]);
+        assertEquals(3L, result[1]);
+        assertEquals(2L, result[2]);
+        assertEquals(1L, result[3]);
+    }
 }
