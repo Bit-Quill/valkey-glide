@@ -1,7 +1,6 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
-import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_API;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
@@ -109,7 +108,7 @@ import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
-import glide.api.models.commands.WeightAggregateOptions.WeightableKeys;
+import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
 import glide.api.models.exceptions.RedisException;
@@ -878,37 +877,34 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<String[]> zunion(
-            @NonNull WeightableKeys weightableKeys, @NonNull Aggregate aggregate) {
-        String[] arguments =
-                concatenateArrays(
-                        weightableKeys.toArgs(), new String[] {AGGREGATE_REDIS_API, aggregate.toString()});
+            @NonNull KeysOrWeightedKeys keysOrWeightedKeys, @NonNull Aggregate aggregate) {
+        String[] arguments = concatenateArrays(keysOrWeightedKeys.toArgs(), aggregate.toArgs());
         return commandManager.submitNewCommand(
                 ZUnion, arguments, response -> castArray(handleArrayResponse(response), String.class));
     }
 
     @Override
-    public CompletableFuture<String[]> zunion(@NonNull WeightableKeys weightableKeys) {
+    public CompletableFuture<String[]> zunion(@NonNull KeysOrWeightedKeys keysOrWeightedKeys) {
         return commandManager.submitNewCommand(
                 ZUnion,
-                weightableKeys.toArgs(),
+                keysOrWeightedKeys.toArgs(),
                 response -> castArray(handleArrayResponse(response), String.class));
     }
 
     @Override
     public CompletableFuture<Map<String, Double>> zunionWithScores(
-            @NonNull WeightableKeys weightableKeys, @NonNull Aggregate aggregate) {
+            @NonNull KeysOrWeightedKeys keysOrWeightedKeys, @NonNull Aggregate aggregate) {
         String[] arguments =
                 concatenateArrays(
-                        weightableKeys.toArgs(),
-                        new String[] {AGGREGATE_REDIS_API, aggregate.toString(), WITH_SCORES_REDIS_API});
+                        keysOrWeightedKeys.toArgs(), aggregate.toArgs(), new String[] {WITH_SCORES_REDIS_API});
         return commandManager.submitNewCommand(ZUnion, arguments, this::handleMapResponse);
     }
 
     @Override
     public CompletableFuture<Map<String, Double>> zunionWithScores(
-            @NonNull WeightableKeys weightableKeys) {
+            @NonNull KeysOrWeightedKeys keysOrWeightedKeys) {
         String[] arguments =
-                concatenateArrays(weightableKeys.toArgs(), new String[] {WITH_SCORES_REDIS_API});
+                concatenateArrays(keysOrWeightedKeys.toArgs(), new String[] {WITH_SCORES_REDIS_API});
         return commandManager.submitNewCommand(ZUnion, arguments, this::handleMapResponse);
     }
 

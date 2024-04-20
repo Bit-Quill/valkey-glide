@@ -6,7 +6,7 @@ import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 public class WeightAggregateOptions {
     public static final String WEIGHTS_REDIS_API = "WEIGHTS";
@@ -16,13 +16,20 @@ public class WeightAggregateOptions {
      * Option for the method of aggregating scores from multiple sets. This option defaults to SUM if
      * not specified.
      */
+    @RequiredArgsConstructor
     public enum Aggregate {
         /** Aggregates by summing the scores of each element across sets. */
-        SUM,
+        SUM("SUM"),
         /** Aggregates by selecting the minimum score for each element across sets. */
-        MIN,
+        MIN("MIN"),
         /** Aggregates by selecting the maximum score for each element across sets. */
-        MAX;
+        MAX("MAX");
+
+        private final String redisApi;
+
+        public String[] toArgs() {
+            return new String[] {AGGREGATE_REDIS_API, this.redisApi};
+        }
     }
 
     /**
@@ -33,21 +40,14 @@ public class WeightAggregateOptions {
      *   <li>{@link WeightedKeys}
      * </ul>
      */
-    public interface WeightableKeys {
+    public interface KeysOrWeightedKeys {
         String[] toArgs();
     }
 
-    public static class KeyArray implements WeightableKeys {
+    /** Represents the keys of the sorted sets involved in the aggregation operation. */
+    @RequiredArgsConstructor
+    public static class KeyArray implements KeysOrWeightedKeys {
         private final String[] keys;
-
-        /**
-         * The keys of the sorted sets involved in the union operation.
-         *
-         * @param keys An array of keys.
-         */
-        public KeyArray(@NonNull String[] keys) {
-            this.keys = keys;
-        }
 
         @Override
         public String[] toArgs() {
@@ -55,19 +55,14 @@ public class WeightAggregateOptions {
         }
     }
 
-    public static class WeightedKeys implements WeightableKeys {
+    /**
+     * Represents the mapping of sorted set keys to their multiplication factors. Each factor is used
+     * to adjust the scores of elements in the corresponding sorted set by multiplying them before
+     * their scores are aggregated.
+     */
+    @RequiredArgsConstructor
+    public static class WeightedKeys implements KeysOrWeightedKeys {
         private final Map<String, Double> keysWeights;
-
-        /**
-         * Constructs a new instance mapping sorted set keys to their multiplication factors. Each
-         * factor is used to adjust the scores of elements in the corresponding sorted set by
-         * multiplying them before their scores are aggregated.
-         *
-         * @param keysWeights Mapping of sorted set keys to their multiplication factors.
-         */
-        public WeightedKeys(@NonNull Map<String, Double> keysWeights) {
-            this.keysWeights = keysWeights;
-        }
 
         @Override
         public String[] toArgs() {

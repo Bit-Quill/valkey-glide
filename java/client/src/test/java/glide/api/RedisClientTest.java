@@ -14,8 +14,6 @@ import static glide.api.models.commands.StreamAddOptions.TRIM_LIMIT_REDIS_API;
 import static glide.api.models.commands.StreamAddOptions.TRIM_MAXLEN_REDIS_API;
 import static glide.api.models.commands.StreamAddOptions.TRIM_MINID_REDIS_API;
 import static glide.api.models.commands.StreamAddOptions.TRIM_NOT_EXACT_REDIS_API;
-import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_API;
-import static glide.api.models.commands.WeightAggregateOptions.WEIGHTS_REDIS_API;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -2840,7 +2838,8 @@ public class RedisClientTest {
     public void zunion_returns_success() {
         // setup
         String[] keys = new String[] {"key1", "key2"};
-        String[] arguments = new String[] {Integer.toString(keys.length), "key1", "key2"};
+        KeyArray keyArray = new KeyArray(keys);
+        String[] arguments = keyArray.toArgs();
         String[] value = new String[] {"elem1", "elem2"};
 
         CompletableFuture<String[]> testResponse = new CompletableFuture<>();
@@ -2851,7 +2850,7 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<String[]> response = service.zunion(new KeyArray(keys));
+        CompletableFuture<String[]> response = service.zunion(keyArray);
         String[] payload = response.get();
 
         // verify
@@ -2863,20 +2862,12 @@ public class RedisClientTest {
     @Test
     public void zunion_with_options_returns_success() {
         // setup
-        Map<String, Double> weightedKeys = new LinkedHashMap<>();
-        weightedKeys.put("key1", 10.0);
-        weightedKeys.put("key2", 20.0);
-        String[] arguments =
-                new String[] {
-                    "2",
-                    "key1",
-                    "key2",
-                    WEIGHTS_REDIS_API,
-                    "10.0",
-                    "20.0",
-                    AGGREGATE_REDIS_API,
-                    Aggregate.MIN.toString()
-                };
+        Map<String, Double> keyWeightMap = new LinkedHashMap<>();
+        keyWeightMap.put("key1", 10.0);
+        keyWeightMap.put("key2", 20.0);
+        WeightedKeys weightedKeys = new WeightedKeys(keyWeightMap);
+        Aggregate aggregate = Aggregate.MIN;
+        String[] arguments = concatenateArrays(weightedKeys.toArgs(), aggregate.toArgs());
         String[] value = new String[] {"elem1", "elem2"};
 
         CompletableFuture<String[]> testResponse = new CompletableFuture<>();
@@ -2887,8 +2878,7 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<String[]> response =
-                service.zunion(new WeightedKeys(weightedKeys), Aggregate.MIN);
+        CompletableFuture<String[]> response = service.zunion(weightedKeys, aggregate);
         String[] payload = response.get();
 
         // verify
@@ -2901,8 +2891,8 @@ public class RedisClientTest {
     public void zunionWithScores_returns_success() {
         // setup
         String[] keys = new String[] {"key1", "key2"};
-        String[] arguments =
-                new String[] {Integer.toString(keys.length), "key1", "key2", WITH_SCORES_REDIS_API};
+        KeyArray keyArray = new KeyArray(keys);
+        String[] arguments = concatenateArrays(keyArray.toArgs(), new String[] {WITH_SCORES_REDIS_API});
         Map<String, Double> value = Map.of("elem1", 1.0, "elem2", 2.0);
 
         CompletableFuture<Map<String, Double>> testResponse = new CompletableFuture<>();
@@ -2913,7 +2903,7 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Map<String, Double>> response = service.zunionWithScores(new KeyArray(keys));
+        CompletableFuture<Map<String, Double>> response = service.zunionWithScores(keyArray);
         Map<String, Double> payload = response.get();
 
         // verify
@@ -2925,21 +2915,14 @@ public class RedisClientTest {
     @Test
     public void zunionWithScores_with_options_returns_success() {
         // setup
-        Map<String, Double> weightedKeys = new LinkedHashMap<>();
-        weightedKeys.put("key1", 10.0);
-        weightedKeys.put("key2", 20.0);
+        Map<String, Double> keyWeightMap = new LinkedHashMap<>();
+        keyWeightMap.put("key1", 10.0);
+        keyWeightMap.put("key2", 20.0);
+        WeightedKeys weightedKeys = new WeightedKeys(keyWeightMap);
+        Aggregate aggregate = Aggregate.MIN;
         String[] arguments =
-                new String[] {
-                    "2",
-                    "key1",
-                    "key2",
-                    WEIGHTS_REDIS_API,
-                    "10.0",
-                    "20.0",
-                    AGGREGATE_REDIS_API,
-                    Aggregate.MIN.toString(),
-                    WITH_SCORES_REDIS_API
-                };
+                concatenateArrays(
+                        weightedKeys.toArgs(), aggregate.toArgs(), new String[] {WITH_SCORES_REDIS_API});
         Map<String, Double> value = Map.of("elem1", 1.0, "elem2", 2.0);
 
         CompletableFuture<Map<String, Double>> testResponse = new CompletableFuture<>();
@@ -2951,7 +2934,7 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<Map<String, Double>> response =
-                service.zunionWithScores(new WeightedKeys(weightedKeys), Aggregate.MIN);
+                service.zunionWithScores(weightedKeys, aggregate);
         Map<String, Double> payload = response.get();
 
         // verify

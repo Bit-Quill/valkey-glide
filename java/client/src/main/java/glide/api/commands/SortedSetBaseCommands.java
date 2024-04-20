@@ -14,7 +14,7 @@ import glide.api.models.commands.RangeOptions.ScoreRange;
 import glide.api.models.commands.RangeOptions.ScoredRangeQuery;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
-import glide.api.models.commands.WeightAggregateOptions.WeightableKeys;
+import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZaddOptions;
 import java.util.Map;
@@ -734,81 +734,121 @@ public interface SortedSetBaseCommands {
     CompletableFuture<Long> zlexcount(String key, LexRange minLex, LexRange maxLex);
 
     /**
-     * Returns the union of members from sorted sets specified by the given <code>weightableKeys
+     * Returns the union of members from sorted sets specified by the given <code>keysOrWeightedKeys
      * </code>.<br>
      * To get the elements with their scores, see {@link #zunionWithScores}.<br>
      *
      * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
      *     </code>.
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
-     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     * @param keysOrWeightedKeys The keys of the sorted sets with possible formats:
      *     <ul>
-     *       <li>When only keys are required, use {@link KeyArray}.
-     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *       <li>Use {@link KeyArray} for keys only.
+     *       <li>Use {@link WeightedKeys} for weighted keys as score multipliers.
      *     </ul>
      *
      * @param aggregate Specifies the aggregation strategy to apply when combining the scores of
      *     elements.
      * @return The resulting sorted set from the union.
+     * @example
+     *     <pre>{@code
+     * KeyArray keyArray = new KeyArray(new String[] {"mySortedSet1", "mySortedSet2"});
+     * String[] payload = client.zunion(keyArray, Aggregate.MAX).get()
+     * assert payload.equals(new String[] {"elem1", "elem2", "elem3"});
+     *
+     * WeightedKeys weightedKeys = new WeightedKeys(Map.of("mySortedSet1", 2.0, "mySortedSet2", 2.0));
+     * String[] payload = client.zunion(weightedKeys).get()
+     * assert payload.equals(new String[] {"elem1", "elem2", "elem3"});
+     * }</pre>
      */
-    CompletableFuture<String[]> zunion(WeightableKeys weightableKeys, Aggregate aggregate);
+    CompletableFuture<String[]> zunion(KeysOrWeightedKeys keysOrWeightedKeys, Aggregate aggregate);
 
     /**
-     * Returns the union of members from sorted sets specified by the given <code>weightableKeys
+     * Returns the union of members from sorted sets specified by the given <code>keysOrWeightedKeys
      * </code>.<br>
      * To perform a <code>zunion</code> operation while specifying aggregation settings, use {@link
-     * #zunion(WeightableKeys, Aggregate)} To get the elements with their scores, see {@link
+     * #zunion(KeysOrWeightedKeys, Aggregate)} To get the elements with their scores, see {@link
      * #zunionWithScores}.<br>
      *
      * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
      *     </code>.
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
-     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     * @param keysOrWeightedKeys The keys of the sorted sets with possible formats:
      *     <ul>
-     *       <li>When only keys are required, use {@link KeyArray}.
-     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *       <li>Use {@link KeyArray} for keys only.
+     *       <li>Use {@link WeightedKeys} for weighted keys as score multipliers.
      *     </ul>
      *
      * @return The resulting sorted set from the union.
+     * @example
+     *     <pre>{@code
+     * KeyArray keyArray = new KeyArray(new String[] {"mySortedSet1", "mySortedSet2"});
+     * String[] payload = client.zunion(keyArray).get()
+     * assert payload.equals(new String[] {"elem1", "elem2", "elem3"});
+     *
+     * WeightedKeys weightedKeys = new WeightedKeys(Map.of("mySortedSet1", 2.0, "mySortedSet2", 2.0));
+     * String[] payload = client.zunion(weightedKeys).get()
+     * assert payload.equals(new String[] {"elem1", "elem2", "elem3"});
+     * }</pre>
      */
-    CompletableFuture<String[]> zunion(WeightableKeys weightableKeys);
+    CompletableFuture<String[]> zunion(KeysOrWeightedKeys keysOrWeightedKeys);
 
     /**
      * Returns the union of members and their scores from sorted sets specified by the given <code>
-     * weightableKeys</code>.
+     * keysOrWeightedKeys</code>.
      *
      * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
      *     </code>.
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
-     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     * @param keysOrWeightedKeys The keys of the sorted sets with possible formats:
      *     <ul>
-     *       <li>When only keys are required, use {@link KeyArray}.
-     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *       <li>Use {@link KeyArray} for keys only.
+     *       <li>Use {@link WeightedKeys} for weighted keys as score multipliers.
      *     </ul>
      *
      * @param aggregate Specifies the aggregation strategy to apply when combining the scores of
      *     elements.
      * @return The resulting sorted set from the union.
+     * @example
+     *     <pre>{@code
+     * KeyArray keyArray = new KeyArray(new String[] {"mySortedSet1", "mySortedSet2"});
+     * Map<String, Double> payload1 = client.zunionWithScores(keyArray, Aggregate.MAX).get();
+     * assert payload1.equals(Map.of("elem1", 1.0, "elem2", 2.0, "elem3", 3.0));
+     *
+     * WeightedKeys weightedKeys = new WeightedKeys(Map.of("mySortedSet1", 2.0, "mySortedSet2", 2.0));
+     * Map<String, Double> payload2 = client.zunionWithScores(keyArray, Aggregate.SUM).get();
+     * assert payload2.equals(Map.of("elem1", 2.0, "elem2", 4.0, "elem3", 6.0));
+     * }</pre>
      */
     CompletableFuture<Map<String, Double>> zunionWithScores(
-            WeightableKeys weightableKeys, Aggregate aggregate);
+            KeysOrWeightedKeys keysOrWeightedKeys, Aggregate aggregate);
 
     /**
      * Returns the union of members and their scores from sorted sets specified by the given <code>
-     * weightableKeys</code>.<br>
+     * keysOrWeightedKeys</code>.<br>
      * To perform a <code>zunion</code> operation while specifying aggregation settings, use {@link
-     * #zunionWithScores(WeightableKeys, Aggregate)}
+     * #zunionWithScores(KeysOrWeightedKeys, Aggregate)}
      *
      * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
      *     </code>.
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
-     * @param weightableKeys The keys of the sorted sets. The format for the keys can be:
+     * @param keysOrWeightedKeys The keys of the sorted sets with possible formats:
      *     <ul>
-     *       <li>When only keys are required, use {@link KeyArray}.
-     *       <li>When keys are required with weights, use {@link WeightedKeys}.
+     *       <li>Use {@link KeyArray} for keys only.
+     *       <li>Use {@link WeightedKeys} for weighted keys as score multipliers.
      *     </ul>
      *
      * @return The resulting sorted set from the union.
+     * @example
+     *     <pre>{@code
+     * KeyArray keyArray = new KeyArray(new String[] {"mySortedSet1", "mySortedSet2"});
+     * Map<String, Double> payload1 = client.zunionWithScores(keyArray).get();
+     * assert payload1.equals(Map.of("elem1", 1.0, "elem2", 2.0, "elem3", 3.0));
+     *
+     * WeightedKeys weightedKeys = new WeightedKeys(Map.of("mySortedSet1", 2.0, "mySortedSet2", 2.0));
+     * Map<String, Double> payload2 = client.zunionWithScores(keyArray).get();
+     * assert payload2.equals(Map.of("elem1", 2.0, "elem2", 4.0, "elem3", 6.0));
+     * }</pre>
      */
-    CompletableFuture<Map<String, Double>> zunionWithScores(WeightableKeys weightableKeys);
+    CompletableFuture<Map<String, Double>> zunionWithScores(KeysOrWeightedKeys keysOrWeightedKeys);
 }
