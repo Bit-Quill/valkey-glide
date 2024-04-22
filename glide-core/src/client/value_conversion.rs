@@ -242,6 +242,9 @@ fn convert_array_to_map(
     Ok(Value::Map(map))
 }
 
+/// Converts a flat array of values to a two-dimensional array, where the inner arrays are two-length arrays representing key-value pairs. Normally a map would be more suitable for these responses, but some commands (eg HRANDFIELD) may return duplicate key-value pairs depending on the command arguments. These duplicated pairs cannot be represented by a map.
+///
+/// `array` is a flat array containing keys at even-positioned elements and their associated values at odd-positioned elements.
 fn convert_flat_array_to_key_value_pairs(array: &[Value]) -> RedisResult<Value> {
     if array.len() % 2 != 0 {
         return Err((
@@ -315,6 +318,47 @@ mod tests {
                 .unwrap();
         let expected_response = Value::Array(vec![Value::Boolean(false), Value::Boolean(true)]);
         assert_eq!(expected_response, converted_response);
+    }
+
+    #[test]
+    fn convert_hrandfield() {
+        assert!(matches!(
+            expected_type_for_cmd(redis::cmd("HRANDFIELD").arg("key").arg("1").arg("withvalues"),
+            Some(ExpectedReturnType::ArrayOfKeyValuePairs)
+        ));
+
+        assert!(expected_type_for_cmd(redis::cmd("HRANDFIELD").arg("key").arg("1")).is_none());
+        assert!(expected_type_for_cmd(redis::cmd("HRANDFIELD").arg("key")).is_none());
+
+        let flat_array = Value::Array(vec![Value::BulkString("key1"), Value::BulkString("value1"), Value::BulkString("key2"), Value::BulkString("value2")]);
+        let two_dimensional_array = Value::Array(vec![Value::Array(vec![Value::BulkString("key1"), Value::BulkString("key2")]), Value::Array(vec![Value::BulkString("key2"), Value::BulkString("value2")])]);
+        let converted_flat_array =
+            convert_to_expected_type(flat_array, Some(ExpectedReturnType::ArrayOfKeyValuePairs))
+                .unwrap();
+        assert_eq!(two_dimensional_array, converted_flat_array);
+
+        let converted_two_dimensional_array =
+            convert_to_expected_type(two_dimensional_array, Some(ExpectedReturnType::ArrayOfKeyValuePairs))
+                    .unwrap();
+        assert_eq!(two_dimensional_array, converted_two_dimensional_array);
+
+        let empty_array = Value::Array(vec![])
+        let converted_empty_array =
+           convert_to_expected_type(empty_array, Some(ExpectedReturnType::ArrayOfKeyValuePairs))
+                   .unwrap();
+        assert_eq!(empty_array, converted_empty_array);
+
+        let converted_nil_value =
+           convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::ArrayOfKeyValuePairs))
+                   .unwrap();
+        assert_eq!(Value::Nil, converted_nil_value)
+
+        let array_of_doubles = Value::Array(vec![Value::Double(5.5)])
+        assert!(convert_to_expected_type(
+            array_of_doubles,
+            Some(ExpectedReturnType::ArrayOfKeyValuePairs)
+        )
+        .is_err());
     }
 
     #[test]
