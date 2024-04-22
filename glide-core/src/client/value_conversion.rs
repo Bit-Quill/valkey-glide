@@ -180,10 +180,10 @@ pub(crate) fn convert_to_expected_type(
             Value::Nil => Ok(value.clone()),
             Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Array(_)) => {
                 Ok(value)
-            },
+            }
             Value::Array(ref array) if matches!(array[0], Value::BulkString(_)) => {
                 convert_flat_array_to_key_value_pairs(&array[..])
-            },
+            }
             _ => Err((
                 ErrorKind::TypeError,
                 "Response couldn't be converted to an array of key-value pairs",
