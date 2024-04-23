@@ -722,8 +722,11 @@ public class SharedCommandTests {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
 
-        assertEquals(2, client.hset(key1, Map.of("f 1", "v 1", "f 2", "v 2")).get());
-        assertEquals(new String[] {"f 1", "f 2"}, client.hkeys(key1).get());
+        var data = new LinkedHashMap<String, String>();
+        data.put("f1", "v1");
+        data.put("f2", "v2");
+        assertEquals(2, client.hset(key1, data).get());
+        assertArrayEquals(new String[] {"f 1", "f 2"}, client.hkeys(key1).get());
 
         assertEquals(0, client.hkeys(key2).get().length);
 
