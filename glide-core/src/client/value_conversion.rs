@@ -323,7 +323,7 @@ mod tests {
     #[test]
     fn convert_hrandfield() {
         assert!(matches!(
-            expected_type_for_cmd(redis::cmd("HRANDFIELD").arg("key").arg("1").arg("withvalues"),
+            expected_type_for_cmd(redis::cmd("HRANDFIELD").arg("key").arg("1").arg("withvalues")),
             Some(ExpectedReturnType::ArrayOfKeyValuePairs)
         ));
 
@@ -342,7 +342,7 @@ mod tests {
                     .unwrap();
         assert_eq!(two_dimensional_array, converted_two_dimensional_array);
 
-        let empty_array = Value::Array(vec![])
+        let empty_array = Value::Array(vec![]);
         let converted_empty_array =
            convert_to_expected_type(empty_array, Some(ExpectedReturnType::ArrayOfKeyValuePairs))
                    .unwrap();
@@ -351,9 +351,9 @@ mod tests {
         let converted_nil_value =
            convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::ArrayOfKeyValuePairs))
                    .unwrap();
-        assert_eq!(Value::Nil, converted_nil_value)
+        assert_eq!(Value::Nil, converted_nil_value);
 
-        let array_of_doubles = Value::Array(vec![Value::Double(5.5)])
+        let array_of_doubles = Value::Array(vec![Value::Double(5.5)]);
         assert!(convert_to_expected_type(
             array_of_doubles,
             Some(ExpectedReturnType::ArrayOfKeyValuePairs)
