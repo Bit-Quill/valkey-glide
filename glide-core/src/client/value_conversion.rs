@@ -181,7 +181,9 @@ pub(crate) fn convert_to_expected_type(
             Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Array(_)) => {
                 Ok(value)
             }
-            Value::Array(array) if matches!(array[0], Value::BulkString(_) | Value::SimpleString(_)) => {
+            Value::Array(array)
+                if matches!(array[0], Value::BulkString(_) | Value::SimpleString(_)) =>
+            {
                 convert_flat_array_to_key_value_pairs(array)
             }
             _ => Err((
@@ -342,8 +344,14 @@ mod tests {
             Value::BulkString(b"value2".to_vec()),
         ]);
         let two_dimensional_array = Value::Array(vec![
-            Value::Array(vec![Value::BulkString(b"key1".to_vec()), Value::BulkString(b"value1".to_vec())]),
-            Value::Array(vec![Value::BulkString(b"key2".to_vec()), Value::BulkString(b"value2".to_vec())]),
+            Value::Array(vec![
+                Value::BulkString(b"key1".to_vec()),
+                Value::BulkString(b"value1".to_vec()),
+            ]),
+            Value::Array(vec![
+                Value::BulkString(b"key2".to_vec()),
+                Value::BulkString(b"value2".to_vec()),
+            ]),
         ]);
         let converted_flat_array =
             convert_to_expected_type(flat_array, Some(ExpectedReturnType::ArrayOfKeyValuePairs))
@@ -358,9 +366,11 @@ mod tests {
         assert_eq!(two_dimensional_array, converted_two_dimensional_array);
 
         let empty_array = Value::Array(vec![]);
-        let converted_empty_array =
-            convert_to_expected_type(empty_array.clone(), Some(ExpectedReturnType::ArrayOfKeyValuePairs))
-                .unwrap();
+        let converted_empty_array = convert_to_expected_type(
+            empty_array.clone(),
+            Some(ExpectedReturnType::ArrayOfKeyValuePairs),
+        )
+        .unwrap();
         assert_eq!(empty_array, converted_empty_array);
 
         let converted_nil_value =
