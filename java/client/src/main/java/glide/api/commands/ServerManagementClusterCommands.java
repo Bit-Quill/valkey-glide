@@ -2,6 +2,7 @@
 package glide.api.commands;
 
 import glide.api.models.ClusterValue;
+import glide.api.models.commands.FlushAllOption;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
@@ -315,4 +316,71 @@ public interface ServerManagementClusterCommands {
      * }</pre>
      */
     CompletableFuture<ClusterValue<Long>> lastsave(Route route);
+
+    /**
+     * Deletes all the keys of all the existing databases. This command never fails.<br>
+     * The command will be routed to all primary nodes.
+     * <br.
+     * To explicitly specify the flushing mode, use {@link #flushall(FlushAllOption)}.
+     *
+     * @see <a href="https://redis.io/commands/flushall/">
+     * redis.io</a> for details.
+     *
+     * @return Aggregated response - <code>OK</code> to confirm that the databases were successfully
+     *     flushed.
+     * @example
+     *     <pre>{@code
+     * String response = client.flushall().get();
+     * assert response.equals("OK");
+     * }</pre>
+     */
+    CompletableFuture<String> flushall();
+
+    /**
+     * Deletes all the keys of all the existing databases. This command never fails.<br>
+     * The command will be routed to all primary nodes.
+     *
+     * @see <a href="https://redis.io/commands/flushall/">redis.io</a> for details.
+     * @return Aggregated response - <code>OK</code> to confirm that the databases were successfully
+     *     flushed.
+     * @example
+     *     <pre>{@code
+     * String response = client.flushall(ASYNC).get();
+     * assert response.equals("OK");
+     * }</pre>
+     */
+    CompletableFuture<String> flushall(FlushAllOption mode);
+
+    /**
+     * Deletes all the keys of all the existing databases. This command never fails. To explicitly
+     * specify the flushing mode, use {@link #flushall(FlushAllOption, Route)}.
+     *
+     * @see <a href="https://redis.io/commands/flushall/">redis.io</a> for details.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return Aggregated response - <code>OK</code> to confirm that the databases were successfully
+     *     flushed.
+     * @example
+     *     <pre>{@code
+     * String response = client.flushall(ALL_NODES).get();
+     * assert response.equals("OK");
+     * }</pre>
+     */
+    CompletableFuture<String> flushall(Route route);
+
+    /**
+     * Deletes all the keys of all the existing databases. This command never fails.
+     *
+     * @see <a href="https://redis.io/commands/flushall/">redis.io</a> for details.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return Aggregated response - <code>OK</code> to confirm that the databases were successfully
+     *     flushed.
+     * @example
+     *     <pre>{@code
+     * String response = client.flushall(SYNC, ALL_NODES).get();
+     * assert response.equals("OK");
+     * }</pre>
+     */
+    CompletableFuture<String> flushall(FlushAllOption mode, Route route);
 }

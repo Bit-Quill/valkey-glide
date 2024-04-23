@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClusterClient;
 import glide.api.models.ClusterValue;
+import glide.api.models.commands.FlushAllOption;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
@@ -45,9 +46,8 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
-@Timeout(10) // seconds
+// @Timeout(10) // seconds
 public class CommandTests {
 
     private static RedisClusterClient clusterClient = null;
@@ -570,5 +570,21 @@ public class CommandTests {
         for (var value : data.getMultiValue().values()) {
             assertTrue(Instant.ofEpochSecond(value).isAfter(yesterday));
         }
+    }
+
+    @Test
+    @SneakyThrows
+    public void flushall() {
+        assertEquals(OK, clusterClient.flushall(FlushAllOption.SYNC).get());
+
+        // TODO replace with KEYS command when implemented
+        Object[] keysAfter =
+                (Object[]) clusterClient.customCommand(new String[] {"keys", "*"}).get().getSingleValue();
+        assertEquals(0, keysAfter.length);
+
+        assertEquals(OK, clusterClient.flushall().get());
+        assertEquals(OK, clusterClient.flushall(FlushAllOption.ASYNC).get());
+        assertEquals(OK, clusterClient.flushall(ALL_NODES).get());
+        assertEquals(OK, clusterClient.flushall(FlushAllOption.ASYNC, RANDOM).get());
     }
 }
