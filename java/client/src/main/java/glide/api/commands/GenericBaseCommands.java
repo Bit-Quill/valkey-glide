@@ -414,7 +414,7 @@ public interface GenericBaseCommands {
      *
      * @see <a href="https://redis.io/commands/touch/">redis.io</a> for details.
      * @param keys The keys to update last access time.
-     * @return The number of keys that were updated. // TODO add example
+     * @return The number of keys that were updated.
      * @example
      *     <pre>{@code
      * Long payload = client.touch(new String[] {"myKey1", "myKey2", "nonExistentKey"}).get();
