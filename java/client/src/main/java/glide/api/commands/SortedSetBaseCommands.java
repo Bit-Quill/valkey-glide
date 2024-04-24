@@ -736,7 +736,7 @@ public interface SortedSetBaseCommands {
     /**
      * Returns the union of members from sorted sets specified by the given <code>keysOrWeightedKeys
      * </code>.<br>
-     * To get the elements with their scores, see {@link #zunionWithScores}.<br>
+     * To get the elements with their scores, see {@link #zunionWithScores}.
      *
      * @apiNote When in cluster mode, all keys listed in <code>keysOrWeightedKeys</code> must map to
      *     the same <code>hash slot</code>.
