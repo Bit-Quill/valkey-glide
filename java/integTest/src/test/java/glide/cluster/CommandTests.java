@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.RedisClusterClient;
 import glide.api.models.ClusterValue;
-import glide.api.models.commands.FlushAllOption;
+import glide.api.models.commands.FlushOption;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
@@ -576,7 +576,7 @@ public class CommandTests {
     @Test
     @SneakyThrows
     public void flushall() {
-        assertEquals(OK, clusterClient.flushall(FlushAllOption.SYNC).get());
+        assertEquals(OK, clusterClient.flushall(FlushOption.SYNC).get());
 
         // TODO replace with KEYS command when implemented
         Object[] keysAfter =
@@ -585,7 +585,7 @@ public class CommandTests {
 
         assertEquals(OK, clusterClient.flushall().get());
         assertEquals(OK, clusterClient.flushall(ALL_PRIMARIES).get());
-        assertEquals(OK, clusterClient.flushall(FlushAllOption.ASYNC).get());
-        assertEquals(OK, clusterClient.flushall(FlushAllOption.ASYNC, RANDOM).get());
+        assertEquals(OK, clusterClient.flushall(FlushOption.ASYNC).get());
+        assertEquals(OK, clusterClient.flushall(FlushOption.ASYNC, ALL_PRIMARIES).get());
     }
 }

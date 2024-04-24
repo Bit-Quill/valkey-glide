@@ -22,7 +22,7 @@ import glide.api.commands.ConnectionManagementCommands;
 import glide.api.commands.GenericCommands;
 import glide.api.commands.ServerManagementCommands;
 import glide.api.models.Transaction;
-import glide.api.models.commands.FlushAllOption;
+import glide.api.models.commands.FlushOption;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.managers.CommandManager;
@@ -147,7 +147,7 @@ public class RedisClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<String> flushall(@NonNull FlushAllOption mode) {
+    public CompletableFuture<String> flushall(@NonNull FlushOption mode) {
         return commandManager.submitNewCommand(
                 FlushAll, new String[] {mode.toString()}, this::handleStringResponse);
     }

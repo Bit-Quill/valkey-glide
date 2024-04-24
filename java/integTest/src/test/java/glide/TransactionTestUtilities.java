@@ -2,7 +2,7 @@
 package glide;
 
 import static glide.api.BaseClient.OK;
-import static glide.api.models.commands.FlushAllOption.ASYNC;
+import static glide.api.models.commands.FlushOption.ASYNC;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
 
 import glide.api.models.BaseTransaction;

@@ -2,7 +2,7 @@
 package glide.api.commands;
 
 import glide.api.models.ClusterValue;
-import glide.api.models.commands.FlushAllOption;
+import glide.api.models.commands.FlushOption;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
@@ -321,7 +321,7 @@ public interface ServerManagementClusterCommands {
      * Deletes all the keys of all the existing databases. This command never fails.<br>
      * The command will be routed to all primary nodes.
      * <br.
-     * To explicitly specify the flushing mode, use {@link #flushall(FlushAllOption)}.
+     * To explicitly specify the flushing mode, use {@link #flushall(FlushOption)}.
      *
      * @see <a href="https://redis.io/commands/flushall/">
      * redis.io</a> for details.
@@ -349,11 +349,11 @@ public interface ServerManagementClusterCommands {
      * assert response.equals("OK");
      * }</pre>
      */
-    CompletableFuture<String> flushall(FlushAllOption mode);
+    CompletableFuture<String> flushall(FlushOption mode);
 
     /**
      * Deletes all the keys of all the existing databases. This command never fails. To explicitly
-     * specify the flushing mode, use {@link #flushall(FlushAllOption, Route)}.
+     * specify the flushing mode, use {@link #flushall(FlushOption, Route)}.
      *
      * @see <a href="https://redis.io/commands/flushall/">redis.io</a> for details.
      * @param route Specifies the routing configuration for the command. The client will route the
@@ -382,5 +382,5 @@ public interface ServerManagementClusterCommands {
      * assert response.equals("OK");
      * }</pre>
      */
-    CompletableFuture<String> flushall(FlushAllOption mode, Route route);
+    CompletableFuture<String> flushall(FlushOption mode, Route route);
 }

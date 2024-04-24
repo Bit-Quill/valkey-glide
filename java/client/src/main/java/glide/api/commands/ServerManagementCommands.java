@@ -1,7 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
-import glide.api.models.commands.FlushAllOption;
+import glide.api.models.commands.FlushOption;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
 import java.util.Map;
@@ -151,7 +151,7 @@ public interface ServerManagementCommands {
 
     /**
      * Deletes all the keys of all the existing databases. This command never fails.<br>
-     * To explicitly specify the flushing mode, use {@link #flushall(FlushAllOption)}.
+     * To explicitly specify the flushing mode, use {@link #flushall(FlushOption)}.
      *
      * @see <a href="https://redis.io/commands/flushall/">redis.io</a> for details.
      * @return <code>OK</code> to confirm that the databases were successfully flushed.
@@ -174,5 +174,5 @@ public interface ServerManagementCommands {
      * assert response.equals("OK");
      * }</pre>
      */
-    CompletableFuture<String> flushall(FlushAllOption async);
+    CompletableFuture<String> flushall(FlushOption async);
 }

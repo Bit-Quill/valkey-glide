@@ -2,7 +2,7 @@
 package glide.api;
 
 import static glide.api.BaseClient.OK;
-import static glide.api.models.commands.FlushAllOption.SYNC;
+import static glide.api.models.commands.FlushOption.SYNC;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_NODES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_PRIMARIES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleSingleNodeRoute.RANDOM;
