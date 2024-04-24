@@ -573,7 +573,7 @@ public class CommandTests {
         }
     }
 
-    //@Test
+    @Test
     @SneakyThrows
     public void flushall() {
         assertEquals(OK, clusterClient.flushall(FlushAllOption.SYNC).get());
