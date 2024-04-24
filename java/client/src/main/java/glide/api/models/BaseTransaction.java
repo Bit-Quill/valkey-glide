@@ -1879,8 +1879,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * </code>.<br>
      * To get the elements with their scores, see {@link #zunionWithScores}.<br>
      *
-     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
-     *     </code>.
+     * @apiNote When in cluster mode, all keys listed in <code>keysOrWeightedKeys</code> must map to
+     *     the same <code>hash slot</code>.
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
      * @param keysOrWeightedKeys The keys of the sorted sets with possible formats:
      *     <ul>
@@ -1903,11 +1903,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns the union of members from sorted sets specified by the given <code>keysOrWeightedKeys
      * </code>.<br>
      * To perform a <code>zunion</code> operation while specifying aggregation settings, use {@link
-     * #zunion(KeysOrWeightedKeys, Aggregate)} To get the elements with their scores, see {@link
-     * #zunionWithScores}.<br>
+     * #zunion(KeysOrWeightedKeys, Aggregate)}.<br>
+     * To get the elements with their scores, see {@link #zunionWithScores}.
      *
-     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
-     *     </code>.
+     * @apiNote When in cluster mode, all keys listed in <code>keysOrWeightedKeys</code> must map to
+     *     the same <code>hash slot</code>.
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
      * @param keysOrWeightedKeys The keys of the sorted sets with possible formats:
      *     <ul>
@@ -1927,8 +1927,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns the union of members and their scores from sorted sets specified by the given <code>
      * keysOrWeightedKeys</code>.
      *
-     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
-     *     </code>.
+     * @apiNote When in cluster mode, all keys listed in <code>keysOrWeightedKeys</code> must map to
+     *     the same <code>hash slot</code>.
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
      * @param keysOrWeightedKeys The keys of the sorted sets with possible formats:
      *     <ul>
@@ -1956,10 +1956,10 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns the union of members and their scores from sorted sets specified by the given <code>
      * keysOrWeightedKeys</code>.<br>
      * To perform a <code>zunion</code> operation while specifying aggregation settings, use {@link
-     * #zunionWithScores(KeysOrWeightedKeys, Aggregate)}
+     * #zunionWithScores(KeysOrWeightedKeys, Aggregate)}.
      *
-     * @apiNote When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
-     *     </code>.
+     * @apiNote When in cluster mode, all keys listed in <code>keysOrWeightedKeys</code> must map to
+     *     the same <code>hash slot</code>.
      * @see <a href="https://redis.io/commands/zunion/">redis.io</a> for more details.
      * @param keysOrWeightedKeys The keys of the sorted sets with possible formats:
      *     <ul>

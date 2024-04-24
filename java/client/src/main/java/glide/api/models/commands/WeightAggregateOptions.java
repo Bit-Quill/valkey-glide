@@ -3,11 +3,18 @@ package glide.api.models.commands;
 
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 
+import glide.api.commands.SortedSetBaseCommands;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Arguments for {@link SortedSetBaseCommands#zunion}, and {@link
+ * SortedSetBaseCommands#zunionWithScores}
+ *
+ * @see <a href="https://redis.io/commands/zunion/">redis.io</a>
+ */
 public class WeightAggregateOptions {
     public static final String WEIGHTS_REDIS_API = "WEIGHTS";
     public static final String AGGREGATE_REDIS_API = "AGGREGATE";
@@ -28,7 +35,7 @@ public class WeightAggregateOptions {
         private final String redisApi;
 
         public String[] toArgs() {
-            return new String[] {AGGREGATE_REDIS_API, this.redisApi};
+            return new String[] {AGGREGATE_REDIS_API, toString()};
         }
     }
 
