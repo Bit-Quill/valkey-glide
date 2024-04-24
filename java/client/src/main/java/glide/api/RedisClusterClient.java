@@ -312,13 +312,14 @@ public class RedisClusterClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<String> flushall(@NonNull Route route) {
+    public CompletableFuture<String> flushall(@NonNull SingleNodeRoute route) {
         return commandManager.submitNewCommand(
                 FlushAll, new String[0], route, this::handleStringResponse);
     }
 
     @Override
-    public CompletableFuture<String> flushall(@NonNull FlushOption mode, @NonNull Route route) {
+    public CompletableFuture<String> flushall(
+            @NonNull FlushOption mode, @NonNull SingleNodeRoute route) {
         return commandManager.submitNewCommand(
                 FlushAll, new String[] {mode.toString()}, route, this::handleStringResponse);
     }

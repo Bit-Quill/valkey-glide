@@ -891,11 +891,11 @@ public class RedisClusterClientTest {
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(
-                        eq(FlushAll), eq(new String[] {SYNC.toString()}), eq(ALL_NODES), any()))
+                        eq(FlushAll), eq(new String[] {SYNC.toString()}), eq(RANDOM), any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<String> response = service.flushall(SYNC, ALL_NODES);
+        CompletableFuture<String> response = service.flushall(SYNC, RANDOM);
         String payload = response.get();
 
         // verify

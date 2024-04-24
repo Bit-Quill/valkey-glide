@@ -6,6 +6,7 @@ import glide.api.models.commands.FlushOption;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
+import glide.api.models.configuration.RequestRoutingConfiguration.SingleNodeRoute;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -353,7 +354,7 @@ public interface ServerManagementClusterCommands {
 
     /**
      * Deletes all the keys of all the existing databases. This command never fails. To explicitly
-     * specify the flushing mode, use {@link #flushall(FlushOption, Route)}.
+     * specify the flushing mode, use {@link #flushall(FlushOption, SingleNodeRoute)}.
      *
      * @see <a href="https://redis.io/commands/flushall/">redis.io</a> for details.
      * @param route Specifies the routing configuration for the command. The client will route the
@@ -366,7 +367,7 @@ public interface ServerManagementClusterCommands {
      * assert response.equals("OK");
      * }</pre>
      */
-    CompletableFuture<String> flushall(Route route);
+    CompletableFuture<String> flushall(SingleNodeRoute route);
 
     /**
      * Deletes all the keys of all the existing databases. This command never fails.
@@ -382,5 +383,5 @@ public interface ServerManagementClusterCommands {
      * assert response.equals("OK");
      * }</pre>
      */
-    CompletableFuture<String> flushall(FlushOption mode, Route route);
+    CompletableFuture<String> flushall(FlushOption mode, SingleNodeRoute route);
 }

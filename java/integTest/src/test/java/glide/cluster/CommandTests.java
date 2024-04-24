@@ -583,9 +583,10 @@ public class CommandTests {
                 (Object[]) clusterClient.customCommand(new String[] {"keys", "*"}).get().getSingleValue();
         assertEquals(0, keysAfter.length);
 
+        var route = new SlotKeyRoute("key", PRIMARY);
         assertEquals(OK, clusterClient.flushall().get());
-        assertEquals(OK, clusterClient.flushall(ALL_PRIMARIES).get());
+        assertEquals(OK, clusterClient.flushall(route).get());
         assertEquals(OK, clusterClient.flushall(FlushOption.ASYNC).get());
-        assertEquals(OK, clusterClient.flushall(FlushOption.ASYNC, ALL_PRIMARIES).get());
+        assertEquals(OK, clusterClient.flushall(FlushOption.ASYNC, route).get());
     }
 }
