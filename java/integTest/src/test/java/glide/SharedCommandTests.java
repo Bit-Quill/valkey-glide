@@ -2769,4 +2769,20 @@ public class SharedCommandTests {
         assertEquals(OK, client.set(key, "").get());
         assertTrue(client.objectRefcount(key).get() >= 0L);
     }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void touch(BaseClient client) {
+        String key1 = "{key}-1" + UUID.randomUUID();
+        String key2 = "{key}-2" + UUID.randomUUID();
+        String key3 = "{key}-3" + UUID.randomUUID();
+        String value = "{value}" + UUID.randomUUID();
+
+        assertEquals(OK, client.set(key1, value).get());
+        assertEquals(OK, client.set(key2, value).get());
+
+        assertEquals(2, client.touch(new String[] {key1, key2}).get());
+        assertEquals(0, client.touch(new String[] {key3}).get());
+    }
 }

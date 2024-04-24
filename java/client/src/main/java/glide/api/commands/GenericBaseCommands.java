@@ -407,4 +407,19 @@ public interface GenericBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> objectRefcount(String key);
+
+    /**
+     * Updates the last access time of specified <code>keys</code> and returns the count of keys that
+     * were updated.
+     *
+     * @see <a href="https://redis.io/commands/touch/">redis.io</a> for details.
+     * @param keys The keys to update last access time.
+     * @return The number of keys that were updated. // TODO add example
+     * @example
+     *     <pre>{@code
+     * Long payload = client.touch(new String[] {"myKey1", "myKey2", "nonExistentKey"}).get();
+     * assert payload == 2L; // Last access time of 2 keys has been updated.
+     * }</pre>
+     */
+    CompletableFuture<Long> touch(String[] keys);
 }
