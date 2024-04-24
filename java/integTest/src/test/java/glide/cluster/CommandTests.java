@@ -103,12 +103,12 @@ public class CommandTests {
     @SneakyThrows
     public static void init() {
         clusterClient =
-            RedisClusterClient.CreateClient(
-                    RedisClusterClientConfiguration.builder()
-                        .address(NodeAddress.builder().port(CLUSTER_PORTS[0]).build())
-                        .requestTimeout(5000)
-                        .build())
-                .get();
+                RedisClusterClient.CreateClient(
+                                RedisClusterClientConfiguration.builder()
+                                        .address(NodeAddress.builder().port(CLUSTER_PORTS[0]).build())
+                                        .requestTimeout(5000)
+                                        .build())
+                        .get();
     }
 
     @AfterAll
