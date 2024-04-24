@@ -102,12 +102,13 @@ public class CommandTests {
     @BeforeAll
     @SneakyThrows
     public static void init() {
-        var configBuilder = RedisClusterClientConfiguration.builder().requestTimeout(5000);
-        for (int port : CLUSTER_PORTS) {
-            configBuilder.address(NodeAddress.builder().port(port).build());
-        }
-
-        clusterClient = RedisClusterClient.CreateClient(configBuilder.build()).get();
+        clusterClient =
+            RedisClusterClient.CreateClient(
+                    RedisClusterClientConfiguration.builder()
+                        .address(NodeAddress.builder().port(CLUSTER_PORTS[0]).build())
+                        .requestTimeout(5000)
+                        .build())
+                .get();
     }
 
     @AfterAll
@@ -583,7 +584,7 @@ public class CommandTests {
         assertEquals(0, keysAfter.length);
 
         assertEquals(OK, clusterClient.flushall().get());
-        assertEquals(OK, clusterClient.flushall(ALL_NODES).get());
+        assertEquals(OK, clusterClient.flushall(ALL_PRIMARIES).get());
         assertEquals(OK, clusterClient.flushall(FlushAllOption.ASYNC).get());
         assertEquals(OK, clusterClient.flushall(FlushAllOption.ASYNC, RANDOM).get());
     }
