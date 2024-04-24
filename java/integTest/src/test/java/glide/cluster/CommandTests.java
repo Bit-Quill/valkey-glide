@@ -19,8 +19,10 @@ import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleM
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_PRIMARIES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleSingleNodeRoute.RANDOM;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SlotType.PRIMARY;
+import static glide.api.models.configuration.RequestRoutingConfiguration.SlotType.REPLICA;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -588,5 +590,16 @@ public class CommandTests {
         assertEquals(OK, clusterClient.flushall(route).get());
         assertEquals(OK, clusterClient.flushall(FlushOption.ASYNC).get());
         assertEquals(OK, clusterClient.flushall(FlushOption.ASYNC, route).get());
+
+        var replicaRoute = new SlotKeyRoute("key", REPLICA);
+        // command should fail on a replica, because it is read-only
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> clusterClient.flushall(replicaRoute).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+        assertTrue(
+                executionException
+                        .getMessage()
+                        .toLowerCase()
+                        .contains("can't write against a read only replica"));
     }
 }
