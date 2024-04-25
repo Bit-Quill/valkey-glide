@@ -242,14 +242,20 @@ public interface SortedSetBaseCommands {
 
     /**
      * Blocks the connection until it removes and returns a member with the lowest score from the
-     * sorted sets stored at the specified <code>keys</code>. The sorted sets are checked in the order
-     * they are provided.<br>
+     * first non-empty sorted set, with the given <code>keys</code> being checked in the order they
+     * are provided.<br>
      * <code>BZPOPMIN</code> is the blocking variant of {@link #zpopmin(String)}.<br>
      *
+     * @apiNote
+     *     <ol>
+     *       <li>When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *           </code>.
+     *       <li><code>BZPOPMIN</code> is a client blocking command, see <a
+     *           href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
+     *           Commands</a> for more details and best practices.
+     *     </ol>
+     *
      * @see <a href="https://redis.io/commands/bzpopmin/">redis.io</a> for more details.
-     * @apiNote <code>BZPOPMIN</code> is a client blocking command, see <a
-     *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
-     *     Commands</a> for more details and best practices.
      * @param keys The keys of the sorted sets.
      * @param timeout The number of seconds to wait for a blocking operation to complete. A value of
      *     <code>0</code> will block indefinitely.
@@ -305,14 +311,20 @@ public interface SortedSetBaseCommands {
 
     /**
      * Blocks the connection until it removes and returns a member with the highest score from the
-     * sorted sets stored at the specified <code>keys</code>. The sorted sets are checked in the order
-     * they are provided.<br>
+     * first non-empty sorted set, with the given <code>keys</code> being checked in the order they
+     * are provided.<br>
      * <code>BZPOPMAX</code> is the blocking variant of {@link #zpopmax(String)}.<br>
      *
+     * @apiNote
+     *     <ol>
+     *       <li>When in cluster mode, all <code>keys</code> must map to the same <code>hash slot
+     *           </code>.
+     *       <li><code>BZPOPMAX</code> is a client blocking command, see <a
+     *           href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
+     *           Commands</a> for more details and best practices.
+     *     </ol>
+     *
      * @see <a href="https://redis.io/commands/bzpopmax/">redis.io</a> for more details.
-     * @apiNote <code>BZPOPMAX</code> is a client blocking command, see <a
-     *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
-     *     Commands</a> for more details and best practices.
      * @param keys The keys of the sorted sets.
      * @param timeout The number of seconds to wait for a blocking operation to complete. A value of
      *     <code>0</code> will block indefinitely.
