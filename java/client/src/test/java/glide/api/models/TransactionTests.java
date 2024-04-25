@@ -30,6 +30,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Echo;
 import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
+import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.GetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.HLen;
@@ -111,6 +112,9 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrange;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrank;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
+import glide.api.models.commands.ConditionalChange;
+import glide.api.models.commands.GeoAddOptions;
+import glide.api.models.commands.GeospatialData;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
@@ -531,6 +535,15 @@ public class TransactionTests {
 
         transaction.objectRefcount("key");
         results.add(Pair.of(ObjectRefcount, buildArgs("key")));
+
+        transaction.geoadd("key", Map.of("Place", new GeospatialData(10.0, 20.0)));
+        results.add(Pair.of(GeoAdd, buildArgs("key", "10.0", "20.0", "Place")));
+
+        transaction.geoadd(
+                "key",
+                Map.of("Place", new GeospatialData(10.0, 20.0)),
+                GeoAddOptions.builder().updateMode(ConditionalChange.ONLY_IF_EXISTS).changed(true).build());
+        results.add(Pair.of(GeoAdd, buildArgs("key", "XX", "CH", "10.0", "20.0", "Place")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

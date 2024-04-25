@@ -1,8 +1,10 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.utils;
 
+import glide.api.models.commands.GeospatialData;
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,6 +36,17 @@ public class ArrayTransformUtils {
         return args.entrySet().stream()
                 .flatMap(entry -> Stream.of(entry.getValue().toString(), entry.getKey()))
                 .toArray(String[]::new);
+    }
+
+    public static List<String> mapMemberToGeoDataToList(Map<String, GeospatialData> args) {
+        return args.entrySet().stream()
+                .flatMap(
+                        entry ->
+                                Stream.of(
+                                        Double.toString(entry.getValue().getLongitude()),
+                                        Double.toString(entry.getValue().getLatitude()),
+                                        entry.getKey()))
+                .collect(Collectors.toList());
     }
 
     /**
