@@ -2774,9 +2774,9 @@ public class SharedCommandTests {
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void touch(BaseClient client) {
-        String key1 = "{key}-1" + UUID.randomUUID();
-        String key2 = "{key}-2" + UUID.randomUUID();
-        String key3 = "{key}-3" + UUID.randomUUID();
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String key3 = UUID.randomUUID().toString();
         String value = "{value}" + UUID.randomUUID();
 
         assertEquals(OK, client.set(key1, value).get());
