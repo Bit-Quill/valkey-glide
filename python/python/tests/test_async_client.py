@@ -1712,8 +1712,14 @@ class TestCommands:
         members_scores = {"one": 1, "two": 2, "three": 3}
 
         assert await redis_client.zadd(key1, members_scores=members_scores) == 3
-        assert await redis_client.zmscore(key1, ["one", "two", "three"]) == [1.0, 2.0, 3.0]
-        assert await redis_client.zmscore(key1, ["one", "non_existing_member", "non_existing_member", "three"]) == [1.0, None, None, 3.0]
+        assert await redis_client.zmscore(key1, ["one", "two", "three"]) == [
+            1.0,
+            2.0,
+            3.0,
+        ]
+        assert await redis_client.zmscore(
+            key1, ["one", "non_existing_member", "non_existing_member", "three"]
+        ) == [1.0, None, None, 3.0]
         assert await redis_client.zmscore("non_existing_key", ["one"]) == [None]
 
         assert await redis_client.set(key2, "value") == OK

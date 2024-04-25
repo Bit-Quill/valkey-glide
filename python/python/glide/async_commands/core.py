@@ -2348,7 +2348,10 @@ class CoreCommands(Protocol):
             >>> await client.zmscore("my_sorted_set", ["one", "non_existent_member", "three"])
                 [1.0, None, 3.0]
         """
-        return cast(List[float], await self._execute_command(RequestType.ZMScore, [key] + members))
+        return cast(
+            List[float],
+            await self._execute_command(RequestType.ZMScore, [key] + members),
+        )
 
     async def invoke_script(
         self,
