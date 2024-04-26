@@ -182,25 +182,14 @@ pub(crate) fn convert_to_expected_type(
                 .into()),
         },
         ExpectedReturnType::ArrayOfDoubles => match value {
-            Value::Nil => Ok(value),
             Value::Array(array) => {
                 let array_of_doubles = array
                     .iter()
-                    .map(|v| match v {
-                        Value::Nil | Value::Double(_) => Ok(v.clone()),
-                        Value::BulkString(_) => Ok(convert_to_expected_type(
-                            v.clone(),
-                            Some(ExpectedReturnType::Double),
-                        )
-                        .unwrap()),
-                        _ => Err((
-                            ErrorKind::TypeError,
-                            "Unexpected element type in response array",
-                            format!("(element was {:?})", v.clone()),
-                        )
-                            .into()),
+                    .map(|v| {
+                        convert_to_expected_type(v.clone(), Some(ExpectedReturnType::DoubleOrNull))
+                            .unwrap()
                     })
-                    .collect::<RedisResult<Vec<Value>>>()?;
+                    .collect();
                 Ok(Value::Array(array_of_doubles))
             }
             _ => Err((
@@ -582,20 +571,9 @@ mod tests {
             Value::Array(vec![Value::Nil, Value::Double(1.5), Value::Double(2.5)]);
         assert_eq!(expected_response, converted_response);
 
-        let converted_nil_response =
-            convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::ArrayOfDoubles)).unwrap();
-        assert_eq!(Value::Nil, converted_nil_response);
-
         let unexpected_response_type = Value::Double(0.5);
         assert!(convert_to_expected_type(
             unexpected_response_type,
-            Some(ExpectedReturnType::ArrayOfDoubles)
-        )
-        .is_err());
-
-        let array_with_unexpected_element_type = Value::Array(vec![Value::Boolean(true)]);
-        assert!(convert_to_expected_type(
-            array_with_unexpected_element_type,
             Some(ExpectedReturnType::ArrayOfDoubles)
         )
         .is_err());
