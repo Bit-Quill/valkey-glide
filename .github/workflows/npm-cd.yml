@@ -18,17 +18,18 @@ concurrency:
 
 jobs:
     start-self-hosted-runner:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-        - name: Start self hosted EC2 runner
-          uses: ./.github/workflows/start-self-hosted-runner
-          with:
-              aws-access-key-id: ${{ secrets.AWS_EC2_ACCESS_KEY_ID }}
-              aws-secret-access-key: ${{ secrets.AWS_EC2_SECRET_ACCESS_KEY }}
-              aws-region: ${{ secrets.AWS_REGION }}
-              ec2-instance-id: ${{ secrets.AWS_EC2_INSTANCE_ID }}
+        if: github.repository_owner == 'aws'
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+          - name: Start self hosted EC2 runner
+            uses: ./.github/workflows/start-self-hosted-runner
+            with:
+                aws-access-key-id: ${{ secrets.AWS_EC2_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ secrets.AWS_EC2_SECRET_ACCESS_KEY }}
+                aws-region: ${{ secrets.AWS_REGION }}
+                ec2-instance-id: ${{ secrets.AWS_EC2_INSTANCE_ID }}
 
     publish-binaries:
         needs: start-self-hosted-runner
@@ -152,6 +153,7 @@ jobs:
                   if-no-files-found: error
 
     publish-base-to-npm:
+        if: github.event_name != 'pull_request'
         name: Publish the base NPM package
         needs: publish-binaries
         runs-on: ubuntu-latest
