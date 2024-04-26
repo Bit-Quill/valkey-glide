@@ -32,7 +32,7 @@ permissions:
     contents: read
 
 jobs:
-    test-python-client-on-ubuntu:
+    test-ubuntu-latest:
         runs-on: ubuntu-latest
         timeout-minutes: 25
         strategy:
@@ -128,7 +128,7 @@ jobs:
                   cargo-toml-folder: ./python
               name: lint python-rust
 
-    build-python-client-on-mac:
+    build-macos-latest:
         runs-on: macos-12
         timeout-minutes: 25
         steps:
@@ -151,7 +151,7 @@ jobs:
                   source .env/bin/activate
                   pytest --asyncio-mode=auto -m smoke_test
 
-    build-python-client-on-amazonlinux:
+    build-amazonlinux-latest:
         runs-on: ubuntu-latest
         container: amazonlinux:latest
         timeout-minutes: 15

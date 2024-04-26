@@ -101,7 +101,7 @@ jobs:
                       utils/clusters/**
                       benchmarks/results/**
 
-    build-java-client-on-amazonlinux:
+    build-amazonlinux-latest:
         if: github.repository_owner == 'aws'
         strategy:
             # Run all jobs

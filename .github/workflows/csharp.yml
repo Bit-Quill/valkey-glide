@@ -31,7 +31,7 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    build-and-test-c#-client:
+    run-tests:
         timeout-minutes: 25
         strategy:
             fail-fast: false
