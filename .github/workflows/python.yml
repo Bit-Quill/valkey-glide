@@ -152,7 +152,6 @@ jobs:
                   pytest --asyncio-mode=auto -m smoke_test
 
     build-amazonlinux-latest:
-        if: github.repository_owner == 'aws'
         runs-on: ubuntu-latest
         container: amazonlinux:latest
         timeout-minutes: 15
