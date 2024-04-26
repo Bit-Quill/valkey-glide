@@ -24,6 +24,8 @@ import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.StreamTrimOptions.MinId;
 import glide.api.models.commands.StreamOptions.MinId;
 import glide.api.models.commands.StreamOptions.StreamAddOptions;
+import glide.api.models.commands.Stream.StreamAddOptions;
+import glide.api.models.commands.Stream.StreamTrimOptions.MinId;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -435,12 +437,14 @@ public class TransactionTestUtilities {
                 .xadd(streamKey1, Map.of("field1", "value1"), StreamAddOptions.builder().id("0-1").build())
                 .xadd(streamKey1, Map.of("field2", "value2"), StreamAddOptions.builder().id("0-2").build())
                 .xadd(streamKey1, Map.of("field3", "value3"), StreamAddOptions.builder().id("0-3").build())
+                .xread(Map.of(streamKey1, "0-3"))
                 .xtrim(streamKey1, new MinId(true, "0-2"));
 
         return new Object[] {
             "0-1", // xadd(streamKey1, Map.of("field1", "value1"), ... .id("0-1").build());
             "0-2", // xadd(streamKey1, Map.of("field2", "value2"), ... .id("0-2").build());
             "0-3", // xadd(streamKey1, Map.of("field3", "value3"), ... .id("0-3").build());
+            null, // xread(Map.of(key9, "0-3"));
             1L, // xtrim(streamKey1, new MinId(true, "0-2"))
         };
     }
@@ -464,6 +468,27 @@ public class TransactionTestUtilities {
                 {13.36138933897018433, 38.11555639549629859},
                 {15.08726745843887329, 37.50266842333162032},
             }, // geopos(new String[]{"Palermo", "Catania"})
+            "0-1", // xadd(key9, Map.of("field1", "value1"), id("0-1"));
+            "0-2", // xadd(key9, Map.of("field2", "value2"), id("0-2"));
+            "0-3", // xadd(key9, Map.of("field3", "value3"), id("0-3"));
+            1L, // xtrim(key9, new MinId(true, "0-2"));
+            OK,
+            Map.of("timeout", "1000"),
+            OK,
+            "GLIDE", // echo
+            "Redis ver. " + REDIS_VERSION + '\n', // lolwut(1)
+            0L, // rpushx(listKey3, new String[] { "_" })
+            0L, // lpushx(listKey3, new String[] { "_" })
+            3L, // lpush(listKey3, new String[] { value1, value2, value3})
+            4L, // linsert(listKey3, AFTER, value2, value2)
+            new String[] {listKey3, value3}, // blpop(new String[] { listKey3 }, 0.01)
+            new String[] {listKey3, value1}, // brpop(new String[] { listKey3 }, 0.01);
+            1L, // pfadd(hllKey1, new String[] {"a", "b", "c"})
+            3L, // pfcount(new String[] { hllKey1, hllKey2 });;
+            OK, // pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
+            3L, // pfcount(new String[] { hllKey3 })
+            OK, // flushall()
+            OK, // flushall(ASYNC)
         };
     }
 }

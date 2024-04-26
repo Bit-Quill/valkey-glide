@@ -83,6 +83,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Touch;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.XRead;
 import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiff;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiffStore;
@@ -132,6 +133,9 @@ import glide.api.models.commands.StreamAddOptions;
 import glide.api.models.commands.StreamTrimOptions.TrimLimit;
 import glide.api.models.commands.StreamOptions.StreamAddOptions;
 import glide.api.models.commands.StreamOptions.StreamTrimOptions;
+import glide.api.models.commands.Stream.StreamAddOptions;
+import glide.api.models.commands.Stream.StreamReadOptions;
+import glide.api.models.commands.Stream.StreamTrimOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeospatialData;
@@ -1084,6 +1088,19 @@ public abstract class BaseClient
     public CompletableFuture<Long> xtrim(@NonNull String key, @NonNull StreamTrimOptions options) {
         String[] arguments = ArrayUtils.addFirst(options.toArgs(), key);
         return commandManager.submitNewCommand(XTrim, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Map<String, Map<String, Map<String, String>>>> xread(
+            @NonNull Map<String, String> keysAndIds) {
+        return xread(keysAndIds, StreamReadOptions.builder().build());
+    }
+
+    @Override
+    public CompletableFuture<Map<String, Map<String, Map<String, String>>>> xread(
+            @NonNull Map<String, String> keysAndIds, StreamReadOptions options) {
+        String[] arguments = options.toArgs(keysAndIds);
+        return commandManager.submitNewCommand(XRead, arguments, this::handleMapResponse);
     }
 
     @Override

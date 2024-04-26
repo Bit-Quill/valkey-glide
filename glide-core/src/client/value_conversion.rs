@@ -21,6 +21,7 @@ pub(crate) enum ExpectedReturnType {
     Lolwut,
     ArrayOfArraysOfDoubleOrNull,
     ArrayOfKeyValuePairs,
+    XreadReturnType,
 }
 
 pub(crate) fn convert_to_expected_type(
@@ -269,6 +270,17 @@ pub(crate) fn convert_to_expected_type(
                 )
                     .into()),
             }
+        },
+        ExpectedReturnType::XreadReturnType => match value {
+           Value::Nil => Ok(value),
+           Value::Map(_) | Value::Array(_)=> convert_to_xread_map(value),
+           //Value::Array(array) => convert_xread(convert_array_to_map(array, None, None)?),
+           _ => Err((
+               ErrorKind::TypeError,
+               "Response couldn't be converted to map",
+               format!("(response was {:?})", value),
+           )
+               .into()),
         }
         ExpectedReturnType::ArrayOfKeyValuePairs => match value {
             Value::Nil => Ok(value),
@@ -392,7 +404,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
 
     // TODO use enum to avoid mistakes
     match command.as_slice() {
-        b"HGETALL" | b"XREAD" | b"CONFIG GET" | b"FT.CONFIG GET" | b"HELLO" => {
+        b"HGETALL" | b"CONFIG GET" | b"FT.CONFIG GET" | b"HELLO" => {
             Some(ExpectedReturnType::Map)
         }
         b"INCRBYFLOAT" | b"HINCRBYFLOAT" => Some(ExpectedReturnType::Double),
@@ -428,9 +440,47 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
             }
         }
         b"LOLWUT" => Some(ExpectedReturnType::Lolwut),
+        b"XREAD" => Some(ExpectedReturnType::XreadReturnType),
         _ => None,
     }
 }
+
+fn convert_to_xread_map(value: Value) -> RedisResult<Value> {
+    match value {
+        Value::Array(array) => {
+            if array.len() % 2 == 0 && array.len() > 1 &&
+                matches!(array[0], Value::BulkString(_) | Value::SimpleString(_)) &&
+                matches!(array[1], Value::BulkString(_) | Value::SimpleString(_)) {
+                dbg!(array.clone()[1].clone());
+                return convert_array_to_map(
+                    array,
+                    Some(ExpectedReturnType::BulkString),
+                    Some(ExpectedReturnType::BulkString)
+                );
+            }
+            let res : Vec<Value> = array.iter().map(|inner_value|
+                convert_to_xread_map(inner_value.clone()).unwrap()).collect();
+
+            if res.clone().len() > 1 && matches!(res.clone()[1], Value::Map(_)) {
+                return Ok(Value::Array(res.clone()));
+            }
+
+            match convert_array_to_map(res.clone(), None, None) {
+                Ok(map) => Ok(map),
+                Err(_) => Ok(Value::Array(res))
+            }
+        }
+        Value::Map(map) => {
+            let res : Vec<(Value, Value)> = map.iter().map(|inner_value|
+                (inner_value.clone().0,
+                convert_to_xread_map(inner_value.clone().1).unwrap())).collect();
+
+            return Ok(Value::Map(res.clone()));
+        },
+        _ => Ok(value)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

@@ -14,6 +14,7 @@ import glide.TestConfiguration;
 import glide.TransactionTestUtilities.TransactionBuilder;
 import glide.api.RedisClusterClient;
 import glide.api.models.ClusterTransaction;
+import glide.api.models.commands.Stream.StreamAddOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.SingleNodeRoute;
@@ -22,6 +23,10 @@ import glide.api.models.configuration.RequestRoutingConfiguration.SlotType;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.UUID;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -81,6 +86,44 @@ public class ClusterTransactionTests {
 
         assertTrue(((String) result[0]).contains("# Stats"));
         assertTrue(((String) result[1]).contains("# Stats"));
+    }
+
+    @SneakyThrows
+    @Test
+    public void test_xread_transactions() {
+        String key9 = "{key}" + UUID.randomUUID();
+
+        ClusterTransaction transaction =
+            new ClusterTransaction()
+                .xadd(
+                    key9,
+                    Map.of("field1", "value1"),
+                    StreamAddOptions.builder().id("0-1").build())
+                .xadd(
+                    key9,
+                    Map.of("field2", "value2"),
+                    StreamAddOptions.builder().id("0-2").build())
+                .xadd(
+                    key9,
+                    Map.of("field3", "value3"),
+                    StreamAddOptions.builder().id("0-3").build())
+                .xread(Map.of(key9, "0-1"));
+
+        Object[] results = clusterClient.exec(transaction, RANDOM).get();
+
+        // verify xadd results
+        assertEquals("0-1", results[0]);
+        assertEquals("0-2", results[1]);
+        assertEquals("0-3", results[2]);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Map<String, Map<String, String>>> xreadResult = (Map<String, Map<String, Map<String, String>>>) results[3];
+        assertEquals(Set.of("0-2", "0-3"), xreadResult.get(key9).keySet());
+        assertEquals(2, xreadResult.get(key9).size());
+        assertEquals(1, xreadResult.get(key9).get("0-2").size());
+        assertEquals("value2", xreadResult.get(key9).get("0-2").get("field2"));
+        assertEquals(1, xreadResult.get(key9).get("0-3").size());
+        assertEquals("value3", xreadResult.get(key9).get("0-3").get("field3"));
     }
 
     @SneakyThrows

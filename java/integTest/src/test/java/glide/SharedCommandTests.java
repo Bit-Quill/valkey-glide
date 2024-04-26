@@ -48,6 +48,10 @@ import glide.api.models.commands.StreamTrimOptions.MinId;
 import glide.api.models.commands.StreamOptions.MaxLen;
 import glide.api.models.commands.StreamOptions.MinId;
 import glide.api.models.commands.StreamOptions.StreamAddOptions;
+import glide.api.models.commands.Stream.StreamAddOptions;
+import glide.api.models.commands.Stream.StreamReadOptions;
+import glide.api.models.commands.Stream.StreamTrimOptions.MaxLen;
+import glide.api.models.commands.Stream.StreamTrimOptions.MinId;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeospatialData;
@@ -2743,6 +2747,59 @@ public class SharedCommandTests {
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.xtrim(key2, new MinId("0-1")).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @MethodSource("getClients")
+    public void xread(BaseClient client) {
+        String key1 = "key1";
+        String key2 = "{" + key1 + "}-1-" + UUID.randomUUID();
+        String field1 = "f1_";
+        String field2 = "f2_";
+        String field3 = "f3_";
+
+        // setup first entries in streams key1 and key2
+        Map<String, String> timestamp_1_1_map = new LinkedHashMap<>();
+        timestamp_1_1_map.put(field1, field1 + "1");
+        timestamp_1_1_map.put(field3, field3 + "1");
+        String timestamp_1_1 = client.xadd(key1, timestamp_1_1_map).get();
+        assertNotNull(timestamp_1_1);
+
+        String timestamp_2_1 = client.xadd(key2, Map.of(field2, field2 + "1")).get();
+        assertNotNull(timestamp_2_1);
+
+        // setup second entries in streams key1 and key2
+        String timestamp_1_2 = client.xadd(key1, Map.of(field1, field1 + "2")).get();
+        assertNotNull(timestamp_1_2);
+
+        String timestamp_2_2 = client.xadd(key2, Map.of(field2, field2 + "2")).get();
+        assertNotNull(timestamp_2_2);
+
+        // setup third entries in streams key1 and key2
+        Map<String, String> timestamp_1_3_map = new LinkedHashMap<>();
+        timestamp_1_3_map.put(field1, field1 + "3");
+        timestamp_1_3_map.put(field3, field3 + "3");
+        String timestamp_1_3 = client.xadd(key1, timestamp_1_3_map).get();
+        assertNotNull(timestamp_1_3);
+
+        String timestamp_2_3 = client.xadd(key2, Map.of(field2, field2 + "3")).get();
+        assertNotNull(timestamp_2_3);
+
+        StreamReadOptions blockOption = StreamReadOptions.builder().build();
+        Map<String, Map<String, Map<String, String>>> result =
+                client.xread(Map.of(key1, timestamp_1_1, key2, timestamp_2_1), blockOption).get();
+
+        assertEquals(1, result.get(key1).get(timestamp_1_2).size());
+        assertEquals(field1 + "2", result.get(key1).get(timestamp_1_2).get(field1));
+        assertEquals(2, result.get(key1).get(timestamp_1_3).size());
+        assertEquals(field1 + "3", result.get(key1).get(timestamp_1_3).get(field1));
+        assertEquals(field3 + "3", result.get(key1).get(timestamp_1_3).get(field3));
+
+        assertEquals(1, result.get(key2).get(timestamp_2_2).size());
+        assertEquals(field2 + "2", result.get(key2).get(timestamp_2_2).get(field2));
+        assertEquals(1, result.get(key2).get(timestamp_2_3).size());
+        assertEquals(field2 + "3", result.get(key2).get(timestamp_2_3).get(field2));
     }
 
     @SneakyThrows

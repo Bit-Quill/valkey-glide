@@ -5,7 +5,6 @@ import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.RangeOptions.createZRangeArgs;
-import static glide.api.models.commands.RangeOptions.createZrangeArgs;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -99,6 +98,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Touch;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.XRead;
 import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiff;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiffStore;
@@ -154,6 +154,10 @@ import glide.api.models.commands.StreamTrimOptions.TrimLimit;
 import glide.api.models.commands.StreamOptions.StreamAddOptions;
 import glide.api.models.commands.StreamOptions.StreamAddOptions.StreamAddOptionsBuilder;
 import glide.api.models.commands.StreamOptions.StreamTrimOptions;
+import glide.api.models.commands.Stream.StreamAddOptions;
+import glide.api.models.commands.Stream.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.Stream.StreamReadOptions;
+import glide.api.models.commands.Stream.StreamTrimOptions;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeospatialData;
@@ -162,6 +166,7 @@ import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder
 import glide.api.models.commands.stream.StreamTrimOptions;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
@@ -2343,6 +2348,37 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T xtrim(@NonNull String key, @NonNull StreamTrimOptions options) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(options.toArgs(), key));
         protobufTransaction.addCommands(buildCommand(XTrim, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Reads entries from the given streams.
+     *
+     * @see <a href="https://redis.io/commands/xread/">redis.io</a> for details.
+     * @param keysAndIds - An array of <code>Pair</code>s of keys and entry ids to read from. A <code>
+     *     pair</code> is composed of a stream's key and the id of the entry after which the stream
+     *     will be read.
+     * @return Command Response - A <code>Map</code> of a stream key to an array of entries in the
+     *     matching <code>key
+     *     </code>. The entries are in an <code>[id, fields[]]</code> format.
+     */
+    public T xread(@NonNull Map<String, String> keysAndIds) {
+        return xread(keysAndIds, StreamReadOptions.builder().build());
+    }
+
+    /**
+     * Reads entries from the given streams.
+     *
+     * @see <a href="https://redis.io/commands/xread/">redis.io</a> for details.
+     * @param keysAndIds - An array of <code>Pair</code>s of keys and entry ids to read from. A <code>
+     *     pair</code> is composed of a stream's key and the id of the entry after which the stream
+     *     will be read.
+     * @param options - options detailing how to read the stream.
+     * @return Command Response - A <code>Map</code> of a stream key to an array of entries in the
+     *     matching <code>key</code>. The entries are in an <code>[id, fields[]]</code> format.
+     */
+    public T xread(@NonNull Map<String, String> keysAndIds, StreamReadOptions options) {
+        protobufTransaction.addCommands(buildCommand(XRead, buildArgs(options.toArgs(keysAndIds))));
         return getThis();
     }
 

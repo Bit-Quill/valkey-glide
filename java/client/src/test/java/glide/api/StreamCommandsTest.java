@@ -1,19 +1,19 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
-import static glide.api.models.commands.StreamOptions.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_EXACT_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MINID_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
+import static glide.api.models.commands.Stream.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
+import static glide.api.models.commands.Stream.StreamTrimOptions.TRIM_EXACT_REDIS_API;
+import static glide.api.models.commands.Stream.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
+import static glide.api.models.commands.Stream.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
+import static glide.api.models.commands.Stream.StreamTrimOptions.TRIM_MINID_REDIS_API;
+import static glide.api.models.commands.Stream.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.Mockito.mock;
 
-import glide.api.models.commands.StreamOptions.MaxLen;
-import glide.api.models.commands.StreamOptions.MinId;
-import glide.api.models.commands.StreamOptions.StreamAddOptions;
-import glide.api.models.commands.StreamOptions.StreamTrimOptions;
+import glide.api.models.commands.Stream.StreamAddOptions;
+import glide.api.models.commands.Stream.StreamTrimOptions;
+import glide.api.models.commands.Stream.StreamTrimOptions.MaxLen;
+import glide.api.models.commands.Stream.StreamTrimOptions.MinId;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.List;
@@ -153,7 +153,7 @@ public class StreamCommandsTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("getStreamTrimOptions")
     public void xtrim_with_options_returns_success(
-            String testName, StreamTrimOptions options, String[] expectedArgs) {
+        String testName, StreamTrimOptions options, String[] expectedArgs) {
         assertArrayEquals(expectedArgs, options.toArgs());
     }
 }
