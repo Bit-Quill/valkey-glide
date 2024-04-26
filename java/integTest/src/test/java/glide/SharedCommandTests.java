@@ -47,6 +47,7 @@ import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.exceptions.RequestException;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -2810,13 +2811,9 @@ public class SharedCommandTests {
     public void geoadd(BaseClient client) {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
-        Map<String, GeospatialData> membersToCoordinates =
-                new java.util.HashMap<>(
-                        Map.of(
-                                "Palermo",
-                                new GeospatialData(13.361389, 38.115556),
-                                "Catania",
-                                new GeospatialData(15.087269, 37.502669)));
+        Map<String, GeospatialData> membersToCoordinates = new HashMap<>();
+        membersToCoordinates.put("Palermo", new GeospatialData(13.361389, 38.115556));
+        membersToCoordinates.put("Catania", new GeospatialData(15.087269, 37.502669));
 
         assertEquals(2, client.geoadd(key1, membersToCoordinates).get());
 
@@ -2827,26 +2824,17 @@ public class SharedCommandTests {
                         .geoadd(
                                 key1,
                                 membersToCoordinates,
-                                GeoAddOptions.builder()
-                                        .updateMode(ConditionalChange.ONLY_IF_DOES_NOT_EXIST)
-                                        .build())
+                                new GeoAddOptions(ConditionalChange.ONLY_IF_DOES_NOT_EXIST))
                         .get());
         assertEquals(
                 0,
                 client
-                        .geoadd(
-                                key1,
-                                membersToCoordinates,
-                                GeoAddOptions.builder().updateMode(ConditionalChange.ONLY_IF_EXISTS).build())
+                        .geoadd(key1, membersToCoordinates, new GeoAddOptions(ConditionalChange.ONLY_IF_EXISTS))
                         .get());
 
         membersToCoordinates.put("Catania", new GeospatialData(15.087269, 40));
         membersToCoordinates.put("Tel-Aviv", new GeospatialData(32.0853, 34.7818));
-        assertEquals(
-                2,
-                client
-                        .geoadd(key1, membersToCoordinates, GeoAddOptions.builder().changed(true).build())
-                        .get());
+        assertEquals(2, client.geoadd(key1, membersToCoordinates, new GeoAddOptions(true)).get());
 
         assertEquals(OK, client.set(key2, "bar").get());
         ExecutionException executionException =

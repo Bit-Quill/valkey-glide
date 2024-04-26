@@ -2434,7 +2434,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T geoadd(
             @NonNull String key, @NonNull Map<String, GeospatialData> membersToGeospatialData) {
-        return geoadd(key, membersToGeospatialData, GeoAddOptions.builder().build());
+        return geoadd(key, membersToGeospatialData, new GeoAddOptions(false));
     }
 
     /** Build protobuf {@link Command} object for given command and arguments. */

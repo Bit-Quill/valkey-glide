@@ -3480,8 +3480,7 @@ public class RedisClientTest {
         String key = "testKey";
         Map<String, GeospatialData> membersToGeoSpatialData =
                 Map.of("Place", new GeospatialData(10.0, 20.0));
-        GeoAddOptions options =
-                GeoAddOptions.builder().updateMode(ConditionalChange.ONLY_IF_EXISTS).changed(true).build();
+        GeoAddOptions options = new GeoAddOptions(ConditionalChange.ONLY_IF_EXISTS, true);
         String[] arguments = new String[] {key, "XX", "CH", "10.0", "20.0", "Place"};
         Long value = 1L;
 

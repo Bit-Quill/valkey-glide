@@ -29,7 +29,7 @@ public interface GeospatialIndicesBaseCommands {
      *     <code>true</code> in the options, returns the number of elements updated in the sorted set.
      * @example
      *     <pre>{@code
-     * GeoAddOptions options = GeoAddOptions.builder().updateMode(ONLY_IF_EXISTS).changed(true).build();
+     * GeoAddOptions options = new GeoAddOptions(ConditionalChange.ONLY_IF_EXISTS, true);
      * Long num = client.geoadd("mySortedSet", Map.of("Palermo", new GeospatialData(13.361389, 38.115556)), options).get();
      * assert num == 1L; // Indicates that the position of an existing member in the sorted set "mySortedSet" has been updated.
      * }</pre>

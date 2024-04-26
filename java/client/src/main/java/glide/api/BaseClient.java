@@ -1044,6 +1044,6 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> geoadd(
             @NonNull String key, @NonNull Map<String, GeospatialData> membersToGeospatialData) {
-        return geoadd(key, membersToGeospatialData, GeoAddOptions.builder().build());
+        return geoadd(key, membersToGeospatialData, new GeoAddOptions(false));
     }
 }

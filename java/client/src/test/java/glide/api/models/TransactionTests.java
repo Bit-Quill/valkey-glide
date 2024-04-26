@@ -542,7 +542,7 @@ public class TransactionTests {
         transaction.geoadd(
                 "key",
                 Map.of("Place", new GeospatialData(10.0, 20.0)),
-                GeoAddOptions.builder().updateMode(ConditionalChange.ONLY_IF_EXISTS).changed(true).build());
+                new GeoAddOptions(ConditionalChange.ONLY_IF_EXISTS, true));
         results.add(Pair.of(GeoAdd, buildArgs("key", "XX", "CH", "10.0", "20.0", "Place")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
