@@ -50,8 +50,8 @@ public abstract class StreamTrimOptions {
     }
 
     /**
-     * Converts options for {@link StreamBaseCommands#xtrim(String, StreamTrimOptions)}
-     * into a String[].
+     * Converts options for {@link StreamBaseCommands#xtrim(String, StreamTrimOptions)} into a
+     * String[].
      *
      * @return String[]
      */
