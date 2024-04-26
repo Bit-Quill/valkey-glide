@@ -92,11 +92,18 @@ public interface StreamBaseCommands {
      * Reads entries from the given streams.
      *
      * @see <a href="https://redis.io/commands/xread/">redis.io</a> for details.
-     * @param keysAndIds - A <code>Map</code> of keys and entry ids to read from. The <code>
+     * @param keysAndIds A <code>Map</code> of keys and entry ids to read from. The <code>
      *     Map</code> is composed of a stream's key and the id of the entry after which the stream
      *     will be read.
      * @return A <code>Map</code> of a stream key to an array of entries in the matching <code>key
      *     </code>. The entries are in an <code>[id, fields[]]</code> format.
+     *     <pre>{@code=
+     * Map<String, String> xreadKeys = new LinkedHashMap<>();
+     * xreadKeys.put("streamKey", "readId");
+     * Map<String, Map<String, Map<String, String>>> streamReadResponse =
+     *     client.xread(xreadKeys).get();
+     * streamReadResponse.get("streamKey")
+     * }</pre>
      */
     CompletableFuture<Map<String, Map<String, Map<String, String>>>> xread(
             Map<String, String> keysAndIds);
@@ -105,10 +112,10 @@ public interface StreamBaseCommands {
      * Reads entries from the given streams.
      *
      * @see <a href="https://redis.io/commands/xread/">redis.io</a> for details.
-     * @param keysAndIds - A <code>Map</code> of keys and entry ids to read from. The <code>
+     * @param keysAndIds A <code>Map</code> of keys and entry ids to read from. The <code>
      *     Map</code> is composed of a stream's key and the id of the entry after which the stream
      *     will be read.
-     * @param options - options detailing how to read the stream.
+     * @param options Options detailing how to read the stream.
      * @return A <code>Map</code> of a stream key to an array of entries in the matching <code>key
      *     </code>. The entries are in an <code>[id, fields[]]</code> format.
      */
