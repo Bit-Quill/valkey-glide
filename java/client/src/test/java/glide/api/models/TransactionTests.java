@@ -25,6 +25,8 @@ import static glide.api.models.commands.ZaddOptions.UpdateOptions.SCORE_LESS_THA
 import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_EXACT_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_MINID_REDIS_API;
+import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_EXACT_REDIS_API;
+import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_MINID_REDIS_API;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
@@ -159,6 +161,8 @@ import glide.api.models.commands.StreamOptions.StreamAddOptions;
 import glide.api.models.commands.Stream.StreamAddOptions;
 import glide.api.models.commands.Stream.StreamTrimOptions.MinId;
 import glide.api.models.commands.ZaddOptions;
+import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamTrimOptions.MinId;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;

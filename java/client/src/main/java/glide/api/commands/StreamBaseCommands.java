@@ -14,6 +14,10 @@ import glide.api.models.commands.Stream.StreamAddOptions;
 import glide.api.models.commands.Stream.StreamAddOptions.StreamAddOptionsBuilder;
 import glide.api.models.commands.Stream.StreamReadOptions;
 import glide.api.models.commands.Stream.StreamTrimOptions;
+import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.stream.StreamReadOptions;
+import glide.api.models.commands.stream.StreamTrimOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 

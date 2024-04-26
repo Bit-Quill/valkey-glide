@@ -1,5 +1,5 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
-package glide.api.models.commands.Stream;
+package glide.api.models.commands.stream;
 
 import glide.api.commands.StreamBaseCommands;
 import java.util.ArrayList;
