@@ -21,7 +21,7 @@ public interface GeospatialIndicesBaseCommands {
      *
      * @see <a href="https://redis.io/commands/geoadd/">redis.io</a> for more details.
      * @param key The key of the sorted set.
-     * @param membersToGeoSpatialData A mapping of member names to their corresponding positions. See
+     * @param membersToGeospatialData A mapping of member names to their corresponding positions. See
      *     {@link GeospatialData}. The command will report an error when the user attempts to index
      *     coordinates outside the specified ranges.
      * @param options The GeoAdd options. {@link GeoAddOptions}
@@ -35,19 +35,18 @@ public interface GeospatialIndicesBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> geoadd(
-            String key, Map<String, GeospatialData> membersToGeoSpatialData, GeoAddOptions options);
+            String key, Map<String, GeospatialData> membersToGeospatialData, GeoAddOptions options);
 
     /**
      * Adds geospatial members with their positions to the specified sorted set stored at <code>key
      * </code>.<br>
      * If a member is already a part of the sorted set, its position is updated.<br>
-     * To perform a <code>
-     * geoadd</code> operation while specifying optional parameters, use {@link #geoadd(String, Map,
-     * GeoAddOptions)}.
+     * To perform a <code>geoadd</code> operation while specifying optional parameters, use {@link
+     * #geoadd(String, Map, GeoAddOptions)}.
      *
      * @see <a href="https://redis.io/commands/geoadd/">redis.io</a> for more details.
      * @param key The key of the sorted set.
-     * @param membersToGeoSpatialData A mapping of member names to their corresponding positions. See
+     * @param membersToGeospatialData A mapping of member names to their corresponding positions. See
      *     {@link GeospatialData}. The command will report an error when the user attempts to index
      *     coordinates outside the specified ranges.
      * @return The number of elements added to the sorted set.
@@ -57,5 +56,5 @@ public interface GeospatialIndicesBaseCommands {
      * assert num == 2L; // Indicates that two elements have been added to the sorted set "mySortedSet".
      * }</pre>
      */
-    CompletableFuture<Long> geoadd(String key, Map<String, GeospatialData> membersToGeoSpatialData);
+    CompletableFuture<Long> geoadd(String key, Map<String, GeospatialData> membersToGeospatialData);
 }

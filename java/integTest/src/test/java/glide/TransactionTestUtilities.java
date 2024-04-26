@@ -265,8 +265,7 @@ public class TransactionTestUtilities {
             new String[] {"one", "two"}, // zdiff(new String[] {zSetKey2, key8})
             Map.of("one", 1.0, "two", 2.0), // zdiffWithScores(new String[] {zSetKey2, key8})
             new Object[] {zSetKey2, "two", 2.0}, // bzpopmax(new String[] { zsetKey2 }, .1)
-            2L, // geoadd(geoKey1, Map.of("Palermo", new GeospatialData(13.361389, 38.115556), "Catania",
-            // new GeospatialData(15.087269, 37.502669)))
+            2L, // geoadd(geoKey1, Map.of("Palermo", ..., "Catania", ...))
             "0-1", // xadd(key9, Map.of("field1", "value1"),
             // StreamAddOptions.builder().id("0-1").build());
             "0-2", // xadd(key9, Map.of("field2", "value2"),

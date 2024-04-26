@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.utils;
 
+import glide.api.commands.GeospatialIndicesBaseCommands;
 import glide.api.models.commands.GeospatialData;
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -38,6 +39,13 @@ public class ArrayTransformUtils {
                 .toArray(String[]::new);
     }
 
+    /**
+     * Converts a geospatial members to geospatial data mapping in to a list of arguments in the form
+     * of [Longitude, Latitude, Member ...].
+     *
+     * @param args A mapping of member names to their corresponding positions.
+     * @return A list of strings to be used in {@link GeospatialIndicesBaseCommands#geoadd}.
+     */
     public static List<String> mapMemberToGeoDataToList(Map<String, GeospatialData> args) {
         return args.entrySet().stream()
                 .flatMap(

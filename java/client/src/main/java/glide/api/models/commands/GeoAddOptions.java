@@ -15,7 +15,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class GeoAddOptions {
-    /** Options for handling existing members. See {@link ConditionalChange} */
+    /** Options for handling existing members. See {@link ConditionalChange}. */
     private final ConditionalChange updateMode;
 
     /** If <code>true</code>, returns the count of changed elements instead of new elements added. */

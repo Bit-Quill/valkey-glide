@@ -2389,7 +2389,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/geoadd/">redis.io</a> for more details.
      * @param key The key of the sorted set.
-     * @param membersToGeoSpatialData A mapping of member names to their corresponding positions. See
+     * @param membersToGeospatialData A mapping of member names to their corresponding positions. See
      *     {@link GeospatialData}. The command will report an error when the user attempts to index
      *     coordinates outside the specified ranges.
      * @param options The GeoAdd options. {@link GeoAddOptions}
@@ -2399,7 +2399,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T geoadd(
             @NonNull String key,
-            @NonNull Map<String, GeospatialData> membersToGeoSpatialData,
+            @NonNull Map<String, GeospatialData> membersToGeospatialData,
             @NonNull GeoAddOptions options) {
         List<String> arguments = new ArrayList<>();
         arguments.add(key);
@@ -2412,7 +2412,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             arguments.add("CH");
         }
 
-        arguments.addAll(mapMemberToGeoDataToList(membersToGeoSpatialData));
+        arguments.addAll(mapMemberToGeoDataToList(membersToGeospatialData));
         ArgsArray commandArgs = buildArgs(arguments.toArray(new String[0]));
         protobufTransaction.addCommands(buildCommand(GeoAdd, commandArgs));
         return getThis();
@@ -2427,14 +2427,14 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/geoadd/">redis.io</a> for more details.
      * @param key The key of the sorted set.
-     * @param membersToGeoSpatialData A mapping of member names to their corresponding positions. See
+     * @param membersToGeospatialData A mapping of member names to their corresponding positions. See
      *     {@link GeospatialData}. The command will report an error when the user attempts to index
      *     coordinates outside the specified ranges.
      * @return Command Response - The number of elements added to the sorted set.
      */
     public T geoadd(
-            @NonNull String key, @NonNull Map<String, GeospatialData> membersToGeoSpatialData) {
-        return geoadd(key, membersToGeoSpatialData, GeoAddOptions.builder().build());
+            @NonNull String key, @NonNull Map<String, GeospatialData> membersToGeospatialData) {
+        return geoadd(key, membersToGeospatialData, GeoAddOptions.builder().build());
     }
 
     /** Build protobuf {@link Command} object for given command and arguments. */

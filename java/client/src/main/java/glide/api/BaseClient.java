@@ -1023,7 +1023,7 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> geoadd(
             @NonNull String key,
-            @NonNull Map<String, GeospatialData> membersToGeoSpatialData,
+            @NonNull Map<String, GeospatialData> membersToGeospatialData,
             @NonNull GeoAddOptions options) {
         List<String> arguments = new ArrayList<>();
         arguments.add(key);
@@ -1036,14 +1036,14 @@ public abstract class BaseClient
             arguments.add("CH");
         }
 
-        arguments.addAll(mapMemberToGeoDataToList(membersToGeoSpatialData));
+        arguments.addAll(mapMemberToGeoDataToList(membersToGeospatialData));
         return commandManager.submitNewCommand(
                 GeoAdd, arguments.toArray(new String[0]), this::handleLongResponse);
     }
 
     @Override
     public CompletableFuture<Long> geoadd(
-            @NonNull String key, @NonNull Map<String, GeospatialData> membersToGeoSpatialData) {
-        return geoadd(key, membersToGeoSpatialData, GeoAddOptions.builder().build());
+            @NonNull String key, @NonNull Map<String, GeospatialData> membersToGeospatialData) {
+        return geoadd(key, membersToGeospatialData, GeoAddOptions.builder().build());
     }
 }
