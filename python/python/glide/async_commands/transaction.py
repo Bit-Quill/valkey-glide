@@ -5,7 +5,6 @@ from typing import List, Mapping, Optional, Tuple, TypeVar, Union
 
 from glide.async_commands.core import (
     ConditionalChange,
-    CoreCommands,
     ExpireOptions,
     ExpirySet,
     GeospatialData,
@@ -2001,7 +2000,7 @@ class BaseTransaction:
                 empty list.
         """
         return self.append_command(
-            RequestType.ZDiff, [str(len(keys))] + keys + [CoreCommands.WITH_SCORES]
+            RequestType.ZDiff, [str(len(keys))] + keys + ["WITHSCORES"]
         )
 
     def dbsize(self: TTransaction) -> TTransaction:

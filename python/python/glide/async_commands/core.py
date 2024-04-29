@@ -2758,6 +2758,7 @@ class CoreCommands(Protocol):
         """
         Returns the difference between the first sorted set and all the successive sorted sets.
         To get the elements with their scores, see `zdiff_withscores`.
+        When in Cluster mode, all keys must map to the same hash slot.
 
         See https://redis.io/commands/zdiff/ for more details.
 
@@ -2778,11 +2779,10 @@ class CoreCommands(Protocol):
             await self._execute_command(RequestType.ZDiff, [str(len(keys))] + keys),
         )
 
-    WITH_SCORES: str = "WITHSCORES"
-
     async def zdiff_withscores(self, keys: List[str]) -> Dict[str, float]:
         """
         Returns the difference between the first sorted set and all the successive sorted sets.
+        When in Cluster mode, all keys must map to the same hash slot.
 
         See https://redis.io/commands/zdiff/ for more details.
 
@@ -2802,7 +2802,7 @@ class CoreCommands(Protocol):
         return cast(
             Dict[str, float],
             await self._execute_command(
-                RequestType.ZDiff, [str(len(keys))] + keys + [self.WITH_SCORES]
+                RequestType.ZDiff, [str(len(keys))] + keys + ["WITHSCORES"]
             ),
         )
 
