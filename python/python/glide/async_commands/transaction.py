@@ -1973,7 +1973,7 @@ class BaseTransaction:
         Returns the difference between the first sorted set and all the successive sorted sets.
         To get the elements with their scores, see `zdiff_withscores`.
 
-        See https://redis.io/commands/zdiff/ for more details.
+        See https://valkey.io/commands/zdiff for more details.
 
         Args:
             keys (List[str]): The keys of the sorted sets.
@@ -1989,7 +1989,7 @@ class BaseTransaction:
         """
         Returns the difference between the first sorted set and all the successive sorted sets.
 
-        See https://redis.io/commands/zdiff/ for more details.
+        See https://valkey.io/commands/zdiff for more details.
 
         Args:
             keys (List[str]): The keys of the sorted sets.

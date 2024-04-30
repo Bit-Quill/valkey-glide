@@ -2760,7 +2760,7 @@ class CoreCommands(Protocol):
         To get the elements with their scores, see `zdiff_withscores`.
         When in Cluster mode, all keys must map to the same hash slot.
 
-        See https://redis.io/commands/zdiff/ for more details.
+        See https://valkey.io/commands/zdiff for more details.
 
         Args:
             keys (List[str]): The keys of the sorted sets.
@@ -2784,7 +2784,7 @@ class CoreCommands(Protocol):
         Returns the difference between the first sorted set and all the successive sorted sets.
         When in Cluster mode, all keys must map to the same hash slot.
 
-        See https://redis.io/commands/zdiff/ for more details.
+        See https://valkey.io/commands/zdiff for more details.
 
         Args:
             keys (List[str]): The keys of the sorted sets.
