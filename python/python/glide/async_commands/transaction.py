@@ -1766,7 +1766,7 @@ class BaseTransaction:
             keys (List[str]): The keys of the sorted sets to compare.
 
         Command response:
-            The number of members in the resulting sorted set stored at `destination`.
+            int: The number of members in the resulting sorted set stored at `destination`.
         """
         return self.append_command(
             RequestType.ZDiffStore, [destination, str(len(keys))] + keys

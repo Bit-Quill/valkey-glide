@@ -2340,7 +2340,7 @@ class CoreCommands(Protocol):
             keys (List[str]): The keys of the sorted sets to compare.
 
         Returns:
-            The number of members in the resulting sorted set stored at `destination`.
+            int: The number of members in the resulting sorted set stored at `destination`.
 
         Examples:
             >>> await client.zdiffstore("my_sorted_set", ["key1", "key2"])
