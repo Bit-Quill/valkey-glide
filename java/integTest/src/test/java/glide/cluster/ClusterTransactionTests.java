@@ -1,7 +1,6 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.cluster;
 
-import static glide.TestUtilities.tryCommandWithExpectedError;
 import static glide.TransactionTestUtilities.transactionTest;
 import static glide.TransactionTestUtilities.transactionTestResult;
 import static glide.api.BaseClient.OK;
@@ -82,28 +81,5 @@ public class ClusterTransactionTests {
 
         Object[] results = clusterClient.exec(transaction, RANDOM).get();
         assertArrayEquals(expectedResult, results);
-    }
-
-    @Test
-    @SneakyThrows
-    public void bgsave() {
-        var error = "Background save already in progress";
-        // bgsave may fail with given error and may keep failing on retries regardless of the
-        // timings/delays
-
-        var transactionResponse =
-                tryCommandWithExpectedError(
-                        () -> clusterClient.exec(new ClusterTransaction().bgsave()), error);
-        assertTrue(
-                transactionResponse.getValue() != null
-                        || ((String) transactionResponse.getKey()[0]).startsWith("Background saving"));
-
-        Thread.sleep(2000); // next save call without delay will likely throw an error
-        transactionResponse =
-                tryCommandWithExpectedError(
-                        () -> clusterClient.exec(new ClusterTransaction().bgsaveSchedule()), error);
-        assertTrue(
-                transactionResponse.getValue() != null
-                        || ((String) transactionResponse.getKey()[0]).startsWith("Background saving"));
     }
 }

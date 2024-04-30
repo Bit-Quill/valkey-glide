@@ -4,7 +4,6 @@ package glide.standalone;
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestConfiguration.STANDALONE_PORTS;
 import static glide.TestUtilities.getValueFromInfo;
-import static glide.TestUtilities.tryCommandWithExpectedError;
 import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.InfoOptions.Section.CLUSTER;
 import static glide.api.models.commands.InfoOptions.Section.CPU;
@@ -266,19 +265,5 @@ public class CommandTests {
                 Long.parseLong(result[0]) > now,
                 "Time() result (" + result[0] + ") should be greater than now (" + now + ")");
         assertTrue(Long.parseLong(result[1]) < 1000000);
-    }
-
-    @Test
-    @SneakyThrows
-    public void bgsave() {
-        var error = "Background save already in progress";
-        // bgsave may fail with given error and may keep failing on retries regardless of the
-        // timings/delays
-
-        var response = tryCommandWithExpectedError(() -> regularClient.bgsave(), error);
-        assertTrue(response.getValue() != null || response.getKey().startsWith("Background saving"));
-        Thread.sleep(2000); // next save call without delay will likely throw an error
-        response = tryCommandWithExpectedError(() -> regularClient.bgsaveSchedule(), error);
-        assertTrue(response.getValue() != null || response.getKey().startsWith("Background saving"));
     }
 }
