@@ -363,7 +363,8 @@ public interface ServerManagementClusterCommands {
      *     flushed.
      * @example
      *     <pre>{@code
-     * String response = client.flushall(ALL_NODES).get();
+     * Route route = new SlotKeyRoute("key", PRIMARY);
+     * String response = client.flushall(route).get();
      * assert response.equals("OK");
      * }</pre>
      */
@@ -379,7 +380,8 @@ public interface ServerManagementClusterCommands {
      *     flushed.
      * @example
      *     <pre>{@code
-     * String response = client.flushall(SYNC, ALL_NODES).get();
+     * Route route = new SlotKeyRoute("key", PRIMARY);
+     * String response = client.flushall(SYNC, route).get();
      * assert response.equals("OK");
      * }</pre>
      */
