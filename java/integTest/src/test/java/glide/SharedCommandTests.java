@@ -2410,17 +2410,26 @@ public class SharedCommandTests {
         ExecutionException executionException =
                 assertThrows(
                         ExecutionException.class, () -> client.bzmpop(.1, new String[] {key3}, MAX).get());
-        assertTrue(executionException.getCause() instanceof RequestException);
+        assertInstanceOf(RequestException.class, executionException.getCause());
         executionException =
                 assertThrows(
                         ExecutionException.class, () -> client.bzmpop(.1, new String[] {key3}, MAX, 1).get());
-        assertTrue(executionException.getCause() instanceof RequestException);
+        assertInstanceOf(RequestException.class, executionException.getCause());
 
         // incorrect argument
         executionException =
                 assertThrows(
                         ExecutionException.class, () -> client.bzmpop(.1, new String[] {key1}, MAX, 0).get());
-        assertTrue(executionException.getCause() instanceof RequestException);
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        // check that order of entries in the response is preserved
+        var entries = new LinkedHashMap<String, Double>();
+        for (int i = 0; i < 10; i++) {
+            // a => 1., b => 2. etc
+            entries.put("" + ('a' + i), (double) i);
+        }
+        assertEquals(10, client.zadd(key2, entries).get());
+        assertEquals(entries, client.bzmpop(.1, new String[] {key2}, MIN, 10).get()[1]);
 
         // same-slot requirement
         if (client instanceof RedisClusterClient) {
@@ -2428,7 +2437,7 @@ public class SharedCommandTests {
                     assertThrows(
                             ExecutionException.class,
                             () -> client.bzmpop(.1, new String[] {"abc", "zxy", "lkn"}, MAX).get());
-            assertTrue(executionException.getCause() instanceof RequestException);
+            assertInstanceOf(RequestException.class, executionException.getCause());
             assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
         }
     }
@@ -2437,6 +2446,7 @@ public class SharedCommandTests {
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void bzmpop_timeout_check(BaseClient client) {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         String key = UUID.randomUUID().toString();
         // create new client with default request timeout (250 millis)
         try (var testClient =
