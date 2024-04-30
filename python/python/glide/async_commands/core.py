@@ -2344,7 +2344,7 @@ class CoreCommands(Protocol):
 
         Examples:
             >>> await client.zdiffstore("my_sorted_set", ["key1", "key2"])
-                1  # One member exists in "key1" but not "key2", and this member was stored in my_sorted_set.
+                1  # One member exists in "key1" but not "key2", and this member was stored in "my_sorted_set".
         """
         return cast(
             int,
