@@ -16,9 +16,12 @@ import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_A
 import static glide.api.models.commands.WeightAggregateOptions.WEIGHTS_REDIS_API;
 import static glide.api.models.commands.ZaddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT;
 import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_API;
+import static glide.api.models.commands.ZmpopOptions.ScoreModifier.MAX;
+import static glide.api.models.commands.ZmpopOptions.ScoreModifier.MIN;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_EXACT_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_MINID_REDIS_API;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.Blpop;
 import static redis_request.RedisRequestOuterClass.RequestType.Brpop;
@@ -449,6 +452,23 @@ public class TransactionTests {
 
         transaction.zdiffstore("destKey", new String[] {"key1", "key2"});
         results.add(Pair.of(ZDiffStore, buildArgs("destKey", "2", "key1", "key2")));
+
+        transaction
+                .bzmpop(.1, new String[] {"key1", "key2"}, MAX)
+                .bzmpop(.1, new String[] {"key"}, MIN, 42);
+        results.add(Pair.of(BZMPop, buildArgs("0.1", "2", "key1", "key2", "MAX")));
+        results.add(Pair.of(BZMPop, buildArgs("0.1", "1", "key", "MIN", "COUNT", "42")));
+
+        transaction.xadd("key", Map.of("field1", "foo1"));
+        results.add(
+                Pair.of(
+                        XAdd,
+                        ArgsArray.newBuilder()
+                                .addArgs("key")
+                                .addArgs("*")
+                                .addArgs("field1")
+                                .addArgs("foo1")
+                                .build()));
 
         transaction.zcount("key", new ScoreBoundary(5, false), InfScoreBound.POSITIVE_INFINITY);
         results.add(Pair.of(Zcount, buildArgs("key", "(5.0", "+inf")));
