@@ -1751,7 +1751,9 @@ class BaseTransaction:
         """
         return self.append_command(RequestType.ZScore, [key, member])
 
-    def zdiffstore(self: TTransaction, destination: str, keys: List[str]) -> TTransaction:
+    def zdiffstore(
+        self: TTransaction, destination: str, keys: List[str]
+    ) -> TTransaction:
         """
         Calculates the difference between the first sorted set and all the successive sorted sets at keys and stores the
         difference as a sorted set to `destination`, overwriting it if it already exists. Non-existent keys are treated
