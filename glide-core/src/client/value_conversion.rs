@@ -179,12 +179,12 @@ pub(crate) fn convert_to_expected_type(
             _ => Err((
                 ErrorKind::TypeError,
                 "Response couldn't be converted to an array of doubles",
-            format!("(response was {:?})", value),
+                format!("(response was {:?})", value),
             )
-            .into()),
+                .into()),
         },
-        // command returns an array of 2 elements, where second is a nested array of 1+ elements which are arrays of 2 elements
-        // we convert the nested array to a map as we do in `MapOfStringToDouble`
+        // command returns nil or an array of 2 elements, where second a map represented by 2D array
+        // we convert that second element to a map as we do in `MapOfStringToDouble`
         /*
         127.0.0.1:6379> zmpop 1 z1 min count 10
         1) "z1"
@@ -194,12 +194,8 @@ pub(crate) fn convert_to_expected_type(
               2) (double) 3
          */
         ExpectedReturnType::ZMPopReturnType => match value {
-            // command returns nil or
             Value::Nil => Ok(value),
-            // array of 2 elements, where second is a nested array
-            Value::Array(array)
-                if array.len() == 2 && matches!(array.get(1).unwrap(), Value::Array(_)) =>
-            {
+            Value::Array(array) if array.len() == 2 && matches!(array[1], Value::Array(_)) => {
                 let Value::Array(nested_array) = array[1].clone() else {
                     unreachable!("Pattern match above ensures that it is Array")
                 };
