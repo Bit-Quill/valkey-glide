@@ -199,8 +199,8 @@ public class TransactionTestUtilities {
 
         transaction
                 .zadd(zSetKey1, Map.of("a", 1., "b", 2., "c", 3., "d", 4.))
-                .bzmpop(.1, new String[] {zSetKey1}, MAX)
-                .bzmpop(.1, new String[] {zSetKey1}, MIN, 2);
+                .bzmpop(new String[] {zSetKey1}, MAX, .1)
+                .bzmpop(new String[] {zSetKey1}, MIN, .1, 2);
 
         return new Object[] {
             4L, // zadd(zSetKey1, Map.of("a", 1., "b", 2., "c", 3., "d", 4.))

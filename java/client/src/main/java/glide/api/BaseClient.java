@@ -1078,7 +1078,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Object[]> bzmpop(
-            double timeout, @NonNull String[] keys, @NonNull ScoreModifier modifier) {
+            @NonNull String[] keys, @NonNull ScoreModifier modifier, double timeout) {
         String[] arguments =
                 concatenateArrays(
                         new String[] {Double.toString(timeout), Integer.toString(keys.length)},
@@ -1089,7 +1089,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Object[]> bzmpop(
-            double timeout, @NonNull String[] keys, @NonNull ScoreModifier modifier, long count) {
+            @NonNull String[] keys, @NonNull ScoreModifier modifier, double timeout, long count) {
         String[] arguments =
                 concatenateArrays(
                         new String[] {Double.toString(timeout), Integer.toString(keys.length)},

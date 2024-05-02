@@ -5,8 +5,8 @@ import glide.api.commands.SortedSetBaseCommands;
 
 // TODO add @link to ZMPOP when implemented
 /**
- * Mandatory option for {@link SortedSetBaseCommands#bzmpop(double, String[], ScoreModifier)} and
- * for {@link SortedSetBaseCommands#bzmpop(double, String[], ScoreModifier, long)}. Defines which
+ * Mandatory option for {@link SortedSetBaseCommands#bzmpop(String[], ScoreModifier, double)} and
+ * for {@link SortedSetBaseCommands#bzmpop(String[], ScoreModifier, double, long)}. Defines which
  * elements to pop from the sorted set.
  */
 public enum ScoreModifier {

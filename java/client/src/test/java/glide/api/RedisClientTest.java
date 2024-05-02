@@ -2122,7 +2122,7 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Object[]> response = service.bzmpop(timeout, keys, modifier);
+        CompletableFuture<Object[]> response = service.bzmpop(keys, modifier, timeout);
         Object[] payload = response.get();
 
         // verify
@@ -2149,7 +2149,7 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Object[]> response = service.bzmpop(timeout, keys, modifier, count);
+        CompletableFuture<Object[]> response = service.bzmpop(keys, modifier, timeout, count);
         Object[] payload = response.get();
 
         // verify

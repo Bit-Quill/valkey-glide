@@ -861,7 +861,7 @@ public interface SortedSetBaseCommands {
      * Blocks the connection until it pops and returns a member-score pair from the sorted sets stored
      * at the specified <code>keys</code>. The sorted sets are checked in the order they are provided.
      * <br>
-     * To pop more than one element use {@link #bzmpop(double, String[], ScoreModifier, long)}.<br>
+     * To pop more than one element use {@link #bzmpop(String[], ScoreModifier, double, long)}.<br>
      * <code>BZMPOP</code> is the blocking variant of <code>ZMPOP</code>.
      *
      * @apiNote
@@ -874,11 +874,11 @@ public interface SortedSetBaseCommands {
      *     </ol>
      *
      * @see <a href="https://redis.io/commands/bzmpop/">redis.io</a> for more details.
-     * @param timeout The number of seconds to wait for a blocking operation to complete. A value of
-     *     <code>0</code> will block indefinitely.
      * @param keys The keys of the sorted sets.
      * @param modifier The element pop criteria - either {@link ScoreModifier#MIN} or {@link
      *     ScoreModifier#MAX} to pop members with the lowest/highest scores accordingly.
+     * @param timeout The number of seconds to wait for a blocking operation to complete. A value of
+     *     <code>0</code> will block indefinitely.
      * @return A two-element <code>array</code> containing the key name of the set from which an
      *     element was popped, and a member-score <code>Map</code>.<br>
      *     If no member could be popped and the timeout expired, returns </code>null</code>.
@@ -890,7 +890,7 @@ public interface SortedSetBaseCommands {
      * System.out.printf("Popped '%s' with score %d from '%s'%n", element, data.get(element), result[0]);
      * }</pre>
      */
-    CompletableFuture<Object[]> bzmpop(double timeout, String[] keys, ScoreModifier modifier);
+    CompletableFuture<Object[]> bzmpop(String[] keys, ScoreModifier modifier, double timeout);
 
     // TODO add @link to ZMPOP when implemented
     /**
@@ -909,11 +909,11 @@ public interface SortedSetBaseCommands {
      *     </ol>
      *
      * @see <a href="https://redis.io/commands/bzmpop/">redis.io</a> for more details.
-     * @param timeout The number of seconds to wait for a blocking operation to complete. A value of
-     *     <code>0</code> will block indefinitely.
      * @param keys The keys of the sorted sets.
      * @param modifier The element pop criteria - either {@link ScoreModifier#MIN} or {@link
      *     ScoreModifier#MAX} to pop members with the lowest/highest scores accordingly.
+     * @param timeout The number of seconds to wait for a blocking operation to complete. A value of
+     *     <code>0</code> will block indefinitely.
      * @param count The amount elements to pop.
      * @return A two-element <code>array</code> containing the key name of the set from which elements
      *     were popped, and a member-score <code>Map</code>.<br>
@@ -928,5 +928,5 @@ public interface SortedSetBaseCommands {
      * }</pre>
      */
     CompletableFuture<Object[]> bzmpop(
-            double timeout, String[] keys, ScoreModifier modifier, long count);
+            String[] keys, ScoreModifier modifier, double timeout, long count);
 }

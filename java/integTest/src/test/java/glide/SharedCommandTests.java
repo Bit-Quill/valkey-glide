@@ -2396,30 +2396,30 @@ public class SharedCommandTests {
 
         assertArrayEquals(
                 new Object[] {key1, Map.of("b1", 2.)},
-                client.bzmpop(0.1, new String[] {key1, key2}, MAX).get());
+                client.bzmpop(new String[] {key1, key2}, MAX, 0.1).get());
         assertArrayEquals(
                 new Object[] {key2, Map.of("b2", .2, "a2", .1)},
-                client.bzmpop(0.1, new String[] {key2, key1}, MAX, 10).get());
+                client.bzmpop(new String[] {key2, key1}, MAX, 0.1, 10).get());
 
         // nothing popped out
-        assertNull(client.bzmpop(0.001, new String[] {key3}, MIN).get());
-        assertNull(client.bzmpop(0.001, new String[] {key3}, MIN, 1).get());
+        assertNull(client.bzmpop(new String[] {key3}, MIN, 0.001).get());
+        assertNull(client.bzmpop(new String[] {key3}, MIN, 0.001, 1).get());
 
         // Key exists, but it is not a sorted set
         assertEquals(OK, client.set(key3, "value").get());
         ExecutionException executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.bzmpop(.1, new String[] {key3}, MAX).get());
+                        ExecutionException.class, () -> client.bzmpop(new String[] {key3}, MAX, .1).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
         executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.bzmpop(.1, new String[] {key3}, MAX, 1).get());
+                        ExecutionException.class, () -> client.bzmpop(new String[] {key3}, MAX, .1, 1).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         // incorrect argument
         executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.bzmpop(.1, new String[] {key1}, MAX, 0).get());
+                        ExecutionException.class, () -> client.bzmpop(new String[] {key1}, MAX, .1, 0).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         // check that order of entries in the response is preserved
@@ -2429,14 +2429,14 @@ public class SharedCommandTests {
             entries.put("" + ('a' + i), (double) i);
         }
         assertEquals(10, client.zadd(key2, entries).get());
-        assertEquals(entries, client.bzmpop(.1, new String[] {key2}, MIN, 10).get()[1]);
+        assertEquals(entries, client.bzmpop(new String[] {key2}, MIN, .1, 10).get()[1]);
 
         // same-slot requirement
         if (client instanceof RedisClusterClient) {
             executionException =
                     assertThrows(
                             ExecutionException.class,
-                            () -> client.bzmpop(.1, new String[] {"abc", "zxy", "lkn"}, MAX).get());
+                            () -> client.bzmpop(new String[] {"abc", "zxy", "lkn"}, MAX, .1).get());
             assertInstanceOf(RequestException.class, executionException.getCause());
             assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
         }
@@ -2455,13 +2455,13 @@ public class SharedCommandTests {
                         : RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get()) {
 
             // ensure that commands doesn't time out even if timeout > request timeout
-            assertNull(testClient.bzmpop(1, new String[] {key}, MAX).get());
+            assertNull(testClient.bzmpop(new String[] {key}, MAX, 1).get());
 
             // with 0 timeout (no timeout) should never time out,
             // but we wrap the test with timeout to avoid test failing or stuck forever
             assertThrows(
                     TimeoutException.class, // <- future timeout, not command timeout
-                    () -> testClient.bzmpop(0, new String[] {key}, MAX).get(3, TimeUnit.SECONDS));
+                    () -> testClient.bzmpop(new String[] {key}, MAX, 0).get(3, TimeUnit.SECONDS));
         }
     }
 

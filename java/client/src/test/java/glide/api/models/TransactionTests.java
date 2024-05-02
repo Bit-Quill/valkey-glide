@@ -454,8 +454,8 @@ public class TransactionTests {
         results.add(Pair.of(ZDiffStore, buildArgs("destKey", "2", "key1", "key2")));
 
         transaction
-                .bzmpop(.1, new String[] {"key1", "key2"}, MAX)
-                .bzmpop(.1, new String[] {"key"}, MIN, 42);
+                .bzmpop(new String[] {"key1", "key2"}, MAX, .1)
+                .bzmpop(new String[] {"key"}, MIN, .1, 42);
         results.add(Pair.of(BZMPop, buildArgs("0.1", "2", "key1", "key2", "MAX")));
         results.add(Pair.of(BZMPop, buildArgs("0.1", "1", "key", "MIN", "COUNT", "42")));
 
