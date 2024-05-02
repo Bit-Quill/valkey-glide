@@ -2331,6 +2331,7 @@ class CoreCommands(Protocol):
         Calculates the difference between the first sorted set and all the successive sorted sets at keys and stores the
         difference as a sorted set to `destination`, overwriting it if it already exists. Non-existent keys are treated
         as empty sets.
+
         When in Cluster mode, all keys must map to the same hash slot.
 
         See https://valkey.io/commands/zdiffstore for more details.
