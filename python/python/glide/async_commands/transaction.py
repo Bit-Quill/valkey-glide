@@ -1980,7 +1980,7 @@ class BaseTransaction:
 
         Command response:
             List[str]: A list of elements representing the difference between the sorted sets.
-                If the first `key` does not exist, it is treated as an empty sorted set, and the command returns an
+                If the first key does not exist, it is treated as an empty sorted set, and the command returns an
                 empty list.
         """
         return self.append_command(RequestType.ZDiff, [str(len(keys))] + keys)

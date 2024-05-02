@@ -2758,6 +2758,7 @@ class CoreCommands(Protocol):
         """
         Returns the difference between the first sorted set and all the successive sorted sets.
         To get the elements with their scores, see `zdiff_withscores`.
+
         When in Cluster mode, all keys must map to the same hash slot.
 
         See https://valkey.io/commands/zdiff for more details.
@@ -2767,7 +2768,7 @@ class CoreCommands(Protocol):
 
         Returns:
             List[str]: A list of elements representing the difference between the sorted sets.
-                If the first `key` does not exist, it is treated as an empty sorted set, and the command returns an
+                If the first key does not exist, it is treated as an empty sorted set, and the command returns an
                 empty list.
 
         Examples:
