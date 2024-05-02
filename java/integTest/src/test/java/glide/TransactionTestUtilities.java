@@ -4,8 +4,8 @@ package glide;
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
-import static glide.api.models.commands.ZmpopOptions.ScoreModifier.MAX;
-import static glide.api.models.commands.ZmpopOptions.ScoreModifier.MIN;
+import static glide.api.models.commands.ScoreModifier.MAX;
+import static glide.api.models.commands.ScoreModifier.MIN;
 
 import glide.api.models.BaseTransaction;
 import glide.api.models.commands.RangeOptions.InfLexBound;

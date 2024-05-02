@@ -12,9 +12,9 @@ import glide.api.models.commands.RangeOptions.RangeQuery;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.RangeOptions.ScoreRange;
 import glide.api.models.commands.RangeOptions.ScoredRangeQuery;
+import glide.api.models.commands.ScoreModifier;
 import glide.api.models.commands.WeightAggregateOptions;
 import glide.api.models.commands.ZaddOptions;
-import glide.api.models.commands.ZmpopOptions.ScoreModifier;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 

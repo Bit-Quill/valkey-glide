@@ -6,13 +6,13 @@ import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.BEFORE;
+import static glide.api.models.commands.ScoreModifier.MAX;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_API;
 import static glide.api.models.commands.WeightAggregateOptions.WEIGHTS_REDIS_API;
 import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_API;
-import static glide.api.models.commands.ZmpopOptions.ScoreModifier.MAX;
 import static glide.api.models.commands.stream.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_EXACT_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
@@ -154,6 +154,7 @@ import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.RangeByLex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
+import glide.api.models.commands.ScoreModifier;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
@@ -162,7 +163,6 @@ import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeospatialData;
-import glide.api.models.commands.ZmpopOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamTrimOptions;
 import glide.api.models.commands.stream.StreamTrimOptions.MaxLen;
@@ -2110,9 +2110,9 @@ public class RedisClientTest {
         // setup
         double timeout = .5;
         String[] keys = new String[] {"key1", "key2"};
-        ZmpopOptions.ScoreModifier modifier = MAX;
+        ScoreModifier modifier = MAX;
         String[] arguments = {"0.5", "2", "key1", "key2", "MAX"};
-        Object[] value = new Object[] {"key1", "elem", 2.2};
+        Object[] value = new Object[] {"key1", "elem"};
 
         CompletableFuture<Object[]> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
@@ -2136,10 +2136,10 @@ public class RedisClientTest {
         // setup
         double timeout = .5;
         String[] keys = new String[] {"key1", "key2"};
-        ZmpopOptions.ScoreModifier modifier = MAX;
+        ScoreModifier modifier = MAX;
         long count = 42;
         String[] arguments = {"0.5", "2", "key1", "key2", "MAX", "COUNT", "42"};
-        Object[] value = new Object[] {"key1", "elem", 2.2};
+        Object[] value = new Object[] {"key1", "elem"};
 
         CompletableFuture<Object[]> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
