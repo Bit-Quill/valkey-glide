@@ -3100,4 +3100,29 @@ public class SharedCommandTests {
                         () -> client.geoadd(key, Map.of("Place", new GeospatialData(0, -86))).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void geopos(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String[] members = {"Palermo", "Catania"};
+        Double[][] expected = {
+            {13.36138933897018433, 38.11555639549629859}, {15.08726745843887329, 37.50266842333162032}
+        };
+
+        // adding locations
+        Map<String, GeospatialData> membersToCoordinates = new HashMap<>();
+        membersToCoordinates.put("Palermo", new GeospatialData(13.361389, 38.115556));
+        membersToCoordinates.put("Catania", new GeospatialData(15.087269, 37.502669));
+        assertEquals(2, client.geoadd(key1, membersToCoordinates).get());
+
+        // Loop through the arrays and perform assertions
+        Double[][] actual = client.geopos(key1, members).get();
+        for (int i = 0; i < expected.length; i++) {
+            for (int j = 0; j < expected[i].length; j++) {
+                assertEquals(expected[i][j], actual[i][j], 1e-9);
+            }
+        }
+    }
 }

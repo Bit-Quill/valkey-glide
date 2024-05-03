@@ -27,6 +27,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.GeoPos;
 import static redis_request.RedisRequestOuterClass.RequestType.GetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.HLen;
@@ -2598,6 +2599,23 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T geoadd(
             @NonNull String key, @NonNull Map<String, GeospatialData> membersToGeospatialData) {
         return geoadd(key, membersToGeospatialData, new GeoAddOptions(false));
+    }
+
+    /**
+     * Return the positions (longitude,latitude) of all the specified members of the geospatial index
+     * represented by the sorted set at <code>key
+     * </code>.<br>
+     *
+     * @see <a href="https://valkey.io/commands/geopos">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param members The members for which to get the positions.
+     * @return Command Response - A list of positions (longitude and latitude) corresponding to the
+     *     given members. If a member does not exist, its position will be Null.
+     */
+    public T geopos(@NonNull String key, @NonNull String[] members) {
+        ArgsArray commandArgs = buildArgs(concatenateArrays(new String[] {key}, members));
+        protobufTransaction.addCommands(buildCommand(GeoPos, commandArgs));
+        return getThis();
     }
 
     /** Build protobuf {@link Command} object for given command and arguments. */
