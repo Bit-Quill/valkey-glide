@@ -25,6 +25,7 @@ import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
 import glide.api.models.Script;
+import glide.api.models.commands.BitcountOptions;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
@@ -3022,5 +3023,70 @@ public class SharedCommandTests {
 
         assertEquals(2, client.touch(new String[] {key1, key2}).get());
         assertEquals(0, client.touch(new String[] {key3}).get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void bitcount(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String value = "foobar";
+
+        assertEquals(OK, client.set(key, value).get());
+        assertEquals(26, client.bitcount(key).get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void bitcount_with_indices(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String value = "foobar";
+
+        assertEquals(OK, client.set(key, value).get());
+        assertEquals(6, client.bitcount(key, 1, 1).get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void bitcount_with_BYTE_indices(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String value = "foobar";
+
+        assertEquals(OK, client.set(key, value).get());
+        assertEquals(16, client.bitcount(key, 2, 5, BitcountOptions.BYTE).get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void bitcount_with_BIT_indices(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String value = "foobar";
+
+        assertEquals(OK, client.set(key, value).get());
+        assertEquals(17L, client.bitcount(key, 5, 30, BitcountOptions.BIT).get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void bitcount_with_missing_key(BaseClient client) {
+        assertEquals(0, client.bitcount("missingKey").get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void bitcount_indices_with_missing_key(BaseClient client) {
+        assertEquals(0, client.bitcount("missingKey", 5, 30, BitcountOptions.BIT).get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void bitcount_all_args_with_missing_key(BaseClient client) {
+        assertEquals(0, client.bitcount("missingKey", 5, 30, BitcountOptions.BIT).get());
     }
 }

@@ -9,6 +9,7 @@ import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
+import static redis_request.RedisRequestOuterClass.RequestType.Bitcount;
 import static redis_request.RedisRequestOuterClass.RequestType.Blpop;
 import static redis_request.RedisRequestOuterClass.RequestType.Brpop;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
@@ -114,6 +115,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrange;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrank;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
+import glide.api.models.commands.BitcountOptions;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
@@ -2547,6 +2549,56 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T touch(@NonNull String[] keys) {
         ArgsArray commandArgs = buildArgs(keys);
         protobufTransaction.addCommands(buildCommand(Touch, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Counts the number of set bits (population counting) in a string of specified <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
+     * @param key The key to count set bits of.
+     * @return The number set bits in the string.
+     */
+    public T bitcount(@NonNull String key) {
+        ArgsArray commandArgs = buildArgs(key);
+        protobufTransaction.addCommands(buildCommand(Bitcount, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Counts the number of set bits (population counting) in a string of specified <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
+     * @param key The key to count set bits of.
+     * @param start The starting offset.
+     * @param end The ending offset.
+     * @return The number set bits in the string.
+     */
+    public T bitcount(@NonNull String key, long start, long end) {
+        ArgsArray commandArgs =
+                buildArgs(ArrayUtils.addAll(new String[] {key, Long.toString(start), Long.toString(end)}));
+
+        protobufTransaction.addCommands(buildCommand(Bitcount, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Counts the number of set bits (population counting) in a string of specified <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
+     * @param key The key to count set bits of.
+     * @param start The starting offset.
+     * @param end The ending offset.
+     * @param options The index offset type. Options are BYTE index or BIT index.
+     * @return The number set bits in the string.
+     */
+    public T bitcount(@NonNull String key, long start, long end, BitcountOptions options) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        ArrayUtils.addAll(
+                                new String[] {key, Long.toString(start), Long.toString(end)}, options.toArgs()));
+
+        protobufTransaction.addCommands(buildCommand(Bitcount, commandArgs));
         return getThis();
     }
 

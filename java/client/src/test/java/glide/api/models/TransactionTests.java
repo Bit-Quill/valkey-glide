@@ -19,6 +19,7 @@ import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_EXACT_REDI
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_MINID_REDIS_API;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
+import static redis_request.RedisRequestOuterClass.RequestType.Bitcount;
 import static redis_request.RedisRequestOuterClass.RequestType.Blpop;
 import static redis_request.RedisRequestOuterClass.RequestType.Brpop;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
@@ -594,6 +595,9 @@ public class TransactionTests {
 
         transaction.touch(new String[] {"key1", "key2"});
         results.add(Pair.of(Touch, buildArgs("key1", "key2")));
+
+        transaction.bitcount("key");
+        results.add(Pair.of(Bitcount, buildArgs("key")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 
