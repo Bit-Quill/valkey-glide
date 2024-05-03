@@ -6,7 +6,8 @@ use crate::client::Client;
 use crate::connection_request::ConnectionRequest;
 use crate::errors::{error_message, error_type, RequestErrorType};
 use crate::redis_request::{
-    single_command, redis_request, SingleCommand, RedisRequest, Routes, ScriptInvocation, SlotTypes, Transaction,
+    redis_request, single_command, RedisRequest, Routes, ScriptInvocation, SingleCommand,
+    SlotTypes, Transaction,
 };
 use crate::response;
 use crate::response::Response;
