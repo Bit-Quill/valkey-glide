@@ -38,7 +38,7 @@ public class AsyncClient : IDisposable
         IntPtr[] args = _arrayPool.Rent(2);
         args[0] = Marshal.StringToHGlobalAnsi(key);
         args[1] = Marshal.StringToHGlobalAnsi(value);
-        string? result = await Command(args, 2, RequestType.SetString);
+        string? result = await Command(args, 2, RequestType.Set);
         _arrayPool.Return(args);
         return result;
     }
@@ -47,7 +47,7 @@ public class AsyncClient : IDisposable
     {
         IntPtr[] args = _arrayPool.Rent(1);
         args[0] = Marshal.StringToHGlobalAnsi(key);
-        string? result = await Command(args, 1, RequestType.GetString);
+        string? result = await Command(args, 1, RequestType.Get);
         _arrayPool.Return(args);
         return result;
     }
@@ -129,8 +129,8 @@ public class AsyncClient : IDisposable
     {
         InvalidRequest = 0,
         CustomCommand = 1,
-        GetString = 2,
-        SetString = 3,
+        Get = 2,
+        Set = 3,
         Ping = 4,
         Info = 5,
         Del = 6,
