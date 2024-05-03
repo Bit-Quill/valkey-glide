@@ -291,7 +291,7 @@ public class TransactionTestUtilities {
             1L, // pfadd(hllKey1, new String[] {"a", "b", "c"})
             3L, // pfcount(new String[] { hllKey1, hllKey2 });;
             OK, // pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
-            3L, // pfcount(new String[] { hllKey3 }),
+            3L, // pfcount(new String[] { hllKey3 })
             15L,
             8L,
             7L,
