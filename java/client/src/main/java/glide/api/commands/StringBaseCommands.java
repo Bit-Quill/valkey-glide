@@ -91,7 +91,7 @@ public interface StringBaseCommands {
     /**
      * Sets multiple keys to multiple values in a single operation.
      *
-     * @apiNote When in cluster mode, the command may route to multiple nodes when <code>keys</code>
+     * @apiNote When in cluster mode, the command may route to multiple nodes when keys in <code>keyValueMap</code>
      *     map to different <code>hash slot</code>s.
      * @see <a href="https://redis.io/commands/mset/">redis.io</a> for details.
      * @param keyValueMap A key-value map consisting of keys and their respective values to set.
