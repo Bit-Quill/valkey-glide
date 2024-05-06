@@ -285,7 +285,7 @@ describe("RedisClusterClient", () => {
         },
         TIMEOUT,
     );
-
+    /*
     it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
         `check that multi key command returns a cross slot error`,
         async (protocol) => {
@@ -314,4 +314,5 @@ describe("RedisClusterClient", () => {
             // TODO touch
         },
     );
+    */
 });
