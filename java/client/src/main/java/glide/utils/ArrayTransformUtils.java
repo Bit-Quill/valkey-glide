@@ -83,11 +83,10 @@ public class ArrayTransformUtils {
      * @return An array of arrays of type U, containing the elements from the input array.
      * @param <T> The base type from which the elements are being cast.
      * @param <U> The subtype of T to which the elements are cast.
-     * @param <V> The array type of U
      */
     @SuppressWarnings("unchecked")
-    public static <T, U extends T, V> V[] castArrayofArrays(
-            T[] outerObjectArr, Class<U> clazz, Class<V> arrClazz) {
+    public static <T, U extends T> U[][] castArrayofArrays(
+            T[] outerObjectArr, Class<U> clazz, Class<U[]> arrClazz) {
         if (outerObjectArr == null) {
             return null;
         }

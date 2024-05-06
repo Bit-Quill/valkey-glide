@@ -59,20 +59,20 @@ public interface GeospatialIndicesBaseCommands {
     CompletableFuture<Long> geoadd(String key, Map<String, GeospatialData> membersToGeospatialData);
 
     /**
-     * Return the positions (longitude,latitude) of all the specified members of the geospatial index
-     * represented by the sorted set at <code>key
-     * </code>.<br>
+     * Returns the positions (longitude,latitude) of all the specified <code>members</code> of the geospatial index
+     * represented by the sorted set at <code>key</code>.<br>
      *
      * @see <a href="https://valkey.io/commands/geopos">valkey.io</a> for more details.
      * @param key The key of the sorted set.
      * @param members The members for which to get the positions.
-     * @return A list of positions (longitude and latitude) corresponding to the given members. If a
-     *     member does not exist, its position will be Null.
+     * @return A 2D <code>array</code> which represent positions (longitude and latitude) corresponding to the given members. If a
+     *     member does not exist, its position will be <code>null</code>..
      * @example
      *     <pre>{@code
-     * Long num = client.geoadd("mySortedSet", Map.of("Palermo", new GeospatialData(13.361389, 38.115556), "Catania", new GeospatialData(15.087269, 37.502669)).get();
-     * GeoSpatialData[] result = client.geopos("mySortedSet", new String[]{"Palermo", "Catania", "NonExisting"}).get();
-     * assert result == {[13.36138933897018433, 38.11555639549629859], [15.08726745843887329, 37.50266842333162032], None};
+     * client.geoadd("mySortedSet", Map.of("Palermo", new GeospatialData(13.361389, 38.115556), "Catania", new GeospatialData(15.087269, 37.502669)));
+     * Double[][] result = client.geopos("mySortedSet", new String[]{"Palermo", "Catania", "NonExisting"}).get();
+     * Double[][] expected = new Double[][]{{13.36138933897018433, 38.11555639549629859}, {15.08726745843887329, 37.50266842333162032}, null};
+     * assertTrue(Arrays.deepEquals(result, expected));
      * }</pre>
      */
     CompletableFuture<Double[][]> geopos(String key, String[] members);

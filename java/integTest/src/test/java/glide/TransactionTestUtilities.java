@@ -283,7 +283,7 @@ public class TransactionTestUtilities {
             new Double[][] {
                 {13.36138933897018433, 38.11555639549629859},
                 {15.08726745843887329, 37.50266842333162032},
-            }, // geopos(new String[]{"Palermo", "Catania", "Place"})
+            }, // geopos(new String[]{"Palermo", "Catania"})
             "0-1", // xadd(key9, Map.of("field1", "value1"), id("0-1"));
             "0-2", // xadd(key9, Map.of("field2", "value2"), id("0-2"));
             "0-3", // xadd(key9, Map.of("field3", "value3"), id("0-3"));

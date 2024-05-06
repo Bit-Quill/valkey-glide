@@ -2610,7 +2610,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key The key of the sorted set.
      * @param members The members for which to get the positions.
      * @return Command Response - A list of positions (longitude and latitude) corresponding to the
-     *     given members. If a member does not exist, its position will be Null.
+     *     given members. If a member does not exist, its position will be <code>null</code>.
      */
     public T geopos(@NonNull String key, @NonNull String[] members) {
         ArgsArray commandArgs = buildArgs(concatenateArrays(new String[] {key}, members));
