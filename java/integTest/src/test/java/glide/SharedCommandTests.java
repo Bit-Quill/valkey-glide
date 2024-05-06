@@ -3129,7 +3129,7 @@ public class SharedCommandTests {
         // key exists but holding the wrong kind of value (non-ZSET)
         assertEquals(OK, client.set(key2, "geopos").get());
         ExecutionException executionException =
-            assertThrows(ExecutionException.class, () -> client.geopos(key2, members).get());
+                assertThrows(ExecutionException.class, () -> client.geopos(key2, members).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
 }
