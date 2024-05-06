@@ -140,10 +140,8 @@ public class TransactionTests {
         Object[] result = client.exec(transaction).get();
         for (int i = 0; i < expectedResult.length; i++) {
             if (expectedResult[i] != null && expectedResult[i].getClass() == Double[][].class) {
-                Double[][] expectedArr =
-                        castArrayofArrays((Object[]) expectedResult[i], Double.class, Double[].class);
-                Double[][] actualArr =
-                        castArrayofArrays((Object[]) result[i], Double.class, Double[].class);
+                Double[][] expectedArr = castArrayofArrays((Object[]) expectedResult[i], Double.class);
+                Double[][] actualArr = castArrayofArrays((Object[]) result[i], Double.class);
                 for (int j = 0; j < expectedArr.length; j++) {
                     for (int k = 0; k < expectedArr[j].length; k++) {
                         assertEquals(expectedArr[j][k], actualArr[j][k], 1e-9);

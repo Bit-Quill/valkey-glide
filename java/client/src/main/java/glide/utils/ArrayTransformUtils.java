@@ -86,15 +86,14 @@ public class ArrayTransformUtils {
      * @param <U> The subtype of T to which the elements are cast.
      */
     @SuppressWarnings("unchecked")
-    public static <T, U extends T> U[][] castArrayofArrays(
-            T[] outerObjectArr, Class<U> clazz, Class<U[]> arrClazz) {
+    public static <T, U extends T> U[][] castArrayofArrays(T[] outerObjectArr, Class<U> clazz) {
         if (outerObjectArr == null) {
             return null;
         }
         for (int i = 0; i < outerObjectArr.length; i++) {
             outerObjectArr[i] = (T) castArray((T[]) outerObjectArr[i], clazz);
         }
-        return castArray(outerObjectArr, arrClazz);
+        return (U[][]) castArray(outerObjectArr, Array.newInstance(clazz, 0).getClass());
     }
 
     /**

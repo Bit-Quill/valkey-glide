@@ -1122,6 +1122,6 @@ public abstract class BaseClient
         return commandManager.submitNewCommand(
                 GeoPos,
                 arguments,
-                response -> castArrayofArrays(handleArrayResponse(response), Double.class, Double[].class));
+                response -> castArrayofArrays(handleArrayResponse(response), Double.class));
     }
 }
