@@ -316,7 +316,7 @@ describe("RedisClusterClient", () => {
             await client.mset({ abc: "1", zxy: "2", lkn: "3" });
             // TODO touch
 
-           client.close();
+            client.close();
         },
     );
 });
