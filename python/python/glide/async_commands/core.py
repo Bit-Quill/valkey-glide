@@ -501,7 +501,7 @@ class CoreCommands(Protocol):
         See https://redis.io/commands/rename/ for more details.
 
         Note:
-            When in cluster mode, the command may route to multiple nodes when `keys` map to different `hash slots`.
+            When in cluster mode, the command may route to multiple nodes when `keys` map to different hash slot.
 
         Args:
             key (str) : The key to rename.
@@ -520,7 +520,7 @@ class CoreCommands(Protocol):
         See https://redis.io/commands/del/ for details.
 
         Note:
-            When in cluster mode, the command may route to multiple nodes when `keys` map to different `hash slots`.
+            When in cluster mode, the command may route to multiple nodes when `keys` map to different hash slots.
 
         Args:
             keys (List[str]): A list of keys to be deleted from the database.
@@ -607,7 +607,7 @@ class CoreCommands(Protocol):
         See https://redis.io/commands/mset/ for more details.
 
         Note:
-            When in cluster mode, the command may route to multiple nodes when keys in `keyValueMap` map to different `hash slots`.
+            When in cluster mode, the command may route to multiple nodes when keys in `keyValueMap` map to different hash slot.
 
         Args:
             parameters (Mapping[str, str]): A map of key value pairs.
@@ -630,7 +630,7 @@ class CoreCommands(Protocol):
         See https://redis.io/commands/mget/ for more details.
 
         Note:
-            When in cluster mode, the command may route to multiple nodes when `keys` map to different `hash slots`.
+            When in cluster mode, the command may route to multiple nodes when `keys` map to different hash slot.
 
         Args:
             keys (List[str]): A list of keys to retrieve values for.
@@ -1567,7 +1567,7 @@ class CoreCommands(Protocol):
         See https://redis.io/commands/exists/ for more details.
 
         Note:
-            When in cluster mode, the command may route to multiple nodes when `keys` map to different `hash slots`.
+            When in cluster mode, the command may route to multiple nodes when `keys` map to different hash slot.
 
         Args:
             keys (List[str]): The list of keys to check.
@@ -1591,7 +1591,7 @@ class CoreCommands(Protocol):
         See https://redis.io/commands/unlink/ for more details.
 
         Note:
-            When in cluster mode, the command may route to multiple nodes when `keys` map to different `hash slots`.
+            When in cluster mode, the command may route to multiple nodes when `keys` map to different hash slot.
 
         Args:
             keys (List[str]): The list of keys to unlink.

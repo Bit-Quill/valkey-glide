@@ -669,7 +669,7 @@ public class CommandTests {
     }
 
     @SneakyThrows
-    @ParameterizedTest(name = "{0} cross slot")
+    @ParameterizedTest(name = "{0} cross slot keys will throw RequestException")
     @MethodSource("callCrossSlotCommandsWhichShouldFail")
     public void check_throws_cross_slot_error(String testName, CompletableFuture<?> future) {
         var executionException = assertThrows(ExecutionException.class, future::get);
@@ -688,7 +688,7 @@ public class CommandTests {
     }
 
     @SneakyThrows
-    @ParameterizedTest(name = "{0} cross slot")
+    @ParameterizedTest(name = "{0} cross slot keys are allowed")
     @MethodSource("callCrossSlotCommandsWhichShouldPass")
     public void check_does_not_throw_cross_slot_error(String testName, CompletableFuture<?> future) {
         future.get();

@@ -503,7 +503,7 @@ export class BaseClient {
     /** Retrieve the values of multiple keys.
      * See https://redis.io/commands/mget/ for details.
      *
-     * @remarks When in cluster mode, the command may route to multiple nodes when `keys` map to different `hash slots`.
+     * @remarks When in cluster mode, the command may route to multiple nodes when `keys` map to different hash slot.
      * @param keys - A list of keys to retrieve values for.
      * @returns A list of values corresponding to the provided keys. If a key is not found,
      * its corresponding value in the list will be null.
@@ -524,7 +524,7 @@ export class BaseClient {
     /** Set multiple keys to multiple values in a single operation.
      * See https://redis.io/commands/mset/ for details.
      *
-     * @remarks When in cluster mode, the command may route to multiple nodes when keys in `keyValueMap` map to different `hash slots`.
+     * @remarks When in cluster mode, the command may route to multiple nodes when keys in `keyValueMap` map to different hash slot.
      * @param keyValueMap - A key-value map consisting of keys and their respective values to set.
      * @returns always "OK".
      *
