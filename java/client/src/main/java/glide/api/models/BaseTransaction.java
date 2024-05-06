@@ -2602,7 +2602,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Return the positions (longitude,latitude) of all the specified members of the geospatial index
+     * Returns the positions (longitude,latitude) of all the specified <code>members</code> of the geospatial index
      * represented by the sorted set at <code>key
      * </code>.<br>
      *
@@ -2613,7 +2613,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     given members. If a member does not exist, its position will be <code>null</code>.
      */
     public T geopos(@NonNull String key, @NonNull String[] members) {
-        ArgsArray commandArgs = buildArgs(concatenateArrays(new String[] {key}, members));
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
         protobufTransaction.addCommands(buildCommand(GeoPos, commandArgs));
         return getThis();
     }

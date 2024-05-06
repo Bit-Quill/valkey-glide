@@ -76,7 +76,7 @@ public class ArrayTransformUtils {
     }
 
     /**
-     * Casts an array of arrays of objects to an array of arrays of type T.
+     * Casts an <code>Object[][]</code> to <code>T[][]</code> by casting each nested array and every array element.
      *
      * @param outerObjectArr Array of arrays of objects to cast.
      * @param clazz The class of the array elements to cast to.
