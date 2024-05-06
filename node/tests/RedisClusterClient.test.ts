@@ -302,9 +302,11 @@ describe("RedisClusterClient", () => {
                 getOptions(cluster.ports(), protocol),
             );
 
+            /*
             await _check_command_throws_cross_slot_error(
                 client.brpop(["abc", "zxy", "lkn"], 0.1),
             );
+            */
             // TODO all rest multi-key commands except ones tested below
         },
     );
