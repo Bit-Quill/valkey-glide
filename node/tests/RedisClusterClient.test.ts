@@ -21,6 +21,7 @@ import {
 import { runBaseTests } from "./SharedTests";
 import {
     RedisCluster,
+    checkCommandThrowsCrossSlotError,
     flushallOnPort,
     getFirstResult,
     transactionTest,
@@ -285,16 +286,6 @@ describe("RedisClusterClient", () => {
         TIMEOUT,
     );
 
-    async function _check_command_throws_cross_slot_error(
-        promise: Promise<unknown>,
-    ): Promise<void> {
-        try {
-            expect(await promise).toThrow();
-        } catch (e) {
-            expect((e as Error).message.toLowerCase()).toMatch("crossslot");
-        }
-    }
-
     it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
         `check that multi key command returns a cross slot error`,
         async (protocol) => {
@@ -302,7 +293,7 @@ describe("RedisClusterClient", () => {
                 getOptions(cluster.ports(), protocol),
             );
 
-            await _check_command_throws_cross_slot_error(
+            await checkCommandThrowsCrossSlotError(
                 client.brpop(["abc", "zxy", "lkn"], 0.1),
             );
             // TODO all rest multi-key commands except ones tested below
@@ -315,13 +306,11 @@ describe("RedisClusterClient", () => {
             const client = await RedisClusterClient.createClient(
                 getOptions(cluster.ports(), protocol),
             );
-            /*
             await client.exists(["abc", "zxy", "lkn"]);
             await client.unlink(["abc", "zxy", "lkn"]);
             await client.del(["abc", "zxy", "lkn"]);
             await client.mget(["abc", "zxy", "lkn"]);
             await client.mset({ abc: "1", zxy: "2", lkn: "3" });
-            */
             // TODO touch
         },
     );
