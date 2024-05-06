@@ -299,7 +299,7 @@ describe("RedisClusterClient", () => {
             // TODO all rest multi-key commands except ones tested below
         },
     );
-
+    */
     it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
         `check that multi key command routed to multiple nodes`,
         async (protocol) => {
@@ -314,5 +314,4 @@ describe("RedisClusterClient", () => {
             // TODO touch
         },
     );
-    */
 });
