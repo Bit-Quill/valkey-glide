@@ -292,9 +292,9 @@ public class TransactionTestUtilities {
             3L, // pfcount(new String[] { hllKey1, hllKey2 });;
             OK, // pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
             3L, // pfcount(new String[] { hllKey3 })
-            15L,
-            8L,
-            7L,
+            15L, // bitcount(key3)
+            8L, // bitcount(key3, 2, 4)
+            7L, // bitcount(key3, 2, 19, BitcountOptions.BIT)
         };
     }
 }

@@ -1114,7 +1114,7 @@ public abstract class BaseClient
 
         String[] arguments =
                 ArrayUtils.addAll(
-                        new String[] {key, Long.toString(start), Long.toString(end)}, options.toArgs());
+                        new String[] {key, Long.toString(start), Long.toString(end)}, options.toString());
         return commandManager.submitNewCommand(Bitcount, arguments, this::handleLongResponse);
     }
 }

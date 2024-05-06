@@ -2553,11 +2553,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Counts the number of set bits (population counting) in a string of specified <code>key</code>.
+     * Counts the number of set bits (population counting) in a string stored at <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
      * @param key The key to count set bits of.
-     * @return The number set bits in the string.
+     * @return Command Response - The number set bits in the string.
      */
     public T bitcount(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
@@ -2566,37 +2566,37 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Counts the number of set bits (population counting) in a string of specified <code>key</code>.
+     * Counts the number of set bits (population counting) in a string stored at <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
      * @param key The key to count set bits of.
      * @param start The starting offset.
      * @param end The ending offset.
-     * @return The number set bits in the string.
+     * @return Command Response - The number set bits in the string.
      */
     public T bitcount(@NonNull String key, long start, long end) {
-        ArgsArray commandArgs =
-                buildArgs(ArrayUtils.addAll(new String[] {key, Long.toString(start), Long.toString(end)}));
+        ArgsArray commandArgs = buildArgs(key, Long.toString(start), Long.toString(end));
 
         protobufTransaction.addCommands(buildCommand(Bitcount, commandArgs));
         return getThis();
     }
 
     /**
-     * Counts the number of set bits (population counting) in a string of specified <code>key</code>.
+     * Counts the number of set bits (population counting) in a string stored at <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
      * @param key The key to count set bits of.
      * @param start The starting offset.
      * @param end The ending offset.
-     * @param options The index offset type. Options are BYTE index or BIT index.
-     * @return The number set bits in the string.
+     * @param options The index offset type. Could be either {@link BitcountOptions#BIT} or {@link
+     *     BitcountOptions#BYTE}.
+     * @return Command Response - The number set bits in the string.
      */
     public T bitcount(@NonNull String key, long start, long end, BitcountOptions options) {
         ArgsArray commandArgs =
                 buildArgs(
                         ArrayUtils.addAll(
-                                new String[] {key, Long.toString(start), Long.toString(end)}, options.toArgs()));
+                                new String[] {key, Long.toString(start), Long.toString(end)}, options.toString()));
 
         protobufTransaction.addCommands(buildCommand(Bitcount, commandArgs));
         return getThis();

@@ -12,12 +12,12 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface BitmapBaseCommands {
     /**
-     * Counts the number of set bits (population counting) in a string. Returns zero if the key is
-     * missing as it treated as an empty string.
+     * Counts the number of set bits (population counting) in a string.
      *
      * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
      * @param key The key to count set bits of.
-     * @return The number set bits in the string.
+     * @return The number set bits in the string. Returns zero if the key is missing as it treated as
+     *     an empty string.
      * @example
      *     <pre>{@code
      * Long payload = client.bitcount("myKey1").get();
@@ -51,7 +51,8 @@ public interface BitmapBaseCommands {
      * @param key The key to count set bits of.
      * @param start The starting offset.
      * @param end The ending offset.
-     * @param options The index offset type. Options are BYTE index or BIT index.
+     * @param options The index offset type. Could be either {@link BitcountOptions#BIT} or {@link
+     *     BitcountOptions#BYTE}.
      * @return The number set bits in the string.
      * @example
      *     <pre>{@code
