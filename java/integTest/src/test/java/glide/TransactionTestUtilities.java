@@ -6,6 +6,7 @@ import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
 
 import glide.api.models.BaseTransaction;
+import glide.api.models.commands.BitMapOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
 import glide.api.models.commands.RangeOptions.LexBoundary;
@@ -194,6 +195,10 @@ public class TransactionTestUtilities {
                 .pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
                 .pfcount(new String[] {hllKey3});
 
+        baseTransaction.bitcount(key3);
+        baseTransaction.bitcount(key3, 2, 4);
+        baseTransaction.bitcount(key3, 2, 19, BitMapOptions.BIT);
+
         return baseTransaction;
     }
 
@@ -308,6 +313,9 @@ public class TransactionTestUtilities {
             3L, // pfcount(new String[] { hllKey1, hllKey2 });;
             OK, // pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
             3L, // pfcount(new String[] { hllKey3 })
+            15L, // bitcount(key3)
+            8L, // bitcount(key3, 2, 4)
+            7L, // bitcount(key3, 2, 19, BitMapOptions.BIT)
         };
     }
 }
