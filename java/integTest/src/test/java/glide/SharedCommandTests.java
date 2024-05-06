@@ -3106,6 +3106,7 @@ public class SharedCommandTests {
     @MethodSource("getClients")
     public void geopos(BaseClient client) {
         String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
         String[] members = {"Palermo", "Catania"};
         Double[][] expected = {
             {13.36138933897018433, 38.11555639549629859}, {15.08726745843887329, 37.50266842333162032}
@@ -3124,5 +3125,11 @@ public class SharedCommandTests {
                 assertEquals(expected[i][j], actual[i][j], 1e-9);
             }
         }
+
+        // key exists but holding the wrong kind of value (non-ZSET)
+        assertEquals(OK, client.set(key2, "geopos").get());
+        ExecutionException executionException =
+            assertThrows(ExecutionException.class, () -> client.geopos(key2, members).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
     }
 }

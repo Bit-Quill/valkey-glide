@@ -59,14 +59,15 @@ public interface GeospatialIndicesBaseCommands {
     CompletableFuture<Long> geoadd(String key, Map<String, GeospatialData> membersToGeospatialData);
 
     /**
-     * Returns the positions (longitude,latitude) of all the specified <code>members</code> of the geospatial index
-     * represented by the sorted set at <code>key</code>.<br>
+     * Returns the positions (longitude,latitude) of all the specified <code>members</code> of the
+     * geospatial index represented by the sorted set at <code>key</code>.<br>
      *
      * @see <a href="https://valkey.io/commands/geopos">valkey.io</a> for more details.
      * @param key The key of the sorted set.
      * @param members The members for which to get the positions.
-     * @return A 2D <code>array</code> which represent positions (longitude and latitude) corresponding to the given members. If a
-     *     member does not exist, its position will be <code>null</code>..
+     * @return A 2D <code>array</code> which represent positions (longitude and latitude)
+     *     corresponding to the given members. If a member does not exist, its position will be <code>
+     *     null</code>..
      * @example
      *     <pre>{@code
      * client.geoadd("mySortedSet", Map.of("Palermo", new GeospatialData(13.361389, 38.115556), "Catania", new GeospatialData(15.087269, 37.502669)));

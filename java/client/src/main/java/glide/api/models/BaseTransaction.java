@@ -2602,8 +2602,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Returns the positions (longitude,latitude) of all the specified <code>members</code> of the geospatial index
-     * represented by the sorted set at <code>key
+     * Returns the positions (longitude,latitude) of all the specified <code>members</code> of the
+     * geospatial index represented by the sorted set at <code>key
      * </code>.<br>
      *
      * @see <a href="https://valkey.io/commands/geopos">valkey.io</a> for more details.
