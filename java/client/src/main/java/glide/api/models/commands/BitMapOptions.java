@@ -2,7 +2,6 @@
 package glide.api.models.commands;
 
 import glide.api.commands.BitmapBaseCommands;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Optional arguments for {@link BitmapBaseCommands#bitcount(String, long, long, BitMapOptions)}.
@@ -10,7 +9,6 @@ import lombok.RequiredArgsConstructor;
  *
  * @see <a href="https://redis.io/commands/bitcount/">redis.io</a>
  */
-@RequiredArgsConstructor
 public enum BitMapOptions {
     /** Specifies a byte index * */
     BYTE,
