@@ -5,17 +5,15 @@ import glide.api.commands.BitmapBaseCommands;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Optional arguments for {@link BitmapBaseCommands#bitcount(String, long, long, BitcountOptions)}.
+ * Optional arguments for {@link BitmapBaseCommands#bitcount(String, long, long, BitMapOptions)}.
  * Specifies if start and end arguments are BYTE indices or BIT indices
  *
  * @see <a href="https://redis.io/commands/bitcount/">redis.io</a>
  */
 @RequiredArgsConstructor
-public enum BitcountOptions {
+public enum BitMapOptions {
     /** Specifies a byte index * */
-    BYTE("BYTE"),
+    BYTE,
     /** Specifies a bit index */
-    BIT("BIT");
-
-    private final String redisApi;
+    BIT
 }

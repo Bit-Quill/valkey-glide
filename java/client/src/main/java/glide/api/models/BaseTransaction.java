@@ -115,7 +115,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrange;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrank;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
-import glide.api.models.commands.BitcountOptions;
+import glide.api.models.commands.BitMapOptions;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
@@ -2557,7 +2557,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
      * @param key The key to count set bits of.
-     * @return Command Response - The number set bits in the string.
+     * @return Command Response - The number set bits in the string. Returns zero if the key is
+     *     missing as it treated as an empty string.
      */
     public T bitcount(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
@@ -2572,7 +2573,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key The key to count set bits of.
      * @param start The starting offset.
      * @param end The ending offset.
-     * @return Command Response - The number set bits in the string.
+     * @return Command Response - The number set bits in the string. Returns zero if the key is
+     *     missing as it treated as an empty string.
      */
     public T bitcount(@NonNull String key, long start, long end) {
         ArgsArray commandArgs = buildArgs(key, Long.toString(start), Long.toString(end));
@@ -2588,15 +2590,14 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key The key to count set bits of.
      * @param start The starting offset.
      * @param end The ending offset.
-     * @param options The index offset type. Could be either {@link BitcountOptions#BIT} or {@link
-     *     BitcountOptions#BYTE}.
-     * @return Command Response - The number set bits in the string.
+     * @param options The index offset type. Could be either {@link BitMapOptions#BIT} or {@link
+     *     BitMapOptions#BYTE}.
+     * @return Command Response - The number set bits in the string. Returns zero if the key is
+     *     missing as it treated as an empty string.
      */
-    public T bitcount(@NonNull String key, long start, long end, BitcountOptions options) {
+    public T bitcount(@NonNull String key, long start, long end, BitMapOptions options) {
         ArgsArray commandArgs =
-                buildArgs(
-                        ArrayUtils.addAll(
-                                new String[] {key, Long.toString(start), Long.toString(end)}, options.toString()));
+                buildArgs(new String[] {key, Long.toString(start), Long.toString(end), options.toString()});
 
         protobufTransaction.addCommands(buildCommand(Bitcount, commandArgs));
         return getThis();
