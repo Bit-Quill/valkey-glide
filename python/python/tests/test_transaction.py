@@ -231,8 +231,10 @@ async def transaction_test(
     args.append({"two": 2.0})
     transaction.zpopmax(key8)
     args.append({"four": 4})
+    transaction.bzpopmax([key8], 0.5)
+    args.append([key8, "three", 3.0])
     transaction.zremrangebyscore(key8, InfBound.NEG_INF, InfBound.POS_INF)
-    args.append(1)
+    args.append(0)
     transaction.zremrangebylex(key8, InfBound.NEG_INF, InfBound.POS_INF)
     args.append(0)
 

@@ -1626,6 +1626,28 @@ class BaseTransaction:
             RequestType.ZPopMax, [key, str(count)] if count else [key]
         )
 
+    def bzpopmax(self: TTransaction, keys: List[str], timeout: float) -> TTransaction:
+        """
+        Blocks the connection until it removes and returns a member with the highest score from the sorted sets stored
+        at the specified `keys`. The sorted sets are checked in the order they are provided.
+
+        BZPOPMAX is the blocking variant of `zpopmax`.
+
+        See https://valkey.io/commands/bzpopmax for more details.
+
+        BZPOPMAX is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
+
+        Args:
+            keys (List[str]): The keys of the sorted sets.
+            timeout (float): The number of seconds to wait for a blocking operation to complete.
+                A value of 0 will block indefinitely.
+
+        Command response:
+            List[Union[str, float]]: An array containing the key where the member was popped out, the member itself,
+                and the member score. If no member could be popped and the `timeout` expired, returns None.
+        """
+        return self.append_command(RequestType.BZPopMax, keys + [str(timeout)])
+
     def zpopmin(
         self: TTransaction, key: str, count: Optional[int] = None
     ) -> TTransaction:

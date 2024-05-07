@@ -1904,6 +1904,42 @@ class TestCommands:
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
+    async def test_bzpopmax(self, redis_client: TRedisClient):
+        key1 = f"{{testKey}}:{get_random_string(10)}"
+        key2 = f"{{testKey}}:{get_random_string(10)}"
+        non_existing_key = f"{{testKey}}:non_existing_key"
+
+        assert await redis_client.zadd(key1, {"a": 1.0, "b": 1.5}) == 2
+        assert await redis_client.zadd(key2, {"c": 2.0}) == 1
+        assert await redis_client.bzpopmax([key1, key2], 0.5) == [key1, "b", 1.5]
+        assert await redis_client.bzpopmax([non_existing_key, key2], 0.5) == [
+            key2,
+            "c",
+            2.0,
+        ]
+        assert await redis_client.bzpopmax(["non_existing_key"], 0.5) is None
+
+        # key exists, but it is not a sorted set
+        assert await redis_client.set("foo", "value") == OK
+        with pytest.raises(RequestError):
+            await redis_client.bzpopmax(["foo"], 0.5)
+
+        # same-slot requirement
+        if isinstance(redis_client, RedisClusterClient):
+            with pytest.raises(RequestError) as e:
+                await redis_client.bzpopmax(["abc", "zxy", "lkn"], 0.5)
+            assert "CrossSlot" in str(e)
+
+        async def endless_bzpopmax_call():
+            await redis_client.bzpopmax(["non_existent_key"], 0)
+
+        # bzpopmax is called against a non-existing key with no timeout, but we wrap the call in an asyncio timeout to
+        # avoid having the test block forever
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(endless_bzpopmax_call(), timeout=3)
+
+    @pytest.mark.parametrize("cluster_mode", [True, False])
+    @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
     async def test_zrange_by_index(self, redis_client: TRedisClient):
         key = get_random_string(10)
         members_scores = {"one": 1, "two": 2, "three": 3}
