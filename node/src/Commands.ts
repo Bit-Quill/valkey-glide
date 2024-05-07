@@ -717,8 +717,8 @@ export function createPExpireAt(
 /**
  * @internal
  */
-export function createTTL(key: string): redis_request.Command {
-    return createCommand(RequestType.TTL, [key]);
+export function createTtl(key: string): redis_request.Command {
+    return createCommand(RequestType.Ttl, [key]);
 }
 
 export type ZAddOptions = {

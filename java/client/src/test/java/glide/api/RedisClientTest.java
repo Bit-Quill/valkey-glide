@@ -68,7 +68,6 @@ import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.LIndex;
 import static redis_request.RedisRequestOuterClass.RequestType.LInsert;
 import static redis_request.RedisRequestOuterClass.RequestType.LLen;
-import static redis_request.RedisRequestOuterClass.RequestType.LOLWUT;
 import static redis_request.RedisRequestOuterClass.RequestType.LPop;
 import static redis_request.RedisRequestOuterClass.RequestType.LPush;
 import static redis_request.RedisRequestOuterClass.RequestType.LPushX;
@@ -76,6 +75,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LRange;
 import static redis_request.RedisRequestOuterClass.RequestType.LRem;
 import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
+import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
 import static redis_request.RedisRequestOuterClass.RequestType.MGet;
 import static redis_request.RedisRequestOuterClass.RequestType.MSet;
 import static redis_request.RedisRequestOuterClass.RequestType.ObjectEncoding;
@@ -109,9 +109,9 @@ import static redis_request.RedisRequestOuterClass.RequestType.SUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Select;
 import static redis_request.RedisRequestOuterClass.RequestType.SetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
-import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Touch;
+import static redis_request.RedisRequestOuterClass.RequestType.Ttl;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
@@ -687,7 +687,7 @@ public class RedisClientTest {
         testResponse.complete(ttl);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(TTL), eq(new String[] {key}), any()))
+        when(commandManager.<Long>submitNewCommand(eq(Ttl), eq(new String[] {key}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -3449,7 +3449,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(LOLWUT), eq(new String[0]), any()))
+        when(commandManager.<String>submitNewCommand(eq(Lolwut), eq(new String[0]), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -3471,7 +3471,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(LOLWUT), eq(arguments), any()))
+        when(commandManager.<String>submitNewCommand(eq(Lolwut), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -3492,7 +3492,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(
-                        eq(LOLWUT), eq(new String[] {VERSION_REDIS_API, "42"}), any()))
+                        eq(Lolwut), eq(new String[] {VERSION_REDIS_API, "42"}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -3514,7 +3514,7 @@ public class RedisClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(LOLWUT), eq(arguments), any()))
+        when(commandManager.<String>submitNewCommand(eq(Lolwut), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise

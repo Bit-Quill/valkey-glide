@@ -217,7 +217,7 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::ExpireAt => RequestType::ExpireAt,
             ProtobufRequestType::Exists => RequestType::Exists,
             ProtobufRequestType::Unlink => RequestType::Unlink,
-            ProtobufRequestType::TTL => RequestType::TTL,
+            ProtobufRequestType::Ttl => RequestType::Ttl,
             ProtobufRequestType::ZAdd => RequestType::ZAdd,
             ProtobufRequestType::ZRem => RequestType::ZRem,
             ProtobufRequestType::ZRange => RequestType::ZRange,

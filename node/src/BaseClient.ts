@@ -68,7 +68,7 @@ import {
     createSet,
     createSismember,
     createStrlen,
-    createTTL,
+    createTtl,
     createType,
     createUnlink,
     createXAdd,
@@ -1481,7 +1481,7 @@ export class BaseClient {
      * ```
      */
     public ttl(key: string): Promise<number> {
-        return this.createWritePromise(createTTL(key));
+        return this.createWritePromise(createTtl(key));
     }
 
     /** Invokes a Lua script with its keys and arguments.

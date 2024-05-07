@@ -72,8 +72,8 @@ import {
     createSet,
     createSismember,
     createStrlen,
-    createTTL,
     createTime,
+    createTtl,
     createType,
     createUnlink,
     createXAdd,
@@ -823,7 +823,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * Command Response -  TTL in seconds, -2 if `key` does not exist or -1 if `key` exists but has no associated expire.
      */
     public ttl(key: string): T {
-        return this.addAndReturn(createTTL(key));
+        return this.addAndReturn(createTtl(key));
     }
 
     /** Adds members with their scores to the sorted set stored at `key`.

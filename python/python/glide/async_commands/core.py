@@ -1720,7 +1720,7 @@ class CoreCommands(Protocol):
             >>> await client.ttl("key")
                 -1  # Indicates that "key: has no has no associated expire.
         """
-        return cast(int, await self._execute_command(RequestType.TTL, [key]))
+        return cast(int, await self._execute_command(RequestType.Ttl, [key]))
 
     async def pttl(
         self,

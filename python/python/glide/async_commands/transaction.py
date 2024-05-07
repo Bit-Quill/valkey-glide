@@ -1183,7 +1183,7 @@ class BaseTransaction:
         Commands response:
             int: TTL in seconds, -2 if `key` does not exist or -1 if `key` exists but has no associated expire.
         """
-        return self.append_command(RequestType.TTL, [key])
+        return self.append_command(RequestType.Ttl, [key])
 
     def pttl(
         self: TTransaction,
