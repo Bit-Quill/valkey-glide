@@ -2358,6 +2358,39 @@ class CoreCommands(Protocol):
             ),
         )
 
+    async def bzpopmin(
+        self, keys: List[str], timeout: float
+    ) -> Optional[List[Union[str, float]]]:
+        """
+        Blocks the connection until it removes and returns a member with the lowest score from the sorted sets stored
+        at the specified keys. The sorted sets are checked in the order they are provided.
+
+        When in cluster mode, all keys must map to the same hash slot.
+
+        BZPOPMIN is the blocking variant of `zpopmin`.
+
+        See https://valkey.io/commands/bzpopmin for more details.
+
+        BZPOPMIN is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
+
+        Args:
+            keys (List[str]): The keys of the sorted sets.
+            timeout (float): The number of seconds to wait for a blocking operation to complete.
+                A value of 0 will block indefinitely.
+
+        Returns:
+            Optional[List[Union[str, float]]]: An array containing the key where the member was popped out, the member itself,
+                and the member score. If no member could be popped and the `timeout` expired, returns None.
+
+        Examples:
+            >>> await client.bzpopmin(["my_sorted_set1", "my_sorted_set2"], 0.5)
+                ['my_sorted_set1', 'member1', 1.0]  # 'member1' with a score of 1.0 has been removed from 'my_sorted_set'.
+        """
+        return cast(
+            Optional[List[Union[str, float]]],
+            await self._execute_command(RequestType.BZPopMin, keys + [str(timeout)]),
+        )
+
     async def zrange(
         self,
         key: str,

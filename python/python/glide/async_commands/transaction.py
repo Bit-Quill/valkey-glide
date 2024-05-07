@@ -1671,6 +1671,28 @@ class BaseTransaction:
             RequestType.ZPopMin, [key, str(count)] if count else [key]
         )
 
+    def bzpopmin(self: TTransaction, keys: List[str], timeout: float) -> TTransaction:
+        """
+        Blocks the connection until it removes and returns a member with the lowest score from the sorted sets stored
+        at the specified keys. The sorted sets are checked in the order they are provided.
+
+        BZPOPMIN is the blocking variant of `zpopmin`.
+
+        See https://valkey.io/commands/bzpopmin for more details.
+
+        BZPOPMIN is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
+
+        Args:
+            keys (List[str]): The keys of the sorted sets.
+            timeout (float): The number of seconds to wait for a blocking operation to complete.
+                A value of 0 will block indefinitely.
+
+        Command response:
+            Optional[List[Union[str, float]]]: An array containing the key where the member was popped out, the member itself,
+                and the member score. If no member could be popped and the `timeout` expired, returns None.
+        """
+        return self.append_command(RequestType.BZPopMin, keys + [str(timeout)])
+
     def zrange(
         self: TTransaction,
         key: str,
