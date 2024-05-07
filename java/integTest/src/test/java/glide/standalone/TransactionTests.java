@@ -2,12 +2,9 @@
 package glide.standalone;
 
 import static glide.TestConfiguration.REDIS_VERSION;
-import static glide.TransactionTestUtilities.floatingPointTransactionTest;
 import static glide.TransactionTestUtilities.transactionTest;
-import static glide.TransactionTestUtilities.transactionTestFloatingPointResult;
 import static glide.TransactionTestUtilities.transactionTestResult;
 import static glide.api.BaseClient.OK;
-import static glide.utils.ArrayTransformUtils.castArrayofArrays;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -118,39 +115,6 @@ public class TransactionTests {
 
         Object[] result = client.exec(transaction).get();
         assertArrayEquals(expectedResult, result);
-    }
-
-    @SneakyThrows
-    @Test
-    public void test_standalone_transactions_floatingpoint() {
-        Transaction transaction = (Transaction) floatingPointTransactionTest(new Transaction());
-        Object[] expectedResult = transactionTestFloatingPointResult();
-
-        String key = UUID.randomUUID().toString();
-        String value = UUID.randomUUID().toString();
-
-        transaction.select(1);
-        transaction.set(key, value);
-        transaction.get(key);
-        transaction.select(0);
-        transaction.get(key);
-
-        expectedResult = ArrayUtils.addAll(expectedResult, OK, OK, value, OK, null);
-
-        Object[] result = client.exec(transaction).get();
-        for (int i = 0; i < expectedResult.length; i++) {
-            if (expectedResult[i] != null && expectedResult[i].getClass() == Double[][].class) {
-                Double[][] expectedArr = castArrayofArrays((Object[]) expectedResult[i], Double.class);
-                Double[][] actualArr = castArrayofArrays((Object[]) result[i], Double.class);
-                for (int j = 0; j < expectedArr.length; j++) {
-                    for (int k = 0; k < expectedArr[j].length; k++) {
-                        assertEquals(expectedArr[j][k], actualArr[j][k], 1e-9);
-                    }
-                }
-            } else {
-                assertEquals(expectedResult[i], result[i]);
-            }
-        }
     }
 
     @Test

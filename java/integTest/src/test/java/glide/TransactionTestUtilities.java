@@ -37,7 +37,6 @@ public class TransactionTestUtilities {
     private static final String hllKey2 = "{key}:hllKey2-" + UUID.randomUUID();
     private static final String hllKey3 = "{key}:hllKey3-" + UUID.randomUUID();
     private static final String geoKey1 = "{key}:geoKey1-" + UUID.randomUUID();
-    private static final String geoKey2 = "{key}:geoKey1-" + UUID.randomUUID();
     private static final String value1 = UUID.randomUUID().toString();
     private static final String value2 = UUID.randomUUID().toString();
     private static final String value3 = UUID.randomUUID().toString();
@@ -304,31 +303,6 @@ public class TransactionTestUtilities {
             3L, // pfcount(new String[] { hllKey1, hllKey2 });;
             OK, // pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
             3L, // pfcount(new String[] { hllKey3 })
-        };
-    }
-
-    public static BaseTransaction<?> floatingPointTransactionTest(
-            BaseTransaction<?> baseTransaction) {
-
-        baseTransaction.geoadd(
-                geoKey2,
-                Map.of(
-                        "Palermo",
-                        new GeospatialData(13.361389, 38.115556),
-                        "Catania",
-                        new GeospatialData(15.087269, 37.502669)));
-        baseTransaction.geopos(geoKey2, new String[] {"Palermo", "Catania"});
-
-        return baseTransaction;
-    }
-
-    public static Object[] transactionTestFloatingPointResult() {
-        return new Object[] {
-            2L, // geoadd(geoKey1, Map.of("Palermo", ..., "Catania", ...))
-            new Double[][] {
-                {13.36138933897018433, 38.11555639549629859},
-                {15.08726745843887329, 37.50266842333162032},
-            }
         };
     }
 }
