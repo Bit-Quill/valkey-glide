@@ -99,7 +99,7 @@ enum RequestType {
     ExpireAt = 57;
     Exists = 58;
     Unlink = 59;
-    TTL = 60;
+    Ttl = 60;
     ZAdd = 61;
     ZRem = 62;
     ZRange = 63;
@@ -164,7 +164,7 @@ enum RequestType {
     SDiff = 124;
     ObjectIdleTime = 125;
     ObjectRefCount = 126;
-    LOLWUT = 100500;
+    Lolwut = 100500;
     GeoDist = 127;
     GeoPos = 128;
     BZPopMax = 129;

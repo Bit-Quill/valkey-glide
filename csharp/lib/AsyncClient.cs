@@ -187,7 +187,7 @@ public class AsyncClient : IDisposable
         ExpireAt = 57,
         Exists = 58,
         Unlink = 59,
-        TTL = 60,
+        Ttl = 60,
         ZAdd = 61,
         ZRem = 62,
         ZRange = 63,
