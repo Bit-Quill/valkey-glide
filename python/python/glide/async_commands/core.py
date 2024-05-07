@@ -2314,7 +2314,7 @@ class CoreCommands(Protocol):
                 A value of 0 will block indefinitely.
 
         Returns:
-            List[Union[str, float]]: An array containing the key where the member was popped out, the member itself,
+            Optional[List[Union[str, float]]]: An array containing the key where the member was popped out, the member itself,
                 and the member score. If no member could be popped and the `timeout` expired, returns None.
 
         Examples:

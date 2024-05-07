@@ -1643,7 +1643,7 @@ class BaseTransaction:
                 A value of 0 will block indefinitely.
 
         Command response:
-            List[Union[str, float]]: An array containing the key where the member was popped out, the member itself,
+            Optional[List[Union[str, float]]]: An array containing the key where the member was popped out, the member itself,
                 and the member score. If no member could be popped and the `timeout` expired, returns None.
         """
         return self.append_command(RequestType.BZPopMax, keys + [str(timeout)])
