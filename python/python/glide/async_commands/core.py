@@ -2297,16 +2297,16 @@ class CoreCommands(Protocol):
         self, keys: List[str], timeout: float
     ) -> Optional[List[Union[str, float]]]:
         """
-        Blocks the connection until it removes and returns a member with the highest score from the sorted sets stored
-        at the specified keys. The sorted sets are checked in the order they are provided.
+        Blocks the connection until it removes and returns a member with the highest score from the first non-empty
+        sorted set, with the given keys being checked in the order they are provided.
 
         When in cluster mode, all keys must map to the same hash slot.
 
         BZPOPMAX is the blocking variant of `zpopmax`.
 
-        See https://valkey.io/commands/bzpopmax for more details.
-
         BZPOPMAX is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
+
+        See https://valkey.io/commands/bzpopmax for more details.
 
         Args:
             keys (List[str]): The keys of the sorted sets.
@@ -2362,16 +2362,16 @@ class CoreCommands(Protocol):
         self, keys: List[str], timeout: float
     ) -> Optional[List[Union[str, float]]]:
         """
-        Blocks the connection until it removes and returns a member with the lowest score from the sorted sets stored
-        at the specified keys. The sorted sets are checked in the order they are provided.
+        Blocks the connection until it removes and returns a member with the lowest score from the first non-empty
+        sorted set, with the given keys being checked in the order they are provided.
 
         When in cluster mode, all keys must map to the same hash slot.
 
         BZPOPMIN is the blocking variant of `zpopmin`.
 
-        See https://valkey.io/commands/bzpopmin for more details.
-
         BZPOPMIN is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
+
+        See https://valkey.io/commands/bzpopmin for more details.
 
         Args:
             keys (List[str]): The keys of the sorted sets.

@@ -288,6 +288,8 @@ pub(crate) fn convert_to_expected_type(
             )
                 .into()),
         },
+        // Used by BZPOPMIN/BZPOPMAX, which return an array consisting of the key of the sorted set that was popped, the popped member, and its score.
+        // RESP2 returns the score as a string, but RESP3 returns the score as a double. Here we convert string scores into type double.
         ExpectedReturnType::KeyWithMemberAndScore => match value {
             Value::Nil => Ok(value),
             Value::Array(ref array) if array.len() == 3 && matches!(array[2], Value::Double(_)) => {
