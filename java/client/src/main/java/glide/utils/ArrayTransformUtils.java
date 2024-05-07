@@ -90,10 +90,11 @@ public class ArrayTransformUtils {
         if (outerObjectArr == null) {
             return null;
         }
+        T[] convertedArr = (T[]) new Object[outerObjectArr.length];
         for (int i = 0; i < outerObjectArr.length; i++) {
-            outerObjectArr[i] = (T) castArray((T[]) outerObjectArr[i], clazz);
+            convertedArr[i] = (T) castArray((T[]) outerObjectArr[i], clazz);
         }
-        return (U[][]) castArray(outerObjectArr, Array.newInstance(clazz, 0).getClass());
+        return (U[][]) castArray(convertedArr, Array.newInstance(clazz, 0).getClass());
     }
 
     /**

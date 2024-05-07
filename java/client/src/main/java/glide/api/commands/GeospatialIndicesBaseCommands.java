@@ -70,10 +70,11 @@ public interface GeospatialIndicesBaseCommands {
      *     null</code>.
      * @example
      *     <pre>{@code
-     * client.geoadd("mySortedSet", Map.of("Palermo", new GeospatialData(13.361389, 38.115556), "Catania", new GeospatialData(15.087269, 37.502669)));
+     * // When added via GEOADD, the geospatial coordinates are converted into a 52 bit geohash, so the coordinates
+     * // returned might not be exactly the same as the input values
+     * client.geoadd("mySortedSet", Map.of("Palermo", new GeospatialData(13.361389, 38.115556), "Catania", new GeospatialData(15.087269, 37.502669))).get();
      * Double[][] result = client.geopos("mySortedSet", new String[]{"Palermo", "Catania", "NonExisting"}).get();
-     * Double[][] expected = new Double[][]{{13.36138933897018433, 38.11555639549629859}, {15.08726745843887329, 37.50266842333162032}, null};
-     * assertTrue(Arrays.deepEquals(result, expected));
+     * System.out.println(Arrays.deepToString(result));
      * }</pre>
      */
     CompletableFuture<Double[][]> geopos(String key, String[] members);
