@@ -300,8 +300,7 @@ pub(crate) fn convert_to_expected_type(
                     && matches!(array[2], Value::BulkString(_) | Value::SimpleString(_)) =>
             {
                 array[2] =
-                    convert_to_expected_type(array[2].clone(), Some(ExpectedReturnType::Double))
-                        .unwrap();
+                    convert_to_expected_type(array[2].clone(), Some(ExpectedReturnType::Double))?;
                 Ok(Value::Array(array))
             }
             _ => Err((
