@@ -1631,7 +1631,7 @@ class BaseTransaction:
         Blocks the connection until it removes and returns a member with the highest score from the first non-empty
         sorted set, with the given keys being checked in the order they are provided.
 
-        BZPOPMAX is the blocking variant of `zpopmax`.
+        BZPOPMAX is the blocking variant of ZPOPMAX.
 
         BZPOPMAX is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
 
@@ -1676,7 +1676,7 @@ class BaseTransaction:
         Blocks the connection until it removes and returns a member with the lowest score from the first non-empty
         sorted set, with the given keys being checked in the order they are provided.
 
-        BZPOPMIN is the blocking variant of `zpopmin`.
+        BZPOPMIN is the blocking variant of ZPOPMIN.
 
         BZPOPMIN is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
 

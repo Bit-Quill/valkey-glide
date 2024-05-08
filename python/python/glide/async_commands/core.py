@@ -2302,7 +2302,7 @@ class CoreCommands(Protocol):
 
         When in cluster mode, all keys must map to the same hash slot.
 
-        BZPOPMAX is the blocking variant of `zpopmax`.
+        BZPOPMAX is the blocking variant of ZPOPMAX.
 
         BZPOPMAX is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
 
@@ -2367,7 +2367,7 @@ class CoreCommands(Protocol):
 
         When in cluster mode, all keys must map to the same hash slot.
 
-        BZPOPMIN is the blocking variant of `zpopmin`.
+        BZPOPMIN is the blocking variant of ZPOPMIN.
 
         BZPOPMIN is a client blocking command, see https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands for more details and best practices.
 
