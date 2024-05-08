@@ -113,24 +113,6 @@ public class ArrayTransformUtils {
                 .collect(Collectors.toMap(k -> k.getKey(), e -> castArray(e.getValue(), clazz)));
     }
 
-    //    /**
-    //     * Takes a Maps and casts the containing Map, and Array
-    //     *
-    //     * @param mapOfMapOfArrays
-    //     * @param clazz
-    //     * @return
-    //     * @param <T>
-    //     * @param <U>
-    //     */
-    //    public static <T, U extends T> Map<String, Map<String, U[]>> castMapOfMapOfArrays(
-    //        Map<String, Object> mapOfMapOfArrays, Class<U> clazz) {
-    //        if (mapOfMapOfArrays == null) {
-    //            return null;
-    //        }
-    //        return mapOfMapOfArrays.entrySet().stream()
-    //            .collect(Collectors.toMap(k -> k.getKey(), v -> (Map) v.getValue()));
-    //    }
-
     /**
      * Concatenates multiple arrays of type T and returns a single concatenated array.
      *
