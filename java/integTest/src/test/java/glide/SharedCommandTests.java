@@ -2754,7 +2754,7 @@ public class SharedCommandTests {
     }
 
     @SneakyThrows
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void xread(BaseClient client) {
         String key1 = "key1";
