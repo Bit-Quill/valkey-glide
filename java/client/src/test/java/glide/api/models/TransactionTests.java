@@ -127,6 +127,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrange;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrank;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
+import glide.api.models.commands.BitmapIndexType;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.RangeOptions;
@@ -657,6 +658,15 @@ public class TransactionTests {
 
         transaction.bitcount("key");
         results.add(Pair.of(Bitcount, buildArgs("key")));
+
+        transaction.bitcount("key", 1, 1);
+        results.add(Pair.of(Bitcount, buildArgs("key", "1", "1")));
+
+        transaction.bitcount("key", 1, 1, BitmapIndexType.BIT);
+        results.add(Pair.of(Bitcount, buildArgs("key", "1", "1", BitmapIndexType.BIT.toString())));
+
+        transaction.bitcount("key", 1, 1, BitmapIndexType.BYTE);
+        results.add(Pair.of(Bitcount, buildArgs("key", "1", "1", BitmapIndexType.BYTE.toString())));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 
