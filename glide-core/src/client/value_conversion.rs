@@ -272,15 +272,15 @@ pub(crate) fn convert_to_expected_type(
             }
         },
         ExpectedReturnType::XreadReturnType => match value {
-           Value::Nil => Ok(value),
-           Value::Map(_) | Value::Array(_) => convert_to_xread_map(value),
-           _ => Err((
-               ErrorKind::TypeError,
-               "Response couldn't be converted to map",
-               format!("(response was {:?})", value),
-           )
-               .into()),
-        }
+            Value::Nil => Ok(value),
+            Value::Map(_) | Value::Array(_) => convert_to_xread_map(value),
+            _ => Err((
+                ErrorKind::TypeError,
+                "Response couldn't be converted to map",
+                format!("(response was {:?})", value),
+            )
+                .into()),
+        },
         ExpectedReturnType::ArrayOfKeyValuePairs => match value {
             Value::Nil => Ok(value),
             Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Array(_)) => {
@@ -403,9 +403,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
 
     // TODO use enum to avoid mistakes
     match command.as_slice() {
-        b"HGETALL" | b"CONFIG GET" | b"FT.CONFIG GET" | b"HELLO" => {
-            Some(ExpectedReturnType::Map)
-        }
+        b"HGETALL" | b"CONFIG GET" | b"FT.CONFIG GET" | b"HELLO" => Some(ExpectedReturnType::Map),
         b"INCRBYFLOAT" | b"HINCRBYFLOAT" => Some(ExpectedReturnType::Double),
         b"HEXISTS" | b"HSETNX" | b"EXPIRE" | b"EXPIREAT" | b"PEXPIRE" | b"PEXPIREAT"
         | b"SISMEMBER" | b"PERSIST" | b"SMOVE" | b"RENAMENX" => Some(ExpectedReturnType::Boolean),
@@ -462,16 +460,19 @@ fn convert_to_xread_map(value: Value) -> RedisResult<Value> {
                         }
                         let mut inner_iterator = inner_array.into_iter();
                         let Some(inner_key) = inner_iterator.next() else {
-                            return Err((ErrorKind::TypeError, "Missing key inside array of map").into());
+                            return Err(
+                                (ErrorKind::TypeError, "Missing key inside array of map").into()
+                            );
                         };
                         let Some(inner_value) = inner_iterator.next() else {
-                            return Err((ErrorKind::TypeError, "Missing value inside array of map").into());
+                            return Err((
+                                ErrorKind::TypeError,
+                                "Missing value inside array of map",
+                            )
+                                .into());
                         };
 
-                        map.push((
-                            inner_key,
-                            convert_to_xread_map(inner_value).unwrap(),
-                        ));
+                        map.push((inner_key, convert_to_xread_map(inner_value).unwrap()));
                     }
                     _ => {
                         let Some(value) = iterator.next() else {
@@ -486,7 +487,6 @@ fn convert_to_xread_map(value: Value) -> RedisResult<Value> {
                 }
             }
             Ok(Value::Map(map))
-
         }
         Value::Map(map) => {
             let map_clone = map.clone();
@@ -499,10 +499,9 @@ fn convert_to_xread_map(value: Value) -> RedisResult<Value> {
                         _ => Value::BulkString(from_owned_redis_value::<String>(key)?.into()),
                     };
                     match inner_value {
-                        Value::Array(_) => Ok((
-                            key_str,
-                            convert_to_xread_map(inner_value.clone()).unwrap()
-                        )),
+                        Value::Array(_) => {
+                            Ok((key_str, convert_to_xread_map(inner_value.clone()).unwrap()))
+                        }
                         _ => Err((
                             ErrorKind::TypeError,
                             "Response couldn't be converted to map of {string: array}",
@@ -514,11 +513,10 @@ fn convert_to_xread_map(value: Value) -> RedisResult<Value> {
                 .collect::<RedisResult<_>>();
 
             result.map(Value::Map)
-        },
-        _ => Ok(value)
+        }
+        _ => Ok(value),
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -1080,7 +1078,7 @@ mod tests {
             Value::Array(empty_array),
             Some(ExpectedReturnType::XreadReturnType),
         )
-            .unwrap();
+        .unwrap();
 
         let empty_map_result = if let Value::Map(map) = empty_map_result {
             map
@@ -1102,15 +1100,13 @@ mod tests {
         let array_of_arrays = vec![
             Value::Array(vec![
                 Value::BulkString(b"key1".to_vec()),
-                Value::Array(vec![
+                Value::Array(vec![Value::Array(vec![
+                    Value::BulkString(b"streamid-1".to_vec()),
                     Value::Array(vec![
-                        Value::BulkString(b"streamid-1".to_vec()),
-                        Value::Array(vec![
-                            Value::BulkString(b"field1".to_vec()),
-                            Value::BulkString(b"value1".to_vec()),
-                        ]),
+                        Value::BulkString(b"field1".to_vec()),
+                        Value::BulkString(b"value1".to_vec()),
                     ]),
-                ]),
+                ])]),
             ]),
             Value::Array(vec![
                 Value::BulkString(b"key2".to_vec()),
@@ -1139,7 +1135,7 @@ mod tests {
             Value::Array(array_of_arrays),
             Some(ExpectedReturnType::XreadReturnType),
         )
-            .unwrap();
+        .unwrap();
         dbg!(converted_map.clone());
 
         let converted_map = if let Value::Map(map) = converted_map {
@@ -1152,23 +1148,21 @@ mod tests {
 
         let (key, value) = &converted_map[0];
         assert_eq!(*key, Value::BulkString(b"key1".to_vec()));
-        assert_eq!(*value,
-            Value::Map(vec![
-                (
-                    Value::BulkString(b"streamid-1".to_vec()),
-                    Value::Map(vec![
-                        (
-                            Value::BulkString(b"field1".to_vec()),
-                            Value::BulkString(b"value1".to_vec()),
-                        ),
-                    ]),
-                ),
-            ]),
+        assert_eq!(
+            *value,
+            Value::Map(vec![(
+                Value::BulkString(b"streamid-1".to_vec()),
+                Value::Map(vec![(
+                    Value::BulkString(b"field1".to_vec()),
+                    Value::BulkString(b"value1".to_vec()),
+                ),]),
+            ),]),
         );
 
         let (key, value) = &converted_map[1];
         assert_eq!(*key, Value::BulkString(b"key2".to_vec()));
-        assert_eq!(*value,
+        assert_eq!(
+            *value,
             Value::Map(vec![
                 (
                     Value::BulkString(b"streamid-2".to_vec()),
@@ -1185,12 +1179,10 @@ mod tests {
                 ),
                 (
                     Value::BulkString(b"streamid-3".to_vec()),
-                    Value::Map(vec![
-                        (
-                            Value::BulkString(b"field3".to_vec()),
-                            Value::BulkString(b"value3".to_vec()),
-                        ),
-                    ]),
+                    Value::Map(vec![(
+                        Value::BulkString(b"field3".to_vec()),
+                        Value::BulkString(b"value3".to_vec()),
+                    ),]),
                 ),
             ]),
         );
@@ -1198,7 +1190,6 @@ mod tests {
 
     #[test]
     fn test_convert_to_zread_return_type_from_map() {
-
         // in RESP3, we get a map of arrays value like this:
         // 1# "key1" =>
         //    1) 1) "streamid-1"
@@ -1211,15 +1202,13 @@ mod tests {
         let map_of_arrays = vec![
             (
                 Value::BulkString("key1".into()),
-                Value::Array(vec![
+                Value::Array(vec![Value::Array(vec![
+                    Value::BulkString(b"streamid-1".to_vec()),
                     Value::Array(vec![
-                        Value::BulkString(b"streamid-1".to_vec()),
-                        Value::Array(vec![
-                            Value::BulkString(b"field1".to_vec()),
-                            Value::BulkString(b"value1".to_vec()),
-                        ]),
+                        Value::BulkString(b"field1".to_vec()),
+                        Value::BulkString(b"value1".to_vec()),
                     ]),
-                ]),
+                ])]),
             ),
             (
                 Value::BulkString("key2".into()),
@@ -1260,23 +1249,21 @@ mod tests {
 
         let (key, value) = &converted_map[0];
         assert_eq!(*key, Value::BulkString(b"key1".to_vec()));
-        assert_eq!(*value,
-            Value::Map(vec![
-                (
-                    Value::BulkString(b"streamid-1".to_vec()),
-                    Value::Map(vec![
-                        (
-                            Value::BulkString(b"field1".to_vec()),
-                            Value::BulkString(b"value1".to_vec()),
-                        ),
-                    ]),
-                ),
-            ]),
+        assert_eq!(
+            *value,
+            Value::Map(vec![(
+                Value::BulkString(b"streamid-1".to_vec()),
+                Value::Map(vec![(
+                    Value::BulkString(b"field1".to_vec()),
+                    Value::BulkString(b"value1".to_vec()),
+                ),]),
+            ),]),
         );
 
         let (key, value) = &converted_map[1];
         assert_eq!(*key, Value::BulkString(b"key2".to_vec()));
-        assert_eq!(*value,
+        assert_eq!(
+            *value,
             Value::Map(vec![
                 (
                     Value::BulkString(b"streamid-2".to_vec()),
@@ -1293,12 +1280,10 @@ mod tests {
                 ),
                 (
                     Value::BulkString(b"streamid-3".to_vec()),
-                    Value::Map(vec![
-                        (
-                            Value::BulkString(b"field3".to_vec()),
-                            Value::BulkString(b"value3".to_vec()),
-                        ),
-                    ]),
+                    Value::Map(vec![(
+                        Value::BulkString(b"field3".to_vec()),
+                        Value::BulkString(b"value3".to_vec()),
+                    ),]),
                 ),
             ]),
         );
