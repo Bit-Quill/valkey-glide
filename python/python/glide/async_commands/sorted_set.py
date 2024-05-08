@@ -23,6 +23,23 @@ class InfBound(Enum):
     """
 
 
+class ScoreModifier(Enum):
+    """
+    Defines which elements to pop from a sorted set.
+
+    ScoreModifier is a mandatory option for BZMPOP (https://google.github.io/proto-lens/installing-protoc.html).
+    """
+
+    MIN = "MIN"
+    """
+    Pop elements with the lowest scores.
+    """
+    MAX = "MAX"
+    """
+    Pop elements with the highest scores.
+    """
+
+
 class ScoreBoundary:
     """
     Represents a specific numeric score boundary in a sorted set.
