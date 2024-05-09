@@ -77,6 +77,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SMove;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Set;
+import static redis_request.RedisRequestOuterClass.RequestType.SetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.SetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
@@ -1236,5 +1237,11 @@ public abstract class BaseClient
         String[] arguments =
                 new String[] {key, Long.toString(start), Long.toString(end), options.toString()};
         return commandManager.submitNewCommand(Bitcount, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> setbit(@NonNull String key, long offset, long value) {
+        String[] arguments = new String[] {key, Long.toString(offset)};
+        return commandManager.submitNewCommand(SetBit, arguments, this::handleLongResponse);
     }
 }
