@@ -2430,10 +2430,13 @@ class TestCommands:
             entries.update({f"a{i}": float(i)})
 
         assert await redis_client.zadd(key2, entries) == 10
-        assert await redis_client.bzmpop([key2], ScoreModifier.MIN, 0.1, 10) == [key2, entries]
+        assert await redis_client.bzmpop([key2], ScoreModifier.MIN, 0.1, 10) == [
+            key2,
+            entries,
+        ]
 
         async def endless_bzmpop_call():
-            await redis_client.bzmpop(["non_existent_key"], 0)
+            await redis_client.bzmpop(["non_existent_key"], ScoreModifier.MAX, 0)
 
         # bzmpop is called against a non-existing key with no timeout, but we wrap the call in an asyncio timeout to
         # avoid having the test block forever
