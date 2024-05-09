@@ -98,8 +98,7 @@ public interface StreamBaseCommands {
      * @return A <code>Map</code> of a stream key to an array of entries in the matching <code>key
      *     </code>. The entries are in an <code>[id, fields[]]</code> format.
      *     <pre>{@code=
-     * Map<String, String> xreadKeys = new LinkedHashMap<>();
-     * xreadKeys.put("streamKey", "readId");
+     * Map<String, String> xreadKeys = Map.of("streamKey", "readId");
      * Map<String, Map<String, Map<String, String>>> streamReadResponse =
      *     client.xread(xreadKeys).get();
      * streamReadResponse.get("streamKey")

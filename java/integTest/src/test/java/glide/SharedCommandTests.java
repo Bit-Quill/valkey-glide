@@ -2757,8 +2757,8 @@ public class SharedCommandTests {
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void xread(BaseClient client) {
-        String key1 = "key1";
-        String key2 = "{" + key1 + "}-1-" + UUID.randomUUID();
+        String key1 = "{key1}";
+        String key2 = key1 + "-" + UUID.randomUUID();
         String field1 = "f1_";
         String field2 = "f2_";
         String field3 = "f3_";

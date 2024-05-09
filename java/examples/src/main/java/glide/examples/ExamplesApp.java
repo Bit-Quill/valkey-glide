@@ -33,6 +33,11 @@ public class ExamplesApp {
             System.out.println("SET(apples, oranges): " + client.set("apples", "oranges").get());
             System.out.println("GET(apples): " + client.get("apples").get());
 
+            System.out.println(
+                    "Custom Command: "
+                            + client.customCommand(new String[] {"APPEND", "apples", "oranges"}).get());
+            System.out.println("GET(apples): " + client.get("apples").get());
+
         } catch (ExecutionException | InterruptedException e) {
             System.out.println("Glide example failed with an exception: ");
             e.printStackTrace();
