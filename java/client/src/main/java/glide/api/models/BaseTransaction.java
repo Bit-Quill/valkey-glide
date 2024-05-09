@@ -28,6 +28,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.GetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.GetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.HLen;
@@ -2735,6 +2736,26 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                 buildArgs(new String[] {key, Long.toString(start), Long.toString(end), options.toString()});
 
         protobufTransaction.addCommands(buildCommand(Bitcount, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the bit value at <code>offset</code> in the string value stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/getbit/">redis.io</a> for details.
+     * @param key The key for the string to get the bit at offset of.
+     * @return The bit at offset of the string.
+     *     Returns zero if the key is missing as it is treated as an empty string.
+     *     Returns zero if the positive offset exceeds the length of the string as it is assumed to be padded zeroes.
+     * @example
+     *     <pre>{@code
+     * Long payload = client.getbit("myKey1", 1).get();
+     * assert payload == 1L; // The second bit for string stored at "myKey1" is set to 1.
+     * }</pre>
+     */
+    public T getbit(@NonNull String key, long offset) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(offset));
+        protobufTransaction.addCommands(buildCommand(GetBit, commandArgs));
         return getThis();
     }
 

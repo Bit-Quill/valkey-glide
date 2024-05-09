@@ -178,6 +178,7 @@ enum RequestType {
     HRandField = 135;
     ZUnion = 136;
     Bitcount = 137;
+    GetBit = 138;
 }
 
 message Command {

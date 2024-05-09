@@ -37,6 +37,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.GetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.GetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.HLen;
@@ -667,6 +668,9 @@ public class TransactionTests {
 
         transaction.bitcount("key", 1, 1, BitmapIndexType.BYTE);
         results.add(Pair.of(Bitcount, buildArgs("key", "1", "1", BitmapIndexType.BYTE.toString())));
+
+        transaction.getbit("key", 1);
+        results.add(Pair.of(GetBit, buildArgs("key", "1")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

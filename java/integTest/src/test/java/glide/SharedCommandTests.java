@@ -3250,4 +3250,26 @@ public class SharedCommandTests {
                 executionException.getCause().getMessage(),
                 "An error was signalled by the server - ResponseError: syntax error");
     }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void getbit(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String missingKey = "missing";
+        String value = "foobar";
+
+        assertEquals(OK, client.set(key, value).get());
+        assertEquals(1, client.getbit(key, 1).get());
+        assertEquals(0, client.getbit(key, 1000).get());
+        assertEquals(0, client.getbit(missingKey, 1).get());
+
+        ExecutionException executionException =
+            assertThrows(
+                ExecutionException.class,
+                () ->client.getbit(key, -1).get());
+        assertEquals(
+            executionException.getCause().getMessage(),
+            "An error was signalled by the server - ResponseError: bit offset is not an integer or out of range");
+    }
 }

@@ -199,6 +199,8 @@ public class TransactionTestUtilities {
         baseTransaction.bitcount(key3, 2, 4);
         baseTransaction.bitcount(key3, 2, 19, BitmapIndexType.BIT);
 
+        baseTransaction.getbit(key3, 1);
+
         return baseTransaction;
     }
 
@@ -316,6 +318,7 @@ public class TransactionTestUtilities {
             15L, // bitcount(key3)
             8L, // bitcount(key3, 2, 4)
             7L, // bitcount(key3, 2, 19, BitmapIndexType.BIT)
+            1L, // getbit(key3, 1)
         };
     }
 }

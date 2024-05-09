@@ -146,6 +146,7 @@ pub enum RequestType {
     HRandField = 135,
     ZUnion = 136,
     Bitcount = 137,
+    GetBit = 138,
 }
 
 fn get_two_word_command(first: &str, second: &str) -> Cmd {
@@ -295,6 +296,7 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::HRandField => RequestType::HRandField,
             ProtobufRequestType::ZUnion => RequestType::ZUnion,
             ProtobufRequestType::Bitcount => RequestType::Bitcount,
+            ProtobufRequestType::GetBit => RequestType::GetBit,
         }
     }
 }
@@ -440,6 +442,7 @@ impl RequestType {
             RequestType::HRandField => Some(cmd("HRANDFIELD")),
             RequestType::ZUnion => Some(cmd("ZUNION")),
             RequestType::Bitcount => Some(cmd("BITCOUNT")),
+            RequestType::GetBit => Some(cmd("GETBIT")),
         }
     }
 }
