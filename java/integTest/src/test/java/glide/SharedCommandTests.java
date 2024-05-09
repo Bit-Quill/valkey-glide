@@ -3265,11 +3265,10 @@ public class SharedCommandTests {
         assertEquals(0, client.getbit(missingKey, 1).get());
 
         ExecutionException executionException =
-            assertThrows(
-                ExecutionException.class,
-                () ->client.getbit(key, -1).get());
+                assertThrows(ExecutionException.class, () -> client.getbit(key, -1).get());
         assertEquals(
-            executionException.getCause().getMessage(),
-            "An error was signalled by the server - ResponseError: bit offset is not an integer or out of range");
+                executionException.getCause().getMessage(),
+                "An error was signalled by the server - ResponseError: bit offset is not an integer or out"
+                        + " of range");
     }
 }
