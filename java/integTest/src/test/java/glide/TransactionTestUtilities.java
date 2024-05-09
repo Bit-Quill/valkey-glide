@@ -197,6 +197,8 @@ public class TransactionTestUtilities {
                 .pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
                 .pfcount(new String[] {hllKey3});
 
+        baseTransaction.getbit(key3, 1);
+
         // keep it last - it deletes all the keys
         baseTransaction.flushall().flushall(ASYNC);
 
@@ -315,6 +317,7 @@ public class TransactionTestUtilities {
             3L, // pfcount(new String[] { hllKey1, hllKey2 });;
             OK, // pfmerge(hllKey3, new String[] {hllKey1, hllKey2})
             3L, // pfcount(new String[] { hllKey3 })
+            1L, // getbit(key3, 1)
             OK, // flushall()
             OK, // flushall(ASYNC)
         };

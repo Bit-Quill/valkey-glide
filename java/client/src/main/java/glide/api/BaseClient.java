@@ -18,6 +18,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.GetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.GetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
 import static redis_request.RedisRequestOuterClass.RequestType.HLen;
@@ -103,6 +104,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrange;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrank;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
+import glide.api.commands.BitmapBaseCommands;
 import glide.api.commands.GenericBaseCommands;
 import glide.api.commands.GeospatialIndicesBaseCommands;
 import glide.api.commands.HashBaseCommands;
@@ -156,6 +158,7 @@ import response.ResponseOuterClass.Response;
 @AllArgsConstructor
 public abstract class BaseClient
         implements AutoCloseable,
+                BitmapBaseCommands,
                 GenericBaseCommands,
                 StringBaseCommands,
                 HashBaseCommands,
@@ -1156,5 +1159,11 @@ public abstract class BaseClient
     public CompletableFuture<Long> geoadd(
             @NonNull String key, @NonNull Map<String, GeospatialData> membersToGeospatialData) {
         return geoadd(key, membersToGeospatialData, new GeoAddOptions(false));
+    }
+
+    @Override
+    public CompletableFuture<Long> getbit(@NonNull String key, long offset) {
+        String[] arguments = new String[] {key, Long.toString(offset)};
+        return commandManager.submitNewCommand(GetBit, arguments, this::handleLongResponse);
     }
 }
