@@ -20,8 +20,8 @@ pub(crate) enum ExpectedReturnType {
     ArrayOfDoubleOrNull,
     Lolwut,
     ArrayOfArraysOfDoubleOrNull,
-    ArrayOfKeyValuePairs,
     XreadReturnType,
+    ArrayOfKeyValuePairs,
 }
 
 pub(crate) fn convert_to_expected_type(
@@ -398,52 +398,12 @@ fn convert_flat_array_to_key_value_pairs(array: Vec<Value>) -> RedisResult<Value
     Ok(Value::Array(result))
 }
 
-pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
-    let command = cmd.command()?;
-
-    // TODO use enum to avoid mistakes
-    match command.as_slice() {
-        b"HGETALL" | b"CONFIG GET" | b"FT.CONFIG GET" | b"HELLO" => Some(ExpectedReturnType::Map),
-        b"INCRBYFLOAT" | b"HINCRBYFLOAT" => Some(ExpectedReturnType::Double),
-        b"HEXISTS" | b"HSETNX" | b"EXPIRE" | b"EXPIREAT" | b"PEXPIRE" | b"PEXPIREAT"
-        | b"SISMEMBER" | b"PERSIST" | b"SMOVE" | b"RENAMENX" => Some(ExpectedReturnType::Boolean),
-        b"SMISMEMBER" => Some(ExpectedReturnType::ArrayOfBools),
-        b"SMEMBERS" | b"SINTER" => Some(ExpectedReturnType::Set),
-        b"ZSCORE" | b"GEODIST" => Some(ExpectedReturnType::DoubleOrNull),
-        b"ZMSCORE" => Some(ExpectedReturnType::ArrayOfDoubleOrNull),
-        b"ZPOPMIN" | b"ZPOPMAX" => Some(ExpectedReturnType::MapOfStringToDouble),
-        b"JSON.TOGGLE" => Some(ExpectedReturnType::JsonToggleReturnType),
-        b"GEOPOS" => Some(ExpectedReturnType::ArrayOfArraysOfDoubleOrNull),
-        b"HRANDFIELD" => cmd
-            .position(b"WITHVALUES")
-            .map(|_| ExpectedReturnType::ArrayOfKeyValuePairs),
-        b"ZRANDMEMBER" => cmd
-            .position(b"WITHSCORES")
-            .map(|_| ExpectedReturnType::ArrayOfKeyValuePairs),
-        b"ZADD" => cmd
-            .position(b"INCR")
-            .map(|_| ExpectedReturnType::DoubleOrNull),
-        b"ZRANGE" | b"ZDIFF" | b"ZUNION" => cmd
-            .position(b"WITHSCORES")
-            .map(|_| ExpectedReturnType::MapOfStringToDouble),
-        b"ZRANK" | b"ZREVRANK" => cmd
-            .position(b"WITHSCORE")
-            .map(|_| ExpectedReturnType::ZrankReturnType),
-        b"SPOP" => {
-            if cmd.arg_idx(2).is_some() {
-                Some(ExpectedReturnType::Set)
-            } else {
-                None
-            }
-        }
-        b"LOLWUT" => Some(ExpectedReturnType::Lolwut),
-        b"XREAD" => Some(ExpectedReturnType::XreadReturnType),
-        _ => None,
-    }
-}
-
+/// Converts a flattened array with key-values to Maps.  The inners values may be another flattened array with key-values.
+/// OR
+/// Converts a Map with inner values being a flattened array with key-values.
+/// This is useful for Streams that are Keys of Stream-Ids of Fields, where the returned structure is a Map-of-Maps-of-Maps.
+/// `value` is a flattened array of key-arrays or a map of key-arrays
 fn convert_to_xread_map(value: Value) -> RedisResult<Value> {
-    // dbg!(value.clone());
     match value {
         Value::Array(array) => {
             let mut map = Vec::new();
@@ -515,6 +475,50 @@ fn convert_to_xread_map(value: Value) -> RedisResult<Value> {
             result.map(Value::Map)
         }
         _ => Ok(value),
+    }
+}
+
+pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
+    let command = cmd.command()?;
+
+    // TODO use enum to avoid mistakes
+    match command.as_slice() {
+        b"HGETALL" | b"CONFIG GET" | b"FT.CONFIG GET" | b"HELLO" => Some(ExpectedReturnType::Map),
+        b"INCRBYFLOAT" | b"HINCRBYFLOAT" => Some(ExpectedReturnType::Double),
+        b"HEXISTS" | b"HSETNX" | b"EXPIRE" | b"EXPIREAT" | b"PEXPIRE" | b"PEXPIREAT"
+        | b"SISMEMBER" | b"PERSIST" | b"SMOVE" | b"RENAMENX" => Some(ExpectedReturnType::Boolean),
+        b"SMISMEMBER" => Some(ExpectedReturnType::ArrayOfBools),
+        b"SMEMBERS" | b"SINTER" => Some(ExpectedReturnType::Set),
+        b"ZSCORE" | b"GEODIST" => Some(ExpectedReturnType::DoubleOrNull),
+        b"ZMSCORE" => Some(ExpectedReturnType::ArrayOfDoubleOrNull),
+        b"ZPOPMIN" | b"ZPOPMAX" => Some(ExpectedReturnType::MapOfStringToDouble),
+        b"JSON.TOGGLE" => Some(ExpectedReturnType::JsonToggleReturnType),
+        b"GEOPOS" => Some(ExpectedReturnType::ArrayOfArraysOfDoubleOrNull),
+        b"HRANDFIELD" => cmd
+            .position(b"WITHVALUES")
+            .map(|_| ExpectedReturnType::ArrayOfKeyValuePairs),
+        b"ZRANDMEMBER" => cmd
+            .position(b"WITHSCORES")
+            .map(|_| ExpectedReturnType::ArrayOfKeyValuePairs),
+        b"ZADD" => cmd
+            .position(b"INCR")
+            .map(|_| ExpectedReturnType::DoubleOrNull),
+        b"ZRANGE" | b"ZDIFF" | b"ZUNION" => cmd
+            .position(b"WITHSCORES")
+            .map(|_| ExpectedReturnType::MapOfStringToDouble),
+        b"ZRANK" | b"ZREVRANK" => cmd
+            .position(b"WITHSCORE")
+            .map(|_| ExpectedReturnType::ZrankReturnType),
+        b"SPOP" => {
+            if cmd.arg_idx(2).is_some() {
+                Some(ExpectedReturnType::Set)
+            } else {
+                None
+            }
+        }
+        b"LOLWUT" => Some(ExpectedReturnType::Lolwut),
+        b"XREAD" => Some(ExpectedReturnType::XreadReturnType),
+        _ => None,
     }
 }
 
