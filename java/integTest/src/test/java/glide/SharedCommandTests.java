@@ -3306,10 +3306,12 @@ public class SharedCommandTests {
         assertEquals(0, client.getbit(key1, 1000).get());
         assertEquals(0, client.getbit(missingKey, 1).get());
 
+        // Exception thrown due to the negative offset and is out of range
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.getbit(key1, -1).get());
         assertTrue(executionException.getCause() instanceof RequestException);
 
+        // Exception thrown due to the key holding a value with the wrong type
         executionException = assertThrows(ExecutionException.class, () -> client.getbit(key2, 1).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
