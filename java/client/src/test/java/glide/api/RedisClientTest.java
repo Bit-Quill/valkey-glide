@@ -3982,7 +3982,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(eq(GetBit), eq(new String[] {key, "1"}), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Long> response = service.getbit(key, 1);
