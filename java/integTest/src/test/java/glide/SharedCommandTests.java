@@ -3310,10 +3310,6 @@ public class SharedCommandTests {
                 assertThrows(ExecutionException.class, () -> client.getbit(key1, -1).get());
         assertTrue(executionException.getCause() instanceof RequestException);
 
-        executionException =
-                assertThrows(ExecutionException.class, () -> client.getbit(key1, -1).get());
-        assertTrue(executionException.getCause() instanceof RequestException);
-
         executionException = assertThrows(ExecutionException.class, () -> client.getbit(key2, 1).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
