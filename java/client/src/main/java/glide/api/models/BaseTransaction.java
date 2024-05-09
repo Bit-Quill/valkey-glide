@@ -148,25 +148,12 @@ import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
-import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.StreamAddOptions.StreamAddOptionsBuilder;
-import glide.api.models.commands.StreamTrimOptions.TrimLimit;
-import glide.api.models.commands.StreamOptions.StreamAddOptions;
-import glide.api.models.commands.StreamOptions.StreamAddOptions.StreamAddOptionsBuilder;
-import glide.api.models.commands.StreamOptions.StreamTrimOptions;
-import glide.api.models.commands.Stream.StreamAddOptions;
-import glide.api.models.commands.Stream.StreamAddOptions.StreamAddOptionsBuilder;
-import glide.api.models.commands.Stream.StreamReadOptions;
-import glide.api.models.commands.Stream.StreamTrimOptions;
 import glide.api.models.commands.ZaddOptions;
-import glide.api.models.commands.stream.StreamAddOptions;
-import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
-import glide.api.models.commands.stream.StreamReadOptions;
-import glide.api.models.commands.stream.StreamTrimOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.stream.StreamReadOptions;
 import glide.api.models.commands.stream.StreamTrimOptions;
 import java.util.Arrays;
 import java.util.Map;
@@ -2323,20 +2310,6 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                         ArrayUtils.addFirst(options.toArgs(), key), convertMapToKeyValueStringArray(values));
         ArgsArray commandArgs = buildArgs(arguments);
         protobufTransaction.addCommands(buildCommand(XAdd, commandArgs));
-        return getThis();
-    }
-
-    /**
-     * Trims the stream by evicting older entries.
-     *
-     * @see <a href="https://redis.io/commands/xtrim/">redis.io</a> for details.
-     * @param key The key of the stream.
-     * @param options Stream trim options.
-     * @return Command Response - The number of entries deleted from the stream.
-     */
-    public T xtrim(@NonNull String key, @NonNull StreamTrimOptions options) {
-        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(options.toArgs(), key));
-        protobufTransaction.addCommands(buildCommand(XTrim, commandArgs));
         return getThis();
     }
 

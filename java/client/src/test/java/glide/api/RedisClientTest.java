@@ -12,27 +12,6 @@ import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_API;
 import static glide.api.models.commands.stream.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
-import static glide.api.models.commands.StreamTrimOptions.TRIM_EXACT_REDIS_API;
-import static glide.api.models.commands.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
-import static glide.api.models.commands.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
-import static glide.api.models.commands.StreamTrimOptions.TRIM_MINID_REDIS_API;
-import static glide.api.models.commands.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_EXACT_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_MINID_REDIS_API;
-import static glide.api.models.commands.StreamOptions.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
-import static glide.api.models.commands.Stream.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
-import static glide.api.models.commands.Stream.StreamReadOptions.READ_BLOCK_REDIS_API;
-import static glide.api.models.commands.Stream.StreamReadOptions.READ_COUNT_REDIS_API;
-import static glide.api.models.commands.Stream.StreamReadOptions.READ_STREAMS_REDIS_API;
-import static glide.api.models.commands.Stream.StreamTrimOptions.TRIM_EXACT_REDIS_API;
-import static glide.api.models.commands.Stream.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
-import static glide.api.models.commands.Stream.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
-import static glide.api.models.commands.Stream.StreamTrimOptions.TRIM_MINID_REDIS_API;
-import static glide.api.models.commands.Stream.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
-import static glide.api.models.commands.stream.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
 import static glide.api.models.commands.stream.StreamReadOptions.READ_BLOCK_REDIS_API;
 import static glide.api.models.commands.stream.StreamReadOptions.READ_COUNT_REDIS_API;
 import static glide.api.models.commands.stream.StreamReadOptions.READ_STREAMS_REDIS_API;
@@ -185,25 +164,14 @@ import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.Expiry;
-import glide.api.models.commands.StreamAddOptions;
-import glide.api.models.commands.StreamOptions.MaxLen;
-import glide.api.models.commands.StreamOptions.MinId;
-import glide.api.models.commands.StreamOptions.StreamAddOptions;
-import glide.api.models.commands.StreamOptions.StreamTrimOptions;
-import glide.api.models.commands.Stream.StreamAddOptions;
-import glide.api.models.commands.Stream.StreamReadOptions;
-import glide.api.models.commands.Stream.StreamTrimOptions;
-import glide.api.models.commands.Stream.StreamTrimOptions.MaxLen;
-import glide.api.models.commands.Stream.StreamTrimOptions.MinId;
+import glide.api.models.commands.WeightAggregateOptions.Aggregate;
+import glide.api.models.commands.WeightAggregateOptions.KeyArray;
+import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZaddOptions;
-import glide.api.models.commands.stream.StreamAddOptions;
-import glide.api.models.commands.stream.StreamReadOptions;
-import glide.api.models.commands.stream.StreamTrimOptions;
-import glide.api.models.commands.stream.StreamTrimOptions.MaxLen;
-import glide.api.models.commands.stream.StreamTrimOptions.MinId;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamReadOptions;
 import glide.api.models.commands.stream.StreamTrimOptions;
 import glide.api.models.commands.stream.StreamTrimOptions.MaxLen;
 import glide.api.models.commands.stream.StreamTrimOptions.MinId;
@@ -218,6 +186,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -3275,24 +3244,9 @@ public class RedisClientTest {
         Map<String, String> fieldValues = new LinkedHashMap<>();
         fieldValues.put("testField1", "testValue1");
         fieldValues.put("testField2", "testValue2");
-        StreamAddOptions options =
-                StreamAddOptions.builder()
-                        .id("id")
-                        .makeStream(false)
-                        .trim(new MaxLen(true, 5L))
-                        .build();
-
-        String[] arguments =
-                new String[] {
-                    key,
-                    NO_MAKE_STREAM_REDIS_API,
-                    TRIM_MAXLEN_REDIS_API,
-                    TRIM_EXACT_REDIS_API,
-                    Long.toString(5L),
-                    "id"
-                };
-        arguments = ArrayUtils.addAll(arguments, convertMapToKeyValueStringArray(fieldValues));
-
+        String[] fieldValuesArgs = convertMapToKeyValueStringArray(fieldValues);
+        String[] arguments = new String[] {key, "*"};
+        arguments = ArrayUtils.addAll(arguments, fieldValuesArgs);
         String returnId = "testId";
 
         CompletableFuture<String> testResponse = new CompletableFuture<>();
@@ -3498,6 +3452,149 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(returnId, payload);
+    }
+
+    @Test
+    @SneakyThrows
+    public void xtrim_with_exact_MinId() {
+        // setup
+        String key = "testKey";
+        StreamTrimOptions limit = new MinId(true, "id");
+        String[] arguments = new String[] {key, TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "id"};
+        Long completedResult = 1L;
+
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(completedResult);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(XTrim), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.xtrim(key, limit);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(completedResult, payload);
+    }
+
+    private static List<Arguments> getStreamTrimOptions() {
+        return List.of(
+                Arguments.of(
+                        // MAXLEN just THRESHOLD
+                        "test_xtrim_maxlen", new MaxLen(5L), new String[] {TRIM_MAXLEN_REDIS_API, "5"}),
+                Arguments.of(
+                        // MAXLEN with LIMIT
+                        "test_xtrim_maxlen_with_limit",
+                        new MaxLen(5L, 10L),
+                        new String[] {
+                            TRIM_MAXLEN_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "5", TRIM_LIMIT_REDIS_API, "10"
+                        }),
+                Arguments.of(
+                        // MAXLEN with exact
+                        "test_xtrim_exact_maxlen",
+                        new MaxLen(true, 10L),
+                        new String[] {TRIM_MAXLEN_REDIS_API, TRIM_EXACT_REDIS_API, "10"}),
+                Arguments.of(
+                        // MINID just THRESHOLD
+                        "test_xtrim_minid", new MinId("0-1"), new String[] {TRIM_MINID_REDIS_API, "0-1"}),
+                Arguments.of(
+                        // MINID with exact
+                        "test_xtrim_exact_minid",
+                        new MinId(true, "0-2"),
+                        new String[] {TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "0-2"}),
+                Arguments.of(
+                        // MINID with LIMIT
+                        "test_xtrim_minid_with_limit",
+                        new MinId("0-3", 10L),
+                        new String[] {
+                            TRIM_MINID_REDIS_API, TRIM_NOT_EXACT_REDIS_API, "0-3", TRIM_LIMIT_REDIS_API, "10"
+                        }));
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("getStreamTrimOptions")
+    public void xtrim_with_options_to_arguments(
+            String testName, StreamTrimOptions options, String[] expectedArgs) {
+        assertArrayEquals(expectedArgs, options.toArgs());
+    }
+
+    @SneakyThrows
+    @Test
+    public void xread_multiple_keys() {
+        // setup
+        String keyOne = "one";
+        String streamIdOne = "id-one";
+        String keyTwo = "two";
+        String streamIdTwo = "id-two";
+        Map<String, Map<String, Map<String, String>>> completedResult = new LinkedHashMap();
+        completedResult.put(keyOne, Map.of(streamIdOne, Map.of("field", "value")));
+        completedResult.put(keyTwo, Map.of(streamIdTwo, Map.of("field", "value")));
+        String[] arguments = {READ_STREAMS_REDIS_API, keyOne, keyTwo, streamIdOne, streamIdTwo};
+
+        CompletableFuture<Map<String, Map<String, Map<String, String>>>> testResponse =
+                new CompletableFuture<>();
+        testResponse.complete(completedResult);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, Map<String, Map<String, String>>>>submitNewCommand(
+                        eq(XRead), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        Map<String, String> keysAndIds = new LinkedHashMap();
+        keysAndIds.put(keyOne, streamIdOne);
+        keysAndIds.put(keyTwo, streamIdTwo);
+        CompletableFuture<Map<String, Map<String, Map<String, String>>>> response =
+                service.xread(keysAndIds);
+        Map<String, Map<String, Map<String, String>>> payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(completedResult, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void xread_with_options() {
+        // setup
+        String keyOne = "one";
+        String streamIdOne = "id-one";
+        Long block = 2L;
+        Long count = 10L;
+        Map<String, Map<String, Map<String, String>>> completedResult =
+                Map.of(keyOne, Map.of(streamIdOne, Map.of("field", "value")));
+        String[] arguments = {
+            READ_BLOCK_REDIS_API,
+            block.toString(),
+            READ_COUNT_REDIS_API,
+            count.toString(),
+            READ_STREAMS_REDIS_API,
+            keyOne,
+            streamIdOne
+        };
+
+        CompletableFuture<Map<String, Map<String, Map<String, String>>>> testResponse =
+                new CompletableFuture<>();
+        testResponse.complete(completedResult);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, Map<String, Map<String, String>>>>submitNewCommand(
+                        eq(XRead), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, Map<String, Map<String, String>>>> response =
+                service.xread(
+                        Map.of(keyOne, streamIdOne),
+                        StreamReadOptions.builder().block(block).count(count).build());
+        Map<String, Map<String, Map<String, String>>> payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(completedResult, payload);
     }
 
     @SneakyThrows
