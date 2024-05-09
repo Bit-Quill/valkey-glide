@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
+import glide.api.commands.GeospatialIndicesBaseCommands.GeoUnit;
 import glide.api.models.Script;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.ExpireOptions;
@@ -3389,5 +3390,38 @@ public class SharedCommandTests {
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.geopos(key2, members).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void geodist(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String member1 = "Palermo";
+        String member2 = "Catania";
+        String member3 = "NonExisting";
+        GeoUnit geoUnitKM = GeoUnit.KILOMETERS;
+        Double expected = 166274.1516;
+        Double expectedKM = 166.2742;
+        Double delta = 1e-9;
+
+        // adding locations
+        Map<String, GeospatialData> membersToCoordinates = new HashMap<>();
+        membersToCoordinates.put("Palermo", new GeospatialData(13.361389, 38.115556));
+        membersToCoordinates.put("Catania", new GeospatialData(15.087269, 37.502669));
+        assertEquals(2, client.geoadd(key1, membersToCoordinates).get());
+
+        // assert correct result with default metric
+        Double actual = client.geodist(key1, member1, member2).get();
+        assertEquals(expected, actual, delta);
+
+        // assert correct result with manual metric specification kilometers
+        Double actualKM = client.geodist(key1, member1, member2, geoUnitKM).get();
+        assertEquals(expectedKM, actualKM, delta);
+
+        // assert null result when member index is missing
+        Double actualMissing = client.geodist(key1, member1, member3).get();
+        assertNull(actualMissing);
     }
 }

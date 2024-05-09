@@ -5,6 +5,8 @@ import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeospatialData;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Supports commands and transactions for the "Geospatial Indices Commands" group for standalone and
@@ -78,4 +80,58 @@ public interface GeospatialIndicesBaseCommands {
      * }</pre>
      */
     CompletableFuture<Double[][]> geopos(String key, String[] members);
+
+    /**
+     * Returns the distance between <code>member1</code> and <code>member2</code> in the geospatial
+     * index stored at <code>key</code>.
+     *
+     * @see <a href="https://valkey.io/commands/geodist">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param member1: The name of the first member
+     * @param member2: The name of the second member
+     * @param geoUnit: The unit of distance measurement. See {@link GeoUnit}. If not specified, the
+     *     default unit is <code>METERS</code>.
+     * @return The distance between <code>member1</code> and <code>member2</code>. If one or both
+     *     members do not exist, or if the key does not exist, returns <code>null</code>.
+     * @example
+     *     <pre>{@code
+     * client.geoadd("mySortedSet", Map.of("Palermo", new GeospatialData(13.361389, 38.115556), "Catania", new GeospatialData(15.087269, 37.502669))).get();
+     * Double result = client.geodist("mySortedSet", "Palermo", "Catania", GeoUnit.KILOMETERS.getUnit()).get();
+     * System.out.println(result);
+     * }</pre>
+     */
+    CompletableFuture<Double> geodist(String key, String member1, String member2, GeoUnit geoUnit);
+
+    /**
+     * Returns the distance between <code>member1</code> and <code>member2</code> in the geospatial
+     * index stored at <code>key</code>.
+     *
+     * @see <a href="https://valkey.io/commands/geodist">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param member1: The name of the first member
+     * @param member2: The name of the second member
+     * @return The distance between <code>member1</code> and <code>member2</code>. If one or both
+     *     members do not exist, or if the key does not exist, returns <code>null</code>.
+     * @example
+     *     <pre>{@code
+     * client.geoadd("mySortedSet", Map.of("Palermo", new GeospatialData(13.361389, 38.115556), "Catania", new GeospatialData(15.087269, 37.502669))).get();
+     * Double result = client.geodist("mySortedSet", "Palermo", "Catania").get();
+     * System.out.println(result);
+     * }</pre>
+     */
+    CompletableFuture<Double> geodist(String key, String member1, String member2);
+
+    /*
+     * Enumeration representing distance units options for the `GEODIST` command.
+     */
+    @RequiredArgsConstructor
+    @Getter
+    enum GeoUnit {
+        METERS("m"), // Represents distance in meters.
+        KILOMETERS("km"), // Represents distance in kilometers.
+        MILES("mi"), // Represents distance in miles.
+        FEET("ft"); // Represents distance in feet.
+
+        private final String unit;
+    }
 }

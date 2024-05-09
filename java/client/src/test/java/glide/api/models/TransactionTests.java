@@ -39,6 +39,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.GeoDist;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoPos;
 import static redis_request.RedisRequestOuterClass.RequestType.GetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.GetString;
@@ -685,6 +686,11 @@ public class TransactionTests {
                                 "Place")));
         transaction.geopos("key", new String[] {"Place"});
         results.add(Pair.of(GeoPos, buildArgs("key", "Place")));
+
+        transaction.geoadd("key", Map.of("Place2", new GeospatialData(11.0, 20.0)));
+        results.add(Pair.of(GeoAdd, buildArgs("key", "11.0", "20.0", "Place2")));
+        transaction.geodist("key", "Place", "Place2");
+        results.add(Pair.of(GeoDist, buildArgs("key", "Place", "Place2", "m")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 
