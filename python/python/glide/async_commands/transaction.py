@@ -1947,27 +1947,6 @@ class BaseTransaction:
         """
         return self.append_command(RequestType.ZMScore, [key] + members)
 
-    def zdiffstore(
-        self: TTransaction, destination: str, keys: List[str]
-    ) -> TTransaction:
-        """
-        Calculates the difference between the first sorted set and all the successive sorted sets at `keys` and stores
-        the difference as a sorted set to `destination`, overwriting it if it already exists. Non-existent keys are
-        treated as empty sets.
-
-        See https://valkey.io/commands/zdiffstore for more details.
-
-        Args:
-            destination (str): The key for the resulting sorted set.
-            keys (List[str]): The keys of the sorted sets to compare.
-
-        Command response:
-            int: The number of members in the resulting sorted set stored at `destination`.
-        """
-        return self.append_command(
-            RequestType.ZDiffStore, [destination, str(len(keys))] + keys
-        )
-
     def zdiff(self: TTransaction, keys: List[str]) -> TTransaction:
         """
         Returns the difference between the first sorted set and all the successive sorted sets.
@@ -2001,6 +1980,27 @@ class BaseTransaction:
         """
         return self.append_command(
             RequestType.ZDiff, [str(len(keys))] + keys + ["WITHSCORES"]
+        )
+
+    def zdiffstore(
+        self: TTransaction, destination: str, keys: List[str]
+    ) -> TTransaction:
+        """
+        Calculates the difference between the first sorted set and all the successive sorted sets at `keys` and stores
+        the difference as a sorted set to `destination`, overwriting it if it already exists. Non-existent keys are
+        treated as empty sets.
+
+        See https://valkey.io/commands/zdiffstore for more details.
+
+        Args:
+            destination (str): The key for the resulting sorted set.
+            keys (List[str]): The keys of the sorted sets to compare.
+
+        Command response:
+            int: The number of members in the resulting sorted set stored at `destination`.
+        """
+        return self.append_command(
+            RequestType.ZDiffStore, [destination, str(len(keys))] + keys
         )
 
     def dbsize(self: TTransaction) -> TTransaction:
