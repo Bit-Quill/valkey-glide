@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
-import glide.api.commands.GeospatialIndicesBaseCommands.GeoUnit;
 import glide.api.models.Script;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.ExpireOptions;
@@ -45,6 +44,7 @@ import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
+import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamTrimOptions.MaxLen;
@@ -3397,7 +3397,6 @@ public class SharedCommandTests {
     @MethodSource("getClients")
     public void geodist(BaseClient client) {
         String key1 = UUID.randomUUID().toString();
-        String key2 = UUID.randomUUID().toString();
         String member1 = "Palermo";
         String member2 = "Catania";
         String member3 = "NonExisting";

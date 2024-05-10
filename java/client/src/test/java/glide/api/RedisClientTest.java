@@ -144,7 +144,6 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrange;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrank;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
-import glide.api.commands.GeospatialIndicesBaseCommands.GeoUnit;
 import glide.api.models.Script;
 import glide.api.models.Transaction;
 import glide.api.models.commands.ConditionalChange;
@@ -166,6 +165,7 @@ import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZaddOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
+import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamTrimOptions;
@@ -4090,7 +4090,7 @@ public class RedisClientTest {
         String member1 = "Catania";
         String member2 = "Palermo";
         GeoUnit geoUnit = GeoUnit.KILOMETERS;
-        String[] arguments = new String[] {key, member1, member2, GeoUnit.KILOMETERS.getUnit()};
+        String[] arguments = new String[] {key, member1, member2, GeoUnit.KILOMETERS.getRedisApi()};
         Double value = 166.2742;
 
         CompletableFuture<Double> testResponse = new CompletableFuture<>();
