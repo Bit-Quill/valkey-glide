@@ -132,6 +132,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Zrange;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrank;
 import static redis_request.RedisRequestOuterClass.RequestType.Zrem;
 
+import glide.api.commands.GeospatialIndicesBaseCommands;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.RangeOptions;
@@ -690,7 +691,9 @@ public class TransactionTests {
         transaction.geoadd("key", Map.of("Place2", new GeospatialData(11.0, 20.0)));
         results.add(Pair.of(GeoAdd, buildArgs("key", "11.0", "20.0", "Place2")));
         transaction.geodist("key", "Place", "Place2");
-        results.add(Pair.of(GeoDist, buildArgs("key", "Place", "Place2", "m")));
+        results.add(Pair.of(GeoDist, buildArgs("key", "Place", "Place2")));
+        transaction.geodist("key", "Place", "Place2", GeospatialIndicesBaseCommands.GeoUnit.KILOMETERS);
+        results.add(Pair.of(GeoDist, buildArgs("key", "Place", "Place2", "km")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

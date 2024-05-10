@@ -1202,6 +1202,7 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Double> geodist(
             @NonNull String key, @NonNull String member1, @NonNull String member2) {
-        return geodist(key, member1, member2, GeospatialIndicesBaseCommands.GeoUnit.METERS);
+        String[] arguments = new String[] {key, member1, member2};
+        return commandManager.submitNewCommand(GeoDist, arguments, this::handleDoubleOrNullResponse);
     }
 }

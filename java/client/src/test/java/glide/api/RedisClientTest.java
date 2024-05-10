@@ -4063,7 +4063,7 @@ public class RedisClientTest {
         String key = "testKey";
         String member1 = "Catania";
         String member2 = "Palermo";
-        String[] arguments = new String[] {key, member1, member2, GeoUnit.METERS.getUnit()};
+        String[] arguments = new String[] {key, member1, member2};
         Double value = 166274.1516;
 
         CompletableFuture<Double> testResponse = new CompletableFuture<>();

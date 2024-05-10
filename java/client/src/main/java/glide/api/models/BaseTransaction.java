@@ -2880,7 +2880,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     If one or both members do not exist or if the key does not exist returns <code>null</code>.
      */
     public T geodist(@NonNull String key, @NonNull String member1, @NonNull String member2) {
-        return geodist(key, member1, member2, GeoUnit.METERS);
+        ArgsArray commandArgs = buildArgs(concatenateArrays(new String[] {key, member1, member2}));
+        protobufTransaction.addCommands(buildCommand(GeoDist, commandArgs));
+        return getThis();
     }
 
     /** Build protobuf {@link Command} object for given command and arguments. */
