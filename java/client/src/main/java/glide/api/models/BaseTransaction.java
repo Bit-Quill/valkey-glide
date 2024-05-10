@@ -2861,8 +2861,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull String member1,
             @NonNull String member2,
             @NonNull GeoUnit geoUnit) {
-        ArgsArray commandArgs =
-                buildArgs(concatenateArrays(new String[] {key, member1, member2, geoUnit.getRedisApi()}));
+        ArgsArray commandArgs = buildArgs(key, member1, member2, geoUnit.getRedisApi());
         protobufTransaction.addCommands(buildCommand(GeoDist, commandArgs));
         return getThis();
     }
@@ -2880,7 +2879,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     The default unit is <code>METERS</code>.
      */
     public T geodist(@NonNull String key, @NonNull String member1, @NonNull String member2) {
-        ArgsArray commandArgs = buildArgs(new String[] {key, member1, member2});
+        ArgsArray commandArgs = buildArgs(key, member1, member2);
         protobufTransaction.addCommands(buildCommand(GeoDist, commandArgs));
         return getThis();
     }

@@ -688,8 +688,6 @@ public class TransactionTests {
         transaction.geopos("key", new String[] {"Place"});
         results.add(Pair.of(GeoPos, buildArgs("key", "Place")));
 
-        transaction.geoadd("key", Map.of("Place2", new GeospatialData(11.0, 20.0)));
-        results.add(Pair.of(GeoAdd, buildArgs("key", "11.0", "20.0", "Place2")));
         transaction.geodist("key", "Place", "Place2");
         results.add(Pair.of(GeoDist, buildArgs("key", "Place", "Place2")));
         transaction.geodist("key", "Place", "Place2", GeoUnit.KILOMETERS);
