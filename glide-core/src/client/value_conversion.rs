@@ -295,49 +295,47 @@ pub(crate) fn convert_to_expected_type(
         // - if the server returned nil, return nil
         // - if the server returned an empty array, return an empty array
         // - otherwise, return a two-dimensional array of member-score pairs, where scores are of type double
-        ExpectedReturnType::ArrayOfMemberScorePairs => match value {
-            Value::Nil => Ok(value),
-            Value::Array(ref array) if array.is_empty() => {
-                Ok(value)
-            }
-            Value::Array(array) if matches!(array[0], Value::Array(_)) => {
-                first_pair = array[0];
-                if first_pair.len() != 2 {
-                    Err((
-                        ErrorKind::TypeError,
-                        "Expected an array of member-score pairs but encountered an inner array with unexpected length",
-                        format!("(length was {:?}, expected length 2)", pair.len()),
-                    )
-                        .into());
-                }
+        ExpectedReturnType::ArrayOfMemberScorePairs => {
+            let array_of_pairs = convert_to_expected_type(value, Some(ExpectedReturnType::ArrayOfPairs))?;
+            match array_of_pairs {
+                Value::Nil => Ok(value),
+                Value::Array(ref array) => {
+                    if array.is_empty() {
+                        return Ok(array_of_pairs);
+                    }
 
-                match first_pair[1] => {
-                    Value::Double(_) {
-                        Ok(value)
-                    },
-                    Value::BulkString(_) | Value::SimpleString(_) => {
-                        convert_pair_scores_to_double(array)
-                    },
-                    Err((
-                        ErrorKind::TypeError,
-                        "Response couldn't be converted to an array of member-score pairs",
-                        format!("(response was {:?})", value),
-                    )
-                        .into());
-                }
+                    let first_pair = array[0];
+                    if first_pair.len() != 2 {
+                        Err((
+                            ErrorKind::TypeError,
+                            "Expected an array of member-score pairs but encountered an inner array with unexpected length",
+                            format!("(length was {:?}, expected length 2)", first_pair.len()),
+                        )
+                            .into());
+                    }
+
+                    match first_pair[1] {
+                        Value::Double(_) => {
+                            Ok(value)
+                        },
+                        Value::BulkString(_) | Value::SimpleString(_) => {
+                            convert_pair_scores_to_double(array)
+                        },
+                        _ => Err((
+                            ErrorKind::TypeError,
+                            "Response couldn't be converted to an array of member-score pairs",
+                            format!("(response was {:?})", value),
+                        )
+                            .into()),
+                    }
+                },
+                _ => Err((
+                    ErrorKind::TypeError,
+                    "Response couldn't be converted to an array of member-score pairs",
+                    format!("(response was {:?})", value),
+                )
+                    .into()),
             }
-            Value::Array(array)
-                if matches!(array[0], Value::BulkString(_) | Value::SimpleString(_)) =>
-            {
-                array_of_pairs = convert_flat_array_to_array_of_pairs(array);
-                convert_pair_scores_to_double(array_of_pairs)
-            }
-            _ => Err((
-                ErrorKind::TypeError,
-                "Response couldn't be converted to an array of member-score pairs",
-                format!("(response was {:?})", value),
-            )
-                .into()),
         },
     }
 }
@@ -442,9 +440,9 @@ fn convert_flat_array_to_array_of_pairs(array: Vec<Value>) -> RedisResult<Value>
 /// Given an array of member-score pairs, converts the scores in the pairs to type double.
 ///
 /// `member_score_pairs` is a two-dimensional array, where the inner arrays are length=2 arrays representing member-score pairs.
-fn convert_pair_scores_to_double(member_score_pairs: Vec<Value>) -> RedisResul<Value> {
-    for i in (0..member_score_pairs.len()) {
-        pair = member_score_pairs[i]
+fn convert_pair_scores_to_double(member_score_pairs: Vec<Value>) -> RedisResult<Value> {
+    for i in 0..member_score_pairs.len() {
+        let pair = member_score_pairs[i];
         if pair.len() != 2 {
             return Err((
                 ErrorKind::TypeError,
@@ -662,7 +660,7 @@ mod tests {
                     .arg("1")
                     .arg("withscores")
             ),
-            Some(ExpectedReturnType::ArrayOfPairs)
+            Some(ExpectedReturnType::ArrayOfMemberScorePairs)
         ));
 
         assert!(expected_type_for_cmd(redis::cmd("ZRANDMEMBER").arg("key").arg("1")).is_none());
@@ -689,18 +687,8 @@ mod tests {
                 .unwrap();
         assert_eq!(expected_response, converted_flat_array);
 
-        let array_of_pairs_string_scores = Value::Array(vec![
-            Value::Array(vec![
-                Value::BulkString(b"one".to_vec()),
-                Value::BulkString(b"1.0".to_vec()),
-            ]),
-            Value::Array(vec![
-                Value::BulkString(b"two".to_vec()),
-                Value::BulkString(b"2.0".to_vec()),
-            ]),
-        ]);
-        let converted_array_of_pairs_string_scores = convert_to_expected_type(
-            array_of_pairs_string_scores.clone(),
+        let converted_two_dimensional_array = convert_to_expected_type(
+            expected_response.clone(),
             Some(ExpectedReturnType::ArrayOfMemberScorePairs),
         )
         .unwrap();
@@ -719,9 +707,25 @@ mod tests {
                 .unwrap();
         assert_eq!(Value::Nil, converted_nil_value);
 
-        let array_of_doubles = Value::Array(vec![Value::Double(5.5)]);
+        let unexpected_pair_length = Value::Array(vec![
+            Value::Array(vec![
+                Value::BulkString(b"one".to_vec()),
+            ]),
+        ]);
         assert!(convert_to_expected_type(
-            array_of_doubles,
+            unexpected_pair_length,
+            Some(ExpectedReturnType::ArrayOfPairs)
+        )
+        .is_err());
+
+        let unexpected_score_type = Value::Array(vec![
+            Value::Array(vec![
+                Value::BulkString(b"one".to_vec()),
+                Value::Int(1),
+            ]),
+        ]);
+        assert!(convert_to_expected_type(
+            unexpected_score_type,
             Some(ExpectedReturnType::ArrayOfPairs)
         )
         .is_err());
