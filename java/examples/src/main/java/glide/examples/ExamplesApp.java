@@ -2,13 +2,8 @@
 package glide.examples;
 
 import glide.api.RedisClient;
-import glide.api.models.commands.stream.StreamAddOptions;
-import glide.api.models.commands.stream.StreamReadOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 public class ExamplesApp {
