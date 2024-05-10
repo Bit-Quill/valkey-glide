@@ -19,10 +19,10 @@ public class ExamplesApp {
         boolean useSsl = false;
 
         RedisClientConfiguration config =
-            RedisClientConfiguration.builder()
-                .address(NodeAddress.builder().host(host).port(port).build())
-                .useTLS(useSsl)
-                .build();
+                RedisClientConfiguration.builder()
+                        .address(NodeAddress.builder().host(host).port(port).build())
+                        .useTLS(useSsl)
+                        .build();
 
         try {
             RedisClient client = RedisClient.CreateClient(config).get();
