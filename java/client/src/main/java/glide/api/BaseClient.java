@@ -1241,7 +1241,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Long> setbit(@NonNull String key, long offset, long value) {
-        String[] arguments = new String[] {key, Long.toString(offset)};
+        String[] arguments = new String[] {key, Long.toString(offset), Long.toString(value)};
         return commandManager.submitNewCommand(SetBit, arguments, this::handleLongResponse);
     }
 }

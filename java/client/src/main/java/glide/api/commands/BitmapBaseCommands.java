@@ -25,22 +25,6 @@ public interface BitmapBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> bitcount(String key);
-//    /**
-//     * Returns the bit value at <code>offset</code> in the string value stored at <code>key</code>.
-//     *
-//     * @see <a href="https://redis.io/commands/getbit/">redis.io</a> for details.
-//     * @param key The key for the string to get the bit at offset of.
-//     * @param offset The index of the bit to return.
-//     * @return The bit at offset of the string. Returns zero if the key is missing as it is treated as
-//     *     an empty string. Returns zero if the positive offset exceeds the length of the string as it
-//     *     is assumed to be padded zeroes.
-//     * @example
-//     *     <pre>{@code
-//     * Long payload = client.getbit("myKey1", 1).get();
-//     * assert payload == 1L; // The second bit for string stored at "myKey1" is set to 1.
-//     * }</pre>
-//     */
-//    CompletableFuture<Long> getbit(String key, long offset);
 
     /**
      * Counts the number of set bits (population counting) in a string stored at <code>key</code>. The
@@ -89,5 +73,24 @@ public interface BitmapBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> bitcount(String key, long start, long end, BitmapIndexType options);
+
+    /**
+     * Sets or clears the bit at <code>offset</code> in the string value stored at <code>key</code>.
+     * The <code>offset</code> is zero-based indexes, with <code>0</code> being the first element of
+     * the list, <code>1</code> being the next element and so on. The <code>offset</code> must be less
+     * than 2^32 and greater than or equal to 0. If a key is non-existent then the bit at <code>offset
+     * </code> is set to 0 or 1 and the preceding bits are set to 0.
+     *
+     * @see <a href="https://redis.io/commands/setbit/">redis.io</a> for details.
+     * @param key The key for the string to set the bit of at <code>offset</code>.
+     * @param offset The index of the bit to be set.
+     * @param value The bit value to set at <code>offset</code>.
+     * @return The bit value that was previously stored at <code>offset</code>.
+     * @example
+     *     <pre>{@code
+     * Long payload = client.sitcount("myKey1", 1, 1).get();
+     * assert payload == 0L; // The second bit value was 0 before setting to 1.
+     * }</pre>
+     */
     CompletableFuture<Long> setbit(String key, long offset, long value);
 }

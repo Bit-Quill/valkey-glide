@@ -91,6 +91,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SMove;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Set;
+import static redis_request.RedisRequestOuterClass.RequestType.SetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.SetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
@@ -2961,6 +2962,25 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T geopos(@NonNull String key, @NonNull String[] members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
         protobufTransaction.addCommands(buildCommand(GeoPos, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Sets or clears the bit at <code>offset</code> in the string value stored at <code>key</code>.
+     * The <code>offset</code> is zero-based indexes, with <code>0</code> being the first element of
+     * the list, <code>1</code> being the next element and so on. The <code>offset</code> must be less
+     * than 2^32 and greater than or equal to 0. If a key is non-existent then the bit at <code>offset
+     * </code> is set to 0 or 1 and the preceding bits are set to 0.
+     *
+     * @see <a href="https://redis.io/commands/setbit/">redis.io</a> for details.
+     * @param key The key for the string to set the bit of at <code>offset</code>.
+     * @param offset The index of the bit to be set.
+     * @param value The bit value to set at <code>offset</code>.
+     * @return Command Response - The bit value that was previously stored at <code>offset</code>.
+     */
+    public T setbit(@NonNull String key, long offset, long value) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(offset), Long.toString(value));
+        protobufTransaction.addCommands(buildCommand(SetBit, commandArgs));
         return getThis();
     }
 
