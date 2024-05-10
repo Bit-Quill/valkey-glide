@@ -431,7 +431,7 @@ public class TransactionTestUtilities {
                 .xadd(streamKey1, Map.of("field1", "value1"), StreamAddOptions.builder().id("0-1").build())
                 .xadd(streamKey1, Map.of("field2", "value2"), StreamAddOptions.builder().id("0-2").build())
                 .xadd(streamKey1, Map.of("field3", "value3"), StreamAddOptions.builder().id("0-3").build())
-                .xread(Map.of(streamKey1, "0-3"))
+                .xread(Map.of(streamKey1, "0-2"))
                 .xtrim(streamKey1, new MinId(true, "0-2"));
 
         return new Object[] {
@@ -465,6 +465,7 @@ public class TransactionTestUtilities {
             "0-1", // xadd(key9, Map.of("field1", "value1"), id("0-1"));
             "0-2", // xadd(key9, Map.of("field2", "value2"), id("0-2"));
             "0-3", // xadd(key9, Map.of("field3", "value3"), id("0-3"));
+            Map.of(key9, Map.of("0-3", Map.of("field3", "value3"))), // xread(Map.of(key9, "0-2"));
             1L, // xtrim(key9, new MinId(true, "0-2"));
             OK,
             Map.of("timeout", "1000"),

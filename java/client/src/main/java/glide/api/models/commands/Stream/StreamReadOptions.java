@@ -40,14 +40,14 @@ public final class StreamReadOptions {
     public String[] toArgs(Map<String, String> streams) {
         List<String> optionArgs = new ArrayList<>();
 
-        if (this.block != null) {
-            optionArgs.add(READ_BLOCK_REDIS_API);
-            optionArgs.add(block.toString());
-        }
-
         if (this.count != null) {
             optionArgs.add(READ_COUNT_REDIS_API);
             optionArgs.add(count.toString());
+        }
+
+        if (this.block != null) {
+            optionArgs.add(READ_BLOCK_REDIS_API);
+            optionArgs.add(block.toString());
         }
 
         optionArgs.add(READ_STREAMS_REDIS_API);

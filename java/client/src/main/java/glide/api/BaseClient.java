@@ -322,6 +322,11 @@ public abstract class BaseClient
         return handleRedisResponse(Map.class, false, response);
     }
 
+    @SuppressWarnings("unchecked") // raw Map cast to Map<String, V>
+    protected <V> Map<String, V> handleMapOrNullResponse(Response response) throws RedisException {
+        return handleRedisResponse(Map.class, true, response);
+    }
+
     @SuppressWarnings("unchecked") // raw Set cast to Set<String>
     protected Set<String> handleSetResponse(Response response) throws RedisException {
         return handleRedisResponse(Set.class, false, response);
@@ -1092,9 +1097,9 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Map<String, Map<String, Map<String, String>>>> xread(
-            @NonNull Map<String, String> keysAndIds, StreamReadOptions options) {
+            @NonNull Map<String, String> keysAndIds, @NonNull StreamReadOptions options) {
         String[] arguments = options.toArgs(keysAndIds);
-        return commandManager.submitNewCommand(XRead, arguments, this::handleMapResponse);
+        return commandManager.submitNewCommand(XRead, arguments, this::handleMapOrNullResponse);
     }
 
     @Override

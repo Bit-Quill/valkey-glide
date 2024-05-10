@@ -2298,7 +2298,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/xadd/">redis.io</a> for details.
      * @param key The key of the stream.
      * @param values Field-value pairs to be added to the entry.
-     * @param options Stream add options.
+     * @param options Stream add options {@link StreamAddOptions}.
      * @return Command Response - The id of the added entry, or <code>null</code> if {@link
      *     StreamAddOptionsBuilder#makeStream(Boolean)} is set to <code>false</code> and no stream
      *     with the matching <code>key</code> exists.
@@ -2318,7 +2318,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/commands/xtrim/">redis.io</a> for details.
      * @param key The key of the stream.
-     * @param options Stream trim options.
+     * @param options Stream trim options {@link StreamTrimOptions}.
      * @return Command Response - The number of entries deleted from the stream.
      */
     public T xtrim(@NonNull String key, @NonNull StreamTrimOptions options) {
@@ -2349,7 +2349,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param keysAndIds - An array of <code>Pair</code>s of keys and entry ids to read from. A <code>
      *     pair</code> is composed of a stream's key and the id of the entry after which the stream
      *     will be read.
-     * @param options - options detailing how to read the stream.
+     * @param options - options detailing how to read the stream {@link StreamReadOptions}.
      * @return Command Response - A <code>Map</code> of a stream key to an array of entries in the
      *     matching <code>key</code>. The entries are in an <code>[id, fields[]]</code> format.
      */

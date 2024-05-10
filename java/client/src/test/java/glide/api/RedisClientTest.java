@@ -3567,10 +3567,10 @@ public class RedisClientTest {
         Map<String, Map<String, Map<String, String>>> completedResult =
                 Map.of(keyOne, Map.of(streamIdOne, Map.of("field", "value")));
         String[] arguments = {
-            READ_BLOCK_REDIS_API,
-            block.toString(),
             READ_COUNT_REDIS_API,
             count.toString(),
+            READ_BLOCK_REDIS_API,
+            block.toString(),
             READ_STREAMS_REDIS_API,
             keyOne,
             streamIdOne

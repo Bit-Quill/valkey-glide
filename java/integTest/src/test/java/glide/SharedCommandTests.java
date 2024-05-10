@@ -2640,9 +2640,9 @@ public class SharedCommandTests {
     @MethodSource("getClients")
     public void xadd_and_xtrim(BaseClient client) {
         String key = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
         String field1 = UUID.randomUUID().toString();
         String field2 = UUID.randomUUID().toString();
-        String key2 = UUID.randomUUID().toString();
 
         assertNull(
                 client
@@ -2744,8 +2744,8 @@ public class SharedCommandTests {
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void xread(BaseClient client) {
-        String key1 = "{key1}";
-        String key2 = key1 + "-" + UUID.randomUUID();
+        String key1 = "{key}:1" + UUID.randomUUID();
+        String key2 = "{key}:2" + UUID.randomUUID();
         String field1 = "f1_";
         String field2 = "f2_";
         String field3 = "f3_";
@@ -2754,43 +2754,74 @@ public class SharedCommandTests {
         Map<String, String> timestamp_1_1_map = new LinkedHashMap<>();
         timestamp_1_1_map.put(field1, field1 + "1");
         timestamp_1_1_map.put(field3, field3 + "1");
-        String timestamp_1_1 = client.xadd(key1, timestamp_1_1_map).get();
+        String timestamp_1_1 =
+                client.xadd(key1, timestamp_1_1_map, StreamAddOptions.builder().id("1-1").build()).get();
         assertNotNull(timestamp_1_1);
 
-        String timestamp_2_1 = client.xadd(key2, Map.of(field2, field2 + "1")).get();
+        String timestamp_2_1 =
+                client
+                        .xadd(key2, Map.of(field2, field2 + "1"), StreamAddOptions.builder().id("2-1").build())
+                        .get();
         assertNotNull(timestamp_2_1);
 
         // setup second entries in streams key1 and key2
-        String timestamp_1_2 = client.xadd(key1, Map.of(field1, field1 + "2")).get();
+        String timestamp_1_2 =
+                client
+                        .xadd(key1, Map.of(field1, field1 + "2"), StreamAddOptions.builder().id("1-2").build())
+                        .get();
         assertNotNull(timestamp_1_2);
 
-        String timestamp_2_2 = client.xadd(key2, Map.of(field2, field2 + "2")).get();
+        String timestamp_2_2 =
+                client
+                        .xadd(key2, Map.of(field2, field2 + "2"), StreamAddOptions.builder().id("2-2").build())
+                        .get();
         assertNotNull(timestamp_2_2);
 
         // setup third entries in streams key1 and key2
         Map<String, String> timestamp_1_3_map = new LinkedHashMap<>();
         timestamp_1_3_map.put(field1, field1 + "3");
         timestamp_1_3_map.put(field3, field3 + "3");
-        String timestamp_1_3 = client.xadd(key1, timestamp_1_3_map).get();
+        String timestamp_1_3 =
+                client.xadd(key1, timestamp_1_3_map, StreamAddOptions.builder().id("1-3").build()).get();
         assertNotNull(timestamp_1_3);
 
-        String timestamp_2_3 = client.xadd(key2, Map.of(field2, field2 + "3")).get();
+        String timestamp_2_3 =
+                client
+                        .xadd(key2, Map.of(field2, field2 + "3"), StreamAddOptions.builder().id("2-3").build())
+                        .get();
         assertNotNull(timestamp_2_3);
 
-        StreamReadOptions blockOption = StreamReadOptions.builder().build();
         Map<String, Map<String, Map<String, String>>> result =
-                client.xread(Map.of(key1, timestamp_1_1, key2, timestamp_2_1), blockOption).get();
+                client.xread(Map.of(key1, timestamp_1_1, key2, timestamp_2_1)).get();
 
-        assertEquals(1, result.get(key1).get(timestamp_1_2).size());
-        assertEquals(field1 + "2", result.get(key1).get(timestamp_1_2).get(field1));
-        assertEquals(2, result.get(key1).get(timestamp_1_3).size());
-        assertEquals(field1 + "3", result.get(key1).get(timestamp_1_3).get(field1));
-        assertEquals(field3 + "3", result.get(key1).get(timestamp_1_3).get(field3));
+        // check key1
+        assertEquals(
+                Map.of(
+                        timestamp_1_2,
+                        Map.of(field1, field1 + "2"),
+                        timestamp_1_3,
+                        Map.of(field1, field1 + "3", field3, field3 + "3")),
+                result.get(key1));
 
-        assertEquals(1, result.get(key2).get(timestamp_2_2).size());
-        assertEquals(field2 + "2", result.get(key2).get(timestamp_2_2).get(field2));
-        assertEquals(1, result.get(key2).get(timestamp_2_3).size());
-        assertEquals(field2 + "3", result.get(key2).get(timestamp_2_3).get(field2));
+        // check key2
+        assertEquals(
+                Map.of(
+                        timestamp_2_2,
+                        Map.of(field2, field2 + "2"),
+                        timestamp_2_3,
+                        Map.of(field2, field2 + "3")),
+                result.get(key2));
+
+        // Block on the final stream for 10 milliseconds
+        // and expect a null response because there is no incoming data
+        Map<String, Map<String, Map<String, String>>> blockedResult =
+                client
+                        .xread(
+                                Map.of(key1, timestamp_1_3, key2, timestamp_2_3),
+                                StreamReadOptions.builder().block(10L).build())
+                        .get();
+
+        assertNull(blockedResult);
     }
 
     @SneakyThrows
