@@ -93,8 +93,7 @@ public interface GeospatialIndicesBaseCommands {
      *     members do not exist, or if the key does not exist, returns <code>null</code>.
      * @example
      *     <pre>{@code
-     * client.geoadd("mySortedSet", Map.of("Palermo", new GeospatialData(13.361389, 38.115556), "Catania", new GeospatialData(15.087269, 37.502669))).get();
-     * Double result = client.geodist("mySortedSet", "Palermo", "Catania", GeoUnit.KILOMETERS.getUnit()).get();
+     * Double result = client.geodist("mySortedSet", "Palermo", "Catania", GeoUnit.KILOMETERS).get();
      * System.out.println(result);
      * }</pre>
      */
@@ -113,7 +112,6 @@ public interface GeospatialIndicesBaseCommands {
      *     unit is <code>METERS</code>.
      * @example
      *     <pre>{@code
-     * client.geoadd("mySortedSet", Map.of("Palermo", new GeospatialData(13.361389, 38.115556), "Catania", new GeospatialData(15.087269, 37.502669))).get();
      * Double result = client.geodist("mySortedSet", "Palermo", "Catania").get();
      * System.out.println(result);
      * }</pre>
