@@ -27,7 +27,7 @@ class ScoreModifier(Enum):
     """
     Defines which elements to pop from a sorted set.
 
-    ScoreModifier is a mandatory option for BZMPOP (https://google.github.io/proto-lens/installing-protoc.html).
+    ScoreModifier is a mandatory option for BZMPOP (https://valkey.io/commands/bzmpop).
     """
 
     MIN = "MIN"
