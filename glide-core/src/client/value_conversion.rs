@@ -20,7 +20,8 @@ pub(crate) enum ExpectedReturnType {
     ArrayOfDoubleOrNull,
     Lolwut,
     ArrayOfArraysOfDoubleOrNull,
-    ArrayOfKeyValuePairs,
+    ArrayOfPairs,
+    ArrayOfMemberScorePairs,
 }
 
 pub(crate) fn convert_to_expected_type(
@@ -270,7 +271,7 @@ pub(crate) fn convert_to_expected_type(
                     .into()),
             }
         }
-        ExpectedReturnType::ArrayOfKeyValuePairs => match value {
+        ExpectedReturnType::ArrayOfPairs => match value {
             Value::Nil => Ok(value),
             Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Array(_)) => {
                 Ok(value)
@@ -278,11 +279,62 @@ pub(crate) fn convert_to_expected_type(
             Value::Array(array)
                 if matches!(array[0], Value::BulkString(_) | Value::SimpleString(_)) =>
             {
-                convert_flat_array_to_key_value_pairs(array)
+                convert_flat_array_to_array_of_pairs(array)
             }
             _ => Err((
                 ErrorKind::TypeError,
                 "Response couldn't be converted to an array of key-value pairs",
+                format!("(response was {:?})", value),
+            )
+                .into()),
+        },
+        // Used by ZRANDMEMBER when the WITHSCORES arg is passed.
+        // The server response can be a nil value, an empty array, a flat array of member-score pairs, or a two-dimensional array of member-score pairs.
+        // The server response scores can be strings or doubles. The conversions we do here are as follows:
+        //
+        // - if the server returned nil, return nil
+        // - if the server returned an empty array, return an empty array
+        // - otherwise, return a two-dimensional array of member-score pairs, where scores are of type double
+        ExpectedReturnType::ArrayOfMemberScorePairs => match value {
+            Value::Nil => Ok(value),
+            Value::Array(ref array) if array.is_empty() => {
+                Ok(value)
+            }
+            Value::Array(array) if matches!(array[0], Value::Array(_)) => {
+                first_pair = array[0];
+                if first_pair.len() != 2 {
+                    Err((
+                        ErrorKind::TypeError,
+                        "Expected an array of member-score pairs but encountered an inner array with unexpected length",
+                        format!("(length was {:?}, expected length 2)", pair.len()),
+                    )
+                        .into());
+                }
+
+                match first_pair[1] => {
+                    Value::Double(_) {
+                        Ok(value)
+                    },
+                    Value::BulkString(_) | Value::SimpleString(_) => {
+                        convert_pair_scores_to_double(array)
+                    },
+                    Err((
+                        ErrorKind::TypeError,
+                        "Response couldn't be converted to an array of member-score pairs",
+                        format!("(response was {:?})", value),
+                    )
+                        .into());
+                }
+            }
+            Value::Array(array)
+                if matches!(array[0], Value::BulkString(_) | Value::SimpleString(_)) =>
+            {
+                array_of_pairs = convert_flat_array_to_array_of_pairs(array);
+                convert_pair_scores_to_double(array_of_pairs)
+            }
+            _ => Err((
+                ErrorKind::TypeError,
+                "Response couldn't be converted to an array of member-score pairs",
                 format!("(response was {:?})", value),
             )
                 .into()),
@@ -367,10 +419,10 @@ fn convert_array_to_map(
     Ok(Value::Map(map))
 }
 
-/// Converts a flat array of values to a two-dimensional array, where the inner arrays are two-length arrays representing key-value pairs. Normally a map would be more suitable for these responses, but some commands (eg HRANDFIELD) may return duplicate key-value pairs depending on the command arguments. These duplicated pairs cannot be represented by a map.
+/// Converts a flat array of values to a two-dimensional array, where the inner arrays are length=2 arrays representing key-value pairs. Normally a map would be more suitable for these responses, but some commands (eg HRANDFIELD) may return duplicate key-value pairs depending on the command arguments. These duplicated pairs cannot be represented by a map.
 ///
 /// `array` is a flat array containing keys at even-positioned elements and their associated values at odd-positioned elements.
-fn convert_flat_array_to_key_value_pairs(array: Vec<Value>) -> RedisResult<Value> {
+fn convert_flat_array_to_array_of_pairs(array: Vec<Value>) -> RedisResult<Value> {
     if array.len() % 2 != 0 {
         return Err((
             ErrorKind::TypeError,
@@ -385,6 +437,27 @@ fn convert_flat_array_to_key_value_pairs(array: Vec<Value>) -> RedisResult<Value
         result.push(Value::Array(pair));
     }
     Ok(Value::Array(result))
+}
+
+/// Given an array of member-score pairs, converts the scores in the pairs to type double.
+///
+/// `member_score_pairs` is a two-dimensional array, where the inner arrays are length=2 arrays representing member-score pairs.
+fn convert_pair_scores_to_double(member_score_pairs: Vec<Value>) -> RedisResul<Value> {
+    for i in (0..member_score_pairs.len()) {
+        pair = member_score_pairs[i]
+        if pair.len() != 2 {
+            return Err((
+                ErrorKind::TypeError,
+                "Expected an array of member-score pairs but encountered an inner array with unexpected length",
+                format!("(inner array length was {:?}, expected length 2)", pair.len()),
+            )
+                .into());
+        }
+
+        pair[1] = convert_to_expected_type(pair[1].clone(), Some(ExpectedReturnType::Double))?;
+    }
+    
+    Ok(Value::Array(member_score_pairs))
 }
 
 pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
@@ -407,10 +480,10 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
         b"GEOPOS" => Some(ExpectedReturnType::ArrayOfArraysOfDoubleOrNull),
         b"HRANDFIELD" => cmd
             .position(b"WITHVALUES")
-            .map(|_| ExpectedReturnType::ArrayOfKeyValuePairs),
+            .map(|_| ExpectedReturnType::ArrayOfPairs),
         b"ZRANDMEMBER" => cmd
             .position(b"WITHSCORES")
-            .map(|_| ExpectedReturnType::ArrayOfKeyValuePairs),
+            .map(|_| ExpectedReturnType::ArrayOfMemberScorePairs),
         b"ZADD" => cmd
             .position(b"INCR")
             .map(|_| ExpectedReturnType::DoubleOrNull),
@@ -517,7 +590,7 @@ mod tests {
     }
 
     #[test]
-    fn convert_array_of_kv_pairs() {
+    fn convert_to_array_of_pairs() {
         assert!(matches!(
             expected_type_for_cmd(
                 redis::cmd("HRANDFIELD")
@@ -525,24 +598,11 @@ mod tests {
                     .arg("1")
                     .arg("withvalues")
             ),
-            Some(ExpectedReturnType::ArrayOfKeyValuePairs)
+            Some(ExpectedReturnType::ArrayOfPairs)
         ));
 
         assert!(expected_type_for_cmd(redis::cmd("HRANDFIELD").arg("key").arg("1")).is_none());
         assert!(expected_type_for_cmd(redis::cmd("HRANDFIELD").arg("key")).is_none());
-
-        assert!(matches!(
-            expected_type_for_cmd(
-                redis::cmd("ZRANDMEMBER")
-                    .arg("key")
-                    .arg("1")
-                    .arg("withscores")
-            ),
-            Some(ExpectedReturnType::ArrayOfKeyValuePairs)
-        ));
-
-        assert!(expected_type_for_cmd(redis::cmd("ZRANDMEMBER").arg("key").arg("1")).is_none());
-        assert!(expected_type_for_cmd(redis::cmd("ZRANDMEMBER").arg("key")).is_none());
 
         let flat_array = Value::Array(vec![
             Value::BulkString(b"key1".to_vec()),
@@ -561,13 +621,13 @@ mod tests {
             ]),
         ]);
         let converted_flat_array =
-            convert_to_expected_type(flat_array, Some(ExpectedReturnType::ArrayOfKeyValuePairs))
+            convert_to_expected_type(flat_array, Some(ExpectedReturnType::ArrayOfPairs))
                 .unwrap();
         assert_eq!(two_dimensional_array, converted_flat_array);
 
         let converted_two_dimensional_array = convert_to_expected_type(
             two_dimensional_array.clone(),
-            Some(ExpectedReturnType::ArrayOfKeyValuePairs),
+            Some(ExpectedReturnType::ArrayOfPairs),
         )
         .unwrap();
         assert_eq!(two_dimensional_array, converted_two_dimensional_array);
@@ -575,20 +635,94 @@ mod tests {
         let empty_array = Value::Array(vec![]);
         let converted_empty_array = convert_to_expected_type(
             empty_array.clone(),
-            Some(ExpectedReturnType::ArrayOfKeyValuePairs),
+            Some(ExpectedReturnType::ArrayOfPairs),
         )
         .unwrap();
         assert_eq!(empty_array, converted_empty_array);
 
         let converted_nil_value =
-            convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::ArrayOfKeyValuePairs))
+            convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::ArrayOfPairs))
                 .unwrap();
         assert_eq!(Value::Nil, converted_nil_value);
 
         let array_of_doubles = Value::Array(vec![Value::Double(5.5)]);
         assert!(convert_to_expected_type(
             array_of_doubles,
-            Some(ExpectedReturnType::ArrayOfKeyValuePairs)
+            Some(ExpectedReturnType::ArrayOfPairs)
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn convert_to_member_score_pairs() {
+        assert!(matches!(
+            expected_type_for_cmd(
+                redis::cmd("ZRANDMEMBER")
+                    .arg("key")
+                    .arg("1")
+                    .arg("withscores")
+            ),
+            Some(ExpectedReturnType::ArrayOfPairs)
+        ));
+
+        assert!(expected_type_for_cmd(redis::cmd("ZRANDMEMBER").arg("key").arg("1")).is_none());
+        assert!(expected_type_for_cmd(redis::cmd("ZRANDMEMBER").arg("key")).is_none());
+
+        let flat_array = Value::Array(vec![
+            Value::BulkString(b"one".to_vec()),
+            Value::BulkString(b"1.0".to_vec()),
+            Value::BulkString(b"two".to_vec()),
+            Value::BulkString(b"2.0".to_vec()),
+        ]);
+        let expected_response = Value::Array(vec![
+            Value::Array(vec![
+                Value::BulkString(b"one".to_vec()),
+                Value::Double(1.0),
+            ]),
+            Value::Array(vec![
+                Value::BulkString(b"two".to_vec()),
+                Value::Double(2.0),
+            ]),
+        ]);
+        let converted_flat_array =
+            convert_to_expected_type(flat_array, Some(ExpectedReturnType::ArrayOfMemberScorePairs))
+                .unwrap();
+        assert_eq!(expected_response, converted_flat_array);
+
+        let array_of_pairs_string_scores = Value::Array(vec![
+            Value::Array(vec![
+                Value::BulkString(b"one".to_vec()),
+                Value::BulkString(b"1.0".to_vec()),
+            ]),
+            Value::Array(vec![
+                Value::BulkString(b"two".to_vec()),
+                Value::BulkString(b"2.0".to_vec()),
+            ]),
+        ]);
+        let converted_array_of_pairs_string_scores = convert_to_expected_type(
+            array_of_pairs_string_scores.clone(),
+            Some(ExpectedReturnType::ArrayOfMemberScorePairs),
+        )
+        .unwrap();
+        assert_eq!(expected_response, converted_two_dimensional_array);
+
+        let empty_array = Value::Array(vec![]);
+        let converted_empty_array = convert_to_expected_type(
+            empty_array.clone(),
+            Some(ExpectedReturnType::ArrayOfPairs),
+        )
+        .unwrap();
+        assert_eq!(empty_array, converted_empty_array);
+
+        let converted_nil_value =
+            convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::ArrayOfPairs))
+                .unwrap();
+        assert_eq!(Value::Nil, converted_nil_value);
+
+        let array_of_doubles = Value::Array(vec![Value::Double(5.5)]);
+        assert!(convert_to_expected_type(
+            array_of_doubles,
+            Some(ExpectedReturnType::ArrayOfPairs)
         )
         .is_err());
     }
