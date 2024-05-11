@@ -78,4 +78,22 @@ public interface GeospatialIndicesBaseCommands {
      * }</pre>
      */
     CompletableFuture<Double[][]> geopos(String key, String[] members);
+
+    /**
+     * Returns the GeoHash strings representing the positions of all the specified members in the
+     * sorted set stored at <code>key</code>.
+     *
+     * @see <a href="https://valkey.io/commands/geohash">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param members The list of members whose GeoHash strings are to be retrieved.
+     * @return A list of GeoHash strings representing the positions of the specified members stored at
+     *     <code>key</code>. If a member does not exist in the sorted set, a <code>null</code> value
+     *     is returned for that member.
+     * @example
+     *     <pre>{@code
+     * String[] result = client.geohash("mySortedSet", new String[] {"Palermo", "Catania", "NonExisting"}).get();
+     * System.out.println(Arrays.toString(result));
+     * }</pre>
+     */
+    CompletableFuture<String[]> geohash(String key, String[] members);
 }
