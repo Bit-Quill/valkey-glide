@@ -76,13 +76,15 @@ public interface BitmapBaseCommands {
 
     /**
      * Sets or clears the bit at <code>offset</code> in the string value stored at <code>key</code>.
-     * The <code>offset</code> is zero-based indexes, with <code>0</code> being the first element of
-     * the list, <code>1</code> being the next element and so on. The <code>offset</code> must be less
-     * than 2^32 and greater than or equal to 0. If a key is non-existent then the bit at <code>offset
-     * </code> is set to 0 or 1 and the preceding bits are set to 0.
+     * The <code>offset</code> is zero-based index, with <code>0</code> being the first element of the
+     * list, <code>1</code> being the next element, and so on. The <code>offset</code> must be less
+     * than <code>2^32</code> and greater than or equal to <code>0</code>. If a key is non-existent
+     * then the bit at <code>offset
+     * </code> is set to <code>0</code> or <code>1</code> and the preceding bits are set to <code>0
+     * </code>.
      *
      * @see <a href="https://redis.io/commands/setbit/">redis.io</a> for details.
-     * @param key The key for the string to set the bit of at <code>offset</code>.
+     * @param key The key of the string.
      * @param offset The index of the bit to be set.
      * @param value The bit value to set at <code>offset</code>.
      * @return The bit value that was previously stored at <code>offset</code>.

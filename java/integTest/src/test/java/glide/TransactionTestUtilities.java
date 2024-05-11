@@ -467,8 +467,8 @@ public class TransactionTestUtilities {
     }
 
     private static Object[] bitmapCommands(BaseTransaction<?> transaction) {
-        String key1 = "{key}-1" + UUID.randomUUID();
-        String key2 = "{key}-2" + UUID.randomUUID();
+        String key1 = "{bitmapKey}-1" + UUID.randomUUID();
+        String key2 = "{bitmapKey}-2" + UUID.randomUUID();
 
         transaction
                 .set(key1, "foobar")

@@ -3546,7 +3546,6 @@ public class SharedCommandTests {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
 
-        assertEquals(1, client.sadd(key2, new String[] {"value"}).get());
         assertEquals(0, client.setbit(key1, 0, 1).get());
         assertEquals(1, client.setbit(key1, 0, 0).get());
 
@@ -3566,9 +3565,9 @@ public class SharedCommandTests {
         assertTrue(executionException.getCause() instanceof RequestException);
 
         // Exception thrown due to the key holding a value with the wrong type
+        assertEquals(1, client.sadd(key2, new String[] {"value"}).get());
         executionException =
-                assertThrows(
-                        ExecutionException.class, () -> client.bitcount(key2, 1, 1, BitmapIndexType.BIT).get());
+                assertThrows(ExecutionException.class, () -> client.setbit(key2, 1, 1).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
 }
