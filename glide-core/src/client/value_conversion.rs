@@ -296,45 +296,51 @@ pub(crate) fn convert_to_expected_type(
         // - if the server returned an empty array, return an empty array
         // - otherwise, return a two-dimensional array of member-score pairs, where scores are of type double
         ExpectedReturnType::ArrayOfMemberScorePairs => {
-            let array_of_pairs = convert_to_expected_type(value, Some(ExpectedReturnType::ArrayOfPairs))?;
+            let mut array_of_pairs = convert_to_expected_type(value, Some(ExpectedReturnType::ArrayOfPairs))?;
             match array_of_pairs {
-                Value::Nil => Ok(value),
-                Value::Array(array) => {
+                Value::Nil => Ok(array_of_pairs),
+                Value::Array(ref mut array) => {
                     if array.is_empty() {
                         return Ok(array_of_pairs);
                     }
 
-                    match array[0] {
+                    match &array[0] {
                         Value::Array(first_pair) => {
                             if first_pair.len() != 2 {
                                 return Err((
                                     ErrorKind::TypeError,
                                     "Response couldn't be converted to an array of member-score pairs",
-                                    format!("(response was {:?})", value),
+                                    format!("(response was {:?})", array_of_pairs),
                                 ).into());
                             }
 
                             match first_pair[1] {
                                 Value::Double(_) => {
-                                    Ok(value)
+                                    Ok(array_of_pairs)
                                 },
                                 Value::BulkString(_) | Value::SimpleString(_) => {
-                                    convert_pair_scores_to_double(array)
+                                    convert_pair_scores_to_double(array.to_vec())
                                 },
                                 _ => Err((
                                     ErrorKind::TypeError,
                                     "Response couldn't be converted to an array of member-score pairs",
-                                    format!("(response was {:?})", value),
+                                    format!("(response was {:?})", array_of_pairs),
                                 )
                                     .into()),
                             }
                         }
+                        _ => Err((
+                            ErrorKind::TypeError,
+                            "Response couldn't be converted to an array of member-score pairs",
+                            format!("(response was {:?})", array_of_pairs),
+                        )
+                            .into()),
                     }
                 },
                 _ => Err((
                     ErrorKind::TypeError,
                     "Response couldn't be converted to an array of member-score pairs",
-                    format!("(response was {:?})", value),
+                    format!("(response was {:?})", array_of_pairs),
                 )
                     .into()),
             }
@@ -442,25 +448,24 @@ fn convert_flat_array_to_array_of_pairs(array: Vec<Value>) -> RedisResult<Value>
 /// Given an array of member-score pairs, converts the scores in the pairs to type double.
 ///
 /// `member_score_pairs` is a two-dimensional array, where the inner arrays are length=2 arrays representing member-score pairs.
-fn convert_pair_scores_to_double(member_score_pairs: Vec<Value>) -> RedisResult<Value> {
+fn convert_pair_scores_to_double(mut member_score_pairs: Vec<Value>) -> RedisResult<Value> {
     for i in 0..member_score_pairs.len() {
-        match member_score_pairs[0] {
-            Value::Array(pair) => {
-                if pair.len() != 2 {
-                    return Err((
-                        ErrorKind::TypeError,
-                        "Response value couldn't be converted to an array of member-score pairs",
-                        format!("(response value was {:?})", member_score_pairs),
-                    ).into());
-                }
-
-                pair[1] = convert_to_expected_type(pair[1].clone(), Some(ExpectedReturnType::Double))?;
+        if let Value::Array(ref mut pair) = &mut member_score_pairs[i] {
+            if pair.len() != 2 {
+                return Err((
+                    ErrorKind::TypeError,
+                    "Response value couldn't be converted to an array of member-score pairs",
+                    format!("(response value was {:?})", member_score_pairs),
+                ).into());
             }
-            _ => Err((
+
+            pair[1] = convert_to_expected_type(pair[1].clone(), Some(ExpectedReturnType::Double))?;
+        } else {
+            return Err((
                 ErrorKind::TypeError,
                 "Response value couldn't be converted to an array of member-score pairs",
                 format!("(response value was {:?})", member_score_pairs),
-            ).into()),
+            ).into());
         }
     }
     
@@ -706,13 +711,13 @@ mod tests {
         let empty_array = Value::Array(vec![]);
         let converted_empty_array = convert_to_expected_type(
             empty_array.clone(),
-            Some(ExpectedReturnType::ArrayOfPairs),
+            Some(ExpectedReturnType::ArrayOfMemberScorePairs),
         )
         .unwrap();
         assert_eq!(empty_array, converted_empty_array);
 
         let converted_nil_value =
-            convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::ArrayOfPairs))
+            convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::ArrayOfMemberScorePairs))
                 .unwrap();
         assert_eq!(Value::Nil, converted_nil_value);
 
@@ -723,7 +728,7 @@ mod tests {
         ]);
         assert!(convert_to_expected_type(
             unexpected_pair_length,
-            Some(ExpectedReturnType::ArrayOfPairs)
+            Some(ExpectedReturnType::ArrayOfMemberScorePairs)
         )
         .is_err());
 
@@ -735,7 +740,7 @@ mod tests {
         ]);
         assert!(convert_to_expected_type(
             unexpected_score_type,
-            Some(ExpectedReturnType::ArrayOfPairs)
+            Some(ExpectedReturnType::ArrayOfMemberScorePairs)
         )
         .is_err());
     }
