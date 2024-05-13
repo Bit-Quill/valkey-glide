@@ -2746,6 +2746,7 @@ public class SharedCommandTests {
     public void xread(BaseClient client) {
         String key1 = "{key}:1" + UUID.randomUUID();
         String key2 = "{key}:2" + UUID.randomUUID();
+        String nonStreamKey = "{key}:3" + UUID.randomUUID();
         String field1 = "f1_";
         String field2 = "f2_";
         String field3 = "f3_";
@@ -2822,6 +2823,30 @@ public class SharedCommandTests {
                         .get();
 
         assertNull(blockedResult);
+
+        // Key exists, but it is not a stream
+        assertEquals(OK, client.set(nonStreamKey, "bar").get());
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.xread(Map.of(nonStreamKey, timestamp_1_3, key1, timestamp_2_3)).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.xread(Map.of(key1, timestamp_1_3, nonStreamKey, timestamp_2_3)).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        // same-slot requirement
+        if (client instanceof RedisClusterClient) {
+            executionException =
+                    assertThrows(
+                            ExecutionException.class,
+                            () -> client.xread(Map.of("abc", timestamp_1_3, "zxy", timestamp_2_3)).get());
+            assertInstanceOf(RequestException.class, executionException.getCause());
+            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
+        }
     }
 
     @SneakyThrows
