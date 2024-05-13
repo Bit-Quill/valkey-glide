@@ -271,22 +271,15 @@ pub(crate) fn convert_to_expected_type(
                     .into()),
             }
         }
-        ExpectedReturnType::ArrayOfPairs => match value {
-            Value::Nil => Ok(value),
-            Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Array(_)) => {
-                Ok(value)
-            }
-            Value::Array(array)
-                if matches!(array[0], Value::BulkString(_) | Value::SimpleString(_)) =>
-            {
-                convert_flat_array_to_array_of_pairs(array)
-            }
-            _ => Err((
-                ErrorKind::TypeError,
-                "Response couldn't be converted to an array of key-value pairs",
-                format!("(response was {:?})", value),
-            )
-                .into()),
+        // Used by HRANDFIELD when the WITHVALUES arg is passed.
+        // The server response can be a nil value, an empty array, a flat array of key-value pairs, or a two-dimensional array of key-value pairs.
+        // The conversions we do here are as follows:
+        //
+        // - if the server returned nil, return nil
+        // - if the server returned an empty array, return an empty array
+        // - otherwise, return a two-dimensional array of key-value pairs
+        ExpectedReturnType::ArrayOfPairs => {
+            convert_to_array_of_pairs(value, None)
         },
         // Used by ZRANDMEMBER when the WITHSCORES arg is passed.
         // The server response can be a nil value, an empty array, a flat array of member-score pairs, or a two-dimensional array of member-score pairs.
@@ -296,37 +289,8 @@ pub(crate) fn convert_to_expected_type(
         // - if the server returned an empty array, return an empty array
         // - otherwise, return a two-dimensional array of member-score pairs, where scores are of type double
         ExpectedReturnType::ArrayOfMemberScorePairs => {
-            match value {
-                Value::Nil => Ok(value),
-                Value::Array(ref array)
-                    if array.is_empty() || matches!(array[0], Value::Array(_)) =>
-                {
-                    // The server response is an empty array or a RESP3 array of pairs, with scores of type double,
-                    // so it is already in the correct format.
-                    Ok(value)
-                }
-                Value::Array(mut array)
-                    if array.len() > 1
-                        && matches!(array[1], Value::BulkString(_) | Value::SimpleString(_)) =>
-                {
-                    // The server response is a RESP2 flat array with members at even indices and their associated
-                    // scores as strings at odd indices. Here we convert the scores to type double and then convert the
-                    // flat array to an array of pairs.
-                    for i in (1..array.len()).step_by(2) {
-                        array[i] = convert_to_expected_type(
-                            array[i].clone(),
-                            Some(ExpectedReturnType::Double),
-                        )?
-                    }
-                    convert_flat_array_to_array_of_pairs(array)
-                }
-                _ => Err((
-                    ErrorKind::TypeError,
-                    "Response couldn't be converted to an array of member-score pairs",
-                    format!("(response was {:?})", value),
-                )
-                    .into()),
-            }
+            // RESP2 returns scores as strings, but we want scores as type double.
+            convert_to_array_of_pairs(value, Some(ExpectedReturnType::Double))
         }
     }
 }
@@ -408,10 +372,49 @@ fn convert_array_to_map(
     Ok(Value::Map(map))
 }
 
+/// Used by commands like ZRANDMEMBER and HRANDFIELD. Normally a map would be more suitable for these key-value responses, but these commands may return duplicate key-value pairs depending on the command arguments. These duplicated pairs cannot be represented by a map.
+///
+/// Converts a server response as follows:
+/// - if the server returned nil, return nil.
+/// - if the server returned an empty array, return an empty array.
+/// - if the server returned a flat array (RESP2), convert it to a two-dimensional array, where the inner arrays are length=2 arrays representing key-value pairs.
+/// - if the server returned a two-dimensional array (RESP3), return the response as is, since it is already in the correct format.
+/// - otherwise, return an error.
+///
+/// `response` is a server response that we should attempt to convert as described above.
+/// `value_expected_return_type` indicates the desired return type of the values in the key-value pairs.
+fn convert_to_array_of_pairs(response: Value, value_expected_return_type: Option<ExpectedReturnType>) -> RedisResult<Value> {
+    match response {
+        Value::Nil => Ok(response),
+        Value::Array(ref array)
+            if array.is_empty() || matches!(array[0], Value::Array(_)) =>
+        {
+            // The server response is an empty array or a RESP3 array of pairs. In RESP3, if the response contains
+            // scores, they will already be of type double, so `response` is already in the correct format.
+            Ok(response)
+        }
+        Value::Array(array)
+            if array.len() > 1
+                && matches!(array[1], Value::BulkString(_) | Value::SimpleString(_)) =>
+        {
+            // The server response is a RESP2 flat array with keys at even indices and their associated values at
+            // odd indices.
+            convert_flat_array_to_array_of_pairs(array, value_expected_return_type)
+        }
+        _ => Err((
+            ErrorKind::TypeError,
+            "Response couldn't be converted to an array of member-score pairs",
+            format!("(response was {:?})", response),
+        )
+            .into()),
+    }
+}
+
 /// Converts a flat array of values to a two-dimensional array, where the inner arrays are length=2 arrays representing key-value pairs. Normally a map would be more suitable for these responses, but some commands (eg HRANDFIELD) may return duplicate key-value pairs depending on the command arguments. These duplicated pairs cannot be represented by a map.
 ///
 /// `array` is a flat array containing keys at even-positioned elements and their associated values at odd-positioned elements.
-fn convert_flat_array_to_array_of_pairs(array: Vec<Value>) -> RedisResult<Value> {
+/// `value_expected_return_type` indicates the desired return type of the values in the key-value pairs.
+fn convert_flat_array_to_array_of_pairs(array: Vec<Value>, value_expected_return_type: Option<ExpectedReturnType>) -> RedisResult<Value> {
     if array.len() % 2 != 0 {
         return Err((
             ErrorKind::TypeError,
@@ -422,7 +425,9 @@ fn convert_flat_array_to_array_of_pairs(array: Vec<Value>) -> RedisResult<Value>
 
     let mut result = Vec::with_capacity(array.len() / 2);
     for i in (0..array.len()).step_by(2) {
-        let pair = vec![array[i].clone(), array[i + 1].clone()];
+        let key = array[i].clone();
+        let value = convert_to_expected_type(array[i + 1].clone(), value_expected_return_type)?;
+        let pair = vec![key, value];
         result.push(Value::Array(pair));
     }
     Ok(Value::Array(result))
