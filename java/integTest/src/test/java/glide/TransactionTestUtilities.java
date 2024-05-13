@@ -464,7 +464,9 @@ public class TransactionTestUtilities {
                 {13.36138933897018433, 38.11555639549629859},
                 {15.08726745843887329, 37.50266842333162032},
             }, // geopos(new String[]{"Palermo", "Catania"})
-            new String[] {"sqc8b49rny0", "sqdtr74hyu0", null}
+            new String[] {
+                "sqc8b49rny0", "sqdtr74hyu0", null
+            } // eohash(geoKey1, new String[] {"Palermo", "Catania", "NonExisting"})
         };
     }
 

@@ -2966,15 +2966,15 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Returns the GeoHash strings representing the positions of all the specified members in the
-     * sorted set stored at <code>key</code>.
+     * Returns the <code>GeoHash</code> strings representing the positions of all the specified <code>
+     * members</code> in the sorted set stored at <code>key</code>.
      *
      * @see <a href="https://valkey.io/commands/geohash">valkey.io</a> for more details.
      * @param key The key of the sorted set.
-     * @param members The list of members whose GeoHash strings are to be retrieved.
-     * @return Command Response - A list of GeoHash strings representing the positions of the
-     *     specified members stored at <code>key</code>. If a member does not exist in the sorted set,
-     *     a <code>null</code> value is returned for that member.
+     * @param members The array of members whose <code>GeoHash</code> strings are to be retrieved.
+     * @return Command Response - A list of <code>GeoHash</code> strings representing the positions of
+     *     the specified members stored at <code>key</code>. If a member does not exist in the sorted
+     *     set, a <code>null</code> value is returned for that member.
      */
     public T geohash(@NonNull String key, @NonNull String[] members) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
