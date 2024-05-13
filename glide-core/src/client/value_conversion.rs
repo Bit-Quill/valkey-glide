@@ -327,7 +327,7 @@ pub(crate) fn convert_to_expected_type(
                 )
                     .into()),
             }
-        },
+        }
     }
 }
 
