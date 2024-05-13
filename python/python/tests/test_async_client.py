@@ -2420,6 +2420,10 @@ class TestCommands:
         with pytest.raises(RequestError):
             await redis_client.bzmpop([string_key], ScoreFilter.MAX, 0.1, 1)
 
+        # incorrect argument: key list should not be empty
+        with pytest.raises(RequestError):
+            assert await redis_client.bzmpop([], ScoreFilter.MAX, 0.1, 1)
+
         # incorrect argument: count should be greater than 0
         with pytest.raises(RequestError):
             assert await redis_client.bzmpop([key1], ScoreFilter.MAX, 0.1, 0)
