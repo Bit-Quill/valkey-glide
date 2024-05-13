@@ -228,48 +228,44 @@ pub(crate) fn convert_to_expected_type(
             )
                 .into()),
         },
-        ExpectedReturnType::Lolwut => {
-            match value {
-                // cluster (multi-node) response - go recursive
-                Value::Map(map) => {
-                    let result = map
-                        .into_iter()
-                        .map(|(key, inner_value)| {
-                            let converted_key = convert_to_expected_type(
-                                key,
-                                Some(ExpectedReturnType::BulkString),
-                            )?;
-                            let converted_value = convert_to_expected_type(
-                                inner_value,
-                                Some(ExpectedReturnType::Lolwut),
-                            )?;
-                            Ok((converted_key, converted_value))
-                        })
-                        .collect::<RedisResult<_>>();
+        ExpectedReturnType::Lolwut => match value {
+            // cluster (multi-node) response - go recursive
+            Value::Map(map) => {
+                let result = map
+                    .into_iter()
+                    .map(|(key, inner_value)| {
+                        let converted_key =
+                            convert_to_expected_type(key, Some(ExpectedReturnType::BulkString))?;
+                        let converted_value = convert_to_expected_type(
+                            inner_value,
+                            Some(ExpectedReturnType::Lolwut),
+                        )?;
+                        Ok((converted_key, converted_value))
+                    })
+                    .collect::<RedisResult<_>>();
 
-                    result.map(Value::Map)
-                }
-                // RESP 2 response
-                Value::BulkString(bytes) => {
-                    let text = std::str::from_utf8(&bytes).unwrap();
-                    let res = convert_lolwut_string(text);
-                    Ok(Value::BulkString(Vec::from(res)))
-                }
-                // RESP 3 response
-                Value::VerbatimString {
-                    format: _,
-                    ref text,
-                } => {
-                    let res = convert_lolwut_string(text);
-                    Ok(Value::BulkString(Vec::from(res)))
-                }
-                _ => Err((
-                    ErrorKind::TypeError,
-                    "LOLWUT response couldn't be converted to a user-friendly format",
-                    (&format!("(response was {:?}...)", value)[..100]).into(),
-                )
-                    .into()),
+                result.map(Value::Map)
             }
+            // RESP 2 response
+            Value::BulkString(bytes) => {
+                let text = std::str::from_utf8(&bytes).unwrap();
+                let res = convert_lolwut_string(text);
+                Ok(Value::BulkString(Vec::from(res)))
+            }
+            // RESP 3 response
+            Value::VerbatimString {
+                format: _,
+                ref text,
+            } => {
+                let res = convert_lolwut_string(text);
+                Ok(Value::BulkString(Vec::from(res)))
+            }
+            _ => Err((
+                ErrorKind::TypeError,
+                "LOLWUT response couldn't be converted to a user-friendly format",
+                (&format!("(response was {:?}...)", value)[..100]).into(),
+            )
+                .into()),
         },
         ExpectedReturnType::XreadReturnType => match value {
             Value::Nil => Ok(value),
