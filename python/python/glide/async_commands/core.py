@@ -23,7 +23,7 @@ from glide.async_commands.sorted_set import (
     RangeByLex,
     RangeByScore,
     ScoreBoundary,
-    ScoreModifier,
+    ScoreFilter,
     _create_zrange_args,
     _create_zrangestore_args,
 )
@@ -2750,7 +2750,7 @@ class CoreCommands(Protocol):
     async def bzmpop(
         self,
         keys: List[str],
-        modifier: ScoreModifier,
+        modifier: ScoreFilter,
         timeout: float,
         count: Optional[int] = None,
     ) -> Optional[List[Union[str, Dict[str, float]]]]:
@@ -2770,7 +2770,7 @@ class CoreCommands(Protocol):
 
         Args:
             keys (List[str]): The keys of the sorted set.
-            modifier (ScoreModifier): The element pop criteria - either ScoreModifier.MIN or ScoreModifier.MAX to pop
+            modifier (ScoreFilter): The element pop criteria - either ScoreFilter.MIN or ScoreFilter.MAX to pop
                 members with the lowest/highest scores accordingly.
             timeout (float): The number of seconds to wait for a blocking operation to complete. A value of 0 will
                 block indefinitely.
@@ -2782,7 +2782,7 @@ class CoreCommands(Protocol):
                 popped and the timeout expired, returns None.
 
         Examples:
-            >>> await client.bzmpop(["zSet1", "zSet2"], ScoreModifier.MAX, 0.5, 2)
+            >>> await client.bzmpop(["zSet1", "zSet2"], ScoreFilter.MAX, 0.5, 2)
                 ['zSet1', {'two': 2.0, 'one': 1.0}]  # "two" with score 2.0 and "one" with score 1.0 were popped from "zSet1".
 
         Since: Redis version 7.0.0.

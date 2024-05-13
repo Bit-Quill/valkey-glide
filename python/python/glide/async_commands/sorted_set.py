@@ -23,11 +23,11 @@ class InfBound(Enum):
     """
 
 
-class ScoreModifier(Enum):
+class ScoreFilter(Enum):
     """
     Defines which elements to pop from a sorted set.
 
-    ScoreModifier is a mandatory option for BZMPOP (https://valkey.io/commands/bzmpop).
+    ScoreFilter is a mandatory option for BZMPOP (https://valkey.io/commands/bzmpop).
     """
 
     MIN = "MIN"

@@ -22,7 +22,7 @@ from glide.async_commands.sorted_set import (
     RangeByLex,
     RangeByScore,
     ScoreBoundary,
-    ScoreModifier,
+    ScoreFilter,
     _create_zrange_args,
     _create_zrangestore_args,
 )
@@ -1970,7 +1970,7 @@ class BaseTransaction:
     def bzmpop(
         self: TTransaction,
         keys: List[str],
-        modifier: ScoreModifier,
+        modifier: ScoreFilter,
         timeout: float,
         count: Optional[int] = None,
     ) -> TTransaction:
@@ -1988,7 +1988,7 @@ class BaseTransaction:
 
         Args:
             keys (List[str]): The keys of the sorted set.
-            modifier (ScoreModifier): The element pop criteria - either ScoreModifier.MIN or ScoreModifier.MAX to pop
+            modifier (ScoreFilter): The element pop criteria - either ScoreFilter.MIN or ScoreFilter.MAX to pop
                 members with the lowest/highest scores accordingly.
             timeout (float): The number of seconds to wait for a blocking operation to complete. A value of 0 will
                 block indefinitely.

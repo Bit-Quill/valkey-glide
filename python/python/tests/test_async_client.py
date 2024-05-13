@@ -33,7 +33,7 @@ from glide.async_commands.sorted_set import (
     RangeByLex,
     RangeByScore,
     ScoreBoundary,
-    ScoreModifier,
+    ScoreFilter,
 )
 from glide.config import ProtocolVersion, RedisCredentials
 from glide.constants import OK, TResult
@@ -2394,35 +2394,35 @@ class TestCommands:
         assert await redis_client.zadd(key1, {"a1": 1, "b1": 2}) == 2
         assert await redis_client.zadd(key2, {"a2": 0.1, "b2": 0.2}) == 2
 
-        assert await redis_client.bzmpop([key1, key2], ScoreModifier.MAX, 0.1) == [
+        assert await redis_client.bzmpop([key1, key2], ScoreFilter.MAX, 0.1) == [
             key1,
             {"b1": 2},
         ]
-        assert await redis_client.bzmpop([key2, key1], ScoreModifier.MAX, 0.1, 10) == [
+        assert await redis_client.bzmpop([key2, key1], ScoreFilter.MAX, 0.1, 10) == [
             key2,
             {"b2": 0.2, "a2": 0.1},
         ]
 
         # ensure that command doesn't time out even if timeout > request timeout (250ms by default)
         assert (
-            await redis_client.bzmpop([non_existing_key], ScoreModifier.MIN, 0.5)
+            await redis_client.bzmpop([non_existing_key], ScoreFilter.MIN, 0.5)
             is None
         )
         assert (
-            await redis_client.bzmpop([non_existing_key], ScoreModifier.MIN, 0.55, 1)
+            await redis_client.bzmpop([non_existing_key], ScoreFilter.MIN, 0.55, 1)
             is None
         )
 
         # key exists, but it is not a sorted set
         assert await redis_client.set(string_key, "value") == OK
         with pytest.raises(RequestError):
-            await redis_client.bzmpop([string_key], ScoreModifier.MAX, 0.1)
+            await redis_client.bzmpop([string_key], ScoreFilter.MAX, 0.1)
         with pytest.raises(RequestError):
-            await redis_client.bzmpop([string_key], ScoreModifier.MAX, 0.1, 1)
+            await redis_client.bzmpop([string_key], ScoreFilter.MAX, 0.1, 1)
 
         # incorrect argument: count should be greater than 0
         with pytest.raises(RequestError):
-            assert await redis_client.bzmpop([key1], ScoreModifier.MAX, 0.1, 0)
+            assert await redis_client.bzmpop([key1], ScoreFilter.MAX, 0.1, 0)
 
         # check that order of entries in the response is preserved
         entries = {}
@@ -2430,13 +2430,13 @@ class TestCommands:
             entries.update({f"a{i}": float(i)})
 
         assert await redis_client.zadd(key2, entries) == 10
-        assert await redis_client.bzmpop([key2], ScoreModifier.MIN, 0.1, 10) == [
+        assert await redis_client.bzmpop([key2], ScoreFilter.MIN, 0.1, 10) == [
             key2,
             entries,
         ]
 
         async def endless_bzmpop_call():
-            await redis_client.bzmpop(["non_existent_key"], ScoreModifier.MAX, 0)
+            await redis_client.bzmpop(["non_existent_key"], ScoreFilter.MAX, 0)
 
         # bzmpop is called against a non-existing key with no timeout, but we wrap the call in an asyncio timeout to
         # avoid having the test block forever
@@ -2446,7 +2446,7 @@ class TestCommands:
         # same-slot requirement
         if isinstance(redis_client, RedisClusterClient):
             with pytest.raises(RequestError) as e:
-                await redis_client.bzmpop(["abc", "zxy", "lkn"], ScoreModifier.MAX, 0.1)
+                await redis_client.bzmpop(["abc", "zxy", "lkn"], ScoreFilter.MAX, 0.1)
             assert "CrossSlot" in str(e)
 
     @pytest.mark.parametrize("cluster_mode", [True, False])

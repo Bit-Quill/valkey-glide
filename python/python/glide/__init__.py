@@ -24,7 +24,7 @@ from glide.async_commands.sorted_set import (
     RangeByLex,
     RangeByScore,
     ScoreBoundary,
-    ScoreModifier,
+    ScoreFilter,
 )
 from glide.async_commands.transaction import ClusterTransaction, Transaction
 from glide.config import (
@@ -99,7 +99,7 @@ __all__ = [
     "RangeByIndex",
     "RangeByLex",
     "RangeByScore",
-    "ScoreModifier",
+    "ScoreFilter",
     "StreamAddOptions",
     "StreamTrimOptions",
     "TrimByMaxLen",
