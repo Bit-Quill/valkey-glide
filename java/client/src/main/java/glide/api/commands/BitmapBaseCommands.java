@@ -79,9 +79,8 @@ public interface BitmapBaseCommands {
      * The <code>offset</code> is zero-based index, with <code>0</code> being the first element of the
      * list, <code>1</code> being the next element, and so on. The <code>offset</code> must be less
      * than <code>2^32</code> and greater than or equal to <code>0</code>. If a key is non-existent
-     * then the bit at <code>offset
-     * </code> is set to <code>0</code> or <code>1</code> and the preceding bits are set to <code>0
-     * </code>.
+     * then the bit at <code>offset</code> is set to <code>0</code> or <code>1</code> and the
+     * preceding bits are set to <code>0</code>.
      *
      * @see <a href="https://redis.io/commands/setbit/">redis.io</a> for details.
      * @param key The key of the string.
