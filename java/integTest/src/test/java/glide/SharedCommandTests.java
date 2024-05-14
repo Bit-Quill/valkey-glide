@@ -2771,17 +2771,17 @@ public class SharedCommandTests {
                                 Map.of(field1, "foo4", field2, "bar4"),
                                 StreamAddOptions.builder().trim(new MinId(true, id)).build())
                         .get());
-        assertEquals(1L, client.xlen(key).get());
+        assertEquals(2L, client.xlen(key).get());
 
         // test xtrim to remove 1 element
         assertEquals(1L, client.xtrim(key, new MaxLen(1)).get());
-        assertEquals(2L, client.xlen(key).get());
+        assertEquals(1L, client.xlen(key).get());
 
-        // Key is empty - assumes an empty stream
-        assertEquals(0L, client.xtrim(key, new MaxLen(true, 1)).get());
-        assertEquals(0L, client.xlen(key).get());
+        // Key is empty - and assumes an empty stream
+        assertEquals(0L, client.xtrim(key2, new MaxLen(true, 1)).get());
+        assertEquals(0L, client.xlen(key2).get());
 
-        // Key exists, but it is not a stream
+        // Throw Exception: Key exists - but it is not a stream
         assertEquals(OK, client.set(key2, "xtrimtest").get());
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.xtrim(key2, new MinId("0-1")).get());
