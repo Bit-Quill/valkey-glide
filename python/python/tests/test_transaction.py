@@ -249,6 +249,10 @@ async def transaction_test(
     args.append(["one", "two"])
     transaction.zdiff_withscores([key13, key8])
     args.append({"one": 1.0, "two": 2.0})
+    transaction.zintercard([key13, key8])
+    args.append(0)
+    transaction.zintercard([key13, key8], 1)
+    args.append(0)
 
     transaction.pfadd(key10, ["a", "b", "c"])
     args.append(1)
