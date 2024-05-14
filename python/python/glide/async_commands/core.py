@@ -158,9 +158,9 @@ class StreamTrimOptions(ABC):
     @abstractmethod
     def __init__(
         self,
-        exact: Optional[bool] = None,
         threshold: Union[str, int],
         method: str,
+        exact: Optional[bool] = None,
         limit: Optional[int] = None,
     ):
         """
@@ -174,7 +174,7 @@ class StreamTrimOptions(ABC):
             limit (Optional[int]): Max number of entries to be trimmed. Defaults to None.
                 Note: If `exact` is set to `True`, `limit` cannot be specified.
         """
-        if exact and limit:
+        if exact is not None and exact and limit is not None:
             raise ValueError(
                 "If `exact` is set to `True`, `limit` cannot be specified."
             )
@@ -210,13 +210,13 @@ class TrimByMinId(StreamTrimOptions):
     """
 
     def __init__(self, threshold: str):
-            """
-            Initialize trim option by minimum ID.
+        """
+        Initialize trim option by minimum ID.
 
-            Args:
-                threshold (str): Threshold for trimming by minimum ID.
-            """
-            super().__init__(None, threshold, "MINID", None)
+        Args:
+            threshold (str): Threshold for trimming by minimum ID.
+        """
+        super().__init__(threshold, "MINID", None, None)
 
     def __init__(self, exact: bool, threshold: str):
         """
@@ -227,18 +227,17 @@ class TrimByMinId(StreamTrimOptions):
                 Otherwise the stream will be trimmed in a near-exact manner, which is more efficient.
             threshold (str): Threshold for trimming by minimum ID.
         """
-        super().__init__(exact, threshold, "MINID", None)
+        super().__init__(threshold, "MINID", exact, None)
 
-    def __init__(self, threshold: str, limit: Optional[int] = None):
-            """
-            Initialize trim option by minimum ID.
+    def __init__(self, threshold: str, limit: int):
+        """
+        Initialize trim option by minimum ID.
 
-            Args:
-                exact (bool): If `true`, the stream will be trimmed exactly.
-                    Otherwise the stream will be trimmed in a near-exact manner, which is more efficient.
-                threshold (str): Threshold for trimming by minimum ID.
-            """
-            super().__init__(false, threshold, "MINID", limit)
+        Args:
+            threshold (str): Threshold for trimming by minimum ID.
+            limit (int): Max number of entries to be trimmed. Defaults to None.
+        """
+        super().__init__(threshold, "MINID", false, limit)
 
 
 class TrimByMaxLen(StreamTrimOptions):
@@ -247,13 +246,13 @@ class TrimByMaxLen(StreamTrimOptions):
     """
 
     def __init__(self, threshold: int):
-            """
-            Initialize trim option by maximum length.
+        """
+        Initialize trim option by maximum length.
 
-            Args:
-                threshold (int): Threshold for trimming by maximum length.
-            """
-            super().__init__(None, threshold, "MAXLEN", None)
+        Args:
+            threshold (int): Threshold for trimming by maximum length.
+        """
+        super().__init__(None, threshold, "MAXLEN", None)
 
     def __init__(self, exact: bool, threshold: int):
         """
@@ -266,16 +265,15 @@ class TrimByMaxLen(StreamTrimOptions):
         """
         super().__init__(exact, threshold, "MAXLEN", None)
 
-    def __init__(self, threshold: int, limit: Optional[int] = None):
-            """
-            Initialize trim option by maximum length.
+    def __init__(self, threshold: int, limit: int):
+        """
+        Initialize trim option by maximum length.
 
-            Args:
-                threshold (int): Threshold for trimming by maximum length.
-                limit (Optional[int]): Max number of entries to be trimmed. Defaults to None.
-                    Note: If `exact` is set to `True`, `limit` cannot be specified.
-            """
-            super().__init__(false, threshold, "MAXLEN", limit)
+        Args:
+            threshold (int): Threshold for trimming by maximum length.
+            limit (int): Max number of entries to be trimmed. Defaults to None.
+        """
+        super().__init__(threshold, "MAXLEN", false, limit)
 
 
 class StreamAddOptions:
