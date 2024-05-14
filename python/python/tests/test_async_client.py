@@ -2525,6 +2525,11 @@ class TestCommands:
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
     async def test_zintercard(self, redis_client: TRedisClient):
+        min_version = "7.0.0"
+        if await check_if_server_version_lt(redis_client, min_version):
+            # TODO: change it to pytest fixture after we'll implement a sync client
+            return pytest.mark.skip(reason=f"Redis version required >= {min_version}")
+
         key1 = f"{{testKey}}:1-{get_random_string(10)}"
         key2 = f"{{testKey}}:2-{get_random_string(10)}"
         string_key = f"{{testKey}}:4-{get_random_string(10)}"
