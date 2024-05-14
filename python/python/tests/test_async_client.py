@@ -2405,8 +2405,7 @@ class TestCommands:
 
         # ensure that command doesn't time out even if timeout > request timeout (250ms by default)
         assert (
-            await redis_client.bzmpop([non_existing_key], ScoreFilter.MIN, 0.5)
-            is None
+            await redis_client.bzmpop([non_existing_key], ScoreFilter.MIN, 0.5) is None
         )
         assert (
             await redis_client.bzmpop([non_existing_key], ScoreFilter.MIN, 0.55, 1)
