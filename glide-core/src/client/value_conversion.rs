@@ -278,9 +278,7 @@ pub(crate) fn convert_to_expected_type(
         // - if the server returned nil, return nil
         // - if the server returned an empty array, return an empty array
         // - otherwise, return a two-dimensional array of key-value pairs
-        ExpectedReturnType::ArrayOfPairs => {
-            convert_to_array_of_pairs(value, None)
-        },
+        ExpectedReturnType::ArrayOfPairs => convert_to_array_of_pairs(value, None),
         // Used by ZRANDMEMBER when the WITHSCORES arg is passed.
         // The server response can be a nil value, an empty array, a flat array of member-score pairs, or a two-dimensional array of member-score pairs.
         // The server response scores can be strings or doubles. The conversions we do here are as follows:
@@ -382,19 +380,21 @@ fn convert_array_to_map(
 /// - otherwise, return an error.
 ///
 /// `response` is a server response that we should attempt to convert as described above.
-/// `value_expected_return_type` indicates the desired return type of the values in the key-value pairs.
-fn convert_to_array_of_pairs(response: Value, value_expected_return_type: Option<ExpectedReturnType>) -> RedisResult<Value> {
+/// `value_expected_return_type` indicates the desired return type of the values in the key-value pairs. The values will only be converted if the response was a flat array, since RESP3 already returns an array of pairs with values already of the correct type.
+fn convert_to_array_of_pairs(
+    response: Value,
+    value_expected_return_type: Option<ExpectedReturnType>,
+) -> RedisResult<Value> {
     match response {
         Value::Nil => Ok(response),
-        Value::Array(ref array)
-            if array.is_empty() || matches!(array[0], Value::Array(_)) =>
-        {
-            // The server response is an empty array or a RESP3 array of pairs. In RESP3, if the response contains
-            // scores, they will already be of type double, so `response` is already in the correct format.
+        Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Array(_)) => {
+            // The server response is an empty array or a RESP3 array of pairs. In RESP3, the values in the pairs are
+            // already of the correct type, so we do not need to convert them and `response` is in the correct format.
             Ok(response)
         }
         Value::Array(array)
             if array.len() > 1
+                && array.len() % 2 == 0
                 && matches!(array[1], Value::BulkString(_) | Value::SimpleString(_)) =>
         {
             // The server response is a RESP2 flat array with keys at even indices and their associated values at
@@ -414,7 +414,10 @@ fn convert_to_array_of_pairs(response: Value, value_expected_return_type: Option
 ///
 /// `array` is a flat array containing keys at even-positioned elements and their associated values at odd-positioned elements.
 /// `value_expected_return_type` indicates the desired return type of the values in the key-value pairs.
-fn convert_flat_array_to_array_of_pairs(array: Vec<Value>, value_expected_return_type: Option<ExpectedReturnType>) -> RedisResult<Value> {
+fn convert_flat_array_to_array_of_pairs(
+    array: Vec<Value>,
+    value_expected_return_type: Option<ExpectedReturnType>,
+) -> RedisResult<Value> {
     if array.len() % 2 != 0 {
         return Err((
             ErrorKind::TypeError,
