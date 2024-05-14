@@ -237,7 +237,7 @@ class TrimByMinId(StreamTrimOptions):
             threshold (str): Threshold for trimming by minimum ID.
             limit (int): Max number of entries to be trimmed. Defaults to None.
         """
-        super().__init__(threshold, "MINID", false, limit)
+        super().__init__(threshold, "MINID", False, limit)
 
 
 class TrimByMaxLen(StreamTrimOptions):
@@ -273,7 +273,7 @@ class TrimByMaxLen(StreamTrimOptions):
             threshold (int): Threshold for trimming by maximum length.
             limit (int): Max number of entries to be trimmed. Defaults to None.
         """
-        super().__init__(threshold, "MAXLEN", false, limit)
+        super().__init__(threshold, "MAXLEN", False, limit)
 
 
 class StreamAddOptions:
