@@ -1106,21 +1106,22 @@ export type StreamTrimOptions = (
           method: "maxlen";
           threshold: number;
       }
-  ) & (
-      | {
-        /**
-         * If `true`, the stream will be trimmed exactly. Equivalent to `=` in the Redis API. Otherwise the stream will be trimmed in a near-exact manner, which is more efficient, equivalent to `~` in the Redis API.
-         */
-        exact: true;
-    }
+) &
+    (
         | {
-        exact: false;
-        /**
-         * If set, sets the maximal amount of entries that will be deleted.
-         */
-        limit?: number;
-    }
-);
+              /**
+               * If `true`, the stream will be trimmed exactly. Equivalent to `=` in the Redis API. Otherwise the stream will be trimmed in a near-exact manner, which is more efficient, equivalent to `~` in the Redis API.
+               */
+              exact: true;
+          }
+        | {
+              exact: false;
+              /**
+               * If set, sets the maximal amount of entries that will be deleted.
+               */
+              limit?: number;
+          }
+    );
 
 export type StreamAddOptions = {
     /**
