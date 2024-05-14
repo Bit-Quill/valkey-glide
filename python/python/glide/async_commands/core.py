@@ -194,7 +194,7 @@ class StreamTrimOptions(ABC):
             self.method,
         ]
         if self.exact is not None:
-            if (self.exact):
+            if self.exact:
                 option_args.extend("=")
             else:
                 option_args.extend("~")
