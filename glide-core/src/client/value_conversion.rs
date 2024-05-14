@@ -616,11 +616,13 @@ mod tests {
             convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::ArrayOfPairs)).unwrap();
         assert_eq!(Value::Nil, converted_nil_value);
 
-        let flat_array_unexpected_length = Value::Array(vec![Value::BulkString(b"somekey".to_vec())]);
-        assert!(
-            convert_to_expected_type(flat_array_unexpected_length, Some(ExpectedReturnType::ArrayOfPairs))
-                .is_err()
-        );
+        let flat_array_unexpected_length =
+            Value::Array(vec![Value::BulkString(b"somekey".to_vec())]);
+        assert!(convert_to_expected_type(
+            flat_array_unexpected_length,
+            Some(ExpectedReturnType::ArrayOfPairs)
+        )
+        .is_err());
     }
 
     #[test]
