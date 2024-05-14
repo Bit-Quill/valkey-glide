@@ -21,6 +21,7 @@ pub(crate) enum ExpectedReturnType {
     Lolwut,
     ArrayOfArraysOfDoubleOrNull,
     ArrayOfKeyValuePairs,
+    FunctionListReturnType,
 }
 
 pub(crate) fn convert_to_expected_type(
@@ -287,6 +288,83 @@ pub(crate) fn convert_to_expected_type(
             )
                 .into()),
         },
+        // `FUNCTION LIST` returns a list of maps with nested list of maps.
+        // In RESP2 these maps are represented by arrays - we're going to convert them.
+        /* RESP2 response
+        1) 1) "library_name"
+           2) "mylib"
+           3) "engine"
+           4) "LUA"
+           5) "functions"
+           6) 1) 1) "name"
+                 2) "myfunc2"
+                 3) "description"
+                 4) (nil)
+                 5) "flags"
+                 6) (empty array)
+              2) 1) "name"
+                 ...
+        2) 1) "library_name"
+           ...
+
+        RESP3 response
+        1) 1# "library_name" => "mylib"
+           2# "engine" => "LUA"
+           3# "functions" =>
+              1) 1# "name" => "myfunc2"
+                 2# "description" => (nil)
+                 3# "flags" => (empty set)
+              2) 1# "name" => "myfunc"
+                 ...
+        2) 1# "library_name" => "mylib1"
+           ...
+        */
+        ExpectedReturnType::FunctionListReturnType => match value {
+            // empty array, or it is already contains a map (RESP3 response) - no conversion needed
+            Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Map(_)) => {
+                Ok(value)
+            },
+            Value::Array(array) => {
+                let mut result: Vec<Value> = Vec::new();
+                for lib in array {
+                    let Value::Array(lib_as_array) = lib else {
+                        panic!();
+                    };
+                    let map = convert_array_to_map(lib_as_array, Some(ExpectedReturnType::BulkString), None).unwrap();
+                    let Value::Map(lib_as_map) = map else {
+                        panic!();
+                    };
+
+                    let mut iterator = lib_as_map.into_iter();
+                    let mut lib_as_map: Vec<(Value, Value)> = Vec::new();
+                    while let Some((key, value)) = iterator.next() {
+                        if key.eq(&Value::BulkString("functions".to_string().into_bytes())) {
+                            let Value::Array(funcs_as_array) = value else {
+                                panic!();
+                            };
+                            let mut functions: Vec<Value> = Vec::new();
+                            for func in funcs_as_array {
+                                let Value::Array(func_as_array) = func else {
+                                    panic!();
+                                };
+                                functions.push(convert_array_to_map(func_as_array, Some(ExpectedReturnType::BulkString), None).unwrap());
+                            }
+                            lib_as_map.push((key, Value::Array(functions)));
+                        } else {
+                            lib_as_map.push((key, convert_to_expected_type(value, Some(ExpectedReturnType::BulkString)).unwrap()))
+                        }
+                    }
+                    result.push(Value::Map(lib_as_map));
+                }
+                Ok(Value::Array(result))
+            }
+            _ => Err((
+                ErrorKind::TypeError,
+                "Response of `FUNCTION LIST` couldn't be converted",
+                format!("(response was {:?})", value),
+            )
+                .into()),
+        }
     }
 }
 
@@ -428,6 +506,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
             }
         }
         b"LOLWUT" => Some(ExpectedReturnType::Lolwut),
+        b"FUNCTION LIST" => Some(ExpectedReturnType::FunctionListReturnType),
         _ => None,
     }
 }
