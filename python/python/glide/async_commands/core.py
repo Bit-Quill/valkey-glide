@@ -983,7 +983,7 @@ class CoreCommands(Protocol):
             key (str): The key of the hash.
             count (int): The number of field names to return.
                 If `count` is positive, returns unique elements.
-                If negative, allows for duplicates.
+                If `count` is negative, allows for duplicates elements.
 
         Returns:
             List[str]: A list of random field names from the hash.
@@ -1010,7 +1010,7 @@ class CoreCommands(Protocol):
             key (str): The key of the hash.
             count (int): The number of field names to return.
                 If `count` is positive, returns unique elements.
-                If negative, allows for duplicates.
+                If `count` is negative, allows for duplicates elements.
 
         Returns:
             List[List[str]]: A list of `[field_name, value]` lists, where `field_name` is a random field name from the
@@ -2780,7 +2780,7 @@ class CoreCommands(Protocol):
             key (str): The key of the sorted set.
             count (int): The number of elements to return.
                 If `count` is positive, returns unique elements.
-                If negative, allows for duplicates.
+                If `count` is negative, allows for duplicates elements.
 
         Returns:
             List[str]: A list of elements from the sorted set.
@@ -2809,7 +2809,7 @@ class CoreCommands(Protocol):
             key (str): The key of the sorted set.
             count (int): The number of elements to return.
                 If `count` is positive, returns unique elements.
-                If negative, allows for duplicates.
+                If `count` is negative, allows for duplicates elements.
 
         Returns:
             List[List[Union[str, float]]]: A list of `[member, score]` lists, where `member` is a random member from
@@ -2818,7 +2818,7 @@ class CoreCommands(Protocol):
 
         Examples:
             >>> await client.zrandmember_withscores("my_sorted_set", -3)
-                [{"GLIDE": 1.0, "GLIDE": 1.0, "PYTHON": 2.0}]  # "GLIDE" and "PYTHON" are random members of "my_sorted_set", and have scores of 1.0 and 2.0, respectively.
+                [["GLIDE", 1.0], ["GLIDE", 1.0], ["PYTHON", 2.0]]  # "GLIDE" and "PYTHON" are random members of "my_sorted_set", and have scores of 1.0 and 2.0, respectively.
             >>> await client.zrandmember_withscores("non_existing_sorted_set", 3)
                 []  # "non_existing_sorted_set" is not an existing key, so an empty list was returned.
         """

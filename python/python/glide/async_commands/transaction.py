@@ -636,7 +636,7 @@ class BaseTransaction:
             key (str): The key of the hash.
             count (int): The number of field names to return.
                 If `count` is positive, returns unique elements.
-                If negative, allows for duplicates.
+                If `count` is negative, allows for duplicates elements.
 
         Command response:
             List[str]: A list of random field names from the hash.
@@ -654,7 +654,7 @@ class BaseTransaction:
             key (str): The key of the hash.
             count (int): The number of field names to return.
                 If `count` is positive, returns unique elements.
-                If negative, allows for duplicates.
+                If `count` is negative, allows for duplicates elements.
 
         Command response:
             List[List[str]]: A list of `[field_name, value]` lists, where `field_name` is a random field name from the
@@ -1991,7 +1991,7 @@ class BaseTransaction:
             key (str): The key of the sorted set.
             count (int): The number of elements to return.
                 If `count` is positive, returns unique elements.
-                If negative, allows for duplicates.
+                If `count` is negative, allows for duplicates elements.
 
         Command response:
             List[str]: A list of elements from the sorted set.
@@ -2011,7 +2011,7 @@ class BaseTransaction:
             key (str): The key of the sorted set.
             count (int): The number of elements to return.
                 If `count` is positive, returns unique elements.
-                If negative, allows for duplicates.
+                If `count` is negative, allows for duplicates elements.
 
         Command response:
             List[List[Union[str, float]]]: A list of `[member, score]` lists, where `member` is a random member from

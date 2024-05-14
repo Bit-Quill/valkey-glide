@@ -2433,7 +2433,6 @@ class TestCommands:
         # unique values are expected as count is positive
         elements = await redis_client.zrandmember_withscores(key, 4)
         assert len(elements) == 2
-        print("The score type: " + type(elements[0][1]).__name__)
 
         for element in elements:
             member = element[0]
