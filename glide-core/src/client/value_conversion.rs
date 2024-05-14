@@ -393,9 +393,8 @@ fn convert_to_array_of_pairs(
             Ok(response)
         }
         Value::Array(array)
-            if array.len() > 1
-                && array.len() % 2 == 0
-                && matches!(array[1], Value::BulkString(_) | Value::SimpleString(_)) =>
+            if array.len() % 2 == 0
+                && matches!(array[0], Value::BulkString(_) | Value::SimpleString(_)) =>
         {
             // The server response is a RESP2 flat array with keys at even indices and their associated values at
             // odd indices.
@@ -566,7 +565,7 @@ mod tests {
     }
 
     #[test]
-    fn convert_to_array_of_pairs() {
+    fn convert_to_array_of_pairs_return_type() {
         assert!(matches!(
             expected_type_for_cmd(
                 redis::cmd("HRANDFIELD")
@@ -617,15 +616,15 @@ mod tests {
             convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::ArrayOfPairs)).unwrap();
         assert_eq!(Value::Nil, converted_nil_value);
 
-        let array_of_doubles = Value::Array(vec![Value::Double(5.5)]);
+        let flat_array_unexpected_length = Value::Array(vec![Value::BulkString(b"somekey".to_vec())]);
         assert!(
-            convert_to_expected_type(array_of_doubles, Some(ExpectedReturnType::ArrayOfPairs))
+            convert_to_expected_type(flat_array_unexpected_length, Some(ExpectedReturnType::ArrayOfPairs))
                 .is_err()
         );
     }
 
     #[test]
-    fn convert_to_member_score_pairs() {
+    fn convert_to_member_score_pairs_return_type() {
         assert!(matches!(
             expected_type_for_cmd(
                 redis::cmd("ZRANDMEMBER")
@@ -639,6 +638,9 @@ mod tests {
         assert!(expected_type_for_cmd(redis::cmd("ZRANDMEMBER").arg("key").arg("1")).is_none());
         assert!(expected_type_for_cmd(redis::cmd("ZRANDMEMBER").arg("key")).is_none());
 
+        // convert_to_array_of_pairs_return_type already tests most functionality since the conversion for ArrayOfPairs
+        // and ArrayOfMemberScorePairs is mostly the same. Here we also test that the scores are converted to double
+        // when the server response was a RESP2 flat array.
         let flat_array = Value::Array(vec![
             Value::BulkString(b"one".to_vec()),
             Value::BulkString(b"1.0".to_vec()),
@@ -655,36 +657,6 @@ mod tests {
         )
         .unwrap();
         assert_eq!(expected_response, converted_flat_array);
-
-        let converted_two_dimensional_array = convert_to_expected_type(
-            expected_response.clone(),
-            Some(ExpectedReturnType::ArrayOfMemberScorePairs),
-        )
-        .unwrap();
-        assert_eq!(expected_response, converted_two_dimensional_array);
-
-        let empty_array = Value::Array(vec![]);
-        let converted_empty_array = convert_to_expected_type(
-            empty_array.clone(),
-            Some(ExpectedReturnType::ArrayOfMemberScorePairs),
-        )
-        .unwrap();
-        assert_eq!(empty_array, converted_empty_array);
-
-        let converted_nil_value = convert_to_expected_type(
-            Value::Nil,
-            Some(ExpectedReturnType::ArrayOfMemberScorePairs),
-        )
-        .unwrap();
-        assert_eq!(Value::Nil, converted_nil_value);
-
-        let unexpected_score_type =
-            Value::Array(vec![Value::BulkString(b"one".to_vec()), Value::Int(1)]);
-        assert!(convert_to_expected_type(
-            unexpected_score_type,
-            Some(ExpectedReturnType::ArrayOfMemberScorePairs)
-        )
-        .is_err());
     }
 
     #[test]
