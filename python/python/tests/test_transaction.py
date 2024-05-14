@@ -16,6 +16,7 @@ from glide.async_commands.sorted_set import (
     LexBoundary,
     RangeByIndex,
     ScoreBoundary,
+    ScoreFilter,
 )
 from glide.async_commands.transaction import (
     BaseTransaction,
@@ -242,6 +243,10 @@ async def transaction_test(
     args.append(0)
     transaction.zdiffstore(key8, [key8, key8])
     args.append(0)
+    transaction.zmpop([key8], ScoreFilter.MAX)
+    args.append(None)
+    transaction.zmpop([key8], ScoreFilter.MAX, 1)
+    args.append(None)
 
     transaction.zadd(key13, {"one": 1.0, "two": 2.0})
     args.append(2)
