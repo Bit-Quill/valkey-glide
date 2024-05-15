@@ -406,7 +406,7 @@ fn convert_flat_array_to_key_value_pairs(array: Vec<Value>) -> RedisResult<Value
     Ok(Value::Array(result))
 }
 
-/// Converts a flattened array with key-values to Maps.  The inners values may be another flattened array with key-values.
+/// Converts a flattened array with key-values to Maps.  The inner values may be another flattened array with key-values.
 /// OR
 /// Converts a Map with inner values being a flattened array with key-values.
 /// This is useful for Streams that are Keys of Stream-Ids of Fields, where the returned structure is a Map-of-Maps-of-Maps.
@@ -1045,7 +1045,7 @@ mod tests {
     }
 
     #[test]
-    fn test_convert_to_zread_return_type_from_array() {
+    fn test_convert_to_xread_return_type_from_array() {
         // test convert nil is OK
         assert_eq!(
             convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::XreadReturnType)),
@@ -1116,7 +1116,6 @@ mod tests {
             Some(ExpectedReturnType::XreadReturnType),
         )
         .unwrap();
-        dbg!(converted_map.clone());
 
         let converted_map = if let Value::Map(map) = converted_map {
             map
@@ -1169,7 +1168,7 @@ mod tests {
     }
 
     #[test]
-    fn test_convert_to_zread_return_type_from_map() {
+    fn test_convert_to_xread_return_type_from_map() {
         // in RESP3, we get a map of arrays value like this:
         // 1# "key1" =>
         //    1) 1) "streamid-1"
