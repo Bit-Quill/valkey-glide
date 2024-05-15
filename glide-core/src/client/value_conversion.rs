@@ -36,7 +36,16 @@ pub(crate) fn convert_to_expected_type(
         ExpectedReturnType::Map => match value {
             Value::Nil => Ok(value),
             Value::Map(_) => Ok(value),
-            Value::Array(array) => convert_array_to_map(array, None, None),
+            Value::Array(array) => {
+                let closure = |map: &mut Vec<(Value, Value)>, key, value| {
+                    map.push((
+                        convert_to_expected_type(key, None)?,
+                        convert_to_expected_type(value, None)?,
+                    ));
+                    Ok(())
+                };
+                convert_array_to_map(array, closure, closure)
+            }
             _ => Err((
                 ErrorKind::TypeError,
                 "Response couldn't be converted to map",
@@ -73,11 +82,16 @@ pub(crate) fn convert_to_expected_type(
 
                 result.map(Value::Map)
             }
-            Value::Array(array) => convert_array_to_map(
-                array,
-                Some(ExpectedReturnType::BulkString),
-                Some(ExpectedReturnType::Double),
-            ),
+            Value::Array(array) => {
+                let closure = |map: &mut Vec<(Value, Value)>, key, value| {
+                    map.push((
+                        convert_to_expected_type(key, Some(ExpectedReturnType::BulkString))?,
+                        convert_to_expected_type(value, Some(ExpectedReturnType::Double))?,
+                    ));
+                    Ok(())
+                };
+                convert_array_to_map(array, closure, closure)
+            }
             _ => Err((
                 ErrorKind::TypeError,
                 "Response couldn't be converted to map of {string: double}",
@@ -326,11 +340,15 @@ fn convert_array_elements(
     Ok(Value::Array(converted_array))
 }
 
-fn convert_array_to_map(
+fn convert_array_to_map<F, G>(
     array: Vec<Value>,
-    key_expected_return_type: Option<ExpectedReturnType>,
-    value_expected_return_type: Option<ExpectedReturnType>,
-) -> RedisResult<Value> {
+    array_push_fn: F,
+    other_push_fn: G,
+) -> RedisResult<Value>
+where
+    F: Fn(&mut Vec<(Value, Value)>, Value, Value) -> RedisResult<()>,
+    G: Fn(&mut Vec<(Value, Value)>, Value, Value) -> RedisResult<()>,
+{
     let mut map = Vec::new();
     let mut iterator = array.into_iter();
     while let Some(key) = iterator.next() {
@@ -351,10 +369,7 @@ fn convert_array_to_map(
                     return Err((ErrorKind::TypeError, "Missing value inside array of map").into());
                 };
 
-                map.push((
-                    convert_to_expected_type(inner_key, key_expected_return_type)?,
-                    convert_to_expected_type(inner_value, value_expected_return_type)?,
-                ));
+                array_push_fn(&mut map, inner_key, inner_value)?;
             }
             _ => {
                 let Some(value) = iterator.next() else {
@@ -364,10 +379,7 @@ fn convert_array_to_map(
                     )
                         .into());
                 };
-                map.push((
-                    convert_to_expected_type(key, key_expected_return_type)?,
-                    convert_to_expected_type(value, value_expected_return_type)?,
-                ));
+                other_push_fn(&mut map, key, value)?;
             }
         }
     }
@@ -401,49 +413,17 @@ fn convert_flat_array_to_key_value_pairs(array: Vec<Value>) -> RedisResult<Value
 /// `value` is a flattened array of key-arrays or a map of key-arrays
 fn convert_to_xread_map(value: Value) -> RedisResult<Value> {
     match value {
-        Value::Array(array) => {
-            let mut map = Vec::new();
-            let mut iterator = array.into_iter();
-            while let Some(key) = iterator.next() {
-                match key {
-                    Value::Array(inner_array) => {
-                        if inner_array.len() != 2 {
-                            return Err((
-                                ErrorKind::TypeError,
-                                "Array inside map must contain exactly two elements",
-                            )
-                                .into());
-                        }
-                        let mut inner_iterator = inner_array.into_iter();
-                        let Some(inner_key) = inner_iterator.next() else {
-                            return Err(
-                                (ErrorKind::TypeError, "Missing key inside array of map").into()
-                            );
-                        };
-                        let Some(inner_value) = inner_iterator.next() else {
-                            return Err((
-                                ErrorKind::TypeError,
-                                "Missing value inside array of map",
-                            )
-                                .into());
-                        };
-
-                        map.push((inner_key, convert_to_xread_map(inner_value).unwrap()));
-                    }
-                    _ => {
-                        let Some(value) = iterator.next() else {
-                            return Err((
-                                ErrorKind::TypeError,
-                                "Response has odd number of items, and cannot be entered into a map",
-                            )
-                                .into());
-                        };
-                        map.push((key, value));
-                    }
-                }
-            }
-            Ok(Value::Map(map))
-        }
+        Value::Array(array) => convert_array_to_map(
+            array,
+            |map, key, value| {
+                map.push((key, convert_to_xread_map(value)?));
+                Ok(())
+            },
+            |map, key, value| {
+                map.push((key, value));
+                Ok(())
+            },
+        ),
         Value::Map(map) => {
             let map_clone = map.clone();
             let result = map
