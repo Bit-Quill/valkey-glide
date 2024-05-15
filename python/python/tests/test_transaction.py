@@ -249,7 +249,7 @@ async def transaction_test(
     args.append(["one", "two"])
     transaction.zdiff_withscores([key13, key8])
     args.append({"one": 1.0, "two": 2.0})
-    if not await check_if_server_version_lt(redis_client, "7.2.0"):
+    if not await check_if_server_version_lt(redis_client, "7.0.0"):
         transaction.zintercard([key13, key8])
         args.append(0)
         transaction.zintercard([key13, key8], 1)

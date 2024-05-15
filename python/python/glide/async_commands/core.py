@@ -2883,7 +2883,7 @@ class CoreCommands(Protocol):
         optional `limit` argument, if the intersection cardinality reaches `limit` partway through the computation, the
         algorithm will exit early and yield `limit` as the cardinality.
 
-        When in Cluster mode, all `keys` must map to the same hash slot.
+        When in Cluster mode, all keys must map to the same hash slot.
 
         See https://valkey.io/commands/zintercard for more details.
 
@@ -2899,9 +2899,9 @@ class CoreCommands(Protocol):
             >>> await client.zadd("key1", {"member1": 10.5, "member2": 8.2, "member3": 9.6})
             >>> await client.zadd("key2", {"member1": 10.5, "member2": 8.2})
             >>> await client.zintercard(["key1", "key2"])
-                ['2']  # Indicates that the intersection of the sorted sets at "key1" and "key2" has a cardinality of 2.
+                2  # Indicates that the intersection of the sorted sets at "key1" and "key2" has a cardinality of 2.
             >>> await client.zintercard(["key1", "key2"], 1)
-                ['1']  # A `limit` of 1 was provided, so the intersection computation exits early and yields the `limit` value of 1.
+                1  # A `limit` of 1 was provided, so the intersection computation exits early and yields the `limit` value of 1.
 
         Since: Redis version 7.0.0.
         """
