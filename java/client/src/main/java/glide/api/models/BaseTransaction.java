@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
+import static glide.api.commands.ListBaseCommands.COUNT_FOR_LIST_REDIS_API;
 import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.COUNT_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.LIMIT_REDIS_API;
@@ -68,6 +69,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LRange;
 import static redis_request.RedisRequestOuterClass.RequestType.LRem;
 import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
+import static redis_request.RedisRequestOuterClass.RequestType.LmPop;
 import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
 import static redis_request.RedisRequestOuterClass.RequestType.MGet;
 import static redis_request.RedisRequestOuterClass.RequestType.MSet;
@@ -141,6 +143,7 @@ import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.commands.LInsertOptions.InsertPosition;
+import glide.api.models.commands.PopDirection;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
@@ -3450,6 +3453,54 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                         offsetType.toString());
 
         protobufTransaction.addCommands(buildCommand(BitPos, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Pops one or more elements from the first non-empty list from the list of provided <code>key
+     * </code>.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://valkey.io/commands/lmpop/">valkey.io</a> for details.
+     * @param keys The list of provided <code>key</code> names.
+     * @param direction The direction based on which elements are popped from - see {@link
+     *     PopDirection}.
+     * @param count The count of elements to be popped and returned.
+     * @return Command Response - A <code>Map</code> of <code>key</code> names arrays of popped.
+     *     elements
+     */
+    public T lmpop(@NonNull String[] keys, @NonNull PopDirection direction, @NonNull Long count) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {Long.toString(keys.length)},
+                                keys,
+                                new String[] {
+                                    direction.toString(), COUNT_FOR_LIST_REDIS_API, Long.toString(count)
+                                }));
+        protobufTransaction.addCommands(buildCommand(LmPop, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Pops one element from the first non-empty list from the list of provided <code>key</code>.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://valkey.io/commands/lmpop/">valkey.io</a> for details.
+     * @param keys The list of provided <code>key</code> names.
+     * @param direction The direction based on which elements are popped from - see {@link
+     *     PopDirection}.
+     * @return Command Response - A <code>Map</code> of <code>key</code> names arrays of popped
+     *     elements
+     */
+    public T lmpop(@NonNull String[] keys, @NonNull PopDirection direction) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {Long.toString(keys.length)},
+                                keys,
+                                new String[] {direction.toString()}));
+        protobufTransaction.addCommands(buildCommand(LmPop, commandArgs));
         return getThis();
     }
 

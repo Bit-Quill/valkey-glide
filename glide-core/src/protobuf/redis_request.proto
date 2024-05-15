@@ -188,6 +188,7 @@ enum RequestType {
     ZInter = 146;
     BitPos = 147;
     FunctionLoad = 150;
+    LmPop = 155;
 }
 
 message Command {
