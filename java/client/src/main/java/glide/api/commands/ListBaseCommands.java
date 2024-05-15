@@ -2,6 +2,7 @@
 package glide.api.commands;
 
 import glide.api.models.commands.LInsertOptions.InsertPosition;
+import glide.api.models.commands.PopDirection;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -359,4 +360,9 @@ public interface ListBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> lpushx(String key, String[] elements);
+
+    CompletableFuture<String[][]> lmpop(
+            Long numkeys, String[] keys, PopDirection direction, Long count);
+
+    CompletableFuture<String[][]> lmpop(Long numkeys, String[] keys, PopDirection direction);
 }

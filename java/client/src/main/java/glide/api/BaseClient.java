@@ -49,6 +49,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LPushX;
 import static redis_request.RedisRequestOuterClass.RequestType.LRange;
 import static redis_request.RedisRequestOuterClass.RequestType.LRem;
 import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
+import static redis_request.RedisRequestOuterClass.RequestType.LmPop;
 import static redis_request.RedisRequestOuterClass.RequestType.MGet;
 import static redis_request.RedisRequestOuterClass.RequestType.MSet;
 import static redis_request.RedisRequestOuterClass.RequestType.ObjectEncoding;
@@ -124,6 +125,7 @@ import glide.api.models.Script;
 import glide.api.models.commands.BitmapIndexType;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.LInsertOptions.InsertPosition;
+import glide.api.models.commands.PopDirection;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.LexRange;
 import glide.api.models.commands.RangeOptions.RangeQuery;
@@ -1279,5 +1281,35 @@ public abstract class BaseClient
         String[] arguments =
                 new String[] {key, Long.toString(start), Long.toString(end), options.toString()};
         return commandManager.submitNewCommand(Bitcount, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<String[][]> lmpop(
+            @NonNull Long numkeys,
+            @NonNull String[] keys,
+            @NonNull PopDirection direction,
+            @NonNull Long count) {
+        String[] arguments = new String[keys.length + 3];
+        arguments[0] = Long.toString(numkeys);
+        arguments[arguments.length - 1] = Long.toString(count);
+        arguments[arguments.length - 2] = direction.getRedisApi();
+        System.arraycopy(keys, 0, arguments, 1, keys.length);
+        return commandManager.submitNewCommand(
+                LmPop,
+                arguments,
+                response -> castArrayofArrays(handleArrayResponse(response), String.class));
+    }
+
+    @Override
+    public CompletableFuture<String[][]> lmpop(
+            @NonNull Long numkeys, @NonNull String[] keys, @NonNull PopDirection direction) {
+        String[] arguments = new String[keys.length + 2];
+        arguments[0] = Long.toString(numkeys);
+        arguments[arguments.length - 1] = direction.getRedisApi();
+        System.arraycopy(keys, 0, arguments, 1, keys.length);
+        return commandManager.submitNewCommand(
+                LmPop,
+                arguments,
+                response -> castArrayofArrays(handleArrayResponse(response), String.class));
     }
 }
