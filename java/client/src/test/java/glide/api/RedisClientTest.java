@@ -37,6 +37,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.Bitcount;
+import static redis_request.RedisRequestOuterClass.RequestType.Bitpos;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -4307,5 +4308,108 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(bitcount, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void bitpos_returns_success() {
+        // setup
+        String key = "testKey";
+        Long bitPosition = 10L;
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(bitPosition);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(
+                        eq(Bitpos), eq(new String[] {key, Long.toString(0)}), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.bitpos(key, 0);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(bitPosition, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void bitpos_with_start_returns_success() {
+        // setup
+        String key = "testKey";
+        Long bitPosition = 10L;
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(bitPosition);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(
+                        eq(Bitpos), eq(new String[] {key, Long.toString(0), Long.toString(5)}), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.bitpos(key, 0, 5);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(bitPosition, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void bitpos_with_start_and_end_returns_success() {
+        // setup
+        String key = "testKey";
+        Long bitPosition = 10L;
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(bitPosition);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(
+                        eq(Bitpos),
+                        eq(new String[] {key, Long.toString(0), Long.toString(5), Long.toString(10)}),
+                        any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.bitpos(key, 0, 5, 10);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(bitPosition, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void bitpos_with_start_and_end_and_type_returns_success() {
+        // setup
+        String key = "testKey";
+        Long bitPosition = 10L;
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(bitPosition);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(
+                        eq(Bitpos),
+                        eq(
+                                new String[] {
+                                    key,
+                                    Long.toString(0),
+                                    Long.toString(5),
+                                    Long.toString(10),
+                                    BitmapIndexType.BIT.toString()
+                                }),
+                        any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.bitpos(key, 0, 5, 10, BitmapIndexType.BIT);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(bitPosition, payload);
     }
 }

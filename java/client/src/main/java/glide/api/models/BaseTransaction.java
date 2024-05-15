@@ -16,6 +16,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.Bitcount;
+import static redis_request.RedisRequestOuterClass.RequestType.Bitpos;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -2968,7 +2969,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     start</code>, <code>end</code>, and <code>options</code>. Returns zero if the key is
      *     missing as it is treated as an empty string.
      */
-    public T bitcount(@NonNull String key, long start, long end, BitmapIndexType options) {
+    public T bitcount(@NonNull String key, long start, long end, @NonNull BitmapIndexType options) {
         ArgsArray commandArgs =
                 buildArgs(key, Long.toString(start), Long.toString(end), options.toString());
 
@@ -3076,6 +3077,35 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T geodist(@NonNull String key, @NonNull String member1, @NonNull String member2) {
         ArgsArray commandArgs = buildArgs(key, member1, member2);
         protobufTransaction.addCommands(buildCommand(GeoDist, commandArgs));
+        return getThis();
+    }
+
+    public T bitpos(@NonNull String key, long bit) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(bit));
+        protobufTransaction.addCommands(buildCommand(Bitpos, commandArgs));
+        return getThis();
+    }
+
+    public T bitpos(@NonNull String key, long bit, long start) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(bit), Long.toString(start));
+        protobufTransaction.addCommands(buildCommand(Bitpos, commandArgs));
+        return getThis();
+    }
+
+    public T bitpos(@NonNull String key, long bit, long start, long end) {
+        ArgsArray commandArgs =
+                buildArgs(key, Long.toString(bit), Long.toString(start), Long.toString(end));
+        protobufTransaction.addCommands(buildCommand(Bitpos, commandArgs));
+        return getThis();
+    }
+
+    public T bitpos(
+            @NonNull String key, long bit, long start, long end, @NonNull BitmapIndexType options) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        key, Long.toString(bit), Long.toString(start), Long.toString(end), options.toString());
+
+        protobufTransaction.addCommands(buildCommand(Bitpos, commandArgs));
         return getThis();
     }
 

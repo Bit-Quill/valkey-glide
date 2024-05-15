@@ -73,4 +73,13 @@ public interface BitmapBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> bitcount(String key, long start, long end, BitmapIndexType options);
+
+    CompletableFuture<Long> bitpos(String key, long bit);
+
+    CompletableFuture<Long> bitpos(String key, long bit, long start);
+
+    CompletableFuture<Long> bitpos(String key, long bit, long start, long end);
+
+    CompletableFuture<Long> bitpos(
+            String key, long bit, long start, long end, BitmapIndexType options);
 }
