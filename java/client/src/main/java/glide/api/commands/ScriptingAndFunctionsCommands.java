@@ -46,6 +46,7 @@ public interface ScriptingAndFunctionsCommands {
     /**
      * Returns information about the functions and libraries.
      *
+     * @since Redis 7.0 and above
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @return Info about all libraries and their functions.
      * @example
@@ -69,6 +70,7 @@ public interface ScriptingAndFunctionsCommands {
     /**
      * Returns information about the functions and libraries.
      *
+     * @since Redis 7.0 and above
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @return Info about all libraries, their functions, and their code.
      * @example
@@ -93,6 +95,7 @@ public interface ScriptingAndFunctionsCommands {
     /**
      * Returns information about the functions and libraries.
      *
+     * @since Redis 7.0 and above
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @param libNamePattern A wildcard pattern for matching library names.
      * @return Info about queried libraries and their functions.
@@ -117,6 +120,7 @@ public interface ScriptingAndFunctionsCommands {
     /**
      * Returns information about the functions and libraries.
      *
+     * @since Redis 7.0 and above
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @param libNamePattern A wildcard pattern for matching library names.
      * @return Info about queried libraries, their functions, and their code.
