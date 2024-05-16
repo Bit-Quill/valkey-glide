@@ -55,8 +55,9 @@ public interface ScriptingAndFunctionsCommands {
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
      *       libraryInfo.get("library_name"), libraryInfo.get("engine"));
-     *   Map<String, Object>[] functions = (List<Map<String, String>>) libraryInfo.get("functions");
-     *   for (Map<String, Object> function : functions) {
+     *   Object functions = libraryInfo.get("functions");
+     *   for (Object functionInfo : (Object[]) functions) {
+     *     Map<String, Object> function = (Map<String, Object>) functionInfo;
      *     Set<String> flags = (Set<String>) function.get("flags");
      *     System.out.printf("Library has function '%s' with flags '%s' described as %s%n",
      *         function.get("name"), String.join(", ", flags), function.get("description"));
@@ -77,11 +78,13 @@ public interface ScriptingAndFunctionsCommands {
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
      *       libraryInfo.get("library_name"), libraryInfo.get("engine"));
-     *   Map<String, Object>[] functions = (List<Map<String, String>>) libraryInfo.get("functions");
-     *   for (Map<String, Object> function : functions) {
+     *   Object functions = libraryInfo.get("functions");
+     *   for (Object functionInfo : (Object[]) functions) {
+     *     Map<String, Object> function = (Map<String, Object>) functionInfo;
      *     Set<String> flags = (Set<String>) function.get("flags");
-     *     System.out.printf("Library has function '%s' with flags '%s' described as %s%n%s%n",
-     *         function.get("name"), String.join(", ", flags), function.get("description"), function.get("library_code"));
+     *     System.out.printf("Library has function '%s' with flags '%s' described as %s%n",
+     *         function.get("name"), String.join(", ", flags), function.get("description"));
+     *     System.out.printf("Library code:%n%s%n", function.get("library_code"));
      *   }
      * }
      * }</pre>
@@ -100,8 +103,9 @@ public interface ScriptingAndFunctionsCommands {
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
      *       libraryInfo.get("library_name"), libraryInfo.get("engine"));
-     *   Map<String, Object>[] functions = (List<Map<String, String>>) libraryInfo.get("functions");
-     *   for (Map<String, Object> function : functions) {
+     *   Object functions = libraryInfo.get("functions");
+     *   for (Object functionInfo : (Object[]) functions) {
+     *     Map<String, Object> function = (Map<String, Object>) functionInfo;
      *     Set<String> flags = (Set<String>) function.get("flags");
      *     System.out.printf("Library has function '%s' with flags '%s' described as %s%n",
      *         function.get("name"), String.join(", ", flags), function.get("description"));
@@ -123,11 +127,13 @@ public interface ScriptingAndFunctionsCommands {
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
      *       libraryInfo.get("library_name"), libraryInfo.get("engine"));
-     *   Map<String, Object>[] functions = (Map<String, Object>[]) libraryInfo.get("functions");
-     *   for (Map<String, Object> function : functions) {
+     *   Object functions = libraryInfo.get("functions");
+     *   for (Object functionInfo : (Object[]) functions) {
+     *     Map<String, Object> function = (Map<String, Object>) functionInfo;
      *     Set<String> flags = (Set<String>) function.get("flags");
-     *     System.out.printf("Library has function '%s' with flags '%s' described as %s%n%s%n",
-     *         function.get("name"), String.join(", ", flags), function.get("description"), function.get("library_code"));
+     *     System.out.printf("Library has function '%s' with flags '%s' described as %s%n",
+     *         function.get("name"), String.join(", ", flags), function.get("description"));
+     *     System.out.printf("Library code:%n%s%n", function.get("library_code"));
      *   }
      * }
      * }</pre>

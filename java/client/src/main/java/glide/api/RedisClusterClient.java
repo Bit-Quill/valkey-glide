@@ -478,7 +478,6 @@ public class RedisClusterClient extends BaseClient
             FunctionList, new String[0], response -> castArray(handleArrayResponse(response), Map.class));
     }
 
-
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Map<String, Object>[]> functionListWithCode(@NonNull String libNamePattern, @NonNull Route route) {

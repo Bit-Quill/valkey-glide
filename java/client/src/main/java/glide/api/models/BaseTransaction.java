@@ -2935,7 +2935,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns information about the functions and libraries.
      *
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
-     * @return Info about all libraries and their functions.
+     * @return Command Response - Info about all libraries and their functions.
      */
     public T functionList() {
         protobufTransaction.addCommands(buildCommand(FunctionList));
@@ -2946,7 +2946,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns information about the functions and libraries.
      *
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
-     * @return Info about all libraries, their functions, and their code.
+     * @return Command Response - Info about all libraries, their functions, and their code.
      */
     public T  functionListWithCode() {
         ArgsArray commandArgs = buildArgs(WITH_CODE_REDIS_API);
@@ -2959,7 +2959,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @param libNamePattern A wildcard pattern for matching library names.
-     * @return Info about queried libraries and their functions.
+     * @return Command Response - Info about queried libraries and their functions.
      */
     public T  functionList(@NonNull String libNamePattern) {
         ArgsArray commandArgs = buildArgs(LIBRARY_NAME_REDIS_API, libNamePattern);
@@ -2972,7 +2972,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @param libNamePattern A wildcard pattern for matching library names.
-     * @return Info about queried libraries, their functions, and their code.
+     * @return Command Response - Info about queried libraries, their functions, and their code.
      */
     public T functionListWithCode(@NonNull String libNamePattern) {
         ArgsArray commandArgs = buildArgs(LIBRARY_NAME_REDIS_API, libNamePattern, WITH_CODE_REDIS_API);

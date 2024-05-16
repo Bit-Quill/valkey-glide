@@ -5,7 +5,7 @@ use redis::{
     cluster_routing::Routable, from_owned_redis_value, Cmd, ErrorKind, RedisResult, Value,
 };
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub(crate) enum ExpectedReturnType {
     Map,
     MapOfStringToDouble,
@@ -21,7 +21,9 @@ pub(crate) enum ExpectedReturnType {
     Lolwut,
     ArrayOfArraysOfDoubleOrNull,
     ArrayOfKeyValuePairs,
-    FunctionListReturnType,
+    ArrayOfMapsRecursive,
+    ArrayOfMaps,
+    StringOrSet,
 }
 
 pub(crate) fn convert_to_expected_type(
@@ -288,7 +290,7 @@ pub(crate) fn convert_to_expected_type(
             )
                 .into()),
         },
-        // `FUNCTION LIST` returns a list of maps with nested list of maps.
+        // `FUNCTION LIST` returns an array of maps with nested list of maps.
         // In RESP2 these maps are represented by arrays - we're going to convert them.
         /* RESP2 response
         1) 1) "library_name"
@@ -319,12 +321,15 @@ pub(crate) fn convert_to_expected_type(
         2) 1# "library_name" => "mylib1"
            ...
         */
-        ExpectedReturnType::FunctionListReturnType => match value {
+        ExpectedReturnType::ArrayOfMapsRecursive => match value {
             // empty array, or it is already contains a map (RESP3 response) - no conversion needed
             Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Map(_)) => {
+                dbg!(value.clone());
                 Ok(value)
             },
             Value::Array(array) => {
+                return convert_array_of_flat_maps(array, Some(ExpectedReturnType::ArrayOfMaps));
+                /*
                 let mut result: Vec<Value> = Vec::new();
                 for lib in array {
                     let Value::Array(lib_as_array) = lib else {
@@ -347,7 +352,7 @@ pub(crate) fn convert_to_expected_type(
                                 let Value::Array(func_as_array) = func else {
                                     panic!();
                                 };
-                                functions.push(convert_array_to_map(func_as_array, Some(ExpectedReturnType::BulkString), None).unwrap());
+                                functions.push(convert_array_to_map(func_as_array, Some(ExpectedReturnType::BulkString), Some(ExpectedReturnType::StringOrSet)).unwrap());
                             }
                             lib_as_map.push((key, Value::Array(functions)));
                         } else {
@@ -357,13 +362,44 @@ pub(crate) fn convert_to_expected_type(
                     result.push(Value::Map(lib_as_map));
                 }
                 Ok(Value::Array(result))
-            }
+                // */
+            },
             _ => Err((
                 ErrorKind::TypeError,
-                "Response of `FUNCTION LIST` couldn't be converted",
+                "Response couldn't be converted",
                 format!("(response was {:?})", value),
             )
                 .into()),
+        },
+        // Not used for a command, but used as a helper for `ArrayOfMapsRecursive` to process the inner map.
+        ExpectedReturnType::ArrayOfMaps => match value {
+            Value::Array(array) => {
+                return convert_array_of_flat_maps(array, Some(ExpectedReturnType::StringOrSet));
+            },
+            // Due to recursion, it would be called to convert every map value, including simple strings, do nothing with them
+            Value::BulkString(_) | Value::SimpleString(_) | Value::VerbatimString { .. } => {
+                Ok(value)
+            },
+            _ => Err((
+                ErrorKind::TypeError,
+                "Response couldn't be converted",
+                format!("(response was {:?})", value),
+            )
+                .into()),
+        },
+        // Not used for a command, but used as a helper for `ArrayOfMaps` to process the inner map.
+        // It may contain a string (name, description) or set (flags), or nil (description).
+        // The set is stored as array. See comment for `ArrayOfMapsRecursive`.
+        ExpectedReturnType::StringOrSet => match value {
+            Value::Nil => {
+                Ok(value)
+            },
+            Value::Array(_) => {
+                convert_to_expected_type(value, Some(ExpectedReturnType::Set))
+            }
+            _ => {
+                convert_to_expected_type(value, Some(ExpectedReturnType::BulkString))
+            }
         }
     }
 }
@@ -397,17 +433,63 @@ fn convert_array_elements(
     Ok(Value::Array(converted_array))
 }
 
+/// Converts an array of flatten maps into an array of maps.
+/// Input:
+/// ```text
+/// 1) 1) "map 1 key 1"
+///    2) "map 1 value 1"
+///    3) "map 1 key 2"
+///    4) "map 1 value 2"
+///    ...
+/// 1) 1) "map 2 key 1"
+///    2) "map 2 value 1"
+///    ...
+/// ```
+/// Output:
+/// ```text
+///  1) 1# "map 1 key 1" => "map 1 value 1"
+///     2# "map 1 key 2" => "map 1 value 2"
+///     ...
+///  2) 1# "map 2 key 1" => "map 2 value 1"
+///     ...
+/// ```
+///
+/// `array` is an input.
+/// `value_expected_return_type` is the type of the values stored in the maps to convert to.
+fn convert_array_of_flat_maps(
+    array: Vec<Value>,
+    value_expected_return_type: Option<ExpectedReturnType>,
+) -> RedisResult<Value> {
+    dbg!(value_expected_return_type);
+    let mut result: Vec<Value> = Vec::with_capacity(array.len());
+    for entry in array {
+        let Value::Array(entry_as_array) = entry else {
+            panic!();
+        };
+        let map = convert_array_to_map(
+            entry_as_array,
+            Some(ExpectedReturnType::BulkString),
+            value_expected_return_type
+        ).unwrap();
+        result.push(map);
+    }
+    Ok(Value::Array(result))
+}
+
 fn convert_array_to_map(
     array: Vec<Value>,
     key_expected_return_type: Option<ExpectedReturnType>,
     value_expected_return_type: Option<ExpectedReturnType>,
 ) -> RedisResult<Value> {
+    dbg!();
     let mut map = Vec::new();
     let mut iterator = array.into_iter();
     while let Some(key) = iterator.next() {
+        dbg!(key.clone());
         match key {
             Value::Array(inner_array) => {
                 if inner_array.len() != 2 {
+                    dbg!();
                     return Err((
                         ErrorKind::TypeError,
                         "Array inside map must contain exactly two elements",
@@ -416,9 +498,11 @@ fn convert_array_to_map(
                 }
                 let mut inner_iterator = inner_array.into_iter();
                 let Some(inner_key) = inner_iterator.next() else {
+                    dbg!();
                     return Err((ErrorKind::TypeError, "Missing key inside array of map").into());
                 };
                 let Some(inner_value) = inner_iterator.next() else {
+                    dbg!();
                     return Err((ErrorKind::TypeError, "Missing value inside array of map").into());
                 };
 
@@ -429,12 +513,14 @@ fn convert_array_to_map(
             }
             _ => {
                 let Some(value) = iterator.next() else {
+                    dbg!();
                     return Err((
                         ErrorKind::TypeError,
                         "Response has odd number of items, and cannot be entered into a map",
                     )
                         .into());
                 };
+                dbg!(value.clone());
                 map.push((
                     convert_to_expected_type(key, key_expected_return_type)?,
                     convert_to_expected_type(value, value_expected_return_type)?,
@@ -506,7 +592,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
             }
         }
         b"LOLWUT" => Some(ExpectedReturnType::Lolwut),
-        b"FUNCTION LIST" => Some(ExpectedReturnType::FunctionListReturnType),
+        b"FUNCTION LIST" => Some(ExpectedReturnType::ArrayOfMapsRecursive),
         _ => None,
     }
 }
