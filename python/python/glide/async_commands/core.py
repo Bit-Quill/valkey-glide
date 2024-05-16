@@ -1601,6 +1601,26 @@ class CoreCommands(Protocol):
             await self._execute_command(RequestType.SUnionStore, [destination] + keys),
         )
 
+    async def sinter(self, keys: List[str]) -> Set[str]:
+        """
+        Gets the intersection of all the given sets.
+        See https://redis.io/docs/latest/commands/sinter/ for more details.
+
+        Args:
+            keys (List[str]): The keys of the sets.
+
+        Returns:
+            Set[str]: A set of members which are present in all given sets.
+                Missing or empty input sets cause an empty set response.
+
+        Examples:
+            >>> await client.sadd("my_set1", ["member1", "member2"])
+            >>> await client.sadd("my_set2", ["member2", "member3"])
+            >>> await client.sinter(["my_set1", "my_set2"])
+                 "member2" # matched member
+        """
+        return cast(Set[str], await self._execute_command(RequestType.SInter, keys))
+
     async def ltrim(self, key: str, start: int, end: int) -> TOK:
         """
         Trim an existing list so that it will contain only the specified range of elements specified.

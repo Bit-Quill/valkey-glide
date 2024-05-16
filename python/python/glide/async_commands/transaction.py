@@ -1052,6 +1052,21 @@ class BaseTransaction:
         """
         return self.append_command(RequestType.SUnionStore, [destination] + keys)
 
+    def sinter(self: TTransaction, keys: List[str]) -> TTransaction:
+        """
+        Gets the intersection of all the given sets.
+
+        See https://redis.io/docs/latest/commands/sinter/ for more details.
+
+        Args:
+            keys (List[str]): The keys of the sets.
+
+        Command response:
+            Set[str]: A set of members which are present in all given sets.
+                Missing or empty input sets cause an empty set response.
+        """
+        return self.append_command(RequestType.SInter, keys)
+
     def ltrim(self: TTransaction, key: str, start: int, end: int) -> TTransaction:
         """
         Trim an existing list so that it will contain only the specified range of elements specified.
