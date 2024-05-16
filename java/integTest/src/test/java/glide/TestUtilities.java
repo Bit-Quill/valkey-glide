@@ -4,7 +4,6 @@ package glide;
 import static glide.TestConfiguration.CLUSTER_PORTS;
 import static glide.TestConfiguration.STANDALONE_PORTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -84,10 +83,11 @@ public class TestUtilities {
     }
 
     /**
-     * Deep traverse and compare two objects, including comparing content of all nested collections recursively.
+     * Deep traverse and compare two objects, including comparing content of all nested collections
+     * recursively.
      *
-     * @apiNote Maps comparison ignores their order, regardless of `orderMatters` argument.
-     * Map entries could be reordered, but values stored in them compared according to this parameter.
+     * @apiNote Maps comparison ignores their order, regardless of `orderMatters` argument. Map
+     *     entries could be reordered, but values stored in them compared according to this parameter.
      */
     public static void assertDeepEquals(Object expected, Object actual, boolean orderMatters) {
         if (expected == null || actual == null) {
@@ -138,18 +138,21 @@ public class TestUtilities {
 
     /**
      * Validate whether `FUNCTION LIST` response contains required info.
+     *
      * @param response The response from redis.
      * @param libName Expected library name.
-     * @param functionDescriptions Expected function descriptions. Key - function name, value - description.
+     * @param functionDescriptions Expected function descriptions. Key - function name, value -
+     *     description.
      * @param functionFlags Expected function flags. Key - function name, value - flags set.
      * @param libCode Expected library to check if given.
      */
     @SuppressWarnings("unchecked")
-    public static void checkFunctionListResponse(Map<String, Object>[] response,
-                                           String libName,
-                                           Map<String, String> functionDescriptions,
-                                           Map<String, Set<String>> functionFlags,
-                                           Optional<String> libCode) {
+    public static void checkFunctionListResponse(
+            Map<String, Object>[] response,
+            String libName,
+            Map<String, String> functionDescriptions,
+            Map<String, Set<String>> functionFlags,
+            Optional<String> libCode) {
         assertTrue(response.length > 0);
         boolean hasLib = false;
         for (var lib : response) {

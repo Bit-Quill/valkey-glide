@@ -160,8 +160,6 @@ import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder
 import glide.api.models.commands.stream.StreamTrimOptions;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
@@ -2948,7 +2946,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @return Command Response - Info about all libraries, their functions, and their code.
      */
-    public T  functionListWithCode() {
+    public T functionListWithCode() {
         ArgsArray commandArgs = buildArgs(WITH_CODE_REDIS_API);
         protobufTransaction.addCommands(buildCommand(FunctionList, commandArgs));
         return getThis();
@@ -2961,7 +2959,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param libNamePattern A wildcard pattern for matching library names.
      * @return Command Response - Info about queried libraries and their functions.
      */
-    public T  functionList(@NonNull String libNamePattern) {
+    public T functionList(@NonNull String libNamePattern) {
         ArgsArray commandArgs = buildArgs(LIBRARY_NAME_REDIS_API, libNamePattern);
         protobufTransaction.addCommands(buildCommand(FunctionList, commandArgs));
         return getThis();

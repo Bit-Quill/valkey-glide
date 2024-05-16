@@ -1185,7 +1185,7 @@ public class RedisClusterClientTest {
 
         // match on protobuf request
         when(commandManager.<Map<String, Object>[]>submitNewCommand(eq(FunctionList), eq(args), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map<String, Object>[]> response = service.functionList();
@@ -1201,7 +1201,7 @@ public class RedisClusterClientTest {
     public void functionList_with_pattern_returns_success() {
         // setup
         String pattern = "*";
-        String[] args = new String[] { LIBRARY_NAME_REDIS_API, pattern };
+        String[] args = new String[] {LIBRARY_NAME_REDIS_API, pattern};
         @SuppressWarnings("unchecked")
         Map<String, Object>[] value = new Map[0];
         CompletableFuture<Map<String, Object>[]> testResponse = new CompletableFuture<>();
@@ -1209,7 +1209,7 @@ public class RedisClusterClientTest {
 
         // match on protobuf request
         when(commandManager.<Map<String, Object>[]>submitNewCommand(eq(FunctionList), eq(args), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map<String, Object>[]> response = service.functionList(pattern);
@@ -1224,7 +1224,7 @@ public class RedisClusterClientTest {
     @Test
     public void functionListWithCode_returns_success() {
         // setup
-        String[] args = new String[] { WITH_CODE_REDIS_API };
+        String[] args = new String[] {WITH_CODE_REDIS_API};
         @SuppressWarnings("unchecked")
         Map<String, Object>[] value = new Map[0];
         CompletableFuture<Map<String, Object>[]> testResponse = new CompletableFuture<>();
@@ -1232,7 +1232,7 @@ public class RedisClusterClientTest {
 
         // match on protobuf request
         when(commandManager.<Map<String, Object>[]>submitNewCommand(eq(FunctionList), eq(args), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map<String, Object>[]> response = service.functionListWithCode();
@@ -1248,7 +1248,7 @@ public class RedisClusterClientTest {
     public void functionListWithCode_with_pattern_returns_success() {
         // setup
         String pattern = "*";
-        String[] args = new String[] { LIBRARY_NAME_REDIS_API, pattern, WITH_CODE_REDIS_API };
+        String[] args = new String[] {LIBRARY_NAME_REDIS_API, pattern, WITH_CODE_REDIS_API};
         @SuppressWarnings("unchecked")
         Map<String, Object>[] value = new Map[0];
         CompletableFuture<Map<String, Object>[]> testResponse = new CompletableFuture<>();
@@ -1256,7 +1256,7 @@ public class RedisClusterClientTest {
 
         // match on protobuf request
         when(commandManager.<Map<String, Object>[]>submitNewCommand(eq(FunctionList), eq(args), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map<String, Object>[]> response = service.functionListWithCode(pattern);
@@ -1278,8 +1278,9 @@ public class RedisClusterClientTest {
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Map<String, Object>[]>submitNewCommand(eq(FunctionList), eq(args), eq(RANDOM), any()))
-            .thenReturn(testResponse);
+        when(commandManager.<Map<String, Object>[]>submitNewCommand(
+                        eq(FunctionList), eq(args), eq(RANDOM), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map<String, Object>[]> response = service.functionList(RANDOM);
@@ -1295,15 +1296,16 @@ public class RedisClusterClientTest {
     public void functionList_with_pattern_and_route_returns_success() {
         // setup
         String pattern = "*";
-        String[] args = new String[] { LIBRARY_NAME_REDIS_API, pattern };
+        String[] args = new String[] {LIBRARY_NAME_REDIS_API, pattern};
         @SuppressWarnings("unchecked")
         Map<String, Object>[] value = new Map[0];
         CompletableFuture<Map<String, Object>[]> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Map<String, Object>[]>submitNewCommand(eq(FunctionList), eq(args), eq(RANDOM), any()))
-            .thenReturn(testResponse);
+        when(commandManager.<Map<String, Object>[]>submitNewCommand(
+                        eq(FunctionList), eq(args), eq(RANDOM), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map<String, Object>[]> response = service.functionList(pattern, RANDOM);
@@ -1318,15 +1320,16 @@ public class RedisClusterClientTest {
     @Test
     public void functionListWithCode_with_route_returns_success() {
         // setup
-        String[] args = new String[] { WITH_CODE_REDIS_API };
+        String[] args = new String[] {WITH_CODE_REDIS_API};
         @SuppressWarnings("unchecked")
         Map<String, Object>[] value = new Map[0];
         CompletableFuture<Map<String, Object>[]> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Map<String, Object>[]>submitNewCommand(eq(FunctionList), eq(args), eq(RANDOM), any()))
-            .thenReturn(testResponse);
+        when(commandManager.<Map<String, Object>[]>submitNewCommand(
+                        eq(FunctionList), eq(args), eq(RANDOM), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map<String, Object>[]> response = service.functionListWithCode(RANDOM);
@@ -1342,18 +1345,20 @@ public class RedisClusterClientTest {
     public void functionListWithCode_with_pattern_and_route_returns_success() {
         // setup
         String pattern = "*";
-        String[] args = new String[] { LIBRARY_NAME_REDIS_API, pattern, WITH_CODE_REDIS_API };
+        String[] args = new String[] {LIBRARY_NAME_REDIS_API, pattern, WITH_CODE_REDIS_API};
         @SuppressWarnings("unchecked")
         Map<String, Object>[] value = new Map[0];
         CompletableFuture<Map<String, Object>[]> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Map<String, Object>[]>submitNewCommand(eq(FunctionList), eq(args), eq(RANDOM), any()))
-            .thenReturn(testResponse);
+        when(commandManager.<Map<String, Object>[]>submitNewCommand(
+                        eq(FunctionList), eq(args), eq(RANDOM), any()))
+                .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Map<String, Object>[]> response = service.functionListWithCode(pattern, RANDOM);
+        CompletableFuture<Map<String, Object>[]> response =
+                service.functionListWithCode(pattern, RANDOM);
         Map<String, Object>[] payload = response.get();
 
         // verify

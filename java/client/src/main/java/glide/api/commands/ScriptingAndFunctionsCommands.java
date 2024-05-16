@@ -1,7 +1,6 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -50,7 +49,7 @@ public interface ScriptingAndFunctionsCommands {
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @return Info about all libraries and their functions.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList().get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
@@ -73,7 +72,7 @@ public interface ScriptingAndFunctionsCommands {
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @return Info about all libraries, their functions, and their code.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList().get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
@@ -98,7 +97,7 @@ public interface ScriptingAndFunctionsCommands {
      * @param libNamePattern A wildcard pattern for matching library names.
      * @return Info about queried libraries and their functions.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList("myLib?_backup").get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
@@ -122,7 +121,7 @@ public interface ScriptingAndFunctionsCommands {
      * @param libNamePattern A wildcard pattern for matching library names.
      * @return Info about queried libraries, their functions, and their code.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList("GLIDE*").get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",

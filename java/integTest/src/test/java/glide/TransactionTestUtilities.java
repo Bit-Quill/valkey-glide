@@ -20,7 +20,6 @@ import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamTrimOptions.MinId;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -476,22 +475,24 @@ public class TransactionTestUtilities {
         final String code =
                 "#!lua name=mylib1T \n"
                         + " redis.register_function('myfunc1T', function(keys, args) return args[1] end)";
-        var expectedFuncData = new HashMap<String, Object>() {{
-            put("name", "myfunc1T");
-            put("description", null);
-            put("flags", Set.of());
-        }};
+        var expectedFuncData =
+                new HashMap<String, Object>() {
+                    {
+                        put("name", "myfunc1T");
+                        put("description", null);
+                        put("flags", Set.of());
+                    }
+                };
 
         transaction
-            .customCommand(new String[] { "function", "flush", "sync"})
-            .functionList()
-            .functionListWithCode()
-            .functionLoad(code)
-            .functionLoadWithReplace(code)
-            .functionList("otherLib")
-            .functionListWithCode("mylib1T")
-            .customCommand(new String[] { "function", "flush", "sync"})
-        ;
+                .customCommand(new String[] {"function", "flush", "sync"})
+                .functionList()
+                .functionListWithCode()
+                .functionLoad(code)
+                .functionLoadWithReplace(code)
+                .functionList("otherLib")
+                .functionListWithCode("mylib1T")
+                .customCommand(new String[] {"function", "flush", "sync"});
 
         return new Object[] {
             OK, // customCommand("function", "flush", "sync")
@@ -500,8 +501,17 @@ public class TransactionTestUtilities {
             "mylib1T", // functionLoad(code)
             "mylib1T", // functionLoadWithReplace(code)
             new Map[0], // functionList("otherLib")
-            new Map[] { Map.<String, Object>of("library_name", "mylib1T", "engine", "LUA", "functions",
-                new Object[] { expectedFuncData }, "library_code", code) },
+            new Map[] {
+                Map.<String, Object>of(
+                        "library_name",
+                        "mylib1T",
+                        "engine",
+                        "LUA",
+                        "functions",
+                        new Object[] {expectedFuncData},
+                        "library_code",
+                        code)
+            },
             // functionListWithCode("mylib1T")
             OK, // customCommand("function", "flush", "sync")
         };

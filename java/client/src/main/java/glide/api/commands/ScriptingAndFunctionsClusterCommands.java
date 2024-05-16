@@ -2,7 +2,6 @@
 package glide.api.commands;
 
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
-
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -88,7 +87,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @return Info about all libraries and their functions.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList().get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
@@ -112,7 +111,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @return Info about all libraries, their functions, and their code.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList().get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
@@ -138,7 +137,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @param libNamePattern A wildcard pattern for matching library names.
      * @return Info about queried libraries and their functions.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList("myLib?_backup").get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
@@ -163,7 +162,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @param libNamePattern A wildcard pattern for matching library names.
      * @return Info about queried libraries, their functions, and their code.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList("GLIDE*").get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
@@ -189,7 +188,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      *     command to the nodes defined by <code>route</code>.
      * @return Info about all libraries and their functions.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList(RANDOM).get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
@@ -214,7 +213,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      *     command to the nodes defined by <code>route</code>.
      * @return Info about all libraries, their functions, and their code.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList(RANDOM).get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
@@ -241,7 +240,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @param libNamePattern A wildcard pattern for matching library names.
      * @return Info about queried libraries and their functions.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList("myLib?_backup", RANDOM).get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
@@ -267,7 +266,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @param libNamePattern A wildcard pattern for matching library names.
      * @return Info about queried libraries, their functions, and their code.
      * @example
-     * <pre>{@code
+     *     <pre>{@code
      * Map<String, Object>[] response = client.functionList("GLIDE*", RANDOM).get();
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",

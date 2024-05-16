@@ -36,7 +36,6 @@ import glide.api.models.configuration.RedisClientConfiguration;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
@@ -210,29 +209,38 @@ public class RedisClient extends BaseClient
 
     @Override
     @SuppressWarnings("unchecked")
-    public CompletableFuture<Map<String, Object>[]> functionListWithCode(@NonNull String libNamePattern) {
+    public CompletableFuture<Map<String, Object>[]> functionListWithCode(
+            @NonNull String libNamePattern) {
         return commandManager.submitNewCommand(
-            FunctionList, new String[] { LIBRARY_NAME_REDIS_API, libNamePattern, WITH_CODE_REDIS_API }, response -> castArray(handleArrayResponse(response), Map.class));
+                FunctionList,
+                new String[] {LIBRARY_NAME_REDIS_API, libNamePattern, WITH_CODE_REDIS_API},
+                response -> castArray(handleArrayResponse(response), Map.class));
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Map<String, Object>[]> functionList(@NonNull String libNamePattern) {
         return commandManager.submitNewCommand(
-            FunctionList, new String[] { LIBRARY_NAME_REDIS_API, libNamePattern }, response -> castArray(handleArrayResponse(response), Map.class));
+                FunctionList,
+                new String[] {LIBRARY_NAME_REDIS_API, libNamePattern},
+                response -> castArray(handleArrayResponse(response), Map.class));
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Map<String, Object>[]> functionListWithCode() {
         return commandManager.submitNewCommand(
-            FunctionList, new String[] { WITH_CODE_REDIS_API }, response -> castArray(handleArrayResponse(response), Map.class));
+                FunctionList,
+                new String[] {WITH_CODE_REDIS_API},
+                response -> castArray(handleArrayResponse(response), Map.class));
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Map<String, Object>[]> functionList() {
         return commandManager.submitNewCommand(
-            FunctionList, new String[0], response -> castArray(handleArrayResponse(response), Map.class));
+                FunctionList,
+                new String[0],
+                response -> castArray(handleArrayResponse(response), Map.class));
     }
 }

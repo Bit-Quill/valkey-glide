@@ -694,13 +694,29 @@ public class CommandTests {
         assertEquals(libName, promise.get());
         // TODO test function with FCALL when fixed in redis-rs and implemented
 
-        var flist = (withRoute ? clusterClient.functionList(route) : clusterClient.functionList()).get();
-        var expectedDescription = new HashMap<String, String>() {{ put(funcName, null); }};
-        var expectedFlags = new HashMap<String, Set<String>>() {{ put(funcName, Set.of()); }};
+        var flist =
+                (withRoute ? clusterClient.functionList(route) : clusterClient.functionList()).get();
+        var expectedDescription =
+                new HashMap<String, String>() {
+                    {
+                        put(funcName, null);
+                    }
+                };
+        var expectedFlags =
+                new HashMap<String, Set<String>>() {
+                    {
+                        put(funcName, Set.of());
+                    }
+                };
         checkFunctionListResponse(flist, libName, expectedDescription, expectedFlags, Optional.empty());
 
-        flist = (withRoute ? clusterClient.functionListWithCode(route) : clusterClient.functionListWithCode()).get();
-        checkFunctionListResponse(flist, libName, expectedDescription, expectedFlags, Optional.of(code));
+        flist =
+                (withRoute
+                                ? clusterClient.functionListWithCode(route)
+                                : clusterClient.functionListWithCode())
+                        .get();
+        checkFunctionListResponse(
+                flist, libName, expectedDescription, expectedFlags, Optional.of(code));
 
         // re-load library without overwriting
         promise =
@@ -728,17 +744,22 @@ public class CommandTests {
                         : clusterClient.functionLoadWithReplace(newCode);
         assertEquals(libName, promise2.get());
 
-        flist = (withRoute ? clusterClient.functionList(libName, route) : clusterClient.functionList(libName)).get();
+        flist =
+                (withRoute
+                                ? clusterClient.functionList(libName, route)
+                                : clusterClient.functionList(libName))
+                        .get();
         expectedDescription.put(newFuncName, null);
         expectedFlags.put(newFuncName, Set.of());
-        checkFunctionListResponse(flist, libName,
-            expectedDescription,
-            expectedFlags, Optional.empty());
+        checkFunctionListResponse(flist, libName, expectedDescription, expectedFlags, Optional.empty());
 
-        flist = (withRoute ? clusterClient.functionListWithCode(libName, route) : clusterClient.functionListWithCode(libName)).get();
-        checkFunctionListResponse(flist, libName,
-            expectedDescription,
-            expectedFlags, Optional.of(newCode));
+        flist =
+                (withRoute
+                                ? clusterClient.functionListWithCode(libName, route)
+                                : clusterClient.functionListWithCode(libName))
+                        .get();
+        checkFunctionListResponse(
+                flist, libName, expectedDescription, expectedFlags, Optional.of(newCode));
 
         // TODO test with FCALL
 
