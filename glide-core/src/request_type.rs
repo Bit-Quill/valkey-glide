@@ -457,7 +457,7 @@ impl RequestType {
             RequestType::ZRandMember => Some(cmd("ZRANDMEMBER")),
             RequestType::Bitcount => Some(cmd("BITCOUNT")),
             RequestType::BZMPop => Some(cmd("BZMPOP")),
-            RequestType::Bitpos => Some(cmd("Bitpos")),
+            RequestType::Bitpos => Some(cmd("BITPOS")),
         }
     }
 }
