@@ -2167,9 +2167,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Returns the number of members in the intersection of sorted sets specified by <code>keys</code>
-     * .
+     * Returns the cardinality of the intersection of the sorted sets specified by <code>keys</code>.
      *
+     * @since Redis 7.0 and above
      * @see <a href="https://redis.io/commands/zintercard/">redis.io</a> for more details.
      * @param keys The keys of sorted sets to intersect.
      * @return Command Response - The number of members in the intersection.
@@ -2181,9 +2181,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Returns the number of members in the intersection of sorted sets specified by <code>keys</code>
-     * .
+     * Returns the cardinality of the intersection of the sorted sets specified by <code>keys</code>.
+     * If the intersection cardinality reaches <code>limit</code> partway through the computation, the
+     * algorithm will exit early and yield <code>limit</code> as the cardinality.
      *
+     * @since Redis 7.0 and above
      * @see <a href="https://redis.io/commands/zintercard/">redis.io</a> for more details.
      * @param keys The keys of sorted sets to intersect.
      * @param limit Specifies a maximum number for the intersection cardinality. If limit is set to
