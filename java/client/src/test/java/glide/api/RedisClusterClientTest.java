@@ -1149,7 +1149,7 @@ public class RedisClusterClientTest {
 
     @SneakyThrows
     @Test
-    public void functionLoadWithReplaceWithRout_returns_success() {
+    public void functionLoadWithReplaceWithRoute_returns_success() {
         // setup
         String code = "The best code ever";
         String[] args = new String[] {FunctionLoadOptions.REPLACE.toString(), code};

@@ -13,7 +13,8 @@ import java.util.concurrent.CompletableFuture;
 public interface ScriptingAndFunctionsCommands {
 
     /**
-     * Loads a library to Redis.
+     * Loads a library to Redis unless a library with the same name exists. Use {@link
+     * #functionLoadWithReplace} to replace existing libraries.
      *
      * @see <a href="https://redis.io/docs/latest/commands/function-load/">redis.io</a> for details.
      * @param libraryCode The source code that implements the library.
@@ -28,7 +29,7 @@ public interface ScriptingAndFunctionsCommands {
     CompletableFuture<String> functionLoad(String libraryCode);
 
     /**
-     * Loads a library to Redis and overwrites the existing library with the new contents.
+     * Loads a library to Redis and overwrites a library with the same name if it exists.
      *
      * @see <a href="https://redis.io/docs/latest/commands/function-load/">redis.io</a> for details.
      * @param libraryCode The source code that implements the library.

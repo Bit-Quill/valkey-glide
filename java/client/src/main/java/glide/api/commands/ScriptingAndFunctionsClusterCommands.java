@@ -13,7 +13,8 @@ import java.util.concurrent.CompletableFuture;
 public interface ScriptingAndFunctionsClusterCommands {
 
     /**
-     * Loads a library to Redis.<br>
+     * Loads a library to Redis unless a library with the same name exists. Use {@link
+     * #functionLoadWithReplace(String)} to replace existing libraries.<br>
      * The command will be routed to all primary nodes.
      *
      * @see <a href="https://redis.io/docs/latest/commands/function-load/">redis.io</a> for details.
@@ -29,7 +30,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<String> functionLoad(String libraryCode);
 
     /**
-     * Loads a library to Redis and overwrites the existing library with the new contents.<br>
+     * Loads a library to Redis and overwrites a library with the same name if it exists.<br>
      * The command will be routed to all primary nodes.
      *
      * @see <a href="https://redis.io/docs/latest/commands/function-load/">redis.io</a> for details.
@@ -45,7 +46,8 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<String> functionLoadWithReplace(String libraryCode);
 
     /**
-     * Loads a library to Redis.
+     * Loads a library to Redis unless a library with the same name exists. Use {@link
+     * #functionLoadWithReplace(String, Route)} to replace existing libraries.<br>
      *
      * @see <a href="https://redis.io/docs/latest/commands/function-load/">redis.io</a> for details.
      * @param libraryCode The source code that implements the library.
@@ -63,7 +65,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<String> functionLoad(String libraryCode, Route route);
 
     /**
-     * Loads a library to Redis and overwrites the existing library with the new contents.
+     * Loads a library to Redis and overwrites a library with the same name if it exists.
      *
      * @see <a href="https://redis.io/docs/latest/commands/function-load/">redis.io</a> for details.
      * @param libraryCode The source code that implements the library.
