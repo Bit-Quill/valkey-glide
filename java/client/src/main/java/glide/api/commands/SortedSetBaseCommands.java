@@ -1196,7 +1196,7 @@ public interface SortedSetBaseCommands {
      * @see <a href="https://redis.io/commands/zinter/">redis.io</a> for more details.
      * @param keysOrWeightedKeys The keys of the sorted sets with possible formats:
      *     <ul>
-     *       <li>Use {@link KeyArray} for keys intersection.
+     *       <li>Use {@link KeyArray} for keys only.
      *       <li>Use {@link WeightedKeys} for weighted keys with score multipliers.
      *     </ul>
      *

@@ -2551,9 +2551,19 @@ public class SharedCommandTests {
         assertEquals(0, client.zinter(new KeyArray(new String[] {key1, key3})).get().length);
         assertEquals(0, client.zinterWithScores(new KeyArray(new String[] {key1, key3})).get().size());
 
+        // empty key list
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class, () -> client.zinter(new KeyArray(new String[0])).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+        executionException =
+                assertThrows(
+                        ExecutionException.class, () -> client.zinter(new WeightedKeys(List.of())).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
         // Key exists, but it is not a set
         assertEquals(OK, client.set(key3, "value").get());
-        ExecutionException executionException =
+        executionException =
                 assertThrows(
                         ExecutionException.class,
                         () -> client.zinter(new KeyArray(new String[] {key1, key3})).get());
