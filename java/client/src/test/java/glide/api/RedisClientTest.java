@@ -83,6 +83,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LRange;
 import static redis_request.RedisRequestOuterClass.RequestType.LRem;
 import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
+import static redis_request.RedisRequestOuterClass.RequestType.LmPop;
 import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
 import static redis_request.RedisRequestOuterClass.RequestType.MGet;
 import static redis_request.RedisRequestOuterClass.RequestType.MSet;
@@ -153,6 +154,7 @@ import glide.api.models.commands.BitmapIndexType;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.InfoOptions;
+import glide.api.models.commands.LmPopOptions;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
@@ -179,6 +181,7 @@ import glide.api.models.commands.stream.StreamTrimOptions.MinId;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -4307,5 +4310,70 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(bitcount, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lmpop_returns_success() {
+        // setup
+        String key = "testKey";
+        Long numkeys = 1L;
+        String[] keys = {key};
+        LmPopOptions lmPopOptions = LmPopOptions.LEFT;
+        String[] arguments = new String[] {Long.toString(numkeys), key, lmPopOptions.getRedisApi()};
+        Map<String, String[]> value = new HashMap<>();
+        value.put(key, new String[] {"five"});
+
+        CompletableFuture<Map<String, String[]>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, String[]>>submitNewCommand(eq(LmPop), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, String[]>> response = service.lmpop(numkeys, keys, lmPopOptions);
+        Map<String, String[]> payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lmpop_with_count_returns_success() {
+        // setup
+        String key = "testKey";
+        Long numkeys = 1L;
+        String[] keys = {key};
+        LmPopOptions lmPopOptions = LmPopOptions.LEFT;
+        Long count = 1L;
+        String[] arguments =
+                new String[] {
+                    Long.toString(numkeys),
+                    key,
+                    lmPopOptions.getRedisApi(),
+                    LmPopOptions.COUNT.getRedisApi(),
+                    Long.toString(count)
+                };
+        Map<String, String[]> value = new HashMap<>();
+        value.put(key, new String[] {"five"});
+
+        CompletableFuture<Map<String, String[]>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, String[]>>submitNewCommand(eq(LmPop), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, String[]>> response =
+                service.lmpop(numkeys, keys, lmPopOptions, count);
+        Map<String, String[]> payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
     }
 }

@@ -224,6 +224,7 @@ public class TransactionTestUtilities {
         String listKey1 = "{ListKey}-1-" + UUID.randomUUID();
         String listKey2 = "{ListKey}-2-" + UUID.randomUUID();
         String listKey3 = "{ListKey}-3-" + UUID.randomUUID();
+        String listKey4 = "{ListKey}-4-" + UUID.randomUUID();
 
         transaction
                 .lpush(listKey1, new String[] {value1, value1, value2, value3, value3})
@@ -242,7 +243,10 @@ public class TransactionTestUtilities {
                 .lpush(listKey3, new String[] {value1, value2, value3})
                 .linsert(listKey3, AFTER, value2, value2)
                 .blpop(new String[] {listKey3}, 0.01)
-                .brpop(new String[] {listKey3}, 0.01);
+                .brpop(new String[] {listKey3}, 0.01)
+                .lpush(listKey4, new String[] {value1, value2, value3});
+        //                .lmpop(1L, new String[] {listKey4}, LmPopOptions.LEFT)
+        //                .lmpop(1L, new String[] {listKey4}, LmPopOptions.LEFT, 1L);
 
         return new Object[] {
             5L, // lpush(listKey1, new String[] {value1, value1, value2, value3, value3})
@@ -262,6 +266,12 @@ public class TransactionTestUtilities {
             4L, // linsert(listKey3, AFTER, value2, value2)
             new String[] {listKey3, value3}, // blpop(new String[] { listKey3 }, 0.01)
             new String[] {listKey3, value1}, // brpop(new String[] { listKey3 }, 0.01)
+            3L, // lpush(listKey4, new String[] {value1, value2, value3})
+            //            new String[] {value1}, // lmpop(1L, new String[] {listKey4},
+            // LmPopOptions.LEFT).get(listKey4)
+            //            new String[] {
+            //                value2
+            //            }, // lmpop(1L, new String[] {listKey4}, LmPopOptions.LEFT, 1L).get(listKey4)
         };
     }
 

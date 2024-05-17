@@ -6,9 +6,10 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public enum PopDirection {
+public enum LmPopOptions {
     LEFT("LEFT"),
-    RIGHT("RIGHT");
+    RIGHT("RIGHT"),
+    COUNT("COUNT");
 
     private final String redisApi;
 }

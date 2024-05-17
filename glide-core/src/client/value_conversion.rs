@@ -16,9 +16,11 @@ pub(crate) enum ExpectedReturnType {
     DoubleOrNull,
     ZRankReturnType,
     JsonToggleReturnType,
+    ArrayOfStrings,
     ArrayOfBools,
     ArrayOfDoubleOrNull,
     Lolwut,
+    ArrayOfStringAndArrays,
     ArrayOfArraysOfDoubleOrNull,
     ArrayOfKeyValuePairs,
     ZMPopReturnType,
@@ -175,6 +177,15 @@ pub(crate) fn convert_to_expected_type(
             )
                 .into()),
         },
+        ExpectedReturnType::ArrayOfStrings => match value {
+            Value::Array(array) => convert_array_elements(array, ExpectedReturnType::BulkString),
+            _ => Err((
+                ErrorKind::TypeError,
+                "Response couldn't be converted to an array of bulk strings",
+                format!("(response was {:?})", value),
+            )
+                .into()),
+        },
         ExpectedReturnType::ArrayOfDoubleOrNull => match value {
             Value::Array(array) => convert_array_elements(array, ExpectedReturnType::DoubleOrNull),
             _ => Err((
@@ -304,6 +315,24 @@ pub(crate) fn convert_to_expected_type(
                     .into()),
             }
         }
+        ExpectedReturnType::ArrayOfStringAndArrays => match value {
+            Value::Nil => Ok(value),
+            Value::Array(array) if array.len() == 2 && matches!(array[1], Value::Array(_)) => {
+                // convert the array to a map of string to string-array
+                let map = convert_array_to_map(
+                    array,
+                    Some(ExpectedReturnType::BulkString),
+                    Some(ExpectedReturnType::ArrayOfStrings),
+                )?;
+                Ok(map)
+            }
+            _ => Err((
+                ErrorKind::TypeError,
+                "Response couldn't be converted to a pair of String/String-Array return type",
+                format!("(response was {:?})", value),
+            )
+                .into()),
+        },
         ExpectedReturnType::ArrayOfKeyValuePairs => match value {
             Value::Nil => Ok(value),
             Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Array(_)) => {
@@ -462,6 +491,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
         b"BZMPOP" | b"ZMPOP" => Some(ExpectedReturnType::ZMPopReturnType),
         b"JSON.TOGGLE" => Some(ExpectedReturnType::JsonToggleReturnType),
         b"GEOPOS" => Some(ExpectedReturnType::ArrayOfArraysOfDoubleOrNull),
+        b"LMPOP" => Some(ExpectedReturnType::ArrayOfStringAndArrays),
         b"HRANDFIELD" => cmd
             .position(b"WITHVALUES")
             .map(|_| ExpectedReturnType::ArrayOfKeyValuePairs),

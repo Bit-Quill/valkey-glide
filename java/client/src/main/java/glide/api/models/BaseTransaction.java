@@ -133,7 +133,7 @@ import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.commands.LInsertOptions.InsertPosition;
-import glide.api.models.commands.PopDirection;
+import glide.api.models.commands.LmPopOptions;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
@@ -3084,18 +3084,20 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T lmpop(
             @NonNull Long numkeys,
             @NonNull String[] keys,
-            @NonNull PopDirection direction,
+            @NonNull LmPopOptions direction,
             @NonNull Long count) {
         ArgsArray commandArgs =
                 buildArgs(
                         concatenateArrays(
                                 ArrayUtils.addFirst(keys, Long.toString(numkeys)),
-                                new String[] {direction.getRedisApi(), Long.toString(count)}));
+                                new String[] {
+                                    direction.getRedisApi(), LmPopOptions.COUNT.getRedisApi(), Long.toString(count)
+                                }));
         protobufTransaction.addCommands(buildCommand(LmPop, commandArgs));
         return getThis();
     }
 
-    public T lmpop(@NonNull Long numkeys, @NonNull String[] keys, @NonNull PopDirection direction) {
+    public T lmpop(@NonNull Long numkeys, @NonNull String[] keys, @NonNull LmPopOptions direction) {
         ArgsArray commandArgs =
                 buildArgs(
                         ArrayUtils.add(

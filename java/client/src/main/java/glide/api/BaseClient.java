@@ -4,6 +4,7 @@ package glide.api;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.castArrayofArrays;
+import static glide.utils.ArrayTransformUtils.castMapOfArrays;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -125,7 +126,7 @@ import glide.api.models.Script;
 import glide.api.models.commands.BitmapIndexType;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.LInsertOptions.InsertPosition;
-import glide.api.models.commands.PopDirection;
+import glide.api.models.commands.LmPopOptions;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.LexRange;
 import glide.api.models.commands.RangeOptions.RangeQuery;
@@ -328,6 +329,16 @@ public abstract class BaseClient
     @SuppressWarnings("unchecked") // raw Map cast to Map<String, V>
     protected <V> Map<String, V> handleMapResponse(Response response) throws RedisException {
         return handleRedisResponse(Map.class, false, response);
+    }
+
+    /**
+     * @param response A Protobuf response
+     * @return A map of <code>String</code> to <code>V</code> or <code>null</code>
+     * @param <V> Value type.
+     */
+    @SuppressWarnings("unchecked") // raw Map cast to Map<String, V>
+    protected <V> Map<String, V> handleMapOrNullResponse(Response response) throws RedisException {
+        return handleRedisResponse(Map.class, true, response);
     }
 
     @SuppressWarnings("unchecked") // raw Set cast to Set<String>
@@ -1284,25 +1295,23 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<String[][]> lmpop(
-            @NonNull Long numkeys,
-            @NonNull String[] keys,
-            @NonNull PopDirection direction,
-            @NonNull Long count) {
-        String[] arguments = new String[keys.length + 3];
+    public CompletableFuture<Map<String, String[]>> lmpop(
+            long numkeys, @NonNull String[] keys, @NonNull LmPopOptions direction, long count) {
+        String[] arguments = new String[keys.length + 4];
         arguments[0] = Long.toString(numkeys);
         arguments[arguments.length - 1] = Long.toString(count);
-        arguments[arguments.length - 2] = direction.getRedisApi();
+        arguments[arguments.length - 2] = LmPopOptions.COUNT.getRedisApi();
+        arguments[arguments.length - 3] = direction.getRedisApi();
         System.arraycopy(keys, 0, arguments, 1, keys.length);
         return commandManager.submitNewCommand(
                 LmPop,
                 arguments,
-                response -> castArrayofArrays(handleArrayResponse(response), String.class));
+                response -> castMapOfArrays(handleMapOrNullResponse(response), String.class));
     }
 
     @Override
-    public CompletableFuture<String[][]> lmpop(
-            @NonNull Long numkeys, @NonNull String[] keys, @NonNull PopDirection direction) {
+    public CompletableFuture<Map<String, String[]>> lmpop(
+            long numkeys, @NonNull String[] keys, @NonNull LmPopOptions direction) {
         String[] arguments = new String[keys.length + 2];
         arguments[0] = Long.toString(numkeys);
         arguments[arguments.length - 1] = direction.getRedisApi();
@@ -1310,6 +1319,6 @@ public abstract class BaseClient
         return commandManager.submitNewCommand(
                 LmPop,
                 arguments,
-                response -> castArrayofArrays(handleArrayResponse(response), String.class));
+                response -> castMapOfArrays(handleMapOrNullResponse(response), String.class));
     }
 }

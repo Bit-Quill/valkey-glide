@@ -33,6 +33,7 @@ import glide.api.models.Script;
 import glide.api.models.commands.BitmapIndexType;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.ExpireOptions;
+import glide.api.models.commands.LmPopOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
 import glide.api.models.commands.RangeOptions.LexBoundary;
@@ -3662,6 +3663,39 @@ public class SharedCommandTests {
                             ExecutionException.class,
                             () -> client.bitcount(key1, 5, 30, BitmapIndexType.BIT).get());
             assertTrue(executionException.getCause() instanceof RequestException);
+        }
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void lmpop(BaseClient client) {
+        // setup
+        String key1 = "{key}-1" + UUID.randomUUID();
+        String key2 = "{key}-2" + UUID.randomUUID();
+        long numkeys = 1L;
+        long numkeys2 = 2L;
+        String[] key = {key1};
+        String[] keys = {key2, key1};
+        LmPopOptions lmPopOptions = LmPopOptions.LEFT;
+        long count = 1L;
+        Long arraySize = 5L;
+        String[] lpushArgs = {"one", "two", "three", "four", "five"};
+        Map<String, String[]> expected = Map.of(key1, new String[] {"five"});
+
+        // nothing to be popped
+        assertNull(client.lmpop(numkeys, key, lmPopOptions).get());
+        assertNull(client.lmpop(numkeys, key, lmPopOptions, count).get());
+
+        // pushing to the arrays to be popped
+        assertEquals(arraySize, client.lpush(key1, lpushArgs).get());
+        assertEquals(arraySize, client.lpush(key2, lpushArgs).get());
+
+        // assert correct result from popping
+        Map<String, String[]> result = client.lmpop(numkeys, key, lmPopOptions).get();
+        assertEquals(Map.of(key1, new String[] {"five"}).keySet(), result.keySet());
+        for (String k : expected.keySet()) {
+            assertArrayEquals(expected.get(k), result.get(k));
         }
     }
 }
