@@ -353,23 +353,6 @@ pub(crate) fn convert_to_expected_type(
             )
                 .into()),
         },
-        ExpectedReturnType::ArrayOfKeyValuePairs => match value {
-            Value::Nil => Ok(value),
-            Value::Array(ref array) if array.is_empty() || matches!(array[0], Value::Array(_)) => {
-                Ok(value)
-            }
-            Value::Array(array)
-                if matches!(array[0], Value::BulkString(_) | Value::SimpleString(_)) =>
-            {
-                convert_flat_array_to_key_value_pairs(array)
-            }
-            _ => Err((
-                ErrorKind::TypeError,
-                "Response couldn't be converted to an array of key-value pairs",
-                format!("(response was {:?})", value),
-            )
-                .into()),
-        },
         // Used by BZPOPMIN/BZPOPMAX, which return an array consisting of the key of the sorted set that was popped, the popped member, and its score.
         // RESP2 returns the score as a string, but RESP3 returns the score as a double. Here we convert string scores into type double.
         ExpectedReturnType::KeyWithMemberAndScore => match value {

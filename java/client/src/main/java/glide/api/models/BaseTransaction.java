@@ -3099,6 +3099,19 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
+    /**
+     * Pops one or more elements from the first non-empty list <code>key</code> from the list of
+     * provided <code>key</code> names
+     *
+     * @see <a href="https://valkey.io/commands/lmpop/">valkey.io</a> for details.
+     * @param numkeys The number of provided <code>key</code>s.
+     * @param keys The list of provided <code>key</code> names.
+     * @param direction The direction based on which elements are popped from - see {@link
+     *     LmPopOptions}.
+     * @param count The count of elements to be popped and returned.
+     * @return Command Response - A <code>Map</code> of <code>key</code> names arrays of popped
+     *     elements
+     */
     public T lmpop(
             @NonNull Long numkeys,
             @NonNull String[] keys,
@@ -3115,6 +3128,18 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
+    /**
+     * Pops one or more elements from the first non-empty list <code>key</code> from the list of
+     * provided <code>key</code> names
+     *
+     * @see <a href="https://valkey.io/commands/lmpop/">valkey.io</a> for details.
+     * @param numkeys The number of provided <code>key</code>s.
+     * @param keys The list of provided <code>key</code> names.
+     * @param direction The direction based on which elements are popped from - see {@link
+     *     LmPopOptions}.
+     * @return Command Response - A <code>Map</code> of <code>key</code> names arrays of popped
+     *     elements
+     */
     public T lmpop(@NonNull Long numkeys, @NonNull String[] keys, @NonNull LmPopOptions direction) {
         ArgsArray commandArgs =
                 buildArgs(

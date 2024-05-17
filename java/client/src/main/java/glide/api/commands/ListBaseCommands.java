@@ -362,9 +362,42 @@ public interface ListBaseCommands {
      */
     CompletableFuture<Long> lpushx(String key, String[] elements);
 
+    /**
+     * Pops one or more elements from the first non-empty list <code>key</code> from the list of
+     * provided <code>key</code> names
+     *
+     * @see <a href="https://valkey.io/commands/lmpop/">valkey.io</a> for details.
+     * @param numkeys The number of provided <code>key</code>s.
+     * @param keys The list of provided <code>key</code> names.
+     * @param direction The direction based on which elements are popped from - see {@link
+     *     LmPopOptions}.
+     * @param count The count of elements to be popped and returned.
+     * @return A <code>Map</code> of <code>key</code> names arrays of popped elements
+     * @example
+     *     <pre>{@code
+     * Map<String, String[]> result = client.lmpop(1L, new String[] {"testKey2"}, LmPopOptions.LEFT, 1L).get();
+     * result.forEach((key, value) -> System.out.println("Key: " + key + ", Value: " + Arrays.toString(value)));
+     * }</pre>
+     */
     CompletableFuture<Map<String, String[]>> lmpop(
             long numkeys, String[] keys, LmPopOptions direction, long count);
 
+    /**
+     * Pops one or more elements from the first non-empty list <code>key</code> from the list of
+     * provided <code>key</code> names
+     *
+     * @see <a href="https://valkey.io/commands/lmpop/">valkey.io</a> for details.
+     * @param numkeys The number of provided <code>key</code>s.
+     * @param keys The list of provided <code>key</code> names.
+     * @param direction The direction based on which elements are popped from - see {@link
+     *     LmPopOptions}.
+     * @return A <code>Map</code> of <code>key</code> names arrays of popped elements
+     * @example
+     *     <pre>{@code
+     * Map<String, String[]> result = client.lmpop(1L, new String[] {"testKey2"}, LmPopOptions.LEFT, 1L).get();
+     * result.forEach((key, value) -> System.out.println("Key: " + key + ", Value: " + Arrays.toString(value)));
+     * }</pre>
+     */
     CompletableFuture<Map<String, String[]>> lmpop(
             long numkeys, String[] keys, LmPopOptions direction);
 }
