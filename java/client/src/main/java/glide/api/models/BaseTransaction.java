@@ -2986,7 +2986,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Deletes all the libraries.
      *
-     * @since Redis 7.0 and above
+     * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
      * @return Command Response - <code>OK</code>.
      */
@@ -2998,7 +2998,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Deletes all the libraries.
      *
-     * @since Redis 7.0 and above
+     * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
      * @param mode The flushing mode, could be either {@link FlushMode#SYNC} or {@link
      *     FlushMode#ASYNC}.

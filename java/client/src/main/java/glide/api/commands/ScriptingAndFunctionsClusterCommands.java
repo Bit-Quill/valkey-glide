@@ -297,7 +297,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * Deletes all the libraries.<br>
      * The command will be routed to all primary nodes.
      *
-     * @since Redis 7.0 and above
+     * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
      * @return <code>OK</code>.
      * @example
@@ -312,7 +312,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * Deletes all the libraries.<br>
      * The command will be routed to all primary nodes.
      *
-     * @since Redis 7.0 and above
+     * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
      * @param mode The flushing mode, could be either {@link FlushMode#SYNC} or {@link
      *     FlushMode#ASYNC}.
@@ -328,7 +328,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     /**
      * Deletes all the libraries.
      *
-     * @since Redis 7.0 and above
+     * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
      * @param route Specifies the routing configuration for the command. The client will route the
      *     command to the nodes defined by <code>route</code>.
@@ -344,7 +344,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     /**
      * Deletes all the libraries.
      *
-     * @since Redis 7.0 and above
+     * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
      * @param route Specifies the routing configuration for the command. The client will route the
      *     command to the nodes defined by <code>route</code>.

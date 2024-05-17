@@ -121,7 +121,7 @@ public interface ScriptingAndFunctionsCommands {
     /**
      * Returns information about the functions and libraries.
      *
-     * @since Redis 7.0 and above
+     * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a> for details.
      * @param libNamePattern A wildcard pattern for matching library names.
      * @return Info about queried libraries, their functions, and their code.
@@ -147,7 +147,7 @@ public interface ScriptingAndFunctionsCommands {
     /**
      * Deletes all the libraries.
      *
-     * @since Redis 7.0 and above
+     * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
      * @return <code>OK</code>.
      * @example
