@@ -183,6 +183,7 @@ enum RequestType {
     ZRandMember = 139;
     FunctionLoad = 150;
     FunctionList = 151;
+    FunctionFlush = 153;
 }
 
 message Command {

@@ -4,6 +4,7 @@ package glide;
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.FlushMode.ASYNC;
+import static glide.api.models.commands.FlushMode.SYNC;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 
@@ -485,7 +486,7 @@ public class TransactionTestUtilities {
                 };
 
         transaction
-                .customCommand(new String[] {"function", "flush", "sync"})
+                .functionFlush(SYNC)
                 .functionList()
                 .functionListWithCode()
                 .functionLoad(code)
@@ -495,7 +496,7 @@ public class TransactionTestUtilities {
                 .customCommand(new String[] {"function", "flush", "sync"});
 
         return new Object[] {
-            OK, // customCommand("function", "flush", "sync")
+            OK, // functionFlush(SYNC)
             new Map[0], // functionList()
             new Map[0], // functionListWithCode()
             "mylib1T", // functionLoad(code)

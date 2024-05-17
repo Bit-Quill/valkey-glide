@@ -7,6 +7,7 @@ import static glide.TestUtilities.checkFunctionListResponse;
 import static glide.TestUtilities.getValueFromInfo;
 import static glide.TestUtilities.parseInfoResponseToMap;
 import static glide.api.BaseClient.OK;
+import static glide.api.models.commands.FlushMode.SYNC;
 import static glide.api.models.commands.InfoOptions.Section.CLUSTER;
 import static glide.api.models.commands.InfoOptions.Section.CPU;
 import static glide.api.models.commands.InfoOptions.Section.EVERYTHING;
@@ -331,7 +332,7 @@ public class CommandTests {
     @Test
     @SneakyThrows
     public void flushall() {
-        assertEquals(OK, regularClient.flushall(FlushMode.SYNC).get());
+        assertEquals(OK, regularClient.flushall(SYNC).get());
 
         // TODO replace with KEYS command when implemented
         Object[] keysAfter = (Object[]) regularClient.customCommand(new String[] {"keys", "*"}).get();
@@ -346,7 +347,8 @@ public class CommandTests {
     public void functionLoad_and_functionList() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
-        // TODO FUNCTION FLUSH before the test
+        assertEquals(OK, regularClient.functionFlush().get());
+
         String libName = "mylib1c";
         String funcName = "myfunc1c";
         String code =
@@ -404,6 +406,6 @@ public class CommandTests {
                 flist, libName, expectedDescription, expectedFlags, Optional.of(newCode));
 
         // TODO test with FCALL
-        // TODO FUNCTION FLUSH at the end
+        assertEquals(OK, regularClient.functionFlush(SYNC).get());
     }
 }

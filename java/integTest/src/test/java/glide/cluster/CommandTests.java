@@ -8,6 +8,7 @@ import static glide.TestUtilities.getFirstEntryFromMultiValue;
 import static glide.TestUtilities.getValueFromInfo;
 import static glide.TestUtilities.parseInfoResponseToMap;
 import static glide.api.BaseClient.OK;
+import static glide.api.models.commands.FlushMode.ASYNC;
 import static glide.api.models.commands.InfoOptions.Section.CLIENTS;
 import static glide.api.models.commands.InfoOptions.Section.CLUSTER;
 import static glide.api.models.commands.InfoOptions.Section.COMMANDSTATS;
@@ -657,8 +658,8 @@ public class CommandTests {
         var route = new SlotKeyRoute("key", PRIMARY);
         assertEquals(OK, clusterClient.flushall().get());
         assertEquals(OK, clusterClient.flushall(route).get());
-        assertEquals(OK, clusterClient.flushall(FlushMode.ASYNC).get());
-        assertEquals(OK, clusterClient.flushall(FlushMode.ASYNC, route).get());
+        assertEquals(OK, clusterClient.flushall(ASYNC).get());
+        assertEquals(OK, clusterClient.flushall(ASYNC, route).get());
 
         var replicaRoute = new SlotKeyRoute("key", REPLICA);
         // command should fail on a replica, because it is read-only
@@ -675,10 +676,14 @@ public class CommandTests {
     @SneakyThrows
     @ParameterizedTest(name = "functionLoad: with route = {0}")
     @ValueSource(booleans = {true, false})
-    public void functionLoad_and_functionList(boolean withRoute) {
+    public void function_commands(boolean withRoute) {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
-        // TODO FUNCTION FLUSH before the test
+        Route route = new SlotKeyRoute("1", PRIMARY);
+        var fflush =
+                (withRoute ? clusterClient.functionFlush(route) : clusterClient.functionFlush()).get();
+        assertEquals(OK, fflush);
+
         String libName = "mylib1c_" + withRoute;
         String funcName = "myfunc1c_" + withRoute;
         String code =
@@ -687,7 +692,6 @@ public class CommandTests {
                         + " \n redis.register_function('"
                         + funcName
                         + "', function(keys, args) return args[1] end)";
-        Route route = new SlotKeyRoute("1", PRIMARY);
 
         var promise =
                 withRoute ? clusterClient.functionLoad(code, route) : clusterClient.functionLoad(code);
@@ -763,6 +767,9 @@ public class CommandTests {
 
         // TODO test with FCALL
 
-        // TODO FUNCTION FLUSH at the end
+        fflush =
+                (withRoute ? clusterClient.functionFlush(ASYNC, route) : clusterClient.functionFlush(ASYNC))
+                        .get();
+        assertEquals(OK, fflush);
     }
 }

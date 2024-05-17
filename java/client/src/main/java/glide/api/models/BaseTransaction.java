@@ -30,6 +30,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
+import static redis_request.RedisRequestOuterClass.RequestType.FunctionFlush;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionList;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
@@ -2979,6 +2980,32 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T functionListWithCode(@NonNull String libNamePattern) {
         ArgsArray commandArgs = buildArgs(LIBRARY_NAME_REDIS_API, libNamePattern, WITH_CODE_REDIS_API);
         protobufTransaction.addCommands(buildCommand(FunctionList, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Deletes all the libraries.
+     *
+     * @since Redis 7.0 and above
+     * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
+     * @return Command Response - <code>OK</code>.
+     */
+    public T functionFlush() {
+        protobufTransaction.addCommands(buildCommand(FunctionFlush));
+        return getThis();
+    }
+
+    /**
+     * Deletes all the libraries.
+     *
+     * @since Redis 7.0 and above
+     * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
+     * @param mode The flushing mode, could be either {@link FlushMode#SYNC} or {@link
+     *     FlushMode#ASYNC}.
+     * @return Command Response - <code>OK</code>.
+     */
+    public T functionFlush(@NonNull FlushMode mode) {
+        protobufTransaction.addCommands(buildCommand(FunctionFlush, buildArgs(mode.toString())));
         return getThis();
     }
 
