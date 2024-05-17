@@ -85,8 +85,9 @@ public class TestUtilities {
      * Deep traverse and compare two objects, including comparing content of all nested collections
      * recursively.
      *
-     * @apiNote Maps comparison ignores their order, regardless of `orderMatters` argument. Map
-     *     entries could be reordered, but values stored in them compared according to this parameter.
+     * @apiNote Maps and Set comparison ignores their order, regardless of `orderMatters` argument.
+     *     Their entries could be reordered, but values stored in them compared according to this
+     *     parameter.
      */
     public static void assertDeepEquals(Object expected, Object actual, boolean orderMatters) {
         if (expected == null || actual == null) {
@@ -112,16 +113,8 @@ public class TestUtilities {
         } else if (expected instanceof Set) {
             var expectedSet = (Set<?>) expected;
             var actualSet = (Set<?>) actual;
-            var expectedArray = expectedSet.toArray();
-            var actualArray = actualSet.toArray();
-            assertEquals(expectedArray.length, actualArray.length);
-            if (orderMatters) {
-                for (int i = 0; i < expectedArray.length; i++) {
-                    assertDeepEquals(expectedArray[i], actualArray[i], orderMatters);
-                }
-            } else {
-                assertTrue(expectedSet.containsAll(actualSet) && actualSet.containsAll(expectedSet));
-            }
+            assertEquals(expectedSet.size(), actualSet.size());
+            assertTrue(expectedSet.containsAll(actualSet) && actualSet.containsAll(expectedSet));
         } else if (expected instanceof Map) {
             var expectedMap = (Map<?, ?>) expected;
             var actualMap = (Map<?, ?>) actual;
