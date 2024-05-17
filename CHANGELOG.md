@@ -26,6 +26,8 @@
 * Python: Added ZDIFFSTORE command ([#1378](https://github.com/aws/glide-for-redis/pull/1378))
 * Python: Added ZDIFF command ([#1401](https://github.com/aws/glide-for-redis/pull/1401))
 * Python: Added BZPOPMIN and BZPOPMAX commands ([#1399](https://github.com/aws/glide-for-redis/pull/1399))
+* Python: Added ZUNIONSTORE, ZINTERSTORE commands ([#1388](https://github.com/aws/glide-for-redis/pull/1388))
+* Python: Added ZRANDMEMBER command ([#1413](https://github.com/aws/glide-for-redis/pull/1413))
 
 
 #### Fixes

@@ -12,6 +12,7 @@ from glide.async_commands.core import (
     TrimByMinId,
 )
 from glide.async_commands.sorted_set import (
+    AggregationType,
     InfBound,
     LexBoundary,
     RangeByIndex,
@@ -47,6 +48,8 @@ async def transaction_test(
     key11 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # streams
     key12 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # geo
     key13 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # sorted set
+    key14 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # sorted set
+    key15 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # sorted set
 
     value = datetime.now(timezone.utc).strftime("%m/%d/%Y, %H:%M:%S")
     value2 = get_random_string(5)
@@ -232,6 +235,13 @@ async def transaction_test(
     args.append([key8, "two", 2.0])
     transaction.bzpopmax([key8], 0.5)
     args.append([key8, "four", 4.0])
+    # key8 now only contains one member ("three")
+    transaction.zrandmember(key8)
+    args.append("three")
+    transaction.zrandmember_count(key8, 1)
+    args.append(["three"])
+    transaction.zrandmember_withscores(key8, 1)
+    args.append([["three", 3.0]])
     transaction.zpopmax(key8)
     args.append({"three": 3.0})
     transaction.zpopmin(key8)
@@ -249,6 +259,14 @@ async def transaction_test(
     args.append(["one", "two"])
     transaction.zdiff_withscores([key13, key8])
     args.append({"one": 1.0, "two": 2.0})
+    transaction.zadd(key14, {"one": 1, "two": 2})
+    args.append(2)
+    transaction.zadd(key15, {"one": 1.0, "two": 2.0, "three": 3.5})
+    args.append(3)
+    transaction.zinterstore(key8, [key14, key15])
+    args.append(2)
+    transaction.zunionstore(key8, [key14, key15], AggregationType.MAX)
+    args.append(3)
 
     transaction.pfadd(key10, ["a", "b", "c"])
     args.append(1)

@@ -17,12 +17,14 @@ from typing import (
 )
 
 from glide.async_commands.sorted_set import (
+    AggregationType,
     InfBound,
     LexBoundary,
     RangeByIndex,
     RangeByLex,
     RangeByScore,
     ScoreBoundary,
+    _create_z_cmd_store_args,
     _create_zrange_args,
     _create_zrangestore_args,
 )
@@ -983,7 +985,7 @@ class CoreCommands(Protocol):
             key (str): The key of the hash.
             count (int): The number of field names to return.
                 If `count` is positive, returns unique elements.
-                If negative, allows for duplicates.
+                If `count` is negative, allows for duplicates elements.
 
         Returns:
             List[str]: A list of random field names from the hash.
@@ -1010,7 +1012,7 @@ class CoreCommands(Protocol):
             key (str): The key of the hash.
             count (int): The number of field names to return.
                 If `count` is positive, returns unique elements.
-                If negative, allows for duplicates.
+                If `count` is negative, allows for duplicates elements.
 
         Returns:
             List[List[str]]: A list of `[field_name, value]` lists, where `field_name` is a random field name from the
@@ -2874,6 +2876,179 @@ class CoreCommands(Protocol):
             int,
             await self._execute_command(
                 RequestType.ZDiffStore, [destination, str(len(keys))] + keys
+            ),
+        )
+
+    async def zinterstore(
+        self,
+        destination: str,
+        keys: Union[List[str], List[Tuple[str, float]]],
+        aggregation_type: Optional[AggregationType] = None,
+    ) -> int:
+        """
+        Computes the intersection of sorted sets given by the specified `keys` and stores the result in `destination`.
+        If `destination` already exists, it is overwritten. Otherwise, a new sorted set will be created.
+
+        When in cluster mode, `destination` and all keys in `keys` must map to the same hash slot.
+
+        See https://valkey.io/commands/zinterstore/ for more details.
+
+        Args:
+            destination (str): The key of the destination sorted set.
+            keys (Union[List[str], List[Tuple[str, float]]]): The keys of the sorted sets with possible formats:
+                List[str] - for keys only.
+                List[Tuple[str, float]]] - for weighted keys with score multipliers.
+            aggregation_type (Optional[AggregationType]): Specifies the aggregation strategy to apply
+                when combining the scores of elements. See `AggregationType`.
+
+        Returns:
+            int: The number of elements in the resulting sorted set stored at `destination`.
+
+        Examples:
+            >>> await client.zadd("key1", {"member1": 10.5, "member2": 8.2})
+            >>> await client.zadd("key2", {"member1": 9.5})
+            >>> await client.zinterstore("my_sorted_set", ["key1", "key2"])
+                1 # Indicates that the sorted set "my_sorted_set" contains one element.
+            >>> await client.zrange_withscores("my_sorted_set", RangeByIndex(0, -1))
+                {'member1': 20}  # "member1"  is now stored in "my_sorted_set" with score of 20.
+            >>> await client.zinterstore("my_sorted_set", ["key1", "key2"] , AggregationType.MAX )
+                1 # Indicates that the sorted set "my_sorted_set" contains one element, and it's score is the maximum score between the sets.
+            >>> await client.zrange_withscores("my_sorted_set", RangeByIndex(0, -1))
+                {'member1': 10.5}  # "member1"  is now stored in "my_sorted_set" with score of 10.5.
+        """
+        args = _create_z_cmd_store_args(destination, keys, aggregation_type)
+        return cast(
+            int,
+            await self._execute_command(RequestType.ZInterStore, args),
+        )
+
+    async def zunionstore(
+        self,
+        destination: str,
+        keys: Union[List[str], List[Tuple[str, float]]],
+        aggregation_type: Optional[AggregationType] = None,
+    ) -> int:
+        """
+        Computes the union of sorted sets given by the specified `keys` and stores the result in `destination`.
+        If `destination` already exists, it is overwritten. Otherwise, a new sorted set will be created.
+
+        When in cluster mode, `destination` and all keys in `keys` must map to the same hash slot.
+
+        see https://valkey.io/commands/zunionstore/ for more details.
+
+        Args:
+            destination (str): The key of the destination sorted set.
+            keys (Union[List[str], List[Tuple[str, float]]]): The keys of the sorted sets with possible formats:
+                List[str] - for keys only.
+                List[Tuple[str, float]]] - for weighted keys with score multipliers.
+            aggregation_type (Optional[AggregationType]): Specifies the aggregation strategy to apply
+                when combining the scores of elements. See `AggregationType`.
+
+        Returns:
+            int: The number of elements in the resulting sorted set stored at `destination`.
+
+        Examples:
+            >>> await client.zadd("key1", {"member1": 10.5, "member2": 8.2})
+            >>> await client.zadd("key2", {"member1": 9.5})
+            >>> await client.zunionstore("my_sorted_set", ["key1", "key2"])
+                2 # Indicates that the sorted set "my_sorted_set" contains two element.
+            >>> await client.zrange_withscores("my_sorted_set", RangeByIndex(0, -1))
+                {'member1': 20, 'member2': 8.2}
+            >>> await client.zunionstore("my_sorted_set", ["key1", "key2"] , AggregationType.MAX )
+                2 # Indicates that the sorted set "my_sorted_set" contains two element, and each score is the maximum score between the sets.
+            >>> await client.zrange_withscores("my_sorted_set", RangeByIndex(0, -1))
+                {'member1': 10.5, 'member2': 8.2}
+        """
+        args = _create_z_cmd_store_args(destination, keys, aggregation_type)
+        return cast(
+            int,
+            await self._execute_command(RequestType.ZUnionStore, args),
+        )
+
+    async def zrandmember(self, key: str) -> Optional[str]:
+        """
+        Returns a random member from the sorted set stored at 'key'.
+
+        See https://valkey.io/commands/zrandmember for more details.
+
+        Args:
+            key (str): The key of the sorted set.
+
+        Returns:
+            Optional[str]: A random member from the sorted set.
+                If the sorted set does not exist or is empty, the response will be None.
+
+        Examples:
+            >>> await client.zadd("my_sorted_set", {"member1": 1.0, "member2": 2.0})
+            >>> await client.zrandmember("my_sorted_set")
+                "member1"  # "member1" is a random member of "my_sorted_set".
+            >>> await client.zrandmember("non_existing_sorted_set")
+                None  # "non_existing_sorted_set" is not an existing key, so None was returned.
+        """
+        return cast(
+            Optional[str],
+            await self._execute_command(RequestType.ZRandMember, [key]),
+        )
+
+    async def zrandmember_count(self, key: str, count: int) -> List[str]:
+        """
+        Retrieves up to the absolute value of `count` random members from the sorted set stored at 'key'.
+
+        See https://valkey.io/commands/zrandmember for more details.
+
+        Args:
+            key (str): The key of the sorted set.
+            count (int): The number of members to return.
+                If `count` is positive, returns unique members.
+                If `count` is negative, allows for duplicates members.
+
+        Returns:
+            List[str]: A list of members from the sorted set.
+                If the sorted set does not exist or is empty, the response will be an empty list.
+
+        Examples:
+            >>> await client.zadd("my_sorted_set", {"member1": 1.0, "member2": 2.0})
+            >>> await client.zrandmember("my_sorted_set", -3)
+                ["member1", "member1", "member2"]  # "member1" and "member2" are random members of "my_sorted_set".
+            >>> await client.zrandmember("non_existing_sorted_set", 3)
+                []  # "non_existing_sorted_set" is not an existing key, so an empty list was returned.
+        """
+        return cast(
+            List[str],
+            await self._execute_command(RequestType.ZRandMember, [key, str(count)]),
+        )
+
+    async def zrandmember_withscores(
+        self, key: str, count: int
+    ) -> List[List[Union[str, float]]]:
+        """
+        Retrieves up to the absolute value of `count` random members along with their scores from the sorted set
+        stored at 'key'.
+
+        See https://valkey.io/commands/zrandmember for more details.
+
+        Args:
+            key (str): The key of the sorted set.
+            count (int): The number of members to return.
+                If `count` is positive, returns unique members.
+                If `count` is negative, allows for duplicates members.
+
+        Returns:
+            List[List[Union[str, float]]]: A list of `[member, score]` lists, where `member` is a random member from
+                the sorted set and `score` is the associated score.
+                If the sorted set does not exist or is empty, the response will be an empty list.
+
+        Examples:
+            >>> await client.zadd("my_sorted_set", {"member1": 1.0, "member2": 2.0})
+            >>> await client.zrandmember_withscores("my_sorted_set", -3)
+                [["member1", 1.0], ["member1", 1.0], ["member2", 2.0]]  # "member1" and "member2" are random members of "my_sorted_set", and have scores of 1.0 and 2.0, respectively.
+            >>> await client.zrandmember_withscores("non_existing_sorted_set", 3)
+                []  # "non_existing_sorted_set" is not an existing key, so an empty list was returned.
+        """
+        return cast(
+            List[List[Union[str, float]]],
+            await self._execute_command(
+                RequestType.ZRandMember, [key, str(count), "WITHSCORES"]
             ),
         )
 
