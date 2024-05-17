@@ -40,6 +40,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
+import static redis_request.RedisRequestOuterClass.RequestType.FunctionDelete;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionList;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
@@ -716,6 +717,9 @@ public class TransactionTests {
         results.add(Pair.of(FunctionList, buildArgs(LIBRARY_NAME_REDIS_API, "*")));
         results.add(Pair.of(FunctionList, buildArgs(WITH_CODE_REDIS_API)));
         results.add(Pair.of(FunctionList, buildArgs(LIBRARY_NAME_REDIS_API, "*", WITH_CODE_REDIS_API)));
+
+        transaction.functionDelete("LIB");
+        results.add(Pair.of(FunctionDelete, buildArgs("LIB")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

@@ -151,6 +151,7 @@ pub enum RequestType {
     ZRandMember = 139,
     FunctionLoad = 150,
     FunctionList = 151,
+    FunctionDelete = 152,
 }
 
 fn get_two_word_command(first: &str, second: &str) -> Cmd {
@@ -305,6 +306,7 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::ZRandMember => RequestType::ZRandMember,
             ProtobufRequestType::FunctionLoad => RequestType::FunctionLoad,
             ProtobufRequestType::FunctionList => RequestType::FunctionList,
+            ProtobufRequestType::FunctionDelete => RequestType::FunctionDelete,
         }
     }
 }
@@ -455,6 +457,7 @@ impl RequestType {
             RequestType::ZRandMember => Some(cmd("ZRANDMEMBER")),
             RequestType::FunctionLoad => Some(get_two_word_command("FUNCTION", "LOAD")),
             RequestType::FunctionList => Some(get_two_word_command("FUNCTION", "LIST")),
+            RequestType::FunctionDelete => Some(get_two_word_command("FUNCTION", "DELETE")),
         }
     }
 }

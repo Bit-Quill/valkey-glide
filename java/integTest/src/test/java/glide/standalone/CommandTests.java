@@ -404,6 +404,11 @@ public class CommandTests {
                 flist, libName, expectedDescription, expectedFlags, Optional.of(newCode));
 
         // TODO test with FCALL
+        assertEquals(OK, regularClient.functionDelete(libName).get());
+
+        flist = regularClient.functionListWithCode(libName).get();
+        assertEquals(0, flist.length);
+
         // TODO FUNCTION FLUSH at the end
     }
 }

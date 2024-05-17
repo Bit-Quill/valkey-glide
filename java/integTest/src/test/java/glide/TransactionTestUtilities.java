@@ -492,7 +492,7 @@ public class TransactionTestUtilities {
                 .functionLoadWithReplace(code)
                 .functionList("otherLib")
                 .functionListWithCode("mylib1T")
-                .customCommand(new String[] {"function", "flush", "sync"});
+                .functionDelete("mylib1T");
 
         return new Object[] {
             OK, // customCommand("function", "flush", "sync")
@@ -513,7 +513,7 @@ public class TransactionTestUtilities {
                         code)
             },
             // functionListWithCode("mylib1T")
-            OK, // customCommand("function", "flush", "sync")
+            OK, // functionDelete("mylib1T")
         };
     }
 }

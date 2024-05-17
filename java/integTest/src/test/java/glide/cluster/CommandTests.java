@@ -675,7 +675,7 @@ public class CommandTests {
     @SneakyThrows
     @ParameterizedTest(name = "functionLoad: with route = {0}")
     @ValueSource(booleans = {true, false})
-    public void functionLoad_and_functionList(boolean withRoute) {
+    public void function_commands(boolean withRoute) {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
         // TODO FUNCTION FLUSH before the test
@@ -762,6 +762,20 @@ public class CommandTests {
                 flist, libName, expectedDescription, expectedFlags, Optional.of(newCode));
 
         // TODO test with FCALL
+
+        var fdelete =
+                (withRoute
+                                ? clusterClient.functionDelete(libName, route)
+                                : clusterClient.functionDelete(libName))
+                        .get();
+        assertEquals(OK, fdelete);
+
+        flist =
+                (withRoute
+                                ? clusterClient.functionListWithCode(libName, route)
+                                : clusterClient.functionListWithCode(libName))
+                        .get();
+        assertEquals(0, flist.length);
 
         // TODO FUNCTION FLUSH at the end
     }
