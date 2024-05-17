@@ -55,9 +55,9 @@ public interface ScriptingAndFunctionsCommands {
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
      *       libraryInfo.get("library_name"), libraryInfo.get("engine"));
-     *   Object functions = libraryInfo.get("functions");
-     *   for (Object functionInfo : (Object[]) functions) {
-     *     Map<String, Object> function = (Map<String, Object>) functionInfo;
+     *   Object[] functions = (Object[]) libraryInfo.get("functions");
+     *   for (int i = 0; i < functions.length; i++) {
+     *     Map<String, Object> function = (Map<String, Object>) functions[i];
      *     Set<String> flags = (Set<String>) function.get("flags");
      *     System.out.printf("Library has function '%s' with flags '%s' described as %s%n",
      *         function.get("name"), String.join(", ", flags), function.get("description"));
@@ -79,9 +79,9 @@ public interface ScriptingAndFunctionsCommands {
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
      *       libraryInfo.get("library_name"), libraryInfo.get("engine"));
-     *   Object functions = libraryInfo.get("functions");
-     *   for (Object functionInfo : (Object[]) functions) {
-     *     Map<String, Object> function = (Map<String, Object>) functionInfo;
+     *   Object[] functions = (Object[]) libraryInfo.get("functions");
+     *   for (int i = 0; i < functions.length; i++) {
+     *     Map<String, Object> function = (Map<String, Object>) functions[i];
      *     Set<String> flags = (Set<String>) function.get("flags");
      *     System.out.printf("Library has function '%s' with flags '%s' described as %s%n",
      *         function.get("name"), String.join(", ", flags), function.get("description"));
@@ -105,9 +105,9 @@ public interface ScriptingAndFunctionsCommands {
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
      *       libraryInfo.get("library_name"), libraryInfo.get("engine"));
-     *   Object functions = libraryInfo.get("functions");
-     *   for (Object functionInfo : (Object[]) functions) {
-     *     Map<String, Object> function = (Map<String, Object>) functionInfo;
+     *   Object[] functions = (Object[]) libraryInfo.get("functions");
+     *   for (int i = 0; i < functions.length; i++) {
+     *     Map<String, Object> function = (Map<String, Object>) functions[i];
      *     Set<String> flags = (Set<String>) function.get("flags");
      *     System.out.printf("Library has function '%s' with flags '%s' described as %s%n",
      *         function.get("name"), String.join(", ", flags), function.get("description"));
@@ -130,9 +130,9 @@ public interface ScriptingAndFunctionsCommands {
      * for (Map<String, Object> libraryInfo : response) {
      *   System.out.printf("Server has library '%s' which runs on %s engine%n",
      *       libraryInfo.get("library_name"), libraryInfo.get("engine"));
-     *   Object functions = libraryInfo.get("functions");
-     *   for (Object functionInfo : (Object[]) functions) {
-     *     Map<String, Object> function = (Map<String, Object>) functionInfo;
+     *   Object[] functions = (Object[]) libraryInfo.get("functions");
+     *   for (int i = 0; i < functions.length; i++) {
+     *     Map<String, Object> function = (Map<String, Object>) functions[i];
      *     Set<String> flags = (Set<String>) function.get("flags");
      *     System.out.printf("Library has function '%s' with flags '%s' described as %s%n",
      *         function.get("name"), String.join(", ", flags), function.get("description"));
