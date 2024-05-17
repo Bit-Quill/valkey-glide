@@ -479,4 +479,20 @@ public interface GenericBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> touch(String[] keys);
+
+    /**
+     * Renames <code>key</code> to <code>newKey</code>.
+     * @apiNote If `<code>newKey</code> already exists it is overwritten.
+     *     meaning that in practice only keys that have the same hashtag can be reliably renamed in cluster.
+     * @see <a href="https://redis.io/commands/rename/">redis.io</a> for details.
+     * @param key The key to rename.
+     * @return If the <code>key</code> was successfully renamed, return <code>"OK"</code>. If <code>key</code> does not exist, an error is thrown.
+     * @example
+     *    <pre>{@code
+     * String value = client.set("key", "value").get();
+     * value = client.rename("key", "newKeyName");
+     * assert value.equals("OK");
+     * }</pre>
+     * */
+    CompletableFuture<String> rename(String key, String newKey);
 }

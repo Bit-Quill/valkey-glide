@@ -91,6 +91,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
 import static redis_request.RedisRequestOuterClass.RequestType.RPushX;
+import static redis_request.RedisRequestOuterClass.RequestType.Rename;
 import static redis_request.RedisRequestOuterClass.RequestType.RenameNX;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.SCard;
@@ -740,6 +741,10 @@ public class TransactionTests {
                     results.get(idx).getRight().getArgsCount(), protobuf.getArgsArray().getArgsCount());
             assertEquals(results.get(idx).getRight(), protobuf.getArgsArray());
         }
+
+        transaction.rename("key", "newKey");
+        results.add(Pair.of(rename, buildArgs("key", "newKey")));
+
     }
 
     private ArgsArray buildArgs(String... args) {

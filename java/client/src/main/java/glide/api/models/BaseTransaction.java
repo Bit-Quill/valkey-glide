@@ -80,6 +80,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
 import static redis_request.RedisRequestOuterClass.RequestType.RPushX;
+import static redis_request.RedisRequestOuterClass.RequestType.Rename;
 import static redis_request.RedisRequestOuterClass.RequestType.RenameNX;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.SCard;
@@ -3098,5 +3099,19 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         }
 
         return commandArgs.build();
+    }
+
+    /**
+     * Renames <code>key</code> to <code>newKey</code>.
+     * @apiNote If `<code>newKey</code> already exists it is overwritten.
+     *     meaning that in practice only keys that have the same hashtag can be reliably renamed in cluster.
+     * @see <a href="https://redis.io/commands/rename/">redis.io</a> for details.
+     * @param key The key to rename.
+     * @return If the <code>key</code> was successfully renamed, return <code>"OK"</code>. If <code>key</code> does not exist, an error is thrown.
+     * */
+    public T rename(@NonNull String key, @NonNull String newKey) {
+        ArgsArray commandArgs = buildArgs(key, newKey);
+        protobufTransaction.addCommands(buildCommand(Rename, commandArgs));
+        return getThis();
     }
 }
