@@ -1144,7 +1144,15 @@ class TestCommands:
 
         # overwrite destination when destination is not a set
         assert await redis_client.sunionstore(string_key, [key1, key3]) == 7
-        assert await redis_client.smembers(string_key) == {"a", "b", "c", "d", "e", "f", "g"}
+        assert await redis_client.smembers(string_key) == {
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+        }
 
         # same-slot requirement
         if isinstance(redis_client, RedisClusterClient):
