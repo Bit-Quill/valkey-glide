@@ -146,7 +146,7 @@ public interface ScriptingAndFunctionsCommands {
     /**
      * Deletes a library and all its functions.
      *
-     * @since Redis 7.0 and above
+     * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-delete/">redis.io</a> for details.
      * @param libName The library name to delete.
      * @return <code>OK</code>.

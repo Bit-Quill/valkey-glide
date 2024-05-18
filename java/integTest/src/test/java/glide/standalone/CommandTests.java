@@ -406,6 +406,11 @@ public class CommandTests {
         // TODO test with FCALL
         assertEquals(OK, regularClient.functionDelete(libName).get());
 
+        var exception =
+                assertThrows(ExecutionException.class, () -> regularClient.functionDelete("missing").get());
+        assertInstanceOf(RequestException.class, exception.getCause());
+        assertTrue(exception.getMessage().contains("Library not found"));
+
         flist = regularClient.functionListWithCode(libName).get();
         assertEquals(0, flist.length);
 

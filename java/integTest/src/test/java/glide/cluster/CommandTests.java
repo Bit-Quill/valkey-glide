@@ -770,6 +770,14 @@ public class CommandTests {
                         .get();
         assertEquals(OK, fdelete);
 
+        var promise3 =
+                withRoute
+                        ? clusterClient.functionDelete("missing", route)
+                        : clusterClient.functionDelete("missing");
+        var exception = assertThrows(ExecutionException.class, promise3::get);
+        assertInstanceOf(RequestException.class, exception.getCause());
+        assertTrue(exception.getMessage().contains("Library not found"));
+
         flist =
                 (withRoute
                                 ? clusterClient.functionListWithCode(libName, route)
