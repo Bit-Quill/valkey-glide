@@ -1213,12 +1213,6 @@ class TestCommands:
             await redis_client.sinter([key2])
         assert "Operation against a key holding the wrong kind of value" in str(e)
 
-        # cross-slot
-        if isinstance(redis_client, RedisClusterClient):
-            with pytest.raises(RequestError) as e:
-                await redis_client.sinter(["abc", "zxy", "lkn"])
-            assert "CrossSlot" in str(e)
-
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
     async def test_ltrim(self, redis_client: TRedisClient):
@@ -3158,6 +3152,7 @@ class TestMultiKeyCommandCrossSlot:
             redis_client.bzpopmax(["abc", "zxy", "lkn"], 0.5),
             redis_client.smove("abc", "def", "_"),
             redis_client.sunionstore("abc", ["zxy", "lkn"]),
+            redis_client.sinter(["abc", "zxy", "lkn"]),
         ]
 
         if not check_if_server_version_lt(redis_client, "7.0.0"):
