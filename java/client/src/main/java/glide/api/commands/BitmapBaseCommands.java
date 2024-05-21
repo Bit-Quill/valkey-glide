@@ -2,6 +2,8 @@
 package glide.api.commands;
 
 import glide.api.models.commands.bitmap.BitmapIndexType;
+import glide.api.models.commands.bitmap.BitwiseOperation;
+
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -113,4 +115,6 @@ public interface BitmapBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> getbit(String key, long offset);
+
+    CompletableFuture<Long> bitop(BitwiseOperation bitwiseOperation, String destkey, String[] keys);
 }
