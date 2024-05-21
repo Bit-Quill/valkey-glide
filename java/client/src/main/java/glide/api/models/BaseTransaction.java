@@ -3106,7 +3106,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @apiNote If `<code>newKey</code> already exists it is overwritten.
      *     meaning that in practice only keys that have the same hashtag can be reliably renamed in cluster.
      * @see <a href="https://redis.io/commands/rename/">redis.io</a> for details.
-     * @param key The key to rename.
+     * @param key The <code>key</code> to rename.
+     * @param newKey The new name of the <code>key</code>.
      * @return If the <code>key</code> was successfully renamed, return <code>"OK"</code>. If <code>key</code> does not exist, an error is thrown.
      * */
     public T rename(@NonNull String key, @NonNull String newKey) {
