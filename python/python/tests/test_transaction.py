@@ -210,7 +210,7 @@ async def transaction_test(
     transaction.smove(key7, key7, "non_existing_member")
     args.append(False)
     transaction.sinter([key7, key7])
-    args.append({"foo", "bar"})
+    args.append(set())
 
     transaction.zadd(key8, {"one": 1, "two": 2, "three": 3, "four": 4})
     args.append(4)
