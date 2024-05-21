@@ -743,7 +743,7 @@ public class TransactionTests {
         }
 
         transaction.rename("key", "newKey");
-        results.add(Pair.of(rename, buildArgs("key", "newKey")));
+        results.add(Pair.of(Rename, buildArgs("key", "newKey")));
 
     }
 
