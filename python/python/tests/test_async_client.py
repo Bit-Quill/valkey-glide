@@ -1195,13 +1195,29 @@ class TestCommands:
     async def test_sinter(self, redis_client: TRedisClient):
         key1 = f"{{testKey}}:{get_random_string(10)}"
         key2 = f"{{testKey}}:{get_random_string(10)}"
+        non_existing_key = f"{{testKey}}:non_existing_key"
         member1_list = ["a", "b", "c"]
         member2_list = ["c", "d", "e"]
 
+        # positive test case
         assert await redis_client.sadd(key1, member1_list) == 3
         assert await redis_client.sadd(key2, member2_list) == 3
-        # assert await redis_client.custom_command(["SINTER", key1, key2]) == {"c"}
         assert await redis_client.sinter([key1, key2]) == {"c"}
+
+        # non-existing key returns empty set
+        assert await redis_client.sinter([key1, non_existing_key]) == set()
+
+        # non-set key
+        assert await redis_client.set(key2, "value") == OK
+        with pytest.raises(RequestError) as e:
+            await redis_client.sinter([key2])
+        assert "Operation against a key holding the wrong kind of value" in str(e)
+
+        # cross-slot
+        if isinstance(redis_client, RedisClusterClient):
+            with pytest.raises(RequestError) as e:
+                await redis_client.sinter(["abc", "zxy", "lkn"])
+            assert "CrossSlot" in str(e)
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])

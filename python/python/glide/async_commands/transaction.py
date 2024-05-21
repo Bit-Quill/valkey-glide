@@ -1063,7 +1063,7 @@ class BaseTransaction:
 
         Command response:
             Set[str]: A set of members which are present in all given sets.
-                Missing or empty input sets cause an empty set response.
+                If one or more sets do not exist, an empty set will be returned.
         """
         return self.append_command(RequestType.SInter, keys)
 

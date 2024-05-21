@@ -1604,6 +1604,7 @@ class CoreCommands(Protocol):
     async def sinter(self, keys: List[str]) -> Set[str]:
         """
         Gets the intersection of all the given sets.
+        When in cluster mode, all keys must map to the same hash slot.
         See https://redis.io/docs/latest/commands/sinter/ for more details.
 
         Args:
@@ -1611,13 +1612,15 @@ class CoreCommands(Protocol):
 
         Returns:
             Set[str]: A set of members which are present in all given sets.
-                Missing or empty input sets cause an empty set response.
+                If one or more sets do no exist, an empty set will be returned.
 
         Examples:
             >>> await client.sadd("my_set1", ["member1", "member2"])
             >>> await client.sadd("my_set2", ["member2", "member3"])
             >>> await client.sinter(["my_set1", "my_set2"])
-                 "member2" # matched member
+                 {"member2"} # matched member
+            >>> await client.sinter([my_set1", "non_exiting_set"])
+                None
         """
         return cast(Set[str], await self._execute_command(RequestType.SInter, keys))
 
