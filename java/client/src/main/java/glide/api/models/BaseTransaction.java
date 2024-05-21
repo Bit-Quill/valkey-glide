@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
+import static glide.api.commands.HashBaseCommands.WITH_VALUES_REDIS_API;
 import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.COUNT_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
@@ -46,6 +47,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.HIncrByFloat;
 import static redis_request.RedisRequestOuterClass.RequestType.HKeys;
 import static redis_request.RedisRequestOuterClass.RequestType.HLen;
 import static redis_request.RedisRequestOuterClass.RequestType.HMGet;
+import static redis_request.RedisRequestOuterClass.RequestType.HRandField;
 import static redis_request.RedisRequestOuterClass.RequestType.HSet;
 import static redis_request.RedisRequestOuterClass.RequestType.HSetNX;
 import static redis_request.RedisRequestOuterClass.RequestType.HVals;
@@ -695,6 +697,58 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T hkeys(@NonNull String key) {
         protobufTransaction.addCommands(buildCommand(HKeys, buildArgs(key)));
+        return getThis();
+    }
+
+    /**
+     * Returns a random field name from the hash value stored at <code>key</code>.
+     *
+     * @since Redis 6.2 and above.
+     * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
+     * @param key The key of the hash.
+     * @return Command Response - A random field name from the hash stored at <code>key</code>, or an
+     *     <code>null</code> when the key does not exist.
+     */
+    public T hrandfield(@NonNull String key) {
+        protobufTransaction.addCommands(buildCommand(HRandField, buildArgs(key)));
+        return getThis();
+    }
+
+    /**
+     * Retrieves up to <code>count</code> random field names from the hash value stored at <code>key
+     * </code>.
+     *
+     * @since Redis 6.2 and above.
+     * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
+     * @param key The key of the hash.
+     * @param count The number of field names to return.<br>
+     *     If <code>count</code> is positive, returns unique elements, ff negative, allows for
+     *     duplicates.
+     * @return Command Response - An <code>array</code> of random field names from the hash stored at
+     *     <code>key</code>, or an <code>empty array</code> when the key does not exist.
+     */
+    public T hrandfieldWithCount(@NonNull String key, long count) {
+        protobufTransaction.addCommands(buildCommand(HRandField, buildArgs(key, Long.toString(count))));
+        return getThis();
+    }
+
+    /**
+     * Retrieves up to <code>count</code> random field names along with their values from the hash
+     * value stored at <code>key</code>.
+     *
+     * @since Redis 6.2 and above.
+     * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
+     * @param key The key of the hash.
+     * @param count The number of field names to return.<br>
+     *     If <code>count</code> is positive, returns unique elements, ff negative, allows for
+     *     duplicates.
+     * @return Command Response - A 2D <code>array</code> of random field names from the hash stored
+     *     at <code>key</code>, where each nested array contains a pair of field a name and the
+     *     associated value, or an <code>empty array</code> when the key does not exist.
+     */
+    public T hrandfieldWithCountWithValues(@NonNull String key, long count) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(count), WITH_VALUES_REDIS_API);
+        protobufTransaction.addCommands(buildCommand(HRandField, commandArgs));
         return getThis();
     }
 

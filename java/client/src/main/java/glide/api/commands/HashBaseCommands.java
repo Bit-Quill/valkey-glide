@@ -11,6 +11,8 @@ import java.util.concurrent.CompletableFuture;
  * @see <a href="https://redis.io/commands/?group=hash">Hash Commands</a>
  */
 public interface HashBaseCommands {
+    /** Redis API keyword used to query hash members with their values. */
+    String WITH_VALUES_REDIS_API = "WITHVALUES";
 
     /**
      * Retrieves the value associated with <code>field</code> in the hash stored at <code>key</code>.
@@ -234,4 +236,61 @@ public interface HashBaseCommands {
      * }</pre>
      */
     CompletableFuture<String[]> hkeys(String key);
+
+    /**
+     * Returns a random field name from the hash value stored at <code>key</code>.
+     *
+     * @since Redis 6.2 and above.
+     * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
+     * @param key The key of the hash.
+     * @return A random field name from the hash stored at <code>key</code>, or an <code>null</code>
+     *     when the key does not exist.
+     * @example
+     *     <pre>{@code
+     * String field = client.hrandfield("my_hash").get();
+     * System.out.printf("A random field from the hash is '%s'", field);
+     * }</pre>
+     */
+    CompletableFuture<String> hrandfield(String key);
+
+    /**
+     * Retrieves up to <code>count</code> random field names from the hash value stored at <code>key
+     * </code>.
+     *
+     * @since Redis 6.2 and above.
+     * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
+     * @param key The key of the hash.
+     * @param count The number of field names to return.<br>
+     *     If <code>count</code> is positive, returns unique elements, ff negative, allows for
+     *     duplicates.
+     * @return An <code>array</code> of random field names from the hash stored at <code>key</code>,
+     *     or an <code>empty array</code> when the key does not exist.
+     * @example
+     *     <pre>{@code
+     * String[] fields = client.hrandfieldWithCount("my_hash", 10).get();
+     * System.out.printf("Random fields from the hash are '%s'", String.join(", ", fields));
+     * }</pre>
+     */
+    CompletableFuture<String[]> hrandfieldWithCount(String key, long count);
+
+    /**
+     * Retrieves up to <code>count</code> random field names along with their values from the hash
+     * value stored at <code>key</code>.
+     *
+     * @since Redis 6.2 and above.
+     * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
+     * @param key The key of the hash.
+     * @param count The number of field names to return.<br>
+     *     If <code>count</code> is positive, returns unique elements, ff negative, allows for
+     *     duplicates.
+     * @return A 2D <code>array</code> of random field names from the hash stored at <code>key</code>,
+     *     where each nested array contains a pair of field a name and the associated value, or an
+     *     <code>empty array</code> when the key does not exist.
+     * @example
+     *     <pre>{@code
+     * String[][] fields = client.hrandfieldWithCountWithValues("my_hash", 1).get();
+     * System.out.printf("A random field from the hash is '%s' and the value is '%s'", fields[0][0], fields[0][1]);
+     * }</pre>
+     */
+    CompletableFuture<String[][]> hrandfieldWithCountWithValues(String key, long count);
 }
