@@ -1204,6 +1204,10 @@ class TestCommands:
         assert await redis_client.sadd(key2, member2_list) == 3
         assert await redis_client.sinter([key1, key2]) == {"c"}
 
+        # invalid argument - key list must not be empty
+        with pytest.raises(RequestError):
+            await redis_client.sinter([])
+
         # non-existing key returns empty set
         assert await redis_client.sinter([key1, non_existing_key]) == set()
 

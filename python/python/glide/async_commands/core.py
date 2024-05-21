@@ -1604,11 +1604,14 @@ class CoreCommands(Protocol):
     async def sinter(self, keys: List[str]) -> Set[str]:
         """
         Gets the intersection of all the given sets.
-        When in cluster mode, all keys must map to the same hash slot.
-        See https://redis.io/docs/latest/commands/sinter/ for more details.
+
+        See https://valkey.io/docs/latest/commands/sinter/ for more details.
 
         Args:
             keys (List[str]): The keys of the sets.
+
+        Note:
+            When in cluster mode, all 'keys' must map to the same hash slot.
 
         Returns:
             Set[str]: A set of members which are present in all given sets.
@@ -1619,7 +1622,7 @@ class CoreCommands(Protocol):
             >>> await client.sadd("my_set2", ["member2", "member3"])
             >>> await client.sinter(["my_set1", "my_set2"])
                  {"member2"} # matched member
-            >>> await client.sinter([my_set1", "non_exiting_set"])
+            >>> await client.sinter([my_set1", "non_existing_set"])
                 None
         """
         return cast(Set[str], await self._execute_command(RequestType.SInter, keys))
