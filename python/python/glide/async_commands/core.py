@@ -1611,7 +1611,7 @@ class CoreCommands(Protocol):
             keys (List[str]): The keys of the sets.
 
         Note:
-            When in cluster mode, all 'keys' must map to the same hash slot.
+            When in cluster mode, all `keys` must map to the same hash slot.
 
         Returns:
             Set[str]: A set of members which are present in all given sets.
