@@ -3664,4 +3664,20 @@ public class SharedCommandTests {
             assertTrue(executionException.getCause() instanceof RequestException);
         }
     }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void rename(BaseClient client) {
+        String key1 = "{key}" + UUID.randomUUID();
+        assertEquals("OK", client.set(key1, "foo").get());
+        assertEquals("OK", client.rename(key1, "_rename").get());
+        assertEquals(1L, client.exists(new String []{key1 + "_rename"}).get());
+        /*
+        *         with pytest.raises(RequestError):
+            assert await redis_client.rename(
+                "{same_slot}" + "non_existing_key", "{same_slot}" + "_rename"
+            )
+        * */ // what is this lmao
+    }
 }
