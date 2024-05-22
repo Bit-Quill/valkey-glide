@@ -123,6 +123,8 @@ public class TestUtilities {
             for (var key : expectedMap.keySet()) {
                 assertDeepEquals(expectedMap.get(key), actualMap.get(key), orderMatters);
             }
+        } else if (expected instanceof Double || actual instanceof Double) {
+            assertEquals((Double) expected, (Double) actual, 1e-6);
         } else {
             assertEquals(expected, actual);
         }
