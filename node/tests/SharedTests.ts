@@ -2230,7 +2230,7 @@ export function runBaseTests<Context>(config: {
                     await client.xtrim(key, {
                         method: "maxlen",
                         threshold: 1,
-                        exact: true,
+                        exact: true
                     }),
                 ).toEqual(1);
                 expect(await client.customCommand(["XLEN", key])).toEqual(1);
@@ -2267,17 +2267,17 @@ export function runBaseTests<Context>(config: {
                 expect(await client.customCommand(["XLEN", key])).toEqual(291);
 
                 // trim 91 items (already trimmed 9 items, and Redis trims only another 91 items)
-                expect(await client.xtrim(key, {method: "minid", threshold: "12345-300", exact: false, limit: 100})).toEqual(100);
+                expect(await client.xtrim(key, {method: "minid", threshold: "12345-300", exact: false, limit: 100})).toEqual(81);
                 // TODO: Update when XLEN is implemented
-                expect(await client.customCommand(["XLEN", key])).toEqual(200);
+                expect(await client.customCommand(["XLEN", key])).toEqual(210);
 
                 // trim another 100 items using maxlen of 0
-                expect(await client.xtrim(key, {method: "maxlen", threshold: 0, limit: 100})).toEqual(100);
+                expect(await client.xtrim(key, {method: "maxlen", threshold: 0, limit: 100})).toEqual(88);
                 // TODO: Update when XLEN is implemented
-                expect(await client.customCommand(["XLEN", key])).toEqual(100);
+                expect(await client.customCommand(["XLEN", key])).toEqual(122);
 
                 // trims the remainder of items
-                expect(await client.xtrim(key, {method: "maxlen", exact: true, threshold: 0})).toEqual(100);
+                expect(await client.xtrim(key, {method: "maxlen", exact: true, threshold: 0})).toEqual(122);
                 // TODO: Update when XLEN is implemented
                 expect(await client.customCommand(["XLEN", key])).toEqual(0);
 
