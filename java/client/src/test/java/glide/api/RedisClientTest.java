@@ -36,8 +36,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.BRPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.BitPos;
 import static redis_request.RedisRequestOuterClass.RequestType.Bitcount;
-import static redis_request.RedisRequestOuterClass.RequestType.Bitpos;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -4315,17 +4315,18 @@ public class RedisClientTest {
     public void bitpos_returns_success() {
         // setup
         String key = "testKey";
+        Long bit = 0L;
         Long bitPosition = 10L;
         CompletableFuture<Long> testResponse = new CompletableFuture<>();
         testResponse.complete(bitPosition);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(
-                        eq(Bitpos), eq(new String[] {key, Long.toString(0)}), any()))
+                        eq(BitPos), eq(new String[] {key, Long.toString(bit)}), any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Long> response = service.bitpos(key, 0);
+        CompletableFuture<Long> response = service.bitpos(key, bit);
         Long payload = response.get();
 
         // verify
@@ -4338,17 +4339,19 @@ public class RedisClientTest {
     public void bitpos_with_start_returns_success() {
         // setup
         String key = "testKey";
+        Long bit = 0L;
+        Long start = 5L;
         Long bitPosition = 10L;
         CompletableFuture<Long> testResponse = new CompletableFuture<>();
         testResponse.complete(bitPosition);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(
-                        eq(Bitpos), eq(new String[] {key, Long.toString(0), Long.toString(5)}), any()))
+                        eq(BitPos), eq(new String[] {key, Long.toString(bit), Long.toString(start)}), any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Long> response = service.bitpos(key, 0, 5);
+        CompletableFuture<Long> response = service.bitpos(key, bit, start);
         Long payload = response.get();
 
         // verify
@@ -4361,19 +4364,22 @@ public class RedisClientTest {
     public void bitpos_with_start_and_end_returns_success() {
         // setup
         String key = "testKey";
+        Long bit = 0L;
+        Long start = 5L;
+        Long end = 10L;
         Long bitPosition = 10L;
         CompletableFuture<Long> testResponse = new CompletableFuture<>();
         testResponse.complete(bitPosition);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(
-                        eq(Bitpos),
-                        eq(new String[] {key, Long.toString(0), Long.toString(5), Long.toString(10)}),
+                        eq(BitPos),
+                        eq(new String[] {key, Long.toString(bit), Long.toString(start), Long.toString(end)}),
                         any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Long> response = service.bitpos(key, 0, 5, 10);
+        CompletableFuture<Long> response = service.bitpos(key, bit, start, end);
         Long payload = response.get();
 
         // verify
@@ -4386,26 +4392,29 @@ public class RedisClientTest {
     public void bitpos_with_start_and_end_and_type_returns_success() {
         // setup
         String key = "testKey";
+        Long bit = 0L;
+        Long start = 5L;
+        Long end = 10L;
         Long bitPosition = 10L;
         CompletableFuture<Long> testResponse = new CompletableFuture<>();
         testResponse.complete(bitPosition);
 
         // match on protobuf request
         when(commandManager.<Long>submitNewCommand(
-                        eq(Bitpos),
+                        eq(BitPos),
                         eq(
                                 new String[] {
                                     key,
-                                    Long.toString(0),
-                                    Long.toString(5),
-                                    Long.toString(10),
+                                    Long.toString(bit),
+                                    Long.toString(start),
+                                    Long.toString(end),
                                     BitmapIndexType.BIT.toString()
                                 }),
                         any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Long> response = service.bitpos(key, 0, 5, 10, BitmapIndexType.BIT);
+        CompletableFuture<Long> response = service.bitpos(key, bit, start, end, BitmapIndexType.BIT);
         Long payload = response.get();
 
         // verify

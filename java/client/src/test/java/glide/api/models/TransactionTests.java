@@ -27,8 +27,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.BRPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.BitPos;
 import static redis_request.RedisRequestOuterClass.RequestType.Bitcount;
-import static redis_request.RedisRequestOuterClass.RequestType.Bitpos;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -732,13 +732,13 @@ public class TransactionTests {
         results.add(Pair.of(Bitcount, buildArgs("key", "1", "1", BitmapIndexType.BIT.toString())));
 
         transaction.bitpos("key", 1);
-        results.add(Pair.of(Bitpos, buildArgs("key", "1")));
+        results.add(Pair.of(BitPos, buildArgs("key", "1")));
         transaction.bitpos("key", 0, 8);
-        results.add(Pair.of(Bitpos, buildArgs("key", "0", "8")));
+        results.add(Pair.of(BitPos, buildArgs("key", "0", "8")));
         transaction.bitpos("key", 1, 8, 10);
-        results.add(Pair.of(Bitpos, buildArgs("key", "1", "8", "10")));
+        results.add(Pair.of(BitPos, buildArgs("key", "1", "8", "10")));
         transaction.bitpos("key", 1, 8, 10, BitmapIndexType.BIT);
-        results.add(Pair.of(Bitpos, buildArgs("key", "1", "8", "10", BitmapIndexType.BIT.toString())));
+        results.add(Pair.of(BitPos, buildArgs("key", "1", "8", "10", BitmapIndexType.BIT.toString())));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

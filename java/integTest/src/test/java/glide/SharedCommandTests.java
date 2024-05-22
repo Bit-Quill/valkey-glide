@@ -3673,7 +3673,6 @@ public class SharedCommandTests {
         String key2 = UUID.randomUUID().toString();
         String key3 = UUID.randomUUID().toString();
         String value = "?f0obar"; // 00111111 01100110 00110000 01101111 01100010 01100001 01110010
-        String val = "";
 
         assertEquals(OK, client.set(key1, value).get());
         assertEquals(0, client.bitpos(key1, 0).get());
@@ -3682,8 +3681,6 @@ public class SharedCommandTests {
         assertEquals(24, client.bitpos(key1, 0, 3, 5).get());
 
         // Bitpos returns -1 for empty strings
-        assertEquals(OK, client.set(key2, val).get());
-        assertEquals(-1, client.bitpos(key2, 1).get());
         assertEquals(-1, client.bitpos(key2, 1).get());
         assertEquals(-1, client.bitpos(key2, 1, 1).get());
         assertEquals(-1, client.bitpos(key2, 1, 3, 5).get());
@@ -3703,7 +3700,6 @@ public class SharedCommandTests {
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             assertEquals(24, client.bitpos(key1, 0, 3, 5, BitmapIndexType.BYTE).get());
             assertEquals(47, client.bitpos(key1, 1, 43, -2, BitmapIndexType.BIT).get());
-            assertEquals(-1, client.bitpos(key2, 1, 3, 5).get());
             assertEquals(-1, client.bitpos(key2, 1, 3, 5, BitmapIndexType.BYTE).get());
             assertEquals(-1, client.bitpos(key2, 1, 3, 5, BitmapIndexType.BIT).get());
 

@@ -151,7 +151,7 @@ pub enum RequestType {
     ZRandMember = 139,
     Bitcount = 140,
     BZMPop = 141,
-    Bitpos = 142,
+    BitPos = 142,
 }
 
 fn get_two_word_command(first: &str, second: &str) -> Cmd {
@@ -306,7 +306,7 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::ZRandMember => RequestType::ZRandMember,
             ProtobufRequestType::Bitcount => RequestType::Bitcount,
             ProtobufRequestType::BZMPop => RequestType::BZMPop,
-            ProtobufRequestType::Bitpos => RequestType::Bitpos,
+            ProtobufRequestType::BitPos => RequestType::BitPos,
         }
     }
 }
@@ -457,7 +457,7 @@ impl RequestType {
             RequestType::ZRandMember => Some(cmd("ZRANDMEMBER")),
             RequestType::Bitcount => Some(cmd("BITCOUNT")),
             RequestType::BZMPop => Some(cmd("BZMPOP")),
-            RequestType::Bitpos => Some(cmd("BITPOS")),
+            RequestType::BitPos => Some(cmd("BITPOS")),
         }
     }
 }

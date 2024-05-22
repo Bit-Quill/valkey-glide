@@ -13,8 +13,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.BRPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
+import static redis_request.RedisRequestOuterClass.RequestType.BitPos;
 import static redis_request.RedisRequestOuterClass.RequestType.Bitcount;
-import static redis_request.RedisRequestOuterClass.RequestType.Bitpos;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
 import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
 import static redis_request.RedisRequestOuterClass.RequestType.Del;
@@ -1285,20 +1285,20 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> bitpos(@NonNull String key, long bit) {
         String[] arguments = new String[] {key, Long.toString(bit)};
-        return commandManager.submitNewCommand(Bitpos, arguments, this::handleLongResponse);
+        return commandManager.submitNewCommand(BitPos, arguments, this::handleLongResponse);
     }
 
     @Override
     public CompletableFuture<Long> bitpos(@NonNull String key, long bit, long start) {
         String[] arguments = new String[] {key, Long.toString(bit), Long.toString(start)};
-        return commandManager.submitNewCommand(Bitpos, arguments, this::handleLongResponse);
+        return commandManager.submitNewCommand(BitPos, arguments, this::handleLongResponse);
     }
 
     @Override
     public CompletableFuture<Long> bitpos(@NonNull String key, long bit, long start, long end) {
         String[] arguments =
                 new String[] {key, Long.toString(bit), Long.toString(start), Long.toString(end)};
-        return commandManager.submitNewCommand(Bitpos, arguments, this::handleLongResponse);
+        return commandManager.submitNewCommand(BitPos, arguments, this::handleLongResponse);
     }
 
     @Override
@@ -1308,6 +1308,6 @@ public abstract class BaseClient
                 new String[] {
                     key, Long.toString(bit), Long.toString(start), Long.toString(end), options.toString()
                 };
-        return commandManager.submitNewCommand(Bitpos, arguments, this::handleLongResponse);
+        return commandManager.submitNewCommand(BitPos, arguments, this::handleLongResponse);
     }
 }
