@@ -48,7 +48,6 @@ pub(crate) fn convert_to_expected_type(
         ExpectedReturnType::MapOfStringToDouble => match value {
             Value::Nil => Ok(value),
             Value::Map(map) => {
-                let map_clone = map.clone();
                 let result = map
                     .into_iter()
                     .map(|(key, inner_value)| {
@@ -133,11 +132,10 @@ pub(crate) fn convert_to_expected_type(
                         Value::Nil => Ok(Value::Nil),
                         _ => match from_owned_redis_value::<bool>(item.clone()) {
                             Ok(boolean_value) => Ok(Value::Boolean(boolean_value)),
-                            _ => Err((
-                                ErrorKind::TypeError,
-                                "Could not convert value to boolean",
-                            )
-                                .into()),
+                            _ => {
+                                Err((ErrorKind::TypeError, "Could not convert value to boolean")
+                                    .into())
+                            }
                         },
                     })
                     .collect();
