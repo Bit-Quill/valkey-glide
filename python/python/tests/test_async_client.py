@@ -2641,45 +2641,55 @@ class TestCommands:
         assert id is not None
         assert await redis_client.custom_command(["XLEN", key]) == 2
 
-        next_id = str(id).replace("-0", "-1")
-
         # This will trim the 2nd entry.
-        assert(
+        assert (
             await redis_client.xadd(
                 key,
                 [(field, "foo4"), (field2, "bar4")],
                 StreamAddOptions(
                     trim=TrimByMinId.create_withExact(True, str(id)),
-                    id=next_id,
                 ),
-            ) is not None)
+            ) is not None
+        )
         assert await redis_client.custom_command(["XLEN", key]) == 2
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
-    async def test_xtrim_TrimByMaxLen(self, redis_client: TRedisClient):
+    async def test_xtrim(self, redis_client: TRedisClient):
         key = get_random_string(10)
         field = get_random_string(10)
         value = get_random_string(10)
 
-        for counter in range(1, 5):
-            id = "0-" + counter
+        # Push 300 items into streams
+        # XTRIM non-exact limits only work with 100s of items
+        for counter in range(1, 301):
+            id = "12345-" + str(counter)
             assert (
                 await redis_client.xadd(
                     key,
-                    [(field + counter, value + counter)],
+                    [(field + str(counter), value + str(counter))],
                     StreamAddOptions(id=id),
                 )
                 == id
             )
 
-        assert await redis_client.custom_command(["XLEN", key]) == 6
+        assert await redis_client.custom_command(["XLEN", key]) == 300
 
-        assert await redis_client.xtrim(key, TrimByMaxLen.create_withLimit(0, 0)) == 1
-        assert await redis_client.custom_command(["XLEN", key]) == 1
+        # trim ids from 12345-1..12345-9 MinId
+        assert await redis_client.xtrim(key, TrimByMinId.create_withExact(True, "12345-10")) == 9
+        assert await redis_client.custom_command(["XLEN", key]) == 291
 
-        assert await redis_client.xtrim(key, TrimByMinId.create_withLimit(str(next_id), 0)) == 1
-        assert await redis_client.custom_command(["XLEN", key]) == 2
+        # trim 91 items (already trimmed 9 items, and Redis trims only another 91 items)
+        assert await redis_client.xtrim(key, TrimByMinId.create_withLimit("12345-300", 100)) == 91
+        assert await redis_client.custom_command(["XLEN", key]) == 200
+
+        # trim another 100 items using maxlen of 0
+        assert await redis_client.xtrim(key, TrimByMaxLen.create_withLimit(0, 100)) == 100
+        assert await redis_client.custom_command(["XLEN", key]) == 100
+
+        # trims the remainder of items
+        assert await redis_client.xtrim(key, TrimByMaxLen.create_withExact(True, 0)) == 100
+        assert await redis_client.custom_command(["XLEN", key]) == 0
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
