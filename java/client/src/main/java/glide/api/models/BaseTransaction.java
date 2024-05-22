@@ -3081,7 +3081,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Return the position of the first bit matching the given `bit` value.
+     * Return the position of the first bit matching the given <code>bit</code> value.
      *
      * @see <a href="https://redis.io/commands/bitpos/">redis.io</a> for details.
      * @param key The key of the string.
@@ -3097,11 +3097,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Return the position of the first bit matching the given `bit` value. The offsets <code>start
-     * </code> is a zero-based index, with <code>0</code> being the first byte of the list, <code>1
-     * </code> being the next byte and so on. These offsets can also be negative numbers indicating
-     * offsets starting at the end of the list, with <code>-1</code> being the last byte of the list,
-     * <code>-2</code> being the penultimate, and so on.
+     * Return the position of the first bit matching the given <code>bit</code> value. The offsets
+     * <code>start</code> is a zero-based index, with <code>0</code> being the first byte of the list,
+     * <code>1</code> being the next byte and so on. These offsets can also be negative numbers
+     * indicating offsets starting at the end of the list, with <code>-1</code> being the last byte of
+     * the list, <code>-2</code> being the penultimate, and so on.
      *
      * @see <a href="https://redis.io/commands/bitpos/">redis.io</a> for details.
      * @param key The key of the string.
@@ -3118,11 +3118,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Return the position of the first bit matching the given `bit` value. The offsets <code>start
-     * </code> and <code>end</code> are zero-based indexes, with <code>0</code> being the first byte
-     * of the list, <code>1</code> being the next byte and so on. These offsets can also be negative
-     * numbers indicating offsets starting at the end of the list, with <code>-1</code> being the last
-     * byte of the list, <code>-2</code> being the penultimate, and so on.
+     * Return the position of the first bit matching the given <code>bit</code> value. The offsets
+     * <code>start</code> and <code>end</code> are zero-based indexes, with <code>0</code> being the
+     * first byte of the list, <code>1</code> being the next byte and so on. These offsets can also be
+     * negative numbers indicating offsets starting at the end of the list, with <code>-1</code> being
+     * the last byte of the list, <code>-2</code> being the penultimate, and so on.
      *
      * @see <a href="https://redis.io/commands/bitpos/">redis.io</a> for details.
      * @param key The key of the string.
@@ -3141,16 +3141,16 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Return the position of the first bit matching the given `bit` value. The offset <code>
-     * offsetType</code> specifies whether the offset is a BIT or BYTE. If BIT is specified, <code>
-     * start==0</code> and <code>end==2</code> means to look at the first three bits. If BYTE is
+     * Return the position of the first bit matching the given <code>bit</code> value. The offset
+     * <code>offsetType</code> specifies whether the offset is a BIT or BYTE. If BIT is specified,
+     * <code>start==0</code> and <code>end==2</code> means to look at the first three bits. If BYTE is
      * specified, <code>start==0</code> and <code>end==2</code> means to look at the first three bytes
      * The offsets are zero-based indexes, with <code>0</code> being the first element of the list,
      * <code>1</code> being the next, and so on. These offsets can also be negative numbers indicating
      * offsets starting at the end of the list, with <code>-1</code> being the last element of the
      * list, <code>-2</code> being the penultimate, and so on.
      *
-     * @since Redis 7.0 and above
+     * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/commands/bitpos/">redis.io</a> for details.
      * @param key The key of the string.
      * @param bit The bit value to match.

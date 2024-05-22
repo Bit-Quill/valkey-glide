@@ -4317,12 +4317,12 @@ public class RedisClientTest {
         String key = "testKey";
         Long bit = 0L;
         Long bitPosition = 10L;
+        String[] arguments = new String[] {key, Long.toString(bit)};
         CompletableFuture<Long> testResponse = new CompletableFuture<>();
         testResponse.complete(bitPosition);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(
-                        eq(BitPos), eq(new String[] {key, Long.toString(bit)}), any()))
+        when(commandManager.<Long>submitNewCommand(eq(BitPos), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -4368,14 +4368,13 @@ public class RedisClientTest {
         Long start = 5L;
         Long end = 10L;
         Long bitPosition = 10L;
+        String[] arguments =
+                new String[] {key, Long.toString(bit), Long.toString(start), Long.toString(end)};
         CompletableFuture<Long> testResponse = new CompletableFuture<>();
         testResponse.complete(bitPosition);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(
-                        eq(BitPos),
-                        eq(new String[] {key, Long.toString(bit), Long.toString(start), Long.toString(end)}),
-                        any()))
+        when(commandManager.<Long>submitNewCommand(eq(BitPos), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -4396,21 +4395,19 @@ public class RedisClientTest {
         Long start = 5L;
         Long end = 10L;
         Long bitPosition = 10L;
+        String[] arguments =
+                new String[] {
+                    key,
+                    Long.toString(bit),
+                    Long.toString(start),
+                    Long.toString(end),
+                    BitmapIndexType.BIT.toString()
+                };
         CompletableFuture<Long> testResponse = new CompletableFuture<>();
         testResponse.complete(bitPosition);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(
-                        eq(BitPos),
-                        eq(
-                                new String[] {
-                                    key,
-                                    Long.toString(bit),
-                                    Long.toString(start),
-                                    Long.toString(end),
-                                    BitmapIndexType.BIT.toString()
-                                }),
-                        any()))
+        when(commandManager.<Long>submitNewCommand(eq(BitPos), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
