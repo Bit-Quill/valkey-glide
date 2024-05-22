@@ -229,7 +229,7 @@ class TrimByMinId(StreamTrimOptions):
         return cls(threshold, "MINID", None, None)
 
     @classmethod
-    def create_withExact(cls, exact: bool, threshold: str):
+    def create_withexact(cls, exact: bool, threshold: str):
         """
         Initialize trim option by minimum ID.
 
@@ -242,7 +242,7 @@ class TrimByMinId(StreamTrimOptions):
         return cls(threshold, "MINID", exact, None)
 
     @classmethod
-    def create_withLimit(cls, threshold: str, limit: int):
+    def create_withlimit(cls, threshold: str, limit: int):
         """
         Initialize trim option by minimum ID.
 
@@ -278,7 +278,7 @@ class TrimByMaxLen(StreamTrimOptions):
         return cls(threshold, "MAXLEN", None, None)
 
     @classmethod
-    def create_withExact(cls, exact: bool, threshold: int):
+    def create_withexact(cls, exact: bool, threshold: int):
         """
         Initialize trim option by maximum length.
 
@@ -290,7 +290,7 @@ class TrimByMaxLen(StreamTrimOptions):
         return cls(threshold, "MAXLEN", exact, None)
 
     @classmethod
-    def create_withLimit(cls, threshold: int, limit: int):
+    def create_withlimit(cls, threshold: int, limit: int):
         """
         Initialize trim option by maximum length.
 
@@ -1972,7 +1972,7 @@ class CoreCommands(Protocol):
 
         Example:
             >>> await client.xadd("mystream", [("field", "value"), ("field2", "value2")], StreamAddOptions(id="0-1"))
-            >>> await client.xtrim("mystream", TrimByMinId.create_withExact(exact=True, threshold="0-2")))
+            >>> await client.xtrim("mystream", TrimByMinId.create_withexact(True, "0-2")))
                 1 # One entry was deleted from the stream.
         """
         args = [key]

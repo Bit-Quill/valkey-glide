@@ -2637,7 +2637,7 @@ class TestCommands:
         id = await redis_client.xadd(
             key,
             [(field, "foo3"), (field2, "bar3")],
-            StreamAddOptions(trim=TrimByMaxLen.create_withExact(True, 2)),
+            StreamAddOptions(trim=TrimByMaxLen.create_withexact(True, 2)),
         )
         assert id is not None
         # TODO: Update when XLEN is implemented
@@ -2649,7 +2649,7 @@ class TestCommands:
                 key,
                 [(field, "foo4"), (field2, "bar4")],
                 StreamAddOptions(
-                    trim=TrimByMinId.create_withExact(True, str(id)),
+                    trim=TrimByMinId.create_withexact(True, str(id)),
                 ),
             )
             is not None
@@ -2683,7 +2683,7 @@ class TestCommands:
         # trim ids from 12345-1..12345-9 MinId
         assert (
             await redis_client.xtrim(
-                key, TrimByMinId.create_withExact(True, "12345-10")
+                key, TrimByMinId.create_withexact(True, "12345-10")
             )
             == 9
         )
@@ -2693,7 +2693,7 @@ class TestCommands:
         # trim 91 items (already trimmed 9 items, and Redis trims only another 91 items)
         assert (
             await redis_client.xtrim(
-                key, TrimByMinId.create_withLimit("12345-300", 100)
+                key, TrimByMinId.create_withlimit("12345-300", 100)
             )
             == 91
         )
@@ -2702,14 +2702,14 @@ class TestCommands:
 
         # trim another 100 items using maxlen of 0
         assert (
-            await redis_client.xtrim(key, TrimByMaxLen.create_withLimit(0, 100)) == 100
+            await redis_client.xtrim(key, TrimByMaxLen.create_withlimit(0, 100)) == 100
         )
         # TODO: Update when XLEN is implemented
         assert await redis_client.custom_command(["XLEN", key]) == 100
 
         # trims the remainder of items
         assert (
-            await redis_client.xtrim(key, TrimByMaxLen.create_withExact(True, 0)) == 100
+            await redis_client.xtrim(key, TrimByMaxLen.create_withexact(True, 0)) == 100
         )
         # TODO: Update when XLEN is implemented
         assert await redis_client.custom_command(["XLEN", key]) == 0
