@@ -3097,7 +3097,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Return the position of the first bit matching the given <code>bit</code> value. The offsets
+     * Return the position of the first bit matching the given <code>bit</code> value. The offset
      * <code>start</code> is a zero-based index, with <code>0</code> being the first byte of the list,
      * <code>1</code> being the next byte and so on. These offsets can also be negative numbers
      * indicating offsets starting at the end of the list, with <code>-1</code> being the last byte of
