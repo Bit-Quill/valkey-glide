@@ -208,6 +208,7 @@ class TrimByMinId(StreamTrimOptions):
     """
     Stream trim option to trim by minimum ID.
     """
+
     def __init__(
         self,
         threshold: str,
@@ -258,12 +259,12 @@ class TrimByMaxLen(StreamTrimOptions):
     """
 
     def __init__(
-            self,
-            threshold: int,
-            method: str,
-            exact: Optional[bool] = None,
-            limit: Optional[int] = None,
-        ):
+        self,
+        threshold: int,
+        method: str,
+        exact: Optional[bool] = None,
+        limit: Optional[int] = None,
+    ):
         super().__init__(threshold, method, exact, limit)
 
     @classmethod
