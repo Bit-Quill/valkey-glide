@@ -2336,13 +2336,12 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Returns the length, or number of entries in the stream stored at <code>key</code>.
+     * Returns the number of entries in the stream stored at <code>key</code>.
      *
      * @see <a href="https://valkey.io/commands/xlen/">valkey.io</a> for details.
      * @param key The key of the stream.
      * @return Command Response - The number of entries in the stream. If <code>key</code> does not
-     *     exist, return <code>0
-     *     </code>.
+     *     exist, return <code>0</code>.
      */
     public T xlen(@NonNull String key) {
         protobufTransaction.addCommands(buildCommand(XLen, buildArgs(key)));
