@@ -1284,6 +1284,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<String> rename(@NonNull String key, @NonNull String newKey) {
-        return commandManager.submitNewCommand(Rename, new String[] {key, newKey}, this::handleStringResponse);
+        return commandManager.submitNewCommand(
+                Rename, new String[] {key, newKey}, this::handleStringResponse);
     }
 }

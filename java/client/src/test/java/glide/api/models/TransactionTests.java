@@ -744,7 +744,6 @@ public class TransactionTests {
 
         transaction.rename("key", "newKey");
         results.add(Pair.of(Rename, buildArgs("key", "newKey")));
-
     }
 
     private ArgsArray buildArgs(String... args) {
