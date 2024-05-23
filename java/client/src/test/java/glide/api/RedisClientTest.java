@@ -4438,11 +4438,11 @@ public class RedisClientTest {
     @Test
     public void bitop_returns_success() {
         // setup
-        String destKey = "destKey";
+        String destination = "destination";
         String[] keys = new String[] {"key1", "key2"};
         Long result = 6L;
         BitwiseOperation bitwiseAnd = BitwiseOperation.AND;
-        String[] arguments = concatenateArrays(new String[] {bitwiseAnd.toString(), destKey}, keys);
+        String[] arguments = concatenateArrays(new String[] {bitwiseAnd.toString(), destination}, keys);
         CompletableFuture<Long> testResponse = new CompletableFuture<>();
         testResponse.complete(result);
 
@@ -4451,7 +4451,7 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Long> response = service.bitop(bitwiseAnd, destKey, keys);
+        CompletableFuture<Long> response = service.bitop(bitwiseAnd, destination, keys);
         Long payload = response.get();
 
         // verify

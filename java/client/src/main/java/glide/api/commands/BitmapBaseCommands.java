@@ -117,21 +117,24 @@ public interface BitmapBaseCommands {
 
     /**
      * Perform a bitwise operation between multiple keys (containing string values) and store the
-     * result in the <code>destKey</code>.
+     * result in the <code>destination</code>.
      *
+     * @apiNote When in cluster mode, <code>destination</code> and all <code>keys</code> must map to
+     *     the same hash slot.
      * @see <a href="https://redis.io/commands/bitop/">redis.io</a> for details.
      * @param bitwiseOperation The bitwise operation to perform.
-     * @param destKey The key that will store the resulting string.
+     * @param destination The key that will store the resulting string.
      * @param keys The list of keys to perform the bitwise operation on.
-     * @return The size of the string stored in <code>destKey</code>.
+     * @return The size of the string stored in <code>destination</code>.
      * @example
      *     <pre>{@code
      * client.set("key1", "A"); // "A" has binary value 01000001
      * client.set("key2", "B"); // "B" has binary value 01000010
-     * Long payload = client.bitop(BitwiseOperation.AND, "destKey", new String[] {key1, key2}).get();
-     * assert "@" == client.get("destKey").get(); // "@" has binary value 01000000
+     * Long payload = client.bitop(BitwiseOperation.AND, "destination", new String[] {key1, key2}).get();
+     * assert "@" == client.get("destination").get(); // "@" has binary value 01000000
      * assert payload == 1L; // The size of the resulting string is 1.
      * }</pre>
      */
-    CompletableFuture<Long> bitop(BitwiseOperation bitwiseOperation, String destKey, String[] keys);
+    CompletableFuture<Long> bitop(
+            BitwiseOperation bitwiseOperation, String destination, String[] keys);
 }

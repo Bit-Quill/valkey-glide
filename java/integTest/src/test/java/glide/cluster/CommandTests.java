@@ -38,6 +38,7 @@ import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
+import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.SlotKeyRoute;
@@ -683,7 +684,23 @@ public class CommandTests {
                 Arguments.of(
                         "bzpopmin", "5.0.0", clusterClient.bzpopmin(new String[] {"abc", "zxy", "lkn"}, .1)),
                 Arguments.of(
-                        "bzmpop", "7.0.0", clusterClient.bzmpop(new String[] {"abc", "zxy", "lkn"}, MAX, .1)));
+                        "bzmpop", "7.0.0", clusterClient.bzmpop(new String[] {"abc", "zxy", "lkn"}, MAX, .1)),
+                Arguments.of(
+                        "bitop",
+                        "7.0.0",
+                        clusterClient.bitop(BitwiseOperation.AND, "abc", new String[] {"zxy", "lkn"})),
+                Arguments.of(
+                        "bitop",
+                        "7.0.0",
+                        clusterClient.bitop(BitwiseOperation.OR, "abc", new String[] {"zxy", "lkn"})),
+                Arguments.of(
+                        "bitop",
+                        "7.0.0",
+                        clusterClient.bitop(BitwiseOperation.XOR, "abc", new String[] {"zxy", "lkn"})),
+                Arguments.of(
+                        "bitop",
+                        "7.0.0",
+                        clusterClient.bitop(BitwiseOperation.NOT, "abc", new String[] {"zxy"})));
     }
 
     @SneakyThrows

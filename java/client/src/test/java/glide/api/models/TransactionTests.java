@@ -751,8 +751,8 @@ public class TransactionTests {
         transaction.setbit("key", 8, 1);
         results.add(Pair.of(SetBit, buildArgs("key", "8", "1")));
 
-        transaction.bitop(BitwiseOperation.AND, "destKey", new String[] {"key"});
-        results.add(Pair.of(BitOp, buildArgs(BitwiseOperation.AND.toString(), "destKey", "key")));
+        transaction.bitop(BitwiseOperation.AND, "destination", new String[] {"key"});
+        results.add(Pair.of(BitOp, buildArgs(BitwiseOperation.AND.toString(), "destination", "key")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 
