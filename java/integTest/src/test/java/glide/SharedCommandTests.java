@@ -3682,16 +3682,16 @@ public class SharedCommandTests {
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void bitop(BaseClient client) {
-        String key1 = UUID.randomUUID().toString();
-        String key2 = UUID.randomUUID().toString();
+        String key1 = "{key}-1".concat(UUID.randomUUID().toString());
+        String key2 = "{key}-2".concat(UUID.randomUUID().toString());
         String[] keys = new String[] {key1, key2};
-        String destKey = UUID.randomUUID().toString();
+        String destKey = "{key}-3".concat(UUID.randomUUID().toString());
         String value1 = "foobar";
         String value2 = "abcdef";
 
         assertEquals(OK, client.set(key1, value1).get());
         assertEquals(OK, client.set(key2, value2).get());
-        assertEquals(6L, client.bitop(BitwiseOperation.AND, destKey, keys).get());
+        assertEquals(6L, client.bitop(BitwiseOperation.AND, destKey, new String[] {key1, key2}).get());
         assertEquals("`bc`ab", client.get(destKey).get());
 
 //        // Exception thrown due to the key holding a value with the wrong type

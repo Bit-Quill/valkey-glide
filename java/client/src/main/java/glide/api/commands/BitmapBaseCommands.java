@@ -117,5 +117,4 @@ public interface BitmapBaseCommands {
     CompletableFuture<Long> getbit(String key, long offset);
 
     CompletableFuture<Long> bitop(BitwiseOperation bitwiseOperation, String destkey, String[] keys);
-    CompletableFuture<Long> bitop(BitwiseOperation bitwiseOperation, String destKey, String[] keys);
 }
