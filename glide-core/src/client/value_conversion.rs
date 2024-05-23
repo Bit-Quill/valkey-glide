@@ -340,6 +340,15 @@ fn convert_array_elements(
     Ok(Value::Array(converted_array))
 }
 
+/// Converts a 2-dimensional array to map, where the first element is the map key, and the second element
+/// is the map value.
+/// The second array element will be converted to a map value using `array_push_fn` if the second element
+/// is an Array, or `other_push_fn` otherwise. This allows for recursive calls to convert_array_to_map
+/// as needed.
+///
+/// `array` is an array of values.
+/// `array_push_fn` is a function that converts the inner_array
+/// `other_push_fn` is a function that converts inner values that are not arrays
 fn convert_array_to_map<F, G>(
     array: Vec<Value>,
     array_push_fn: F,
@@ -436,7 +445,7 @@ fn convert_to_xread_map(value: Value) -> RedisResult<Value> {
                     };
                     match inner_value {
                         Value::Array(_) => {
-                            Ok((key_str, convert_to_xread_map(inner_value.clone()).unwrap()))
+                            Ok((key_str, convert_to_xread_map(inner_value.clone())?))
                         }
                         _ => Err((
                             ErrorKind::TypeError,

@@ -2821,7 +2821,6 @@ public class SharedCommandTests {
                                 Map.of(key1, timestamp_1_3, key2, timestamp_2_3),
                                 StreamReadOptions.builder().block(10L).build())
                         .get();
-
         assertNull(blockedResult);
 
         // Key exists, but it is not a stream

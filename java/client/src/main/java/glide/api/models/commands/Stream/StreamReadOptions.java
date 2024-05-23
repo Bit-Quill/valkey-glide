@@ -22,7 +22,7 @@ public final class StreamReadOptions {
     public static final String READ_STREAMS_REDIS_API = "STREAMS";
 
     /**
-     * If set, the read request will block for the set amount of milliseconds or until the server has
+     * If set, the request will be blocked for the set amount of milliseconds or until the server has
      * the required number of entries. Equivalent to <code>BLOCK</code> in the Redis API.
      */
     Long block;
@@ -33,7 +33,8 @@ public final class StreamReadOptions {
     Long count;
 
     /**
-     * Converts options for {@link StreamBaseCommands#xread(Map, StreamReadOptions)} into a String[].
+     * Converts options and the key-to-id input for {@link StreamBaseCommands#xread(Map,
+     * StreamReadOptions)} into a String[].
      *
      * @return String[]
      */

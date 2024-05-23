@@ -3529,7 +3529,7 @@ public class RedisClientTest {
         String streamIdOne = "id-one";
         String keyTwo = "two";
         String streamIdTwo = "id-two";
-        Map<String, Map<String, Map<String, String>>> completedResult = new LinkedHashMap();
+        Map<String, Map<String, Map<String, String>>> completedResult = new LinkedHashMap<>();
         completedResult.put(keyOne, Map.of(streamIdOne, Map.of("field", "value")));
         completedResult.put(keyTwo, Map.of(streamIdTwo, Map.of("field", "value")));
         String[] arguments = {READ_STREAMS_REDIS_API, keyOne, keyTwo, streamIdOne, streamIdTwo};
@@ -3544,7 +3544,7 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        Map<String, String> keysAndIds = new LinkedHashMap();
+        Map<String, String> keysAndIds = new LinkedHashMap<>();
         keysAndIds.put(keyOne, streamIdOne);
         keysAndIds.put(keyTwo, streamIdTwo);
         CompletableFuture<Map<String, Map<String, Map<String, String>>>> response =

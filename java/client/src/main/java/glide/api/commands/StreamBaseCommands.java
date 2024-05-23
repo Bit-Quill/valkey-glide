@@ -78,12 +78,14 @@ public interface StreamBaseCommands {
     /**
      * Reads entries from the given streams.
      *
+     * @apiNote When in cluster mode, all keys in <code>keysAndIds</code> must map to the same <code>
+     *     hash slot</code>.
      * @see <a href="https://redis.io/commands/xread/">redis.io</a> for details.
      * @param keysAndIds A <code>Map</code> of keys and entry ids to read from. The <code>
      *     Map</code> is composed of a stream's key and the id of the entry after which the stream
      *     will be read.
-     * @return A <code>Map</code> of a stream key to an array of entries in the matching <code>key
-     *     </code>. The entries are in an <code>[id, fields[]]</code> format.
+     * @return A <code>{@literal Map<String, Map<String, Map<String, String>>>}</code> with stream
+     *     keys, to <code>Map</code> of stream-ids, to a <code>Map</code> of field-entries.
      * @example
      *     <pre>{@code
      * Map<String, String> xreadKeys = Map.of("streamKey", "readId");
@@ -103,13 +105,15 @@ public interface StreamBaseCommands {
     /**
      * Reads entries from the given streams.
      *
+     * @apiNote When in cluster mode, all keys in <code>keysAndIds</code> must map to the same <code>
+     *     hash slot</code>.
      * @see <a href="https://redis.io/commands/xread/">redis.io</a> for details.
      * @param keysAndIds A <code>Map</code> of keys and entry ids to read from. The <code>
      *     Map</code> is composed of a stream's key and the id of the entry after which the stream
      *     will be read.
      * @param options Options detailing how to read the stream {@link StreamReadOptions}.
-     * @return A <code>Map</code> of a stream key to an array of entries in the matching <code>key
-     *     </code>. The entries are in an <code>[id, fields[]]</code> format.
+     * @return A <code>{@literal Map<String, Map<String, Map<String, String>>>}</code> with stream
+     *     keys, to <code>Map</code> of stream-ids, to a <code>Map</code> of field-entries.
      * @example
      *     <pre>{@code
      * Map<String, String> xreadKeys = Map.of("streamKey", "readId");

@@ -2331,12 +2331,12 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Reads entries from the given streams.
      *
      * @see <a href="https://redis.io/commands/xread/">redis.io</a> for details.
-     * @param keysAndIds - An array of <code>Pair</code>s of keys and entry ids to read from. A <code>
+     * @param keysAndIds An array of <code>Pair</code>s of keys and entry ids to read from. A <code>
      *     pair</code> is composed of a stream's key and the id of the entry after which the stream
      *     will be read.
-     * @return Command Response - A <code>Map</code> of a stream key to an array of entries in the
-     *     matching <code>key
-     *     </code>. The entries are in an <code>[id, fields[]]</code> format.
+     * @return Command Response - A <code>{@literal Map<String, Map<String, Map<String, String>>>}
+     *     </code> with stream keys, to <code>Map</code> of stream-ids, to a <code>Map</code> of
+     *     field-entries.
      */
     public T xread(@NonNull Map<String, String> keysAndIds) {
         return xread(keysAndIds, StreamReadOptions.builder().build());
@@ -2346,12 +2346,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Reads entries from the given streams.
      *
      * @see <a href="https://redis.io/commands/xread/">redis.io</a> for details.
-     * @param keysAndIds - An array of <code>Pair</code>s of keys and entry ids to read from. A <code>
+     * @param keysAndIds An array of <code>Pair</code>s of keys and entry ids to read from. A <code>
      *     pair</code> is composed of a stream's key and the id of the entry after which the stream
      *     will be read.
-     * @param options - options detailing how to read the stream {@link StreamReadOptions}.
-     * @return Command Response - A <code>Map</code> of a stream key to an array of entries in the
-     *     matching <code>key</code>. The entries are in an <code>[id, fields[]]</code> format.
+     * @param options options detailing how to read the stream {@link StreamReadOptions}.
+     * @return Command Response - A <code>{@literal Map<String, Map<String, Map<String, String>>>}
+     *     </code> with stream keys, to <code>Map</code> of stream-ids, to a <code>Map</code> of
+     *     field-entries.
      */
     public T xread(@NonNull Map<String, String> keysAndIds, StreamReadOptions options) {
         protobufTransaction.addCommands(buildCommand(XRead, buildArgs(options.toArgs(keysAndIds))));
