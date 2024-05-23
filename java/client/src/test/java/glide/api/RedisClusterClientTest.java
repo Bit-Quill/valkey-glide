@@ -1376,7 +1376,7 @@ public class RedisClusterClientTest {
         String[] args = new String[] {};
         String value = "42";
         CompletableFuture<String> testResponse = new CompletableFuture<>();
-        testResponse.complete(value);
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(FunctionFlush), eq(args), any()))
@@ -1388,7 +1388,7 @@ public class RedisClusterClientTest {
 
         // verify
         assertEquals(testResponse, response);
-        assertEquals(value, payload);
+        assertEquals(OK, payload);
     }
 
     @SneakyThrows
@@ -1399,7 +1399,7 @@ public class RedisClusterClientTest {
         String[] args = new String[] {mode.toString()};
         String value = "42";
         CompletableFuture<String> testResponse = new CompletableFuture<>();
-        testResponse.complete(value);
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(FunctionFlush), eq(args), any()))
@@ -1411,7 +1411,7 @@ public class RedisClusterClientTest {
 
         // verify
         assertEquals(testResponse, response);
-        assertEquals(value, payload);
+        assertEquals(OK, payload);
     }
 
     @SneakyThrows
@@ -1421,7 +1421,7 @@ public class RedisClusterClientTest {
         String[] args = new String[] {};
         String value = "42";
         CompletableFuture<String> testResponse = new CompletableFuture<>();
-        testResponse.complete(value);
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(FunctionFlush), eq(args), eq(RANDOM), any()))
@@ -1433,7 +1433,7 @@ public class RedisClusterClientTest {
 
         // verify
         assertEquals(testResponse, response);
-        assertEquals(value, payload);
+        assertEquals(OK, payload);
     }
 
     @SneakyThrows
@@ -1444,7 +1444,7 @@ public class RedisClusterClientTest {
         String[] args = new String[] {mode.toString()};
         String value = "42";
         CompletableFuture<String> testResponse = new CompletableFuture<>();
-        testResponse.complete(value);
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(FunctionFlush), eq(args), eq(RANDOM), any()))
@@ -1456,6 +1456,6 @@ public class RedisClusterClientTest {
 
         // verify
         assertEquals(testResponse, response);
-        assertEquals(value, payload);
+        assertEquals(OK, payload);
     }
 }

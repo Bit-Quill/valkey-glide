@@ -145,7 +145,7 @@ public interface ScriptingAndFunctionsCommands {
     CompletableFuture<Map<String, Object>[]> functionListWithCode(String libNamePattern);
 
     /**
-     * Deletes all the libraries.
+     * Deletes all function libraries.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
@@ -159,7 +159,7 @@ public interface ScriptingAndFunctionsCommands {
     CompletableFuture<String> functionFlush();
 
     /**
-     * Deletes all the libraries.
+     * Deletes all function libraries.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.

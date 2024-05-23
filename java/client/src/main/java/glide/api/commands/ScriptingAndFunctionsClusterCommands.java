@@ -294,7 +294,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<Map<String, Object>[]> functionListWithCode(String libNamePattern, Route route);
 
     /**
-     * Deletes all the libraries.<br>
+     * Deletes all function libraries.<br>
      * The command will be routed to all primary nodes.
      *
      * @since Redis 7.0 and above.
@@ -309,7 +309,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<String> functionFlush();
 
     /**
-     * Deletes all the libraries.<br>
+     * Deletes all function libraries.<br>
      * The command will be routed to all primary nodes.
      *
      * @since Redis 7.0 and above.
@@ -326,7 +326,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<String> functionFlush(FlushMode mode);
 
     /**
-     * Deletes all the libraries.
+     * Deletes all function libraries.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.
@@ -342,7 +342,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<String> functionFlush(Route route);
 
     /**
-     * Deletes all the libraries.
+     * Deletes all function libraries.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-flush/">redis.io</a> for details.

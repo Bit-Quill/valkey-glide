@@ -8,7 +8,7 @@ import glide.api.models.configuration.RequestRoutingConfiguration.SingleNodeRout
 
 // TODO add links to script flush
 /**
- * Defines flushing mode for
+ * Defines flushing mode for:
  *
  * <ul>
  *   <li><code>FLUSHALL</code> command implemented by {@link RedisClient#flushall(FlushMode)},
