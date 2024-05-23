@@ -4,8 +4,8 @@ package glide.api.models.commands.bitmap;
 import glide.api.commands.BitmapBaseCommands;
 
 /**
- * Defines bitwise operation for {@link BitmapBaseCommands#bitop(BitwiseOperation, String[])}.
- * Specifies bitwise operation to perform between keys
+ * Defines bitwise operation for {@link BitmapBaseCommands#bitop(BitwiseOperation, String,
+ * String[])}. Specifies bitwise operation to perform between keys
  *
  * @see <a href="https://redis.io/commands/bitop/">redis.io</a>
  */
