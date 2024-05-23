@@ -335,7 +335,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @return <code>OK</code>.
      * @example
      *     <pre>{@code
-     * String response = client.functionFlush().get();
+     * String response = client.functionFlush(RANDOM).get();
      * assert response.equals("OK");
      * }</pre>
      */
@@ -353,7 +353,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @return <code>OK</code>.
      * @example
      *     <pre>{@code
-     * String response = client.functionFlush(SYNC).get();
+     * String response = client.functionFlush(SYNC, RANDOM).get();
      * assert response.equals("OK");
      * }</pre>
      */
