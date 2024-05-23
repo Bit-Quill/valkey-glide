@@ -1155,6 +1155,8 @@ function addTrimOptions(options: StreamTrimOptions, args: string[]) {
         } else {
             args.push("~");
         }
+    } else if ("limit" in options) {
+        args.push("~");
     }
 
     if (options.method === "maxlen") {
@@ -1165,7 +1167,7 @@ function addTrimOptions(options: StreamTrimOptions, args: string[]) {
 
     if ("limit" in options) {
         args.push("LIMIT");
-        args.push(options.limit.toString());
+        args.push((options as StreamTrimLimitOptions).limit.toString());
     }
 }
 
