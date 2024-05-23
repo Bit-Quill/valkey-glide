@@ -1373,8 +1373,7 @@ public class RedisClusterClientTest {
     @Test
     public void functionFlush_returns_success() {
         // setup
-        String[] args = new String[] {};
-        String value = "42";
+        String[] args = new String[0];
         CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete(OK);
 
@@ -1397,7 +1396,6 @@ public class RedisClusterClientTest {
         // setup
         FlushMode mode = ASYNC;
         String[] args = new String[] {mode.toString()};
-        String value = "42";
         CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete(OK);
 
@@ -1418,8 +1416,7 @@ public class RedisClusterClientTest {
     @Test
     public void functionFlush_with_route_returns_success() {
         // setup
-        String[] args = new String[] {};
-        String value = "42";
+        String[] args = new String[0];
         CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete(OK);
 
@@ -1442,7 +1439,6 @@ public class RedisClusterClientTest {
         // setup
         FlushMode mode = ASYNC;
         String[] args = new String[] {mode.toString()};
-        String value = "42";
         CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete(OK);
 
