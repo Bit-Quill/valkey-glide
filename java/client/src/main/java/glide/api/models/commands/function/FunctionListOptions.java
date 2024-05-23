@@ -1,8 +1,12 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands.function;
 
+import glide.api.commands.ScriptingAndFunctionsClusterCommands;
+import glide.api.commands.ScriptingAndFunctionsCommands;
+
 /**
- * Option for <code>FUNCTION LIST</code> command.
+ * Option for {@link ScriptingAndFunctionsCommands#functionList()} and {@link
+ * ScriptingAndFunctionsClusterCommands#functionList()} command.
  *
  * @see <a href="https://redis.io/docs/latest/commands/function-list/">redis.io</a>
  */
