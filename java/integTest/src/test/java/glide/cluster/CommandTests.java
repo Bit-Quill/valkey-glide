@@ -698,9 +698,7 @@ public class CommandTests {
                         null,
                         clusterClient.bitop(BitwiseOperation.XOR, "abc", new String[] {"zxy", "lkn"})),
                 Arguments.of(
-                        "bitop",
-                        null,
-                        clusterClient.bitop(BitwiseOperation.NOT, "abc", new String[] {"zxy"})));
+                        "bitop", null, clusterClient.bitop(BitwiseOperation.NOT, "abc", new String[] {"zxy"})));
     }
 
     @SneakyThrows
