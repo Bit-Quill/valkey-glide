@@ -366,7 +366,7 @@ public interface GenericBaseCommands {
      * will expire.
      *
      * @since Redis 7.0 and above.
-     * @see <a href="https://redis.io/commands/expiretime/">redis.io</a> for details.
+     * @see <a href="https://redis.io/commands/pexpiretime/">redis.io</a> for details.
      * @param key The <code>key</code> to return its expiration.
      * @return Expiration timestamp in milliseconds, <code>-2</code> if <code>key</code> does not
      *     exist, or <code>-1</code> if <code>key</code> exists but has no associated expire.
