@@ -3,6 +3,7 @@ package glide.api.models;
 
 import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.COUNT_REDIS_API;
+import static glide.api.commands.SortedSetBaseCommands.LIMIT_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.RangeOptions.createZRangeArgs;
@@ -15,7 +16,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.BRPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
-import static redis_request.RedisRequestOuterClass.RequestType.Bitcount;
+import static redis_request.RedisRequestOuterClass.RequestType.BitCount;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -33,8 +34,10 @@ import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoDist;
+import static redis_request.RedisRequestOuterClass.RequestType.GeoHash;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoPos;
 import static redis_request.RedisRequestOuterClass.RequestType.Get;
+import static redis_request.RedisRequestOuterClass.RequestType.GetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.GetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.HDel;
 import static redis_request.RedisRequestOuterClass.RequestType.HExists;
@@ -95,6 +98,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SMove;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Set;
+import static redis_request.RedisRequestOuterClass.RequestType.SetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.SetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
@@ -109,6 +113,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ZCard;
 import static redis_request.RedisRequestOuterClass.RequestType.ZCount;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiff;
 import static redis_request.RedisRequestOuterClass.RequestType.ZDiffStore;
+import static redis_request.RedisRequestOuterClass.RequestType.ZInterCard;
 import static redis_request.RedisRequestOuterClass.RequestType.ZInterStore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZLexCount;
 import static redis_request.RedisRequestOuterClass.RequestType.ZMScore;
@@ -127,7 +132,6 @@ import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZUnion;
 import static redis_request.RedisRequestOuterClass.RequestType.ZUnionStore;
 
-import glide.api.models.commands.BitmapIndexType;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
@@ -155,6 +159,7 @@ import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
+import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
@@ -2166,6 +2171,44 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
+     * Returns the cardinality of the intersection of the sorted sets specified by <code>keys</code>.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/commands/zintercard/">redis.io</a> for more details.
+     * @param keys The keys of the sorted sets to intersect.
+     * @return Command Response - The cardinality of the intersection of the given sorted sets.
+     */
+    public T zintercard(@NonNull String[] keys) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(keys, Integer.toString(keys.length)));
+        protobufTransaction.addCommands(buildCommand(ZInterCard, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the cardinality of the intersection of the sorted sets specified by <code>keys</code>.
+     * If the intersection cardinality reaches <code>limit</code> partway through the computation, the
+     * algorithm will exit early and yield <code>limit</code> as the cardinality.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/commands/zintercard/">redis.io</a> for more details.
+     * @param keys The keys of the sorted sets to intersect.
+     * @param limit Specifies a maximum number for the intersection cardinality. If limit is set to
+     *     <code>0</code> the range will be unlimited.
+     * @return Command Response - The cardinality of the intersection of the given sorted sets, or the
+     *     <code>limit</code> if reached.
+     */
+    public T zintercard(@NonNull String[] keys, long limit) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {Integer.toString(keys.length)},
+                                keys,
+                                new String[] {LIMIT_REDIS_API, Long.toString(limit)}));
+        protobufTransaction.addCommands(buildCommand(ZInterCard, commandArgs));
+        return getThis();
+    }
+
+    /**
      * Computes the intersection of sorted sets given by the specified <code>KeysOrWeightedKeys</code>
      * , and stores the result in <code>destination</code>. If <code>destination</code> already
      * exists, it is overwritten. Otherwise, a new sorted set will be created.<br>
@@ -2923,7 +2966,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T bitcount(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
-        protobufTransaction.addCommands(buildCommand(Bitcount, commandArgs));
+        protobufTransaction.addCommands(buildCommand(BitCount, commandArgs));
         return getThis();
     }
 
@@ -2946,7 +2989,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T bitcount(@NonNull String key, long start, long end) {
         ArgsArray commandArgs = buildArgs(key, Long.toString(start), Long.toString(end));
 
-        protobufTransaction.addCommands(buildCommand(Bitcount, commandArgs));
+        protobufTransaction.addCommands(buildCommand(BitCount, commandArgs));
         return getThis();
     }
 
@@ -2973,7 +3016,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         ArgsArray commandArgs =
                 buildArgs(key, Long.toString(start), Long.toString(end), options.toString());
 
-        protobufTransaction.addCommands(buildCommand(Bitcount, commandArgs));
+        protobufTransaction.addCommands(buildCommand(BitCount, commandArgs));
         return getThis();
     }
 
@@ -3077,6 +3120,60 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T geodist(@NonNull String key, @NonNull String member1, @NonNull String member2) {
         ArgsArray commandArgs = buildArgs(key, member1, member2);
         protobufTransaction.addCommands(buildCommand(GeoDist, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the <code>GeoHash</code> strings representing the positions of all the specified <code>
+     * members</code> in the sorted set stored at <code>key</code>.
+     *
+     * @see <a href="https://valkey.io/commands/geohash">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param members The array of members whose <code>GeoHash</code> strings are to be retrieved.
+     * @return Command Response - An array of <code>GeoHash</code> strings representing the positions
+     *     of the specified members stored at <code>key</code>. If a member does not exist in the
+     *     sorted set, a <code>null</code> value is returned for that member.
+     */
+    public T geohash(@NonNull String key, @NonNull String[] members) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(members, key));
+        protobufTransaction.addCommands(buildCommand(GeoHash, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Sets or clears the bit at <code>offset</code> in the string value stored at <code>key</code>.
+     * The <code>offset</code> is a zero-based index, with <code>0</code> being the first element of
+     * the list, <code>1</code> being the next element, and so on. The <code>offset</code> must be
+     * less than <code>2^32</code> and greater than or equal to <code>0</code>. If a key is
+     * non-existent then the bit at <code>offset</code> is set to <code>value</code> and the preceding
+     * bits are set to <code>0</code>.
+     *
+     * @see <a href="https://redis.io/commands/setbit/">redis.io</a> for details.
+     * @param key The key of the string.
+     * @param offset The index of the bit to be set.
+     * @param value The bit value to set at <code>offset</code>. The value must be <code>0</code> or
+     *     <code>1</code>.
+     * @return Command Response - The bit value that was previously stored at <code>offset</code>.
+     */
+    public T setbit(@NonNull String key, long offset, long value) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(offset), Long.toString(value));
+        protobufTransaction.addCommands(buildCommand(SetBit, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns the bit value at <code>offset</code> in the string value stored at <code>key</code>.
+     * <code>offset</code> should be greater than or equal to zero.
+     *
+     * @see <a href="https://redis.io/commands/getbit/">redis.io</a> for details.
+     * @param key The key of the string.
+     * @param offset The index of the bit to return.
+     * @return Command Response - The bit at offset of the string. Returns zero if the key is empty or
+     *     if the positive <code>offset</code> exceeds the length of the string.
+     */
+    public T getbit(@NonNull String key, long offset) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(offset));
+        protobufTransaction.addCommands(buildCommand(GetBit, commandArgs));
         return getThis();
     }
 

@@ -1,7 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
-import glide.api.models.commands.BitmapIndexType;
+import glide.api.models.commands.bitmap.BitmapIndexType;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -73,4 +73,44 @@ public interface BitmapBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> bitcount(String key, long start, long end, BitmapIndexType options);
+
+    /**
+     * Sets or clears the bit at <code>offset</code> in the string value stored at <code>key</code>.
+     * The <code>offset</code> is a zero-based index, with <code>0</code> being the first element of
+     * the list, <code>1</code> being the next element, and so on. The <code>offset</code> must be
+     * less than <code>2^32</code> and greater than or equal to <code>0</code>. If a key is
+     * non-existent then the bit at <code>offset</code> is set to <code>value</code> and the preceding
+     * bits are set to <code>0</code>.
+     *
+     * @see <a href="https://redis.io/commands/setbit/">redis.io</a> for details.
+     * @param key The key of the string.
+     * @param offset The index of the bit to be set.
+     * @param value The bit value to set at <code>offset</code>. The value must be <code>0</code> or
+     *     <code>1</code>.
+     * @return The bit value that was previously stored at <code>offset</code>.
+     * @example
+     *     <pre>{@code
+     * Long payload = client.setbit("myKey1", 1, 1).get();
+     * assert payload == 0L; // The second bit value was 0 before setting to 1.
+     * }</pre>
+     */
+    CompletableFuture<Long> setbit(String key, long offset, long value);
+
+    /**
+     * Returns the bit value at <code>offset</code> in the string value stored at <code>key</code>.
+     * <code>offset</code> should be greater than or equal to zero.
+     *
+     * @see <a href="https://redis.io/commands/getbit/">redis.io</a> for details.
+     * @param key The key of the string.
+     * @param offset The index of the bit to return.
+     * @return The bit at offset of the string. Returns zero if the key is empty or if the positive
+     *     <code>offset</code> exceeds the length of the string.
+     * @example
+     *     <pre>{@code
+     * client.set("sampleKey", "A"); // "A" has binary value 01000001
+     * Long payload = client.getbit("sampleKey", 1).get();
+     * assert payload == 1L; // The second bit for string stored at "sampleKey" is set to 1.
+     * }</pre>
+     */
+    CompletableFuture<Long> getbit(String key, long offset);
 }

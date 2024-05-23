@@ -30,7 +30,6 @@ import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
 import glide.api.models.Script;
-import glide.api.models.commands.BitmapIndexType;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
@@ -47,6 +46,7 @@ import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
+import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
@@ -345,6 +345,7 @@ public class SharedCommandTests {
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void mset_mget_existing_non_existing_key(BaseClient client) {
+        // keys are from different slots
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
         String key3 = UUID.randomUUID().toString();
@@ -465,6 +466,22 @@ public class SharedCommandTests {
         Exception exception =
                 assertThrows(ExecutionException.class, () -> client.strlen(nonStringKey).get());
         assertTrue(exception.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void rename(BaseClient client) {
+        String key1 = "{key}" + UUID.randomUUID();
+
+        assertEquals("OK", client.set(key1, "foo").get());
+        assertEquals("OK", client.rename(key1, key1 + "_rename").get());
+        assertEquals(1L, client.exists(new String[]{key1 + "_rename"}).get());
+
+        // key doesn't exist
+        ExecutionException executionException =
+            assertThrows(ExecutionException.class, () -> client.rename("{same_slot}" + "non_existing_key",
+                "{same_slot}" + "_rename").get());
     }
 
     @SneakyThrows
@@ -1007,14 +1024,6 @@ public class SharedCommandTests {
         executionException =
                 assertThrows(ExecutionException.class, () -> client.smove(setKey1, nonSetKey, "_").get());
         assertInstanceOf(RequestException.class, executionException.getCause());
-
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(ExecutionException.class, () -> client.smove("abc", "zxy", "lkn").get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
     }
 
     @SneakyThrows
@@ -1042,14 +1051,6 @@ public class SharedCommandTests {
 
         // this one remains unchanged
         assertEquals("key3", client.get(key3).get());
-
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(ExecutionException.class, () -> client.renamenx("abc", "zxy").get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
     }
 
     @SneakyThrows
@@ -1143,16 +1144,6 @@ public class SharedCommandTests {
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.sdiff(new String[] {key1, key3}).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
-
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(
-                            ExecutionException.class,
-                            () -> client.sdiff(new String[] {"abc", "zxy", "lkn"}).get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
     }
 
     @SneakyThrows
@@ -1227,16 +1218,6 @@ public class SharedCommandTests {
         executionException =
                 assertThrows(ExecutionException.class, () -> client.sdiffstore(key5, new String[0]).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
-
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(
-                            ExecutionException.class,
-                            () -> client.sdiffstore("abc", new String[] {"zxy", "lkn"}).get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
     }
 
     @SneakyThrows
@@ -1257,16 +1238,6 @@ public class SharedCommandTests {
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.sinter(new String[] {key3}).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
-
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(
-                            ExecutionException.class,
-                            () -> client.sinter(new String[] {"abc", "zxy", "lkn"}).get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
     }
 
     @SneakyThrows
@@ -1310,16 +1281,6 @@ public class SharedCommandTests {
         executionException =
                 assertThrows(ExecutionException.class, () -> client.sunionstore(key5, new String[0]).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
-
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(
-                            ExecutionException.class,
-                            () -> client.sunionstore("abc", new String[] {"zxy", "lkn"}).get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
     }
 
     @SneakyThrows
@@ -1738,16 +1699,6 @@ public class SharedCommandTests {
                 assertThrows(
                         ExecutionException.class, () -> client.bzpopmin(new String[] {key3}, .5).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
-
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(
-                            ExecutionException.class,
-                            () -> client.bzpopmin(new String[] {"abc", "zxy", "lkn"}, .1).get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
     }
 
     @SneakyThrows
@@ -1820,16 +1771,6 @@ public class SharedCommandTests {
                 assertThrows(
                         ExecutionException.class, () -> client.bzpopmax(new String[] {key3}, .5).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
-
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(
-                            ExecutionException.class,
-                            () -> client.bzpopmax(new String[] {"abc", "zxy", "lkn"}, .1).get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
     }
 
     @SneakyThrows
@@ -2552,16 +2493,40 @@ public class SharedCommandTests {
                         ExecutionException.class,
                         () -> client.zunion(new KeyArray(new String[] {key1, key3})).get());
         assertTrue(executionException.getCause() instanceof RequestException);
+    }
 
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(
-                            ExecutionException.class,
-                            () -> client.zunion(new KeyArray(new String[] {"abc", "zxy", "lkn"})).get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void zintercard(BaseClient client) {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"));
+        String key1 = "{zintercard}-" + UUID.randomUUID();
+        String key2 = "{zintercard}-" + UUID.randomUUID();
+        String key3 = "{zintercard}-" + UUID.randomUUID();
+
+        assertEquals(3, client.zadd(key1, Map.of("a", 1.0, "b", 2.0, "c", 3.0)).get());
+        assertEquals(3, client.zadd(key2, Map.of("b", 1.0, "c", 2.0, "d", 3.0)).get());
+
+        assertEquals(2L, client.zintercard(new String[] {key1, key2}).get());
+        assertEquals(0, client.zintercard(new String[] {key1, key3}).get());
+
+        assertEquals(2L, client.zintercard(new String[] {key1, key2}, 0).get());
+        assertEquals(1L, client.zintercard(new String[] {key1, key2}, 1).get());
+        assertEquals(2L, client.zintercard(new String[] {key1, key2}, 3).get());
+
+        // Key exists, but it is not a set
+        assertEquals(OK, client.set(key3, "bar").get());
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.zintercard(new String[] {key3}).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        // incorrect arguments
+        executionException =
+                assertThrows(ExecutionException.class, () -> client.zintercard(new String[0]).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+        executionException =
+                assertThrows(ExecutionException.class, () -> client.zintercard(new String[0], 42).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
     }
 
     @SneakyThrows
@@ -2624,19 +2589,6 @@ public class SharedCommandTests {
                         ExecutionException.class,
                         () -> client.zinterstore(key3, new KeyArray(new String[] {key4, key2})).get());
         assertTrue(executionException.getCause() instanceof RequestException);
-
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(
-                            ExecutionException.class,
-                            () ->
-                                    client
-                                            .zinterstore("foo", new KeyArray(new String[] {"abc", "zxy", "lkn"}))
-                                            .get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
     }
 
     @SneakyThrows
@@ -2687,16 +2639,6 @@ public class SharedCommandTests {
         }
         assertEquals(10, client.zadd(key2, entries).get());
         assertEquals(entries, client.bzmpop(new String[] {key2}, MIN, .1, 10).get()[1]);
-
-        // same-slot requirement
-        if (client instanceof RedisClusterClient) {
-            executionException =
-                    assertThrows(
-                            ExecutionException.class,
-                            () -> client.bzmpop(new String[] {"abc", "zxy", "lkn"}, MAX, .1).get());
-            assertInstanceOf(RequestException.class, executionException.getCause());
-            assertTrue(executionException.getMessage().toLowerCase().contains("crossslot"));
-        }
     }
 
     @SneakyThrows
@@ -3612,6 +3554,35 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
+    public void geohash(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String[] members = {"Palermo", "Catania", "NonExisting"};
+        String[] empty = {};
+        String[] expected = {"sqc8b49rny0", "sqdtr74hyu0", null};
+
+        // adding locations
+        Map<String, GeospatialData> membersToCoordinates = new HashMap<>();
+        membersToCoordinates.put("Palermo", new GeospatialData(13.361389, 38.115556));
+        membersToCoordinates.put("Catania", new GeospatialData(15.087269, 37.502669));
+        assertEquals(2, client.geoadd(key1, membersToCoordinates).get());
+
+        String[] actual = client.geohash(key1, members).get();
+        assertArrayEquals(expected, actual);
+
+        // members array is empty
+        assertEquals(client.geohash(key1, empty).get().length, 0);
+
+        // key exists but holding the wrong kind of value (non-ZSET)
+        assertEquals(OK, client.set(key2, "geohash").get());
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.geohash(key2, members).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
     public void bitcount(BaseClient client) {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
@@ -3668,15 +3639,57 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
-    public void rename(BaseClient client) {
-        String key1 = "{key}" + UUID.randomUUID();
-        assertEquals("OK", client.set(key1, "foo").get());
-        assertEquals("OK", client.rename(key1, key1 + "_rename").get());
-        assertEquals(1L, client.exists(new String[]{key1 + "_rename"}).get());
+    public void setbit(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
 
-        // key doesn't exist
+        assertEquals(0, client.setbit(key1, 0, 1).get());
+        assertEquals(1, client.setbit(key1, 0, 0).get());
+
+        // Exception thrown due to the negative offset
         ExecutionException executionException =
-            assertThrows(ExecutionException.class, () -> client.rename("{same_slot}" + "non_existing_key",
-                                                                    "{same_slot}" + "_rename").get());
+                assertThrows(ExecutionException.class, () -> client.setbit(key1, -1, 1).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Exception thrown due to the value set not being 0 or 1
+        executionException =
+                assertThrows(ExecutionException.class, () -> client.setbit(key1, 1, 2).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Exception thrown: key is not a string
+        assertEquals(1, client.sadd(key2, new String[] {"value"}).get());
+        executionException =
+                assertThrows(ExecutionException.class, () -> client.setbit(key2, 1, 1).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void getbit(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String missingKey = UUID.randomUUID().toString();
+        String value = "foobar";
+
+        assertEquals(OK, client.set(key1, value).get());
+        assertEquals(1, client.getbit(key1, 1).get());
+        assertEquals(0, client.getbit(key1, 1000).get());
+        assertEquals(0, client.getbit(missingKey, 1).get());
+        if (client instanceof RedisClient) {
+            assertEquals(
+                    1L, ((RedisClient) client).customCommand(new String[] {"SETBIT", key1, "5", "0"}).get());
+            assertEquals(0, client.getbit(key1, 5).get());
+        }
+
+        // Exception thrown due to the negative offset
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.getbit(key1, -1).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Exception thrown due to the key holding a value with the wrong type
+        assertEquals(1, client.sadd(key2, new String[] {value}).get());
+        executionException = assertThrows(ExecutionException.class, () -> client.getbit(key2, 1).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
     }
 }

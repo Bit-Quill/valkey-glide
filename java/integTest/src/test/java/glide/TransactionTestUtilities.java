@@ -10,7 +10,6 @@ import static glide.api.models.commands.ScoreFilter.MIN;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 
 import glide.api.models.BaseTransaction;
-import glide.api.models.commands.BitmapIndexType;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
@@ -20,6 +19,7 @@ import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
+import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
@@ -325,6 +325,7 @@ public class TransactionTestUtilities {
                 .zlexcount(zSetKey1, new LexBoundary("a", true), InfLexBound.POSITIVE_INFINITY)
                 .zpopmin(zSetKey1)
                 .zpopmax(zSetKey1)
+                // zSetKey1 is now empty
                 .zremrangebyrank(zSetKey1, 5, 10)
                 .zremrangebylex(zSetKey1, new LexBoundary("j"), InfLexBound.POSITIVE_INFINITY)
                 .zremrangebyscore(zSetKey1, new ScoreBoundary(5), InfScoreBound.POSITIVE_INFINITY)
@@ -342,14 +343,17 @@ public class TransactionTestUtilities {
                 .zrandmember(zSetKey2)
                 .zrandmemberWithCount(zSetKey2, 1)
                 .zrandmemberWithCountWithScores(zSetKey2, 1)
-                .bzpopmin(new String[] {zSetKey2}, .1);
-        // zSetKey2 is now empty
+                .bzpopmin(new String[] {zSetKey2}, .1)
+                // zSetKey2 is now empty
+                .zadd(zSetKey2, Map.of("a", 1., "b", 2., "c", 3., "d", 4.));
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             transaction
-                    .zadd(zSetKey3, Map.of("a", 1., "b", 2., "c", 3., "d", 4.))
+                    .zadd(zSetKey3, Map.of("a", 1., "b", 2., "c", 3., "d", 4., "e", 5.))
                     .bzmpop(new String[] {zSetKey3}, MAX, .1)
-                    .bzmpop(new String[] {zSetKey3}, MIN, .1, 2);
+                    .bzmpop(new String[] {zSetKey3}, MIN, .1, 2)
+                    .zintercard(new String[] {zSetKey2, zSetKey3})
+                    .zintercard(new String[] {zSetKey2, zSetKey3}, 1);
         }
 
         var expectedResults =
@@ -387,15 +391,18 @@ public class TransactionTestUtilities {
                     new String[] {"one"}, // .zrandmemberWithCount(zSetKey2, 1)
                     new Object[][] {{"one", 1.0}}, // .zrandmemberWithCountWithScores(zSetKey2, 1);
                     new Object[] {zSetKey2, "one", 1.0}, // bzpopmin(new String[] { zsetKey2 }, .1)
+                    4L, // zadd(zSetKey2, Map.of("a", 1., "b", 2., "c", 3., "d", 4.))
                 };
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             return concatenateArrays(
                     expectedResults,
                     new Object[] {
-                        4L, // zadd(zSetKey3, Map.of("a", 1., "b", 2., "c", 3., "d", 4.))
-                        new Object[] {zSetKey3, Map.of("d", 4.)}, // bzmpop(zSetKey3, MAX, .1)
+                        5L, // zadd(zSetKey3, Map.of("a", 1., "b", 2., "c", 3., "d", 4., "e", 5.))
+                        new Object[] {zSetKey3, Map.of("e", 5.)}, // bzmpop(zSetKey3, MAX, .1)
                         new Object[] {zSetKey3, Map.of("a", 1., "b", 2.)}, // bzmpop(zSetKey3, MIN, .1, 2)
+                        2L, // zintercard(new String[] {zSetKey2, zSetKey3})
+                        1L, // zintercard(new String[] {zSetKey2, zSetKey3}, 1)
                     });
         }
         return expectedResults;
@@ -480,9 +487,10 @@ public class TransactionTestUtilities {
                                 new GeospatialData(13.361389, 38.115556),
                                 "Catania",
                                 new GeospatialData(15.087269, 37.502669)))
-                .geopos(geoKey1, new String[] {"Palermo", "Catania"});
-        transaction.geodist(geoKey1, "Palermo", "Catania");
-        transaction.geodist(geoKey1, "Palermo", "Catania", GeoUnit.KILOMETERS);
+                .geopos(geoKey1, new String[] {"Palermo", "Catania"})
+                .geodist(geoKey1, "Palermo", "Catania")
+                .geodist(geoKey1, "Palermo", "Catania", GeoUnit.KILOMETERS)
+                .geohash(geoKey1, new String[] {"Palermo", "Catania", "NonExisting"});
 
         return new Object[] {
             2L, // geoadd(geoKey1, Map.of("Palermo", ..., "Catania", ...))
@@ -492,23 +500,36 @@ public class TransactionTestUtilities {
             }, // geopos(geoKey1, new String[]{"Palermo", "Catania"})
             166274.1516, // geodist(geoKey1, "Palermo", "Catania")
             166.2742, // geodist(geoKey1, "Palermo", "Catania", GeoUnit.KILOMETERS)
+            new String[] {
+                "sqc8b49rny0", "sqdtr74hyu0", null
+            } // eohash(geoKey1, new String[] {"Palermo", "Catania", "NonExisting"})
         };
     }
 
     private static Object[] bitmapCommands(BaseTransaction<?> transaction) {
-        String key = "{key-" + UUID.randomUUID();
+        String key1 = "{bitmapKey}-1" + UUID.randomUUID();
+        String key2 = "{bitmapKey}-2" + UUID.randomUUID();
 
-        transaction.set(key, "foobar").bitcount(key).bitcount(key, 1, 1);
+        transaction
+                .set(key1, "foobar")
+                .bitcount(key1)
+                .bitcount(key1, 1, 1)
+                .setbit(key2, 1, 1)
+                .setbit(key2, 1, 0)
+                .getbit(key1, 1);
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
-            transaction.bitcount(key, 5, 30, BitmapIndexType.BIT);
+            transaction.bitcount(key1, 5, 30, BitmapIndexType.BIT);
         }
 
         var expectedResults =
                 new Object[] {
-                    OK, // set(key, "foobar")
-                    26L, // bitcount(key)
-                    6L, // bitcount(key, 1, 1)
+                    OK, // set(key1, "foobar")
+                    26L, // bitcount(key1)
+                    6L, // bitcount(key1, 1, 1)
+                    0L, // setbit(key2, 1, 1)
+                    1L, // setbit(key2, 1, 0)
+                    1L, // getbit(key1, 1)
                 };
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
