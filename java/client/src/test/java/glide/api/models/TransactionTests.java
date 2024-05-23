@@ -24,6 +24,7 @@ import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_A
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_EXACT_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_MINID_REDIS_API;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static redis_request.RedisRequestOuterClass.RequestType.BLMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.Append;
 import static redis_request.RedisRequestOuterClass.RequestType.BLPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BRPop;
@@ -834,6 +835,11 @@ public class TransactionTests {
         results.add(Pair.of(LMPop, buildArgs("1", "key", "LEFT")));
         transaction.lmpop(new String[] {"key"}, PopDirection.LEFT, 1L);
         results.add(Pair.of(LMPop, buildArgs("1", "key", "LEFT", "COUNT", "1")));
+
+        transaction.blmpop(new String[] {"key"}, PopDirection.LEFT, 0.1);
+        results.add(Pair.of(BLMPop, buildArgs("0.1", "1", "key", "LEFT")));
+        transaction.blmpop(new String[] {"key"}, PopDirection.LEFT, 1L, 0.1);
+        results.add(Pair.of(BLMPop, buildArgs("0.1", "1", "key", "LEFT", "COUNT", "1")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 
