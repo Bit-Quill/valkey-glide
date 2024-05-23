@@ -328,47 +328,8 @@ pub(crate) fn convert_to_expected_type(
             }
             Value::Array(array) => {
                 convert_array_of_flat_maps(array, Some(ExpectedReturnType::ArrayOfMaps))
-                /*
-                let mut result: Vec<Value> = Vec::new();
-                for lib in array {
-                    let Value::Array(lib_as_array) = lib else {
-                        panic!();
-                    };
-                    let map = convert_array_to_map(lib_as_array, Some(ExpectedReturnType::BulkString), None).unwrap();
-                    let Value::Map(lib_as_map) = map else {
-                        panic!();
-                    };
-
-                    let mut iterator = lib_as_map.into_iter();
-                    let mut lib_as_map: Vec<(Value, Value)> = Vec::new();
-                    while let Some((key, value)) = iterator.next() {
-                        if key.eq(&Value::BulkString("functions".to_string().into_bytes())) {
-                            let Value::Array(funcs_as_array) = value else {
-                                panic!();
-                            };
-                            let mut functions: Vec<Value> = Vec::new();
-                            for func in funcs_as_array {
-                                let Value::Array(func_as_array) = func else {
-                                    panic!();
-                                };
-                                functions.push(convert_array_to_map(func_as_array, Some(ExpectedReturnType::BulkString), Some(ExpectedReturnType::StringOrSet)).unwrap());
-                            }
-                            lib_as_map.push((key, Value::Array(functions)));
-                        } else {
-                            lib_as_map.push((key, convert_to_expected_type(value, Some(ExpectedReturnType::BulkString)).unwrap()))
-                        }
-                    }
-                    result.push(Value::Map(lib_as_map));
-                }
-                Ok(Value::Array(result))
-                // */
             }
-            _ => Err((
-                ErrorKind::TypeError,
-                "Response couldn't be converted",
-                format!("(response was {:?})", value),
-            )
-                .into()),
+            _ => Err((ErrorKind::TypeError, "Response couldn't be converted").into()),
         },
         // Not used for a command, but used as a helper for `ArrayOfMapsRecursive` to process the inner map.
         ExpectedReturnType::ArrayOfMaps => match value {
@@ -379,12 +340,7 @@ pub(crate) fn convert_to_expected_type(
             Value::BulkString(_) | Value::SimpleString(_) | Value::VerbatimString { .. } => {
                 Ok(value)
             }
-            _ => Err((
-                ErrorKind::TypeError,
-                "Response couldn't be converted",
-                format!("(response was {:?})", value),
-            )
-                .into()),
+            _ => Err((ErrorKind::TypeError, "Response couldn't be converted").into()),
         },
         // Not used for a command, but used as a helper for `ArrayOfMaps` to process the inner map.
         // It may contain a string (name, description) or set (flags), or nil (description).
@@ -456,14 +412,13 @@ fn convert_array_of_flat_maps(
     let mut result: Vec<Value> = Vec::with_capacity(array.len());
     for entry in array {
         let Value::Array(entry_as_array) = entry else {
-            panic!(); // TODO
+            return Err((ErrorKind::TypeError, "Incorrect value type received").into());
         };
         let map = convert_array_to_map(
             entry_as_array,
             Some(ExpectedReturnType::BulkString),
             value_expected_return_type,
-        )
-        .unwrap();
+        )?;
         result.push(map);
     }
     Ok(Value::Array(result))
