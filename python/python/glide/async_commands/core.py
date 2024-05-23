@@ -1609,7 +1609,7 @@ class CoreCommands(Protocol):
         See https://valkey.io/docs/latest/commands/sdiffstore for more details.
 
         Note:
-            When in cluster mode, all `keys` must map to the same hash slot.
+            When in Cluster mode, all keys in `keys` and `destination` must map to the same hash slot.
 
         Args:
             destination (str): The key of the destination set.
@@ -2614,7 +2614,7 @@ class CoreCommands(Protocol):
         See https://valkey.io/commands/zrangestore for more details.
 
         Note:
-            When in Cluster mode, all `keys` must map to the same hash slot.
+            When in Cluster mode, `source` and `destination` must map to the same hash slot.
 
         Args:
             destination (str): The key for the destination sorted set.
