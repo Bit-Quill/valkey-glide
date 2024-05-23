@@ -314,7 +314,7 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::ZInterCard => RequestType::ZInterCard,
             ProtobufRequestType::ZMPop => RequestType::ZMPop,
             ProtobufRequestType::GetBit => RequestType::GetBit,
-            ProtobufRequestType::BitOP => RequestType::BitOp,
+            ProtobufRequestType::BitOp => RequestType::BitOp,
         }
     }
 }

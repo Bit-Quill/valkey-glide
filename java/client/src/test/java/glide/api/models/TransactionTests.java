@@ -29,6 +29,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.BitCount;
+import static redis_request.RedisRequestOuterClass.RequestType.BitOp;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -158,6 +159,7 @@ import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
 import glide.api.models.commands.bitmap.BitmapIndexType;
+import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
@@ -748,6 +750,9 @@ public class TransactionTests {
 
         transaction.setbit("key", 8, 1);
         results.add(Pair.of(SetBit, buildArgs("key", "8", "1")));
+
+        transaction.bitop(BitwiseOperation.AND,"destKey", new String[] {"key"});
+        results.add(Pair.of(BitOp, buildArgs(BitwiseOperation.AND.toString(),"destKey", "key")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

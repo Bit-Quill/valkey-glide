@@ -17,6 +17,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.BitCount;
+import static redis_request.RedisRequestOuterClass.RequestType.BitOp;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -159,6 +160,7 @@ import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
 import glide.api.models.commands.bitmap.BitmapIndexType;
+import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
@@ -3173,6 +3175,14 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T getbit(@NonNull String key, long offset) {
         ArgsArray commandArgs = buildArgs(key, Long.toString(offset));
         protobufTransaction.addCommands(buildCommand(GetBit, commandArgs));
+        return getThis();
+    }
+
+    public T bitop(@NonNull BitwiseOperation bitwiseOperation, @NonNull String destKey, @NonNull String[] keys) {
+        ArgsArray commandArgs =
+            buildArgs(concatenateArrays(new String[] {bitwiseOperation.toString(), destKey}, keys));
+
+        protobufTransaction.addCommands(buildCommand(BitOp, commandArgs));
         return getThis();
     }
 

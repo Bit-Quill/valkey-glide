@@ -38,6 +38,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.BitCount;
+import static redis_request.RedisRequestOuterClass.RequestType.BitOp;
+import static redis_request.RedisRequestOuterClass.RequestType.Bitcount;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
@@ -174,6 +176,7 @@ import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
 import glide.api.models.commands.bitmap.BitmapIndexType;
+import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
@@ -4430,5 +4433,31 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(bit, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void bitop_returns_success() {
+        // setup
+        String destKey = "destKey";
+        String[] keys = new String[] {"key1", "key2"};
+        Long result = 6L;
+        BitwiseOperation bitwiseAnd = BitwiseOperation.AND;
+        String[] arguments = concatenateArrays(new String[] {bitwiseAnd.toString(), destKey}, keys);
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(result);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(
+            eq(BitOp), eq(arguments), any()))
+            .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.bitop(bitwiseAnd, destKey, keys);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(result, payload);
     }
 }
