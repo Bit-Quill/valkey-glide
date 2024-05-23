@@ -765,6 +765,11 @@ public class SharedCommandTests {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
 
+        // key does not exist
+        assertNull(client.hrandfield(key1).get());
+        assertEquals(0, client.hrandfieldWithCount(key1, 5).get().length);
+        assertEquals(0, client.hrandfieldWithCountWithValues(key1, 5).get().length);
+
         var data = Map.of("f 1", "v 1", "f 2", "v 2", "f 3", "v 3");
         assertEquals(3, client.hset(key1, data).get());
 

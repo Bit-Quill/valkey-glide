@@ -706,7 +706,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @since Redis 6.2 and above.
      * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
      * @param key The key of the hash.
-     * @return Command Response - A random field name from the hash stored at <code>key</code>, or an
+     * @return Command Response - A random field name from the hash stored at <code>key</code>, or
      *     <code>null</code> when the key does not exist.
      */
     public T hrandfield(@NonNull String key) {
@@ -722,8 +722,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
      * @param key The key of the hash.
      * @param count The number of field names to return.<br>
-     *     If <code>count</code> is positive, returns unique elements, ff negative, allows for
-     *     duplicates.
+     *     If <code>count</code> is positive, returns unique elements.<br>
+     *     If negative, allows for duplicates.
      * @return Command Response - An <code>array</code> of random field names from the hash stored at
      *     <code>key</code>, or an <code>empty array</code> when the key does not exist.
      */
@@ -740,11 +740,12 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
      * @param key The key of the hash.
      * @param count The number of field names to return.<br>
-     *     If <code>count</code> is positive, returns unique elements, ff negative, allows for
-     *     duplicates.
-     * @return Command Response - A 2D <code>array</code> of random field names from the hash stored
-     *     at <code>key</code>, where each nested array contains a pair of field a name and the
-     *     associated value, or an <code>empty array</code> when the key does not exist.
+     *     If <code>count</code> is positive, returns unique elements.<br>
+     *     If negative, allows for duplicates.
+     * @return Command Response - A 2D <code>array</code> of <code>[fieldName, value]</code> <code>
+     *     arrays</code>, where <code>fieldName</code> is a random field name from the hash and <code>
+     *     value</code> is the associated value of the field name.<br>
+     *     If the hash does not exist or is empty, the response will be an empty <code>array</code>.
      */
     public T hrandfieldWithCountWithValues(@NonNull String key, long count) {
         ArgsArray commandArgs = buildArgs(key, Long.toString(count), WITH_VALUES_REDIS_API);

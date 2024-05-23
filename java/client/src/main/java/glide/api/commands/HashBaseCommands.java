@@ -243,8 +243,8 @@ public interface HashBaseCommands {
      * @since Redis 6.2 and above.
      * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
      * @param key The key of the hash.
-     * @return A random field name from the hash stored at <code>key</code>, or an <code>null</code>
-     *     when the key does not exist.
+     * @return A random field name from the hash stored at <code>key</code>, or <code>null</code> when
+     *     the key does not exist.
      * @example
      *     <pre>{@code
      * String field = client.hrandfield("my_hash").get();
@@ -261,8 +261,8 @@ public interface HashBaseCommands {
      * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
      * @param key The key of the hash.
      * @param count The number of field names to return.<br>
-     *     If <code>count</code> is positive, returns unique elements, ff negative, allows for
-     *     duplicates.
+     *     If <code>count</code> is positive, returns unique elements.<br>
+     *     If negative, allows for duplicates.
      * @return An <code>array</code> of random field names from the hash stored at <code>key</code>,
      *     or an <code>empty array</code> when the key does not exist.
      * @example
@@ -281,11 +281,12 @@ public interface HashBaseCommands {
      * @see <a href="https://redis.io/commands/hrandfield/">redis.io</a> for details.
      * @param key The key of the hash.
      * @param count The number of field names to return.<br>
-     *     If <code>count</code> is positive, returns unique elements, ff negative, allows for
-     *     duplicates.
-     * @return A 2D <code>array</code> of random field names from the hash stored at <code>key</code>,
-     *     where each nested array contains a pair of field a name and the associated value, or an
-     *     <code>empty array</code> when the key does not exist.
+     *     If <code>count</code> is positive, returns unique elements.<br>
+     *     If negative, allows for duplicates.
+     * @return A 2D <code>array</code> of <code>[fieldName, value]</code> <code>arrays</code>, where
+     *     <code>fieldName</code> is a random field name from the hash and <code>value</code> is the
+     *     associated value of the field name.<br>
+     *     If the hash does not exist or is empty, the response will be an empty <code>array</code>.
      * @example
      *     <pre>{@code
      * String[][] fields = client.hrandfieldWithCountWithValues("my_hash", 1).get();
