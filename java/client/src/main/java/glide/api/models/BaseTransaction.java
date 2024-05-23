@@ -3178,9 +3178,20 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
-    public T bitop(@NonNull BitwiseOperation bitwiseOperation, @NonNull String destKey, @NonNull String[] keys) {
+    /**
+     * Perform a bitwise operation between multiple keys (containing string values) and store the
+     * result in the <code>destKey</code>.
+     *
+     * @see <a href="https://redis.io/commands/bitop/">redis.io</a> for details.
+     * @param bitwiseOperation The bitwise operation to perform.
+     * @param destKey The key that will store the resulting string.
+     * @param keys The list of keys to perform the bitwise operation on.
+     * @return Command Response - The size of the string stored in <code>destKey</code>.
+     */
+    public T bitop(
+            @NonNull BitwiseOperation bitwiseOperation, @NonNull String destKey, @NonNull String[] keys) {
         ArgsArray commandArgs =
-            buildArgs(concatenateArrays(new String[] {bitwiseOperation.toString(), destKey}, keys));
+                buildArgs(concatenateArrays(new String[] {bitwiseOperation.toString(), destKey}, keys));
 
         protobufTransaction.addCommands(buildCommand(BitOp, commandArgs));
         return getThis();

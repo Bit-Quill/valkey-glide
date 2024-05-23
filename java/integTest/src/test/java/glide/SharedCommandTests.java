@@ -3684,52 +3684,75 @@ public class SharedCommandTests {
     public void bitop(BaseClient client) {
         String key1 = "{key}-1".concat(UUID.randomUUID().toString());
         String key2 = "{key}-2".concat(UUID.randomUUID().toString());
+        String emptyKey1 = "{key}-3".concat(UUID.randomUUID().toString());
+        String emptyKey2 = "{key}-4".concat(UUID.randomUUID().toString());
+        String destKey = "{key}-5".concat(UUID.randomUUID().toString());
         String[] keys = new String[] {key1, key2};
-        String destKey = "{key}-3".concat(UUID.randomUUID().toString());
+        String[] emptyKeys = new String[] {emptyKey1, emptyKey2};
         String value1 = "foobar";
         String value2 = "abcdef";
 
         assertEquals(OK, client.set(key1, value1).get());
         assertEquals(OK, client.set(key2, value2).get());
-        assertEquals(6L, client.bitop(BitwiseOperation.AND, destKey, new String[] {key1, key2}).get());
+        assertEquals(6L, client.bitop(BitwiseOperation.AND, destKey, keys).get());
         assertEquals("`bc`ab", client.get(destKey).get());
+        assertEquals(6L, client.bitop(BitwiseOperation.OR, destKey, keys).get());
+        assertEquals("goofev", client.get(destKey).get());
 
-//        // Exception thrown due to the key holding a value with the wrong type
-//        ExecutionException executionException =
-//            assertThrows(ExecutionException.class, () -> client.bitcount(key2).get());
-//        assertTrue(executionException.getCause() instanceof RequestException);
-//
-//        // Exception thrown due to the key holding a value with the wrong type
-//        executionException =
-//            assertThrows(ExecutionException.class, () -> client.bitcount(key2, 1, 1).get());
-//        assertTrue(executionException.getCause() instanceof RequestException);
+        // Reset values for simplicity of results in XOR
+        assertEquals(OK, client.set(key1, "a").get());
+        assertEquals(OK, client.set(key2, "b").get());
+        assertEquals(1L, client.bitop(BitwiseOperation.XOR, destKey, keys).get());
+        assertEquals("\u0003", client.get(destKey).get());
 
-//        if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
-//            assertEquals(16L, client.bitcount(key1, 2, 5, BitmapIndexType.BYTE).get());
-//            assertEquals(17L, client.bitcount(key1, 5, 30, BitmapIndexType.BIT).get());
-//            assertEquals(23, client.bitcount(key1, 5, -5, BitmapIndexType.BIT).get());
-//            assertEquals(0, client.bitcount(missingKey, 5, 30, BitmapIndexType.BIT).get());
-//
-//            // Exception thrown due to the key holding a value with the wrong type
-//            executionException =
-//                assertThrows(
-//                    ExecutionException.class,
-//                    () -> client.bitcount(key2, 1, 1, BitmapIndexType.BIT).get());
-//            assertTrue(executionException.getCause() instanceof RequestException);
-//        } else {
-//            // Exception thrown because BIT and BYTE options were implemented after 7.0.0
-//            executionException =
-//                assertThrows(
-//                    ExecutionException.class,
-//                    () -> client.bitcount(key1, 2, 5, BitmapIndexType.BYTE).get());
-//            assertTrue(executionException.getCause() instanceof RequestException);
-//
-//            // Exception thrown because BIT and BYTE options were implemented after 7.0.0
-//            executionException =
-//                assertThrows(
-//                    ExecutionException.class,
-//                    () -> client.bitcount(key1, 5, 30, BitmapIndexType.BIT).get());
-//            assertTrue(executionException.getCause() instanceof RequestException);
-//        }
+        // Test single source key
+        assertEquals(1L, client.bitop(BitwiseOperation.AND, destKey, new String[] {key1}).get());
+        assertEquals("a", client.get(destKey).get());
+        assertEquals(1L, client.bitop(BitwiseOperation.OR, destKey, new String[] {key1}).get());
+        assertEquals("a", client.get(destKey).get());
+        assertEquals(1L, client.bitop(BitwiseOperation.XOR, destKey, new String[] {key1}).get());
+        assertEquals("a", client.get(destKey).get());
+        assertEquals(1L, client.bitop(BitwiseOperation.NOT, destKey, new String[] {key1}).get());
+        // First bit is flipped to 1 and throws 'utf-8' codec can't decode byte 0x9e in position 0:
+        // invalid start byte
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.get(destKey).get());
+        assertTrue(executionException.getCause() instanceof RuntimeException);
+        assertEquals(0, client.setbit(key1, 0, 1).get());
+        assertEquals(1L, client.bitop(BitwiseOperation.NOT, destKey, new String[] {key1}).get());
+        assertEquals("\u001e", client.get(destKey).get());
+
+        // Returns null when all keys hold empty strings
+        assertEquals(0L, client.bitop(BitwiseOperation.AND, destKey, emptyKeys).get());
+        assertEquals(null, client.get(destKey).get());
+        assertEquals(0L, client.bitop(BitwiseOperation.OR, destKey, emptyKeys).get());
+        assertEquals(null, client.get(destKey).get());
+        assertEquals(0L, client.bitop(BitwiseOperation.XOR, destKey, emptyKeys).get());
+        assertEquals(null, client.get(destKey).get());
+        assertEquals(0L, client.bitop(BitwiseOperation.NOT, destKey, new String[] {emptyKey1}).get());
+        assertEquals(null, client.get(destKey).get());
+
+        // Exception thrown due to the key holding a value with the wrong type
+        assertEquals(1, client.sadd(emptyKey1, new String[] {value1}).get());
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.bitop(BitwiseOperation.AND, destKey, new String[] {emptyKey1}).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.bitop(BitwiseOperation.OR, destKey, new String[] {emptyKey1}).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.bitop(BitwiseOperation.XOR, destKey, new String[] {emptyKey1}).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.bitop(BitwiseOperation.NOT, destKey, new String[] {emptyKey1}).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
     }
 }

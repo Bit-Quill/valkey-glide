@@ -3,7 +3,6 @@ package glide.api.commands;
 
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.bitmap.BitwiseOperation;
-
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -116,5 +115,23 @@ public interface BitmapBaseCommands {
      */
     CompletableFuture<Long> getbit(String key, long offset);
 
-    CompletableFuture<Long> bitop(BitwiseOperation bitwiseOperation, String destkey, String[] keys);
+    /**
+     * Perform a bitwise operation between multiple keys (containing string values) and store the
+     * result in the <code>destKey</code>.
+     *
+     * @see <a href="https://redis.io/commands/bitop/">redis.io</a> for details.
+     * @param bitwiseOperation The bitwise operation to perform.
+     * @param destKey The key that will store the resulting string.
+     * @param keys The list of keys to perform the bitwise operation on.
+     * @return The size of the string stored in <code>destKey</code>.
+     * @example
+     *     <pre>{@code
+     * client.set("key1", "A"); // "A" has binary value 01000001
+     * client.set("key2", "B"); // "B" has binary value 01000010
+     * Long payload = client.bitop(BitwiseOperation.AND, "destKey", new String[] {key1, key2}).get();
+     * assert "@" == client.get("destKey").get(); // "@" has binary value 01000000
+     * assert payload == 1L; // The size of the resulting string is 1.
+     * }</pre>
+     */
+    CompletableFuture<Long> bitop(BitwiseOperation bitwiseOperation, String destKey, String[] keys);
 }

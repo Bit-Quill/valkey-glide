@@ -1324,8 +1324,9 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Long> bitop(
-        @NonNull BitwiseOperation bitwiseOperation, @NonNull String destkey, @NonNull String[] keys) {
-        String[] arguments = concatenateArrays(new String[] {bitwiseOperation.toString(), destkey}, keys);
+            @NonNull BitwiseOperation bitwiseOperation, @NonNull String destkey, @NonNull String[] keys) {
+        String[] arguments =
+                concatenateArrays(new String[] {bitwiseOperation.toString(), destkey}, keys);
         return commandManager.submitNewCommand(BitOp, arguments, this::handleLongResponse);
     }
 }

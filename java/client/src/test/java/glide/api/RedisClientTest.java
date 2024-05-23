@@ -4447,9 +4447,8 @@ public class RedisClientTest {
         testResponse.complete(result);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(
-            eq(BitOp), eq(arguments), any()))
-            .thenReturn(testResponse);
+        when(commandManager.<Long>submitNewCommand(eq(BitOp), eq(arguments), any()))
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Long> response = service.bitop(bitwiseAnd, destKey, keys);
