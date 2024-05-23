@@ -687,19 +687,19 @@ public class CommandTests {
                         "bzmpop", "7.0.0", clusterClient.bzmpop(new String[] {"abc", "zxy", "lkn"}, MAX, .1)),
                 Arguments.of(
                         "bitop",
-                        "7.0.0",
+                        null,
                         clusterClient.bitop(BitwiseOperation.AND, "abc", new String[] {"zxy", "lkn"})),
                 Arguments.of(
                         "bitop",
-                        "7.0.0",
+                        null,
                         clusterClient.bitop(BitwiseOperation.OR, "abc", new String[] {"zxy", "lkn"})),
                 Arguments.of(
                         "bitop",
-                        "7.0.0",
+                        null,
                         clusterClient.bitop(BitwiseOperation.XOR, "abc", new String[] {"zxy", "lkn"})),
                 Arguments.of(
                         "bitop",
-                        "7.0.0",
+                        null,
                         clusterClient.bitop(BitwiseOperation.NOT, "abc", new String[] {"zxy"})));
     }
 
