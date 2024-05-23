@@ -1106,25 +1106,27 @@ export type StreamTrimLimitOptions = {
     limit: number;
 };
 
-export type StreamTrimMinIdOptions = ({
+export type StreamTrimMinIdOptions = {
     /**
      * Trim the stream according to entry ID.
      * Equivalent to `MINID` in the Redis API.
      */
     method: "minid";
     threshold: string;
-}) & (StreamTrimExactOptions | StreamTrimLimitOptions);
+} & (StreamTrimExactOptions | StreamTrimLimitOptions);
 
-export type StreamTrimMaxLenOptions = ({
+export type StreamTrimMaxLenOptions = {
     /**
      * Trim the stream according to length.
      * Equivalent to `MAXLEN` in the Redis API.
      */
     method: "maxlen";
     threshold: number;
-}) & (StreamTrimExactOptions | StreamTrimLimitOptions);
+} & (StreamTrimExactOptions | StreamTrimLimitOptions);
 
-export type StreamTrimOptions = StreamTrimMinIdOptions | StreamTrimMaxLenOptions;
+export type StreamTrimOptions =
+    | StreamTrimMinIdOptions
+    | StreamTrimMaxLenOptions;
 
 export type StreamAddOptions = {
     /**
