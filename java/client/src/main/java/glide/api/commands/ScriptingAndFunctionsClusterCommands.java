@@ -93,7 +93,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
      * @param function The function name.
      * @param arguments An <code>array</code> of <code>function</code> arguments.
-     * @return A value depends on the function that was executed.
+     * @return The invoked function's return value.
      * @example
      *     <pre>{@code
      * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything"};
@@ -112,7 +112,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @param arguments An <code>array</code> of <code>function</code> arguments.
      * @param route Specifies the routing configuration for the command. The client will route the
      *     command to the nodes defined by <code>route</code>.
-     * @return A value depends on the function that was executed.
+     * @return The invoked function's return value.
      * @example
      *     <pre>{@code
      * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything"};

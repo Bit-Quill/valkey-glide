@@ -690,13 +690,11 @@ public class CommandTests {
                 Arguments.of(
                         "bzpopmin", "5.0.0", clusterClient.bzpopmin(new String[] {"abc", "zxy", "lkn"}, .1)),
                 Arguments.of(
-                        "bzmpop",
+                        "bzmpop", "7.0.0", clusterClient.bzmpop(new String[] {"abc", "zxy", "lkn"}, MAX, .1)),
+                Arguments.of(
+                        "fcall",
                         "7.0.0",
-                        clusterClient.bzmpop(new String[] {"abc", "zxy", "lkn"}, MAX, .1),
-                        Arguments.of(
-                                "fcall",
-                                "7.0.0",
-                                clusterClient.fcall("func", new String[] {"abc", "zxy", "lkn"}, new String[0]))));
+                        clusterClient.fcall("func", new String[] {"abc", "zxy", "lkn"}, new String[0])));
     }
 
     @SneakyThrows
@@ -758,12 +756,11 @@ public class CommandTests {
     }
 
     @SneakyThrows
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    public void functionLoad_and_fcall_without_keys(boolean withRoute) {
+    @Test
+    public void functionLoad_and_fcall_without_keys_with_route() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
-        String libName = "mylib1c_" + withRoute;
-        String funcName = "myfunc1c_" + withRoute;
+        String libName = "mylib1c_with_route";
+        String funcName = "myfunc1c_with_route";
         String code =
                 "#!lua name="
                         + libName
@@ -772,50 +769,71 @@ public class CommandTests {
                         + "', function(keys, args) return args[1] end)";
         Route route = new SlotKeyRoute("1", PRIMARY);
 
-        var promise =
-                withRoute ? clusterClient.functionLoad(code, route) : clusterClient.functionLoad(code);
-        assertEquals(libName, promise.get());
+        assertEquals(libName, clusterClient.functionLoad(code, route).get());
 
-        var functionResultPromise =
-                withRoute
-                        ? clusterClient.fcall(funcName, new String[] {"one", "two"}, route)
-                        : clusterClient.fcall(funcName, new String[] {"one", "two"});
-        assertEquals("one", functionResultPromise.get());
+        assertEquals("one", clusterClient.fcall(funcName, new String[] {"one", "two"}, route).get());
 
         // TODO test with FUNCTION LIST
 
         // re-load library without overwriting
-        promise =
-                withRoute ? clusterClient.functionLoad(code, route) : clusterClient.functionLoad(code);
-        var executionException = assertThrows(ExecutionException.class, promise::get);
+        var executionException =
+                assertThrows(ExecutionException.class, () -> clusterClient.functionLoad(code, route).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
         assertTrue(
                 executionException.getMessage().contains("Library '" + libName + "' already exists"));
 
         // re-load library with overwriting
-        var promise2 =
-                withRoute
-                        ? clusterClient.functionLoadReplace(code, route)
-                        : clusterClient.functionLoadReplace(code);
-        assertEquals(libName, promise2.get());
-        String newFuncName = "myfunc2c_" + withRoute;
+        assertEquals(libName, clusterClient.functionLoadReplace(code, route).get());
+        String newFuncName = "myfunc2c_with_route";
         String newCode =
                 code
                         + "\n redis.register_function('"
                         + newFuncName
                         + "', function(keys, args) return #args end)";
-        promise2 =
-                withRoute
-                        ? clusterClient.functionLoadReplace(newCode, route)
-                        : clusterClient.functionLoadReplace(newCode);
-        assertEquals(libName, promise2.get());
 
-        Thread.sleep(1000);
-        functionResultPromise =
-                withRoute
-                        ? clusterClient.fcall(newFuncName, new String[] {"one", "two"}, route)
-                        : clusterClient.fcall(newFuncName, new String[] {"one", "two"});
-        assertEquals(2L, functionResultPromise.get());
+        assertEquals(libName, clusterClient.functionLoadReplace(newCode, route).get());
+
+        assertEquals(2L, clusterClient.fcall(newFuncName, new String[] {"one", "two"}, route).get());
+    }
+
+    @SneakyThrows
+    @Test
+    public void functionLoad_and_fcall_without_keys() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+        String libName = "mylib1c";
+        String funcName = "myfunc1c";
+        String code =
+                "#!lua name="
+                        + libName
+                        + " \n redis.register_function('"
+                        + funcName
+                        + "', function(keys, args) return args[1] end)"; // function returns first argument
+
+        assertEquals(libName, clusterClient.functionLoad(code).get());
+
+        assertEquals("one", clusterClient.fcall(funcName, new String[] {"one", "two"}).get());
+
+        // TODO test with FUNCTION LIST
+
+        // re-load library without overwriting
+        var executionException =
+                assertThrows(ExecutionException.class, () -> clusterClient.functionLoad(code).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+        assertTrue(
+                executionException.getMessage().contains("Library '" + libName + "' already exists"));
+
+        // re-load library with overwriting
+        assertEquals(libName, clusterClient.functionLoadReplace(code).get());
+        String newFuncName = "myfunc2c";
+        String newCode =
+                code
+                        + "\n redis.register_function('"
+                        + newFuncName
+                        + "', function(keys, args) return #args end)"; // function returns argument array len
+
+        assertEquals(libName, clusterClient.functionLoadReplace(newCode).get());
+
+        assertEquals(2L, clusterClient.fcall(newFuncName, new String[] {"one", "two"}).get());
     }
 
     @ParameterizedTest
@@ -833,6 +851,7 @@ public class CommandTests {
                         + libName
                         + " \n redis.register_function('"
                         + funcName
+                        // function array with first two arguments
                         + "', function(keys, args) return {keys[1], keys[2]} end)";
         assertEquals(libName, clusterClient.functionLoad(code, route).get());
 

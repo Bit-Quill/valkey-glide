@@ -3276,9 +3276,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
      * @param function The function name.
-     * @param keys An <code>array</code> of key names which <code>function</code> will work with.
+     * @param keys An <code>array</code> of key arguments accessed by the function.
      * @param arguments An <code>array</code> of <code>function</code> arguments.
-     * @return Command Response - A value depends on the function that was executed.
+     * @return Command Response - The invoked function's return value.
      */
     public T fcall(@NonNull String function, @NonNull String[] keys, @NonNull String[] arguments) {
         ArgsArray commandArgs =

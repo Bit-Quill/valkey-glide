@@ -18,15 +18,15 @@ public interface ScriptingAndFunctionsBaseCommands {
      * @apiNote When in cluster mode
      *     <ul>
      *       <li>all <code>keys</code> must map to the same hash slot.
-     *       <li>and no <code>keys</code> are given, command will be routed to a random node.
+     *       <li>if no <code>keys</code> are given, command will be routed to a random node.
      *     </ul>
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
      * @param function The function name.
-     * @param keys An <code>array</code> of key names which <code>function</code> will work with.
+     * @param keys An <code>array</code> of key arguments accessed by the function.
      * @param arguments An <code>array</code> of <code>function</code> arguments.
-     * @return A value depends on the function that was executed.
+     * @return The invoked function's return value.
      * @example
      *     <pre>{@code
      * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything"};

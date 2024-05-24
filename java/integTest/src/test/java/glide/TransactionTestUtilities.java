@@ -522,7 +522,8 @@ public class TransactionTestUtilities {
 
         final String code =
                 "#!lua name=mylib1T \n"
-                        + " redis.register_function('myfunc1T', function(keys, args) return args[1] end)";
+                        + " redis.register_function('myfunc1T',"
+                        + "function(keys, args) return args[1] end)"; // function returns first argument
 
         transaction
                 .functionLoad(code)
