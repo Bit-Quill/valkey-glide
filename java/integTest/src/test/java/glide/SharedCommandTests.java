@@ -10,7 +10,6 @@ import static glide.TestUtilities.commonClusterClientConfig;
 import static glide.api.BaseClient.OK;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.BEFORE;
-import static glide.api.models.commands.PopDirection.LEFT;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.NEGATIVE_INFINITY;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.POSITIVE_INFINITY;
 import static glide.api.models.commands.ScoreFilter.MAX;
@@ -4125,15 +4124,15 @@ public class SharedCommandTests {
         Map<String, String[]> expected2 = Map.of(key2, new String[] {"one", "two"});
 
         // nothing to be popped
-        assertNull(client.blmpop(singleKeyArray, LEFT, 0.1).get());
-        assertNull(client.blmpop(singleKeyArray, LEFT, count, 0.1).get());
+        assertNull(client.blmpop(singleKeyArray, PopDirection.LEFT, 0.1).get());
+        assertNull(client.blmpop(singleKeyArray, PopDirection.LEFT, count, 0.1).get());
 
         // pushing to the arrays to be popped
         assertEquals(arraySize, client.lpush(key1, lpushArgs).get());
         assertEquals(arraySize, client.lpush(key2, lpushArgs).get());
 
         // assert correct result from popping
-        Map<String, String[]> result = client.blmpop(singleKeyArray, LEFT, 0.1).get();
+        Map<String, String[]> result = client.blmpop(singleKeyArray, PopDirection.LEFT, 0.1).get();
         assertDeepEquals(result, expected);
 
         // assert popping multiple elements from the right
@@ -4145,7 +4144,7 @@ public class SharedCommandTests {
         ExecutionException executionException =
                 assertThrows(
                         ExecutionException.class,
-                        () -> client.blmpop(new String[] {nonListKey}, LEFT, 0.1).get());
+                        () -> client.blmpop(new String[] {nonListKey}, PopDirection.LEFT, 0.1).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 
@@ -4162,13 +4161,14 @@ public class SharedCommandTests {
                         : RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get()) {
 
             // ensure that commands doesn't time out even if timeout > request timeout
-            assertNull(testClient.blmpop(new String[] {key}, LEFT, 1).get());
+            assertNull(testClient.blmpop(new String[] {key}, PopDirection.LEFT, 1).get());
 
             // with 0 timeout (no timeout) should never time out,
             // but we wrap the test with timeout to avoid test failing or stuck forever
             assertThrows(
                     TimeoutException.class, // <- future timeout, not command timeout
-                    () -> testClient.blmpop(new String[] {key}, LEFT, 0).get(3, TimeUnit.SECONDS));
+                    () ->
+                            testClient.blmpop(new String[] {key}, PopDirection.LEFT, 0).get(3, TimeUnit.SECONDS));
         }
     }
 }
