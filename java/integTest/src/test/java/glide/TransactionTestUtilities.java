@@ -269,9 +269,9 @@ public class TransactionTestUtilities {
                     .lpush(listKey4, new String[] {value1, value2, value3})
                     .lmpop(new String[] {listKey4}, PopDirection.LEFT)
                     .lmpop(new String[] {listKey4}, PopDirection.LEFT, 2L)
-                .lpush(listKey4, new String[] {value1, value2, value3})
-                .blmpop(new String[] {listKey4}, PopDirection.LEFT, 0.1)
-                .blmpop(new String[] {listKey4}, PopDirection.LEFT, 2L, 0.1);
+                    .lpush(listKey4, new String[] {value1, value2, value3})
+                    .blmpop(new String[] {listKey4}, PopDirection.LEFT, 0.1)
+                    .blmpop(new String[] {listKey4}, PopDirection.LEFT, 2L, 0.1);
         } // listKey4 is now empty
 
         var expectedResults =
