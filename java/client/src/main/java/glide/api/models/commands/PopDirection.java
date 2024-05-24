@@ -8,8 +8,8 @@ import glide.api.commands.ListBaseCommands;
  * command.
  */
 public enum PopDirection {
-    /** Represents the option that elements should be popped from the left side of a list */
+    /** Represents the option that elements should be popped from the left side of a list. */
     LEFT,
-    /** Represents the option that elements should be popped from the right side of a list */
+    /** Represents the option that elements should be popped from the right side of a list. */
     RIGHT
 }

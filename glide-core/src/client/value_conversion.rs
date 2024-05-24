@@ -334,6 +334,12 @@ pub(crate) fn convert_to_expected_type(
             // RESP2 returns scores as strings, but we want scores as type double.
             convert_to_array_of_pairs(value, Some(ExpectedReturnType::Double))
         }
+        // Used by LMPOP and BLMPOP
+        // The server response can be an array or null
+        //
+        // Example:
+        // let input = ["key", "val1", "val2"]
+        // let expected =("key", vec!["val1", "val2"])
         ExpectedReturnType::ArrayOfStringAndArrays => match value {
             Value::Nil => Ok(value),
             Value::Array(array) if array.len() == 2 && matches!(array[1], Value::Array(_)) => {

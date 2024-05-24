@@ -376,7 +376,7 @@ public interface ListBaseCommands {
 
     /**
      * Pops one or more elements from the first non-empty list from the list of provided <code>key
-     * </code>
+     * </code>.
      *
      * @since Redis 7.0 and above.
      * @apiNote When in cluster mode, all <code>keys</code> must map to the same hash slot.
@@ -385,10 +385,10 @@ public interface ListBaseCommands {
      * @param direction The direction based on which elements are popped from - see {@link
      *     PopDirection}.
      * @param count The count of elements to be popped and returned.
-     * @return A <code>Map</code> of <code>key</code> names arrays of popped elements.
+     * @return A <code>Map</code> of <code>key</code> name mapped array of popped elements.
      * @example
      *     <pre>{@code
-     * client.lpush("testKey", new String[] {"one", "two", "three"};
+     * client.lpush("testKey", new String[] {"one", "two", "three"}.;
      * String[] result = client.lmpop(new String[] {"testKey"}, LmPopDirection.LEFT, 1L).get().get("testKey");
      * assertArrayEquals(new String[] {"three"}, result);
      * }</pre>
@@ -396,7 +396,7 @@ public interface ListBaseCommands {
     CompletableFuture<Map<String, String[]>> lmpop(String[] keys, PopDirection direction, long count);
 
     /**
-     * Pops one element from the first non-empty list from the list of provided <code>key</code>
+     * Pops one element from the first non-empty list from the list of provided <code>key</code>.
      *
      * @since Redis 7.0 and above.
      * @apiNote When in cluster mode, all <code>keys</code> must map to the same hash slot.
@@ -404,7 +404,7 @@ public interface ListBaseCommands {
      * @param keys The list of provided <code>key</code> names.
      * @param direction The direction based on which elements are popped from - see {@link
      *     PopDirection}.
-     * @return A <code>Map</code> of <code>key</code> names arrays of popped elements
+     * @return A <code>Map</code> of <code>key</code> name mapped array of the popped element.
      * @example
      *     <pre>{@code
      * client.lpush("testKey", new String[] {"one", "two", "three"};

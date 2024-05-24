@@ -4,6 +4,7 @@ package glide;
 import static glide.TestConfiguration.CLUSTER_PORTS;
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestConfiguration.STANDALONE_PORTS;
+import static glide.TestUtilities.assertDeepEquals;
 import static glide.TestUtilities.commonClientConfig;
 import static glide.TestUtilities.commonClusterClientConfig;
 import static glide.api.BaseClient.OK;
@@ -3929,17 +3930,11 @@ public class SharedCommandTests {
 
         // assert correct result from popping
         Map<String, String[]> result = client.lmpop(singleKeyArray, PopDirection.LEFT).get();
-        assertEquals(Map.of(key1, new String[] {"five"}).keySet(), result.keySet());
-        for (String k : expected.keySet()) {
-            assertArrayEquals(expected.get(k), result.get(k));
-        }
+        assertDeepEquals(result, expected);
 
         // assert popping multiple elements from the right
         Map<String, String[]> result2 = client.lmpop(multiKeyArray, PopDirection.RIGHT, 2L).get();
-        assertEquals(Map.of(key2, new String[] {"one", "two"}).keySet(), result2.keySet());
-        for (String k : expected2.keySet()) {
-            assertArrayEquals(expected2.get(k), result2.get(k));
-        }
+        assertDeepEquals(result2, expected2);
 
         // key exists but is not a list type key
         assertEquals(OK, client.set(nonListKey, "lmpop").get());
