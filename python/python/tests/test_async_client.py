@@ -1333,9 +1333,9 @@ class TestCommands:
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
     async def test_smismember(self, redis_client: TRedisClient):
-        key1 = f"{{testKey}}:1-{get_random_string(10)}"
-        string_key = f"{{testKey}}:4-{get_random_string(10)}"
-        non_existing_key = f"{{testKey}}:5-{get_random_string(10)}"
+        key1 = get_random_string(10)
+        string_key = get_random_string(10)
+        non_existing_key = get_random_string(10)
 
         assert await redis_client.sadd(key1, ["one", "two"]) == 2
         assert await redis_client.smismember(key1, ["two", "three"]) == [True, False]
