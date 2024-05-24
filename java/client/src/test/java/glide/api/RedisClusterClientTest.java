@@ -22,6 +22,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ConfigResetStat;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigRewrite;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigSet;
 import static redis_request.RedisRequestOuterClass.RequestType.Echo;
+import static redis_request.RedisRequestOuterClass.RequestType.FCall;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
@@ -1164,6 +1165,53 @@ public class RedisClusterClientTest {
         // exercise
         CompletableFuture<String> response = service.functionLoadReplace(code, RANDOM);
         String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void fcall_without_keys_returns_success() {
+        // setup
+        String function = "func";
+        String[] arguments = new String[] {"1", "2"};
+        String[] args = new String[] {function, "0", "1", "2"};
+        Object value = "42";
+        CompletableFuture<Object> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.submitNewCommand(eq(FCall), eq(args), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Object> response = service.fcall(function, arguments);
+        Object payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void fcall_without_keys_and_with_route_returns_success() {
+        // setup
+        String function = "func";
+        String[] arguments = new String[] {"1", "2"};
+        String[] args = new String[] {function, "0", "1", "2"};
+        Object value = "42";
+        CompletableFuture<Object> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.submitNewCommand(eq(FCall), eq(args), eq(RANDOM), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Object> response = service.fcall(function, arguments, RANDOM);
+        Object payload = response.get();
 
         // verify
         assertEquals(testResponse, response);

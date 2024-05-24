@@ -4484,9 +4484,9 @@ public class RedisClientTest {
     public void fcall_returns_success() {
         // setup
         String function = "func";
-        String[] keys = new String[0];
+        String[] keys = new String[] {"key1", "key2"};
         String[] arguments = new String[] {"1", "2"};
-        String[] args = new String[] {function, "0", "1", "2"};
+        String[] args = new String[] {function, "2", "key1", "key2", "1", "2"};
         Object value = "42";
         CompletableFuture<Object> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
