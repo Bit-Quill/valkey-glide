@@ -825,6 +825,7 @@ public class CommandTests {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
         prefix = "{" + prefix + "}-fcall_with_keys-";
+        Route route = new SlotKeyRoute(prefix, PRIMARY);
         String libName = "mylib_with_keys";
         String funcName = "myfunc_with_keys";
         String code =
@@ -833,13 +834,13 @@ public class CommandTests {
                         + " \n redis.register_function('"
                         + funcName
                         + "', function(keys, args) return {keys[1], keys[2]} end)";
-        assertEquals(libName, clusterClient.functionLoad(code, ALL_NODES).get());
+        assertEquals(libName, clusterClient.functionLoad(code, route).get());
 
         var functionResult =
                 clusterClient.fcall(funcName, new String[] {prefix + 1, prefix + 2}, new String[0]).get();
         assertArrayEquals(new Object[] {prefix + 1, prefix + 2}, (Object[]) functionResult);
 
         // TODO replace with command
-        clusterClient.customCommand(new String[] {"function", "delete", libName}, ALL_NODES).get();
+        clusterClient.customCommand(new String[] {"function", "delete", libName}, route).get();
     }
 }
