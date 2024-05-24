@@ -417,7 +417,7 @@ public interface ListBaseCommands {
     CompletableFuture<Map<String, String[]>> lmpop(String[] keys, PopDirection direction);
 
     /**
-     * Blocks the connection until it pops and pops one or more elements from the first non-empty list
+     * Blocks the connection until it pops one or more elements from the first non-empty list
      * from the provided <code>keys</code> <code>BLMPOP</code> is the blocking variant of <code>LMPOP
      * </code>.
      *
