@@ -1662,7 +1662,7 @@ class CoreCommands(Protocol):
         See https://valkey.io/docs/latest/commands/sinterstore for more details.
 
         Note:
-            When in Cluster mode, all keys in `keys` and `destination` must map to the same hash slot.
+            When in Cluster mode, all `keys` and `destination` must map to the same hash slot.
 
         Args:
             destination (str): The key of the destination set.
@@ -1675,7 +1675,7 @@ class CoreCommands(Protocol):
             >>> await client.sadd("my_set1", ["member1", "member2"])
             >>> await client.sadd("my_set2", ["member2", "member3"])
             >>> await client.sinterstore("my_set3", ["my_set1", "my_set2"])
-                 1  # One element was stored at "my_set3", and that element is the intersection of "my_set1" and "myset2".
+                1  # One element was stored at "my_set3", and that element is the intersection of "my_set1" and "myset2".
         """
         return cast(
             int,
