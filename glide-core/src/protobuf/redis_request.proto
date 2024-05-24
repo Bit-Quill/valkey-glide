@@ -187,6 +187,7 @@ enum RequestType {
     GetBit = 145;
     ZInter = 146;
     FunctionLoad = 150;
+    FCall = 154;
 }
 
 message Command {

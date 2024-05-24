@@ -84,4 +84,41 @@ public interface ScriptingAndFunctionsClusterCommands {
      * }</pre>
      */
     CompletableFuture<String> functionLoadReplace(String libraryCode, Route route);
+
+    /**
+     * Invokes a previously loaded function.<br>
+     * The command will be routed to a random node.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
+     * @param function The function name.
+     * @param arguments An <code>array</code> of <code>function</code> arguments.
+     * @return A value depends on the function that was executed.
+     * @example
+     *     <pre>{@code
+     * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything"};
+     * Object response = client.fcall("Deep_Thought", args).get();
+     * assert Object == 42;
+     * }</pre>
+     */
+    CompletableFuture<Object> fcall(String function, String[] arguments);
+
+    /**
+     * Invokes a previously loaded function.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
+     * @param function The function name.
+     * @param arguments An <code>array</code> of <code>function</code> arguments.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return A value depends on the function that was executed.
+     * @example
+     *     <pre>{@code
+     * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything"};
+     * Object response = client.fcall("Deep_Thought", args).get();
+     * assert Object == 42;
+     * }</pre>
+     */
+    CompletableFuture<Object> fcall(String function, String[] arguments, Route route);
 }

@@ -157,6 +157,7 @@ pub enum RequestType {
     GetBit = 145,
     ZInter = 146,
     FunctionLoad = 150,
+    FCall = 154,
 }
 
 fn get_two_word_command(first: &str, second: &str) -> Cmd {
@@ -317,6 +318,7 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::GetBit => RequestType::GetBit,
             ProtobufRequestType::ZInter => RequestType::ZInter,
             ProtobufRequestType::FunctionLoad => RequestType::FunctionLoad,
+            ProtobufRequestType::FCall => RequestType::FCall,
         }
     }
 }
@@ -473,6 +475,7 @@ impl RequestType {
             RequestType::GetBit => Some(cmd("GETBIT")),
             RequestType::ZInter => Some(cmd("ZINTER")),
             RequestType::FunctionLoad => Some(get_two_word_command("FUNCTION", "LOAD")),
+            RequestType::FCall => Some(cmd("FCALL")),
         }
     }
 }

@@ -31,6 +31,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Echo;
 import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
+import static redis_request.RedisRequestOuterClass.RequestType.FCall;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
@@ -3266,6 +3267,25 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T functionLoadReplace(@NonNull String libraryCode) {
         ArgsArray commandArgs = buildArgs(FunctionLoadOptions.REPLACE.toString(), libraryCode);
         protobufTransaction.addCommands(buildCommand(FunctionLoad, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Invokes a previously loaded function.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
+     * @param function The function name.
+     * @param keys An <code>array</code> of key names which <code>function</code> will work with.
+     * @param arguments An <code>array</code> of <code>function</code> arguments.
+     * @return Command Response - A value depends on the function that was executed.
+     */
+    public T fcall(@NonNull String function, @NonNull String[] keys, @NonNull String[] arguments) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {function, Long.toString(keys.length)}, keys, arguments));
+        protobufTransaction.addCommands(buildCommand(FCall, commandArgs));
         return getThis();
     }
 

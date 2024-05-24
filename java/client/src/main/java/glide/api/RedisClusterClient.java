@@ -14,6 +14,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ConfigRewrite;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigSet;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Echo;
+import static redis_request.RedisRequestOuterClass.RequestType.FCall;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
@@ -445,5 +446,18 @@ public class RedisClusterClient extends BaseClient
                 new String[] {FunctionLoadOptions.REPLACE.toString(), libraryCode},
                 route,
                 this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<Object> fcall(@NonNull String function, @NonNull String[] arguments) {
+        String[] args = concatenateArrays(new String[] {function, "0"}, arguments); // 0 - key count
+        return commandManager.submitNewCommand(FCall, args, this::handleObjectOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<Object> fcall(
+            @NonNull String function, @NonNull String[] arguments, @NonNull Route route) {
+        String[] args = concatenateArrays(new String[] {function, "0"}, arguments); // 0 - key count
+        return commandManager.submitNewCommand(FCall, args, route, this::handleObjectOrNullResponse);
     }
 }

@@ -4,8 +4,8 @@ package glide.api.commands;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Supports commands and transactions for the "Scripting and Function" group for standalone and
- * cluster clients.
+ * Supports commands and transactions for the "Scripting and Function" group for a standalone
+ * client.
  *
  * @see <a href="https://redis.io/docs/latest/commands/?group=scripting">Scripting and Function
  *     Commands</a>
@@ -44,4 +44,21 @@ public interface ScriptingAndFunctionsCommands {
      * }</pre>
      */
     CompletableFuture<String> functionLoadReplace(String libraryCode);
+
+    /**
+     * Invokes a previously loaded function.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
+     * @param function The function name.
+     * @param arguments An <code>array</code> of <code>function</code> arguments.
+     * @return A value depends on the function that was executed.
+     * @example
+     *     <pre>{@code
+     * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything"};
+     * Object response = client.fcall("Deep_Thought", args).get();
+     * assert Object == 42;
+     * }</pre>
+     */
+    CompletableFuture<Object> fcall(String function, String[] arguments);
 }

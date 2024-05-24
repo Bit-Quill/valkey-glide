@@ -339,7 +339,7 @@ public class CommandTests {
 
     @SneakyThrows
     @Test
-    public void functionLoad() {
+    public void functionLoad_and_fcall() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         String libName = "mylib1C";
         String code =
@@ -347,7 +347,11 @@ public class CommandTests {
                         + libName
                         + " \n redis.register_function('myfunc1c', function(keys, args) return args[1] end)";
         assertEquals(libName, regularClient.functionLoad(code).get());
-        // TODO test function with FCALL when fixed in redis-rs and implemented
+
+        var functionResult =
+                regularClient.fcall("myfunc1c", new String[0], new String[] {"one", "two"}).get();
+        assertEquals("one", functionResult);
+
         // TODO test with FUNCTION LIST
 
         // re-load library without overwriting
@@ -362,6 +366,9 @@ public class CommandTests {
         String newCode =
                 code + "\n redis.register_function('myfunc2c', function(keys, args) return #args end)";
         assertEquals(libName, regularClient.functionLoadReplace(newCode).get());
-        // TODO test with FCALL
+
+        functionResult =
+                regularClient.fcall("myfunc2c", new String[0], new String[] {"one", "two"}).get();
+        assertEquals(2L, functionResult);
     }
 }
