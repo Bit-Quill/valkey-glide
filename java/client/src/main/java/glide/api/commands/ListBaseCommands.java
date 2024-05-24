@@ -431,7 +431,7 @@ public interface ListBaseCommands {
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://valkey.io/commands/blmpop/">valkey.io</a> for details.
-     * @param keys An of array of keys to lists.
+     * @param keys An array of keys to lists.
      * @param direction The direction based on which elements are popped from - see {@link
      *     PopDirection}.
      * @param count The maximum number of popped elements.
@@ -465,7 +465,7 @@ public interface ListBaseCommands {
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://valkey.io/commands/lmpop/">valkey.io</a> for details.
-     * @param keys An of array of keys to lists.
+     * @param keys An array of keys to lists.
      * @param direction The direction based on which elements are popped from - see {@link
      *     PopDirection}.
      * @param timeout The number of seconds to wait for a blocking operation to complete. A value of
