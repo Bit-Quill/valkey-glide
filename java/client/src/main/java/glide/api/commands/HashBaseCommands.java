@@ -247,7 +247,7 @@ public interface HashBaseCommands {
      * @example
      *     <pre>{@code
      * Long strlen = client.hstrlen("my_hash", "my_field").get();
-     * assert strlen > 0L;
+     * assert strlen >= 0L;
      * }</pre>
      */
     CompletableFuture<Long> hstrlen(String key, String field);
