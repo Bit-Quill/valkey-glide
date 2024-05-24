@@ -3490,8 +3490,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param keys The list of provided <code>key</code> names.
      * @param direction The direction based on which elements are popped from - see {@link
      *     PopDirection}.
-     * @return Command Response - A <code>Map</code> of <code>key</code> name mapped array of the popped
-     *     element.
+     * @return Command Response - A <code>Map</code> of <code>key</code> name mapped array of the
+     *     popped element.
      */
     public T lmpop(@NonNull String[] keys, @NonNull PopDirection direction) {
         ArgsArray commandArgs =
