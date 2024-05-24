@@ -399,6 +399,12 @@ public abstract class BaseClient
     }
 
     @Override
+    public CompletableFuture<String> rename(@NonNull String key, @NonNull String newKey) {
+        return commandManager.submitNewCommand(
+                Rename, new String[] {key, newKey}, this::handleStringResponse);
+    }
+
+    @Override
     public CompletableFuture<Boolean> renamenx(@NonNull String key, @NonNull String newKey) {
         return commandManager.submitNewCommand(
                 RenameNX, new String[] {key, newKey}, this::handleBooleanResponse);
@@ -1319,11 +1325,5 @@ public abstract class BaseClient
     public CompletableFuture<Long> getbit(@NonNull String key, long offset) {
         String[] arguments = new String[] {key, Long.toString(offset)};
         return commandManager.submitNewCommand(GetBit, arguments, this::handleLongResponse);
-    }
-
-    @Override
-    public CompletableFuture<String> rename(@NonNull String key, @NonNull String newKey) {
-        return commandManager.submitNewCommand(
-                Rename, new String[] {key, newKey}, this::handleStringResponse);
     }
 }

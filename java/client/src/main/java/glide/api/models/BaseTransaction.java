@@ -2547,6 +2547,23 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
+     * Renames <code>key</code> to <code>newKey</code>.
+     *
+     * @apiNote If `<code>newKey</code> already exists it is overwritten. meaning that in practice
+     *     only keys that have the same hashtag can be reliably renamed in cluster.
+     * @see <a href="https://redis.io/commands/rename/">redis.io</a> for details.
+     * @param key The <code>key</code> to rename.
+     * @param newKey The new name of the <code>key</code>.
+     * @return If the <code>key</code> was successfully renamed, return <code>"OK"</code>. If <code>
+     *     key</code> does not exist, an error is thrown.
+     */
+    public T rename(@NonNull String key, @NonNull String newKey) {
+        ArgsArray commandArgs = buildArgs(key, newKey);
+        protobufTransaction.addCommands(buildCommand(Rename, commandArgs));
+        return getThis();
+    }
+
+    /**
      * Renames <code>key</code> to <code>newKey</code> if <code>newKey</code> does not yet exist.
      *
      * @see <a href="https://redis.io/commands/renamenx/">redis.io</a> for details.
@@ -3196,22 +3213,5 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         }
 
         return commandArgs.build();
-    }
-
-    /**
-     * Renames <code>key</code> to <code>newKey</code>.
-     *
-     * @apiNote If `<code>newKey</code> already exists it is overwritten. meaning that in practice
-     *     only keys that have the same hashtag can be reliably renamed in cluster.
-     * @see <a href="https://redis.io/commands/rename/">redis.io</a> for details.
-     * @param key The <code>key</code> to rename.
-     * @param newKey The new name of the <code>key</code>.
-     * @return If the <code>key</code> was successfully renamed, return <code>"OK"</code>. If <code>
-     *     key</code> does not exist, an error is thrown.
-     */
-    public T rename(@NonNull String key, @NonNull String newKey) {
-        ArgsArray commandArgs = buildArgs(key, newKey);
-        protobufTransaction.addCommands(buildCommand(Rename, commandArgs));
-        return getThis();
     }
 }

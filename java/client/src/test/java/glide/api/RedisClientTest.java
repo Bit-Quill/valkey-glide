@@ -3661,13 +3661,13 @@ public class RedisClientTest {
         // setup
         String key = "key1";
         String newKey = "key2";
-        String[] arguments = new String[]{key, newKey};
+        String[] arguments = new String[] {key, newKey};
         CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete("OK");
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(Rename), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String> response = service.rename(key, newKey);

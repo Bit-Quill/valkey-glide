@@ -639,6 +639,9 @@ public class TransactionTests {
         transaction.type("key");
         results.add(Pair.of(Type, buildArgs("key")));
 
+        transaction.rename("key", "newKey");
+        results.add(Pair.of(Rename, buildArgs("key", "newKey")));
+
         transaction.renamenx("key", "newKey");
         results.add(Pair.of(RenameNX, buildArgs("key", "newKey")));
 
@@ -760,9 +763,6 @@ public class TransactionTests {
                     results.get(idx).getRight().getArgsCount(), protobuf.getArgsArray().getArgsCount());
             assertEquals(results.get(idx).getRight(), protobuf.getArgsArray());
         }
-
-        transaction.rename("key", "newKey");
-        results.add(Pair.of(Rename, buildArgs("key", "newKey")));
     }
 
     private ArgsArray buildArgs(String... args) {
