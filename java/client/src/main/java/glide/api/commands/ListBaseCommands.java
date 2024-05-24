@@ -451,7 +451,7 @@ public interface ListBaseCommands {
             String[] keys, PopDirection direction, long count, double timeout);
 
     /**
-     * Blocks the connection until it pops and pop one element from the first non-empty list from the
+     * Blocks the connection until it pop one element from the first non-empty list from the
      * provided <code>keys</code> <code>BLMPOP</code> is the blocking variant of <code>LMPOP
      * </code>.
      *
