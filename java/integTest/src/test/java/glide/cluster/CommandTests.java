@@ -805,10 +805,12 @@ public class CommandTests {
         String code =
                 "#!lua name="
                         + libName
-                        + " \n redis.register_function('"
+                        + " \n redis.register_function{"
+                        + "function_name = '"
                         + funcName
-                        + "', flags={ 'no-writes' },"
-                        + "function(keys, args) return args[1] end)"; // function returns first argument
+                        + "', callback = function(keys, args) return args[1] end" // function returns first
+                        // argument
+                        + ", flags = { 'no-writes' }}";
 
         assertEquals(libName, clusterClient.functionLoad(code).get());
 
@@ -828,10 +830,12 @@ public class CommandTests {
         String newFuncName = "myfunc2c";
         String newCode =
                 code
-                        + "\n redis.register_function('"
+                        + "\n redis.register_function{"
+                        + "function_name = '"
                         + newFuncName
-                        + "', flags={ 'no-writes' },"
-                        + "function(keys, args) return #args end)"; // function returns argument array len
+                        + "', callback = function(keys, args) return #args end" // function returns argument
+                        // array len
+                        + ", flags = { 'no-writes' }}";
 
         assertEquals(libName, clusterClient.functionLoadReplace(newCode).get());
 
