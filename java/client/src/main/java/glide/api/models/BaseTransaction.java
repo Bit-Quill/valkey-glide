@@ -3440,9 +3440,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Blocks the connection until it pops and pops one or more elements from the first non-empty list
-     * from the provided <code>keys</code> <code>BLMPOP</code> is the blocking variant of <code>LMPOP
-     * </code>.
+     * Blocks the connection until it pops one or more elements from the first non-empty list from the
+     * provided <code>keys</code>. <code>BLMPOP</code> is the blocking variant of <code>LMPOP</code>.
      *
      * @apiNote <code>BLMPOP</code> is a client blocking command, see <a
      *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
@@ -3477,7 +3476,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Pops one element from the first non-empty list from the provided <code>keys</code>
+     * Blocks the connection until it pops one element from the first non-empty list from the provided
+     * <code>keys</code>. <code>BLMPOP</code> is the blocking variant of <code>LMPOP</code>.
      *
      * @apiNote <code>BLMPOP</code> is a client blocking command, see <a
      *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
