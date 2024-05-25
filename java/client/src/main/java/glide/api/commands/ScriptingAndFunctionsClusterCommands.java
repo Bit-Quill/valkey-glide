@@ -96,9 +96,9 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @return The invoked function's return value.
      * @example
      *     <pre>{@code
-     * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything"};
+     * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything" };
      * Object response = client.fcall("Deep_Thought", args).get();
-     * assert Object == 42;
+     * assert Object == 42L;
      * }</pre>
      */
     CompletableFuture<Object> fcall(String function, String[] arguments);
@@ -115,9 +115,9 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @return The invoked function's return value.
      * @example
      *     <pre>{@code
-     * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything"};
-     * Object response = client.fcall("Deep_Thought", args).get();
-     * assert Object == 42;
+     * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything" };
+     * Object response = client.fcall("Deep_Thought", args, ALL_NODES).get();
+     * assert Object == 42L;
      * }</pre>
      */
     CompletableFuture<Object> fcall(String function, String[] arguments, Route route);

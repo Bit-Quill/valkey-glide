@@ -807,7 +807,8 @@ public class CommandTests {
                         + libName
                         + " \n redis.register_function('"
                         + funcName
-                        + "', function(keys, args) return args[1] end)"; // function returns first argument
+                        + "', flags={ 'no-writes' },"
+                        + "function(keys, args) return args[1] end)"; // function returns first argument
 
         assertEquals(libName, clusterClient.functionLoad(code).get());
 
@@ -829,7 +830,8 @@ public class CommandTests {
                 code
                         + "\n redis.register_function('"
                         + newFuncName
-                        + "', function(keys, args) return #args end)"; // function returns argument array len
+                        + "', flags={ 'no-writes' },"
+                        + "function(keys, args) return #args end)"; // function returns argument array len
 
         assertEquals(libName, clusterClient.functionLoadReplace(newCode).get());
 
