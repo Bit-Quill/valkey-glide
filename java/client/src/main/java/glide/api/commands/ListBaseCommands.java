@@ -491,7 +491,7 @@ public interface ListBaseCommands {
      * @see <a href="https://valkey.io/commands/lset/">valkey.io</a> for details.
      * @param key The key of the list.
      * @param index The index of the element in the list to be set.
-     * @return A simple string reply: OK
+     * @return A simple string reply: OK.
      * @example
      *     <pre>{@code
      * client.lpush("testKey", new String[] {"three", "one"}).get();
