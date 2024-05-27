@@ -3330,7 +3330,8 @@ class TestCommands:
 
         try:
             assert (
-                await redis_client.config_set({maxmemory_policy_key: "allkeys-lfu"}) == OK
+                await redis_client.config_set({maxmemory_policy_key: "allkeys-lfu"})
+                == OK
             )
             assert await redis_client.object_freq("non_existing_key") is None
             assert await redis_client.set(key, "") == OK

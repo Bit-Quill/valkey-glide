@@ -1,3 +1,6 @@
+#### Changes
+* Python: Added OBJECT FREQ command (TODO: add PR link)
+
 ## 0.4.0 (2024-05-26)
 
 #### Changes
@@ -41,7 +44,6 @@
 * Python: Added SINTERSTORE command ([#1459](https://github.com/aws/glide-for-redis/pull/1459))
 * Python: Added SMISMEMBER command ([#1461](https://github.com/aws/glide-for-redis/pull/1461))
 * Python: Added SETRANGE command ([#1453](https://github.com/aws/glide-for-redis/pull/1453)
-* Python: Added OBJECT FREQ command (TODO: add PR link)
 
 #### Fixes
 * Python: Fix typing error "‘type’ object is not subscriptable" ([#1203](https://github.com/aws/glide-for-redis/pull/1203))
