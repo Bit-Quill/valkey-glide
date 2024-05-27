@@ -164,6 +164,7 @@ pub enum RequestType {
     ExpireTime = 156,
     PExpireTime = 157,
     BLMPop = 158,
+    LSet = 165,
 }
 
 fn get_two_word_command(first: &str, second: &str) -> Cmd {
@@ -331,6 +332,7 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::HStrlen => RequestType::HStrlen,
             ProtobufRequestType::ExpireTime => RequestType::ExpireTime,
             ProtobufRequestType::PExpireTime => RequestType::PExpireTime,
+            ProtobufRequestType::LSet => RequestType::LSet,
         }
     }
 }
@@ -494,6 +496,7 @@ impl RequestType {
             RequestType::HStrlen => Some(cmd("HSTRLEN")),
             RequestType::ExpireTime => Some(cmd("EXPIRETIME")),
             RequestType::PExpireTime => Some(cmd("PEXPIRETIME")),
+            RequestType::LSet => Some(cmd("LSET")),
         }
     }
 }

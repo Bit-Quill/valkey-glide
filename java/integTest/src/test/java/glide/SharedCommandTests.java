@@ -4207,4 +4207,38 @@ public class SharedCommandTests {
                             testClient.blmpop(new String[] {key}, PopDirection.LEFT, 0).get(3, TimeUnit.SECONDS));
         }
     }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void lset(BaseClient client) {
+        // setup
+        String key = "testKey";
+        String nonExistingKey = "nonExisting";
+        long index = 0;
+        long oobIndex = 10;
+        String element = "zero";
+        String[] lpushArgs = {"four", "three", "two", "one"};
+        String[] expectedList = {"zero", "two", "three", "four"};
+
+        // key does not exist
+        ExecutionException noSuchKeyException =
+                assertThrows(
+                        ExecutionException.class, () -> client.lset(nonExistingKey, index, element).get());
+        assertInstanceOf(RequestException.class, noSuchKeyException.getCause());
+
+        // pushing elements to list
+        client.lpush(key, lpushArgs).get();
+
+        // index out of range
+        ExecutionException indexOutOfBoundException =
+                assertThrows(ExecutionException.class, () -> client.lset(key, oobIndex, element).get());
+        assertInstanceOf(RequestException.class, indexOutOfBoundException.getCause());
+
+        // assert lset result
+        String response = client.lset(key, index, element).get();
+        assertEquals(OK, response);
+        String[] updatedList = client.lrange(key, 0, -1).get();
+        assertArrayEquals(updatedList, expectedList);
+    }
 }

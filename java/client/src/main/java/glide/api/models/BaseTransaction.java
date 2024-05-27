@@ -74,6 +74,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LPush;
 import static redis_request.RedisRequestOuterClass.RequestType.LPushX;
 import static redis_request.RedisRequestOuterClass.RequestType.LRange;
 import static redis_request.RedisRequestOuterClass.RequestType.LRem;
+import static redis_request.RedisRequestOuterClass.RequestType.LSet;
 import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
 import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
@@ -3720,6 +3721,22 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                                 keys,
                                 new String[] {direction.toString()}));
         protobufTransaction.addCommands(buildCommand(LMPop, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Sets the list element at <code>index</code> to <code>element</code>. For details on the index
+     * argument, see {@link #lindex(String, long)}. Throws an exception for out of range <code>index
+     * </code>es.
+     *
+     * @see <a href="https://valkey.io/commands/lset/">valkey.io</a> for details.
+     * @param key The key of the list.
+     * @param index The index of the element in the list to be set.
+     * @return Command Response: A simple string reply: OK
+     */
+    public T lset(String key, long index, String element) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(index), element);
+        protobufTransaction.addCommands(buildCommand(LSet, commandArgs));
         return getThis();
     }
 
