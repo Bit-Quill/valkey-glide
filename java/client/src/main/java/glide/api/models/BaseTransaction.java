@@ -2354,7 +2354,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     </code> with stream keys, to <code>Map</code> of stream-ids, to a <code>Map</code> of
      *     field-entries.
      */
-    public T xread(@NonNull Map<String, String> keysAndIds, StreamReadOptions options) {
+    public T xread(@NonNull Map<String, String> keysAndIds, @NonNull StreamReadOptions options) {
         protobufTransaction.addCommands(buildCommand(XRead, buildArgs(options.toArgs(keysAndIds))));
         return getThis();
     }

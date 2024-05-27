@@ -78,8 +78,8 @@ public interface StreamBaseCommands {
     /**
      * Reads entries from the given streams.
      *
-     * @apiNote When in cluster mode, all keys in <code>keysAndIds</code> must map to the same <code>
-     *     hash slot</code>.
+     * @apiNote When in cluster mode, all keys in <code>keysAndIds</code> must map to the same hash
+     *     slot.
      * @see <a href="https://redis.io/commands/xread/">redis.io</a> for details.
      * @param keysAndIds A <code>Map</code> of keys and entry ids to read from. The <code>
      *     Map</code> is composed of a stream's key and the id of the entry after which the stream
@@ -105,8 +105,8 @@ public interface StreamBaseCommands {
     /**
      * Reads entries from the given streams.
      *
-     * @apiNote When in cluster mode, all keys in <code>keysAndIds</code> must map to the same <code>
-     *     hash slot</code>.
+     * @apiNote When in cluster mode, all keys in <code>keysAndIds</code> must map to the same hash
+     *     slot.
      * @see <a href="https://redis.io/commands/xread/">redis.io</a> for details.
      * @param keysAndIds A <code>Map</code> of keys and entry ids to read from. The <code>
      *     Map</code> is composed of a stream's key and the id of the entry after which the stream
