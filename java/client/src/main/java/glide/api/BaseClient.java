@@ -1546,7 +1546,8 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<String> lset(String key, long index, String element) {
+    public CompletableFuture<String> lset(
+            @NonNull String key, @NonNull long index, @NonNull String element) {
         String[] arguments = new String[] {key, Long.toString(index), element};
         return commandManager.submitNewCommand(LSet, arguments, this::handleStringResponse);
     }

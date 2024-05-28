@@ -5,7 +5,6 @@ import glide.api.models.commands.LInsertOptions.InsertPosition;
 import glide.api.models.commands.PopDirection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import lombok.NonNull;
 
 /**
  * Supports commands and transactions for the "List Commands" group for standalone and cluster
@@ -501,5 +500,5 @@ public interface ListBaseCommands {
      * assertEquals(response, "OK");
      * }</pre>
      */
-    CompletableFuture<String> lset(@NonNull String key, @NonNull long index, @NonNull String element);
+    CompletableFuture<String> lset(String key, long index, String element);
 }
