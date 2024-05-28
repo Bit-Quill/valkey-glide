@@ -3290,6 +3290,19 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
+     * Invokes a previously loaded function.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
+     * @param function The function name.
+     * @param arguments An <code>array</code> of <code>function</code> arguments.
+     * @return Command Response - The invoked function's return value.
+     */
+    public T fcall(@NonNull String function, @NonNull String[] arguments) {
+        return fcall(function, new String[0], arguments);
+    }
+
+    /**
      * Sets or clears the bit at <code>offset</code> in the string value stored at <code>key</code>.
      * The <code>offset</code> is a zero-based index, with <code>0</code> being the first element of
      * the list, <code>1</code> being the next element, and so on. The <code>offset</code> must be

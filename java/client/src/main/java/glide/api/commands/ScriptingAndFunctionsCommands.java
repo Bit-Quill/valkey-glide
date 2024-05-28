@@ -44,4 +44,19 @@ public interface ScriptingAndFunctionsCommands {
      * }</pre>
      */
     CompletableFuture<String> functionLoadReplace(String libraryCode);
+
+    /**
+     * Invokes a previously loaded function.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
+     * @param function The function name.
+     * @return The invoked function's return value.
+     * @example
+     *     <pre>{@code
+     * Object response = client.fcall("Deep_Thought").get();
+     * assert Object == 42L;
+     * }</pre>
+     */
+    CompletableFuture<Object> fcall(String function);
 }

@@ -449,6 +449,16 @@ public class RedisClusterClient extends BaseClient
     }
 
     @Override
+    public CompletableFuture<Object> fcall(@NonNull String function) {
+        return fcall(function, new String[0]);
+    }
+
+    @Override
+    public CompletableFuture<Object> fcall(@NonNull String function, @NonNull Route route) {
+        return fcall(function, new String[0], route);
+    }
+
+    @Override
     public CompletableFuture<Object> fcall(@NonNull String function, @NonNull String[] arguments) {
         String[] args = concatenateArrays(new String[] {function, "0"}, arguments); // 0 - key count
         return commandManager.submitNewCommand(FCall, args, this::handleObjectOrNullResponse);

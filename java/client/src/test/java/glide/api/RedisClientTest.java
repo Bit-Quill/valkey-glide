@@ -4481,7 +4481,7 @@ public class RedisClientTest {
 
     @SneakyThrows
     @Test
-    public void fcall_returns_success() {
+    public void fcall_with_keys_and_args_returns_success() {
         // setup
         String function = "func";
         String[] keys = new String[] {"key1", "key2"};
@@ -4496,6 +4496,28 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<Object> response = service.fcall(function, keys, arguments);
+        Object payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void fcall_returns_success() {
+        // setup
+        String function = "func";
+        String[] args = new String[] {function, "0"};
+        Object value = "42";
+        CompletableFuture<Object> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.submitNewCommand(eq(FCall), eq(args), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Object> response = service.fcall(function);
         Object payload = response.get();
 
         // verify

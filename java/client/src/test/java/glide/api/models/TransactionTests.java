@@ -774,6 +774,9 @@ public class TransactionTests {
         transaction.fcall("func", new String[] {"key1", "key2"}, new String[] {"arg1", "arg2"});
         results.add(Pair.of(FCall, buildArgs("func", "2", "key1", "key2", "arg1", "arg2")));
 
+        transaction.fcall("func", new String[] {"arg1", "arg2"});
+        results.add(Pair.of(FCall, buildArgs("func", "0", "arg1", "arg2")));
+
         transaction.geodist("key", "Place", "Place2");
         results.add(Pair.of(GeoDist, buildArgs("key", "Place", "Place2")));
         transaction.geodist("key", "Place", "Place2", GeoUnit.KILOMETERS);

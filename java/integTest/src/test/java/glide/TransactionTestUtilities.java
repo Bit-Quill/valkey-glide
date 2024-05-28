@@ -521,19 +521,21 @@ public class TransactionTestUtilities {
         }
 
         final String code =
-                "#!lua name=mylib1T \n"
-                        + " redis.register_function('myfunc1T',"
+                "#!lua name=mylib1T\n"
+                        + "redis.register_function('myfunc1T',"
                         + "function(keys, args) return args[1] end)"; // function returns first argument
 
         transaction
                 .functionLoad(code)
                 .functionLoadReplace(code)
-                .fcall("myfunc1T", new String[0], new String[] {"a", "b"});
+                .fcall("myfunc1T", new String[0], new String[] {"a", "b"})
+                .fcall("myfunc1T", new String[] {"a", "b"});
 
         return new Object[] {
             "mylib1T", // functionLoad(code)
             "mylib1T", // functionLoadReplace(code)
             "a", // fcall("myfunc1T", new String[0], new String[]{"a", "b"})
+            "a", // fcall("myfunc1T", new String[] {"a", "b"})
         };
     }
 
