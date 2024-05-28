@@ -530,7 +530,9 @@ class TestTransaction:
             assert response is not None
             assert response[0] == OK  # transaction.set(string_key, "foo")
             assert response[1] == "embstr"  # transaction.object_encoding(string_key)
-            assert cast(int, response[2]) >= 0  # transaction.object_refcount(string_key)
+            assert (
+                cast(int, response[2]) >= 0
+            )  # transaction.object_refcount(string_key)
             assert (
                 response[3] == OK
             )  # transaction.config_set({maxmemory_policy_key: "allkeys-lfu"})
