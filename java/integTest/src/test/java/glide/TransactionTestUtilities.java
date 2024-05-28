@@ -250,7 +250,7 @@ public class TransactionTestUtilities {
         String listKey2 = "{ListKey}-2-" + UUID.randomUUID();
         String listKey3 = "{ListKey}-3-" + UUID.randomUUID();
         String listKey4 = "{ListKey}-4-" + UUID.randomUUID();
-        String listKey5 = "{ListKey}-4-" + UUID.randomUUID();
+        String listKey5 = "{ListKey}-5-" + UUID.randomUUID();
 
         transaction
                 .lpush(listKey1, new String[] {value1, value1, value2, value3, value3})

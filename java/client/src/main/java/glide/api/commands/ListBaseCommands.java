@@ -5,6 +5,7 @@ import glide.api.models.commands.LInsertOptions.InsertPosition;
 import glide.api.models.commands.PopDirection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import lombok.NonNull;
 
 /**
  * Supports commands and transactions for the "List Commands" group for standalone and cluster
@@ -484,22 +485,21 @@ public interface ListBaseCommands {
             String[] keys, PopDirection direction, double timeout);
 
     /**
-     * Sets the list element at <code>index</code> to <code>element</code>. For details on the index
-     * argument, see {@link #lindex(String, long)}. Throws an exception for out of range <code>index
-     * </code>es.
+     * Sets the list element at <code>index</code> to <code>element</code>.<br>
+     * The index is zero-based, so <code>0</code> means the first element, <code>1</code> the second
+     * element and so on. Negative indices can be used to designate elements starting at the tail of
+     * the list. Here, <code>-1</code> means the last element, <code>-2</code> means the penultimate
+     * and so forth.
      *
      * @see <a href="https://valkey.io/commands/lset/">valkey.io</a> for details.
      * @param key The key of the list.
      * @param index The index of the element in the list to be set.
-     * @return A simple string reply: OK.
+     * @return <code>OK</code>.
      * @example
      *     <pre>{@code
-     * client.lpush("testKey", new String[] {"three", "one"}).get();
      * String response = client.lset("testKey", 1, "two").get();
      * assertEquals(response, "OK");
-     * String[] lrange_result = client.lrange("testKey", 0, -1).get();
-     * assertArrayEquals(lrange_result, new String[] {"one", "two"});
      * }</pre>
      */
-    CompletableFuture<String> lset(String key, long index, String element);
+    CompletableFuture<String> lset(@NonNull String key, @NonNull long index, @NonNull String element);
 }

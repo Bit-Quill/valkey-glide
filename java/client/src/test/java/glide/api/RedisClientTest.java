@@ -5111,10 +5111,9 @@ public class RedisClientTest {
         long index = 0;
         String element = "two";
         String[] arguments = new String[] {key, "0", element};
-        String value = "OK";
 
         CompletableFuture<String> testResponse = new CompletableFuture<>();
-        testResponse.complete(value);
+        testResponse.complete(OK);
 
         // match on protobuf request
         when(commandManager.<String>submitNewCommand(eq(LSet), eq(arguments), any()))
@@ -5126,6 +5125,6 @@ public class RedisClientTest {
 
         // verify
         assertEquals(testResponse, response);
-        assertEquals(value, payload);
+        assertEquals(OK, payload);
     }
 }

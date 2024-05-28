@@ -4217,9 +4217,11 @@ public class SharedCommandTests {
         String nonExistingKey = "nonExisting";
         long index = 0;
         long oobIndex = 10;
+        long negativeIndex = -1;
         String element = "zero";
         String[] lpushArgs = {"four", "three", "two", "one"};
         String[] expectedList = {"zero", "two", "three", "four"};
+        String[] expectedList2 = {"zero", "two", "three", "zero"};
 
         // key does not exist
         ExecutionException noSuchKeyException =
@@ -4240,5 +4242,11 @@ public class SharedCommandTests {
         assertEquals(OK, response);
         String[] updatedList = client.lrange(key, 0, -1).get();
         assertArrayEquals(updatedList, expectedList);
+
+        // assert lset with a negative index for the last element in the list
+        String response2 = client.lset(key, negativeIndex, element).get();
+        assertEquals(OK, response2);
+        String[] updatedList2 = client.lrange(key, 0, -1).get();
+        assertArrayEquals(updatedList2, expectedList2);
     }
 }

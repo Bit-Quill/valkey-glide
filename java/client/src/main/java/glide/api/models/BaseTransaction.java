@@ -3725,16 +3725,14 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Sets the list element at <code>index</code> to <code>element</code>. For details on the index
-     * argument, see {@link #lindex(String, long)}. Throws an exception for out of range <code>index
-     * </code>es.
+     * * Sets the list element at <code>index</code> to <code>element</code>.
      *
      * @see <a href="https://valkey.io/commands/lset/">valkey.io</a> for details.
      * @param key The key of the list.
      * @param index The index of the element in the list to be set.
-     * @return Command Response: A simple string reply: OK
+     * @return Command Response - <code>OK</code>.
      */
-    public T lset(String key, long index, String element) {
+    public T lset(@NonNull String key, @NonNull long index, @NonNull String element) {
         ArgsArray commandArgs = buildArgs(key, Long.toString(index), element);
         protobufTransaction.addCommands(buildCommand(LSet, commandArgs));
         return getThis();
