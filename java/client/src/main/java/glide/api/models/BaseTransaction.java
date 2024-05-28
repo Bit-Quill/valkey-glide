@@ -7,6 +7,7 @@ import static glide.api.commands.SortedSetBaseCommands.LIMIT_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.RangeOptions.createZRangeArgs;
+import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArgs;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -18,6 +19,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.BitCount;
+import static redis_request.RedisRequestOuterClass.RequestType.BitFieldReadOnly;
 import static redis_request.RedisRequestOuterClass.RequestType.BitPos;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientId;
@@ -163,6 +165,8 @@ import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.function.FunctionLoadOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
@@ -3487,6 +3491,19 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T append(@NonNull String key, @NonNull String value) {
         ArgsArray commandArgs = buildArgs(key, value);
         protobufTransaction.addCommands(buildCommand(Append, commandArgs));
+        return getThis();
+    }
+
+    public T bitfield(@NonNull String key, @NonNull BitFieldSubCommands[] subCommands) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(createBitFieldArgs(subCommands), key));
+        protobufTransaction.addCommands(buildCommand(BitFieldReadOnly, commandArgs));
+        return getThis();
+    }
+
+    public T bitfieldReadOnly(
+            @NonNull String key, @NonNull BitFieldReadOnlySubCommands[] subCommands) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(createBitFieldArgs(subCommands), key));
+        protobufTransaction.addCommands(buildCommand(BitFieldReadOnly, commandArgs));
         return getThis();
     }
 }

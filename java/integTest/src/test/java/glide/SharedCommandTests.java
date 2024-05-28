@@ -46,6 +46,16 @@ import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
+import glide.api.models.commands.bitmap.BitEncodingOption.SignedEncoding;
+import glide.api.models.commands.bitmap.BitEncodingOption.UnsignedEncoding;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldIncrby;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldGet;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldOverflow;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSet;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
+import glide.api.models.commands.bitmap.BitOffsetOption.Offset;
+import glide.api.models.commands.bitmap.BitOffsetOption.OffsetMultiplier;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
@@ -3900,4 +3910,44 @@ public class SharedCommandTests {
             assertTrue(executionException.getCause() instanceof RequestException);
         }
     }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void bitfieldReadOnly(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        BitFieldReadOnlySubCommands bitFieldGet1 = new BitFieldGet(new UnsignedEncoding(2), new Offset(1));
+        BitFieldReadOnlySubCommands bitFieldGet2 = new BitFieldGet(new SignedEncoding(8), new Offset(5));
+        BitFieldReadOnlySubCommands bitFieldGet3 = new BitFieldGet(new UnsignedEncoding(6), new OffsetMultiplier(2));
+        String missingKey = UUID.randomUUID().toString();
+
+        client.set(key1, "foobar");
+        assertArrayEquals(
+                new Long[] {3L, -51L, 61L},
+                client
+                        .bitfieldReadOnly(key1, new BitFieldReadOnlySubCommands[] {bitFieldGet1, bitFieldGet2, bitFieldGet3})
+                        .get());
+    }
+
+        @SneakyThrows
+        @ParameterizedTest(autoCloseArguments = false)
+        @MethodSource("getClients")
+        public void bitfield(BaseClient client) {
+            String key1 = UUID.randomUUID().toString();
+            BitFieldSubCommands bitFieldSet = new BitFieldSet(new UnsignedEncoding(2), new Offset(1), 2);
+            BitFieldReadOnlySubCommands bitFieldGet = new BitFieldGet(new UnsignedEncoding(2), new Offset(1));
+            BitFieldSubCommands bitFieldIncrby = new BitFieldIncrby(new UnsignedEncoding(2), new Offset(1), -1);
+            BitFieldSubCommands bitFieldOverflow = new BitFieldOverflow(BitFieldOverflow.BitOverflowControl.FAIL);
+            String missingKey = UUID.randomUUID().toString();
+
+            client.set(key1, "foobar");
+            assertArrayEquals(new Long[] {3L, 3L, 2L, 1L}, client.bitfield(key1, new BitFieldSubCommands[]
+                {bitFieldGet, bitFieldSet, bitFieldGet, bitFieldIncrby}).get());
+
+            bitFieldIncrby = new BitFieldIncrby(new UnsignedEncoding(2), new Offset(102), 4);
+            client.set(key1, "");
+            assertArrayEquals(new Long[] {null}, client.bitfield(key1, new BitFieldSubCommands[]
+                {bitFieldOverflow, bitFieldIncrby}).get());
+        }
 }

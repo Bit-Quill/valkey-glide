@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
+import glide.api.models.commands.bitmap.BitFieldOptions;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import java.util.concurrent.CompletableFuture;
 
@@ -213,4 +214,9 @@ public interface BitmapBaseCommands {
      */
     CompletableFuture<Long> bitpos(
             String key, long bit, long start, long end, BitmapIndexType offsetType);
+
+    CompletableFuture<Long[]> bitfield(String key, BitFieldOptions.BitFieldSubCommands[] subCommands);
+
+    CompletableFuture<Long[]> bitfieldReadOnly(
+            String key, BitFieldOptions.BitFieldReadOnlySubCommands[] subCommands);
 }

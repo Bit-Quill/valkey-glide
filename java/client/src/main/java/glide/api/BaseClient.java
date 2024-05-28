@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArgs;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.castArrayofArrays;
@@ -15,6 +16,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.BitCount;
+import static redis_request.RedisRequestOuterClass.RequestType.BitField;
+import static redis_request.RedisRequestOuterClass.RequestType.BitFieldReadOnly;
 import static redis_request.RedisRequestOuterClass.RequestType.BitPos;
 import static redis_request.RedisRequestOuterClass.RequestType.Decr;
 import static redis_request.RedisRequestOuterClass.RequestType.DecrBy;
@@ -142,6 +145,7 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.ZAddOptions;
+import glide.api.models.commands.bitmap.BitFieldOptions;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
@@ -1409,5 +1413,25 @@ public abstract class BaseClient
                     key, Long.toString(bit), Long.toString(start), Long.toString(end), options.toString()
                 };
         return commandManager.submitNewCommand(BitPos, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long[]> bitfield(
+            @NonNull String key, @NonNull BitFieldOptions.BitFieldSubCommands[] subCommands) {
+        String[] arguments = ArrayUtils.addFirst(createBitFieldArgs(subCommands), key);
+        return commandManager.submitNewCommand(
+                BitField,
+                arguments,
+                response -> castArray(handleArrayOrNullResponse(response), Long.class));
+    }
+
+    @Override
+    public CompletableFuture<Long[]> bitfieldReadOnly(
+            @NonNull String key, @NonNull BitFieldOptions.BitFieldReadOnlySubCommands[] subCommands) {
+        String[] arguments = ArrayUtils.addFirst(createBitFieldArgs(subCommands), key);
+        return commandManager.submitNewCommand(
+                BitFieldReadOnly,
+                arguments,
+                response -> castArray(handleArrayOrNullResponse(response), Long.class));
     }
 }

@@ -157,6 +157,8 @@ pub enum RequestType {
     GetBit = 145,
     ZInter = 146,
     BitPos = 147,
+    BitField = 148,
+    BitFieldReadOnly = 149,
     FunctionLoad = 150,
 }
 
@@ -319,6 +321,8 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::ZInter => RequestType::ZInter,
             ProtobufRequestType::FunctionLoad => RequestType::FunctionLoad,
             ProtobufRequestType::BitPos => RequestType::BitPos,
+            ProtobufRequestType::BitField => RequestType::BitField,
+            ProtobufRequestType::BitFieldReadOnly => RequestType::BitFieldReadOnly,
         }
     }
 }
@@ -476,6 +480,8 @@ impl RequestType {
             RequestType::ZInter => Some(cmd("ZINTER")),
             RequestType::FunctionLoad => Some(get_two_word_command("FUNCTION", "LOAD")),
             RequestType::BitPos => Some(cmd("BITPOS")),
+            RequestType::BitField => Some(cmd("BITFIELD")),
+            RequestType::BitFieldReadOnly => Some(cmd("BITFIELD_RO")),
         }
     }
 }
