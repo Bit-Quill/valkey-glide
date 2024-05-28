@@ -3426,12 +3426,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Loads a library to Redis unless a library with the same name exists.
+     * Loads a library to Redis.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-load/">redis.io</a> for details.
      * @param libraryCode The source code that implements the library.
-     * @param replace Whether new library overwrites a library with the same name if it exists.
+     * @param replace Whether the given library should overwrite a library with the same name if it
+     *     already exists.
      * @return Command Response - The library name that was loaded.
      */
     public T functionLoad(@NonNull String libraryCode, boolean replace) {
