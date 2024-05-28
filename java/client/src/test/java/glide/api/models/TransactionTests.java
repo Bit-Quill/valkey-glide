@@ -84,6 +84,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LPush;
 import static redis_request.RedisRequestOuterClass.RequestType.LPushX;
 import static redis_request.RedisRequestOuterClass.RequestType.LRange;
 import static redis_request.RedisRequestOuterClass.RequestType.LRem;
+import static redis_request.RedisRequestOuterClass.RequestType.LSet;
 import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
 import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
@@ -105,6 +106,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
 import static redis_request.RedisRequestOuterClass.RequestType.RPushX;
+import static redis_request.RedisRequestOuterClass.RequestType.Rename;
 import static redis_request.RedisRequestOuterClass.RequestType.RenameNX;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.SCard;
@@ -128,6 +130,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Touch;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.XLen;
 import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.ZAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZCard;
@@ -675,6 +678,9 @@ public class TransactionTests {
         transaction.xtrim("key", new MinId(true, "id"));
         results.add(Pair.of(XTrim, buildArgs("key", TRIM_MINID_REDIS_API, TRIM_EXACT_REDIS_API, "id")));
 
+        transaction.xlen("key");
+        results.add(Pair.of(XLen, buildArgs("key")));
+
         transaction.time();
         results.add(Pair.of(Time, buildArgs()));
 
@@ -715,6 +721,9 @@ public class TransactionTests {
 
         transaction.type("key");
         results.add(Pair.of(Type, buildArgs("key")));
+
+        transaction.rename("key", "newKey");
+        results.add(Pair.of(Rename, buildArgs("key", "newKey")));
 
         transaction.renamenx("key", "newKey");
         results.add(Pair.of(RenameNX, buildArgs("key", "newKey")));
@@ -852,6 +861,9 @@ public class TransactionTests {
         results.add(Pair.of(BLMPop, buildArgs("0.1", "1", "key", "LEFT")));
         transaction.blmpop(new String[] {"key"}, PopDirection.LEFT, 1L, 0.1);
         results.add(Pair.of(BLMPop, buildArgs("0.1", "1", "key", "LEFT", "COUNT", "1")));
+
+        transaction.lset("key", 0, "zero");
+        results.add(Pair.of(LSet, buildArgs("key", "0", "zero")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

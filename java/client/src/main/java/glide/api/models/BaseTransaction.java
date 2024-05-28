@@ -74,6 +74,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LPush;
 import static redis_request.RedisRequestOuterClass.RequestType.LPushX;
 import static redis_request.RedisRequestOuterClass.RequestType.LRange;
 import static redis_request.RedisRequestOuterClass.RequestType.LRem;
+import static redis_request.RedisRequestOuterClass.RequestType.LSet;
 import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
 import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
@@ -95,6 +96,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
 import static redis_request.RedisRequestOuterClass.RequestType.RPushX;
+import static redis_request.RedisRequestOuterClass.RequestType.Rename;
 import static redis_request.RedisRequestOuterClass.RequestType.RenameNX;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.SCard;
@@ -118,6 +120,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Touch;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
+import static redis_request.RedisRequestOuterClass.RequestType.XLen;
 import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.ZAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZCard;
@@ -355,6 +358,22 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                 buildArgs(ArrayUtils.addAll(new String[] {key, value}, options.toArgs()));
 
         protobufTransaction.addCommands(buildCommand(Set, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Appends a <code>value</code> to a <code>key</code>. If <code>key</code> does not exist it is
+     * created and set as an empty string, so <code>APPEND</code> will be similar to {@see #set} in
+     * this special case.
+     *
+     * @see <a href="https://redis.io/docs/latest/commands/append/">redis.io</a> for details.
+     * @param key The key of the string.
+     * @param value The value to append.
+     * @return Command Response - The length of the string after appending the value.
+     */
+    public T append(@NonNull String key, @NonNull String value) {
+        ArgsArray commandArgs = buildArgs(key, value);
+        protobufTransaction.addCommands(buildCommand(Append, commandArgs));
         return getThis();
     }
 
@@ -2616,6 +2635,19 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
+     * Returns the number of entries in the stream stored at <code>key</code>.
+     *
+     * @see <a href="https://valkey.io/commands/xlen/">valkey.io</a> for details.
+     * @param key The key of the stream.
+     * @return Command Response - The number of entries in the stream. If <code>key</code> does not
+     *     exist, return <code>0</code>.
+     */
+    public T xlen(@NonNull String key) {
+        protobufTransaction.addCommands(buildCommand(XLen, buildArgs(key)));
+        return getThis();
+    }
+
+    /**
      * Returns the remaining time to live of <code>key</code> that has a timeout, in milliseconds.
      *
      * @see <a href="https://redis.io/commands/pttl/">redis.io</a> for details.
@@ -2780,6 +2812,22 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T type(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
         protobufTransaction.addCommands(buildCommand(Type, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Renames <code>key</code> to <code>newKey</code>.<br>
+     * If <code>newKey</code> already exists it is overwritten.
+     *
+     * @see <a href="https://redis.io/commands/rename/">redis.io</a> for details.
+     * @param key The <code>key</code> to rename.
+     * @param newKey The new name of the <code>key</code>.
+     * @return Command Response - If the <code>key</code> was successfully renamed, return <code>"OK"
+     *     </code>. If <code>key</code> does not exist, the transaction fails with an error.
+     */
+    public T rename(@NonNull String key, @NonNull String newKey) {
+        ArgsArray commandArgs = buildArgs(key, newKey);
+        protobufTransaction.addCommands(buildCommand(Rename, commandArgs));
         return getThis();
     }
 
@@ -3723,6 +3771,24 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
+    /**
+     * Sets the list element at <code>index</code> to <code>element</code>.<br>
+     * The index is zero-based, so <code>0</code> means the first element, <code>1</code> the second
+     * element and so on. Negative indices can be used to designate elements starting at the tail of
+     * the list. Here, <code>-1</code> means the last element, <code>-2</code> means the penultimate
+     * and so forth.
+     *
+     * @see <a href="https://valkey.io/commands/lset/">valkey.io</a> for details.
+     * @param key The key of the list.
+     * @param index The index of the element in the list to be set.
+     * @return Command Response - <code>OK</code>.
+     */
+    public T lset(@NonNull String key, long index, @NonNull String element) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(index), element);
+        protobufTransaction.addCommands(buildCommand(LSet, commandArgs));
+        return getThis();
+    }
+
     /** Build protobuf {@link Command} object for given command and arguments. */
     protected Command buildCommand(RequestType requestType) {
         return buildCommand(requestType, buildArgs());
@@ -3742,21 +3808,5 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         }
 
         return commandArgs.build();
-    }
-
-    /**
-     * Appends a <code>value</code> to a <code>key</code>. If <code>key</code> does not exist it is
-     * created and set as an empty string, so <code>APPEND</code> will be similar to {@see #set} in
-     * this special case.
-     *
-     * @see <a href="https://redis.io/docs/latest/commands/append/">redis.io</a> for details.
-     * @param key The key of the string.
-     * @param value The value to append.
-     * @return Command Response - The length of the string after appending the value.
-     */
-    public T append(@NonNull String key, @NonNull String value) {
-        ArgsArray commandArgs = buildArgs(key, value);
-        protobufTransaction.addCommands(buildCommand(Append, commandArgs));
-        return getThis();
     }
 }

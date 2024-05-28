@@ -97,6 +97,7 @@ public class TransactionTestUtilities {
                 .objectEncoding(genericKey1)
                 .touch(new String[] {genericKey1})
                 .set(genericKey2, value2)
+                .rename(genericKey1, genericKey1)
                 .renamenx(genericKey1, genericKey2)
                 .unlink(new String[] {genericKey2})
                 .get(genericKey2)
@@ -130,6 +131,7 @@ public class TransactionTestUtilities {
                     "embstr", // objectEncoding(genericKey1)
                     1L, // touch(new String[] {genericKey1})
                     OK, // set(genericKey2, value2)
+                    OK, // rename(genericKey1, genericKey1)
                     false, // renamenx(genericKey1, genericKey2)
                     1L, // unlink(new String[] {genericKey2})
                     null, // get(genericKey2)
@@ -250,6 +252,7 @@ public class TransactionTestUtilities {
         String listKey2 = "{ListKey}-2-" + UUID.randomUUID();
         String listKey3 = "{ListKey}-3-" + UUID.randomUUID();
         String listKey4 = "{ListKey}-4-" + UUID.randomUUID();
+        String listKey5 = "{ListKey}-5-" + UUID.randomUUID();
 
         transaction
                 .lpush(listKey1, new String[] {value1, value1, value2, value3, value3})
@@ -268,7 +271,10 @@ public class TransactionTestUtilities {
                 .lpush(listKey3, new String[] {value1, value2, value3})
                 .linsert(listKey3, AFTER, value2, value2)
                 .blpop(new String[] {listKey3}, 0.01)
-                .brpop(new String[] {listKey3}, 0.01);
+                .brpop(new String[] {listKey3}, 0.01)
+                .lpush(listKey5, new String[] {value2, value3})
+                .lset(listKey5, 0, value1)
+                .lrange(listKey5, 0, -1);
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             transaction
@@ -298,6 +304,9 @@ public class TransactionTestUtilities {
                     4L, // linsert(listKey3, AFTER, value2, value2)
                     new String[] {listKey3, value3}, // blpop(new String[] { listKey3 }, 0.01)
                     new String[] {listKey3, value1}, // brpop(new String[] { listKey3 }, 0.01)
+                    2L, // lpush(listKey5, new String[] {value2, value3})
+                    OK, // lset(listKey5, 0, value1)
+                    new String[] {value1, value2} // lrange(listKey5, 0, -1)
                 };
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
@@ -530,12 +539,14 @@ public class TransactionTestUtilities {
                 .xadd(streamKey1, Map.of("field1", "value1"), StreamAddOptions.builder().id("0-1").build())
                 .xadd(streamKey1, Map.of("field2", "value2"), StreamAddOptions.builder().id("0-2").build())
                 .xadd(streamKey1, Map.of("field3", "value3"), StreamAddOptions.builder().id("0-3").build())
+                .xlen(streamKey1)
                 .xtrim(streamKey1, new MinId(true, "0-2"));
 
         return new Object[] {
             "0-1", // xadd(streamKey1, Map.of("field1", "value1"), ... .id("0-1").build());
             "0-2", // xadd(streamKey1, Map.of("field2", "value2"), ... .id("0-2").build());
             "0-3", // xadd(streamKey1, Map.of("field3", "value3"), ... .id("0-3").build());
+            3L, // xlen(streamKey1)
             1L, // xtrim(streamKey1, new MinId(true, "0-2"))
         };
     }

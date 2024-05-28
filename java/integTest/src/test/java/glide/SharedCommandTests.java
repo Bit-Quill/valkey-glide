@@ -1116,6 +1116,24 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
+    public void rename(BaseClient client) {
+        String key1 = "{key}" + UUID.randomUUID();
+
+        assertEquals(OK, client.set(key1, "foo").get());
+        assertEquals(OK, client.rename(key1, key1 + "_rename").get());
+        assertEquals(1L, client.exists(new String[] {key1 + "_rename"}).get());
+
+        // key doesn't exist
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client.rename("{same_slot}" + "non_existing_key", "{same_slot}" + "_rename").get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
     public void renamenx(BaseClient client) {
         String key1 = "{key}" + UUID.randomUUID();
         String key2 = "{key}" + UUID.randomUUID();
@@ -2909,7 +2927,7 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
-    public void xadd_and_xtrim(BaseClient client) {
+    public void xadd_xlen_and_xtrim(BaseClient client) {
         String key = UUID.randomUUID().toString();
         String field1 = UUID.randomUUID().toString();
         String field2 = UUID.randomUUID().toString();
@@ -2934,17 +2952,7 @@ public class SharedCommandTests {
                         .get());
 
         assertNotNull(client.xadd(key, Map.of(field1, "foo2", field2, "bar2")).get());
-        // TODO update test when XLEN is available
-        if (client instanceof RedisClient) {
-            assertEquals(2L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
-        } else if (client instanceof RedisClusterClient) {
-            assertEquals(
-                    2L,
-                    ((RedisClusterClient) client)
-                            .customCommand(new String[] {"XLEN", key})
-                            .get()
-                            .getSingleValue());
-        }
+        assertEquals(2L, client.xlen(key).get());
 
         // this will trim the first entry.
         String id =
@@ -2955,17 +2963,7 @@ public class SharedCommandTests {
                                 StreamAddOptions.builder().trim(new MaxLen(true, 2L)).build())
                         .get();
         assertNotNull(id);
-        // TODO update test when XLEN is available
-        if (client instanceof RedisClient) {
-            assertEquals(2L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
-        } else if (client instanceof RedisClusterClient) {
-            assertEquals(
-                    2L,
-                    ((RedisClusterClient) client)
-                            .customCommand(new String[] {"XLEN", key})
-                            .get()
-                            .getSingleValue());
-        }
+        assertEquals(2L, client.xlen(key).get());
 
         // this will trim the second entry.
         assertNotNull(
@@ -2975,39 +2973,22 @@ public class SharedCommandTests {
                                 Map.of(field1, "foo4", field2, "bar4"),
                                 StreamAddOptions.builder().trim(new MinId(true, id)).build())
                         .get());
-        // TODO update test when XLEN is available
-        if (client instanceof RedisClient) {
-            assertEquals(2L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
-        } else if (client instanceof RedisClusterClient) {
-            assertEquals(
-                    2L,
-                    ((RedisClusterClient) client)
-                            .customCommand(new String[] {"XLEN", key})
-                            .get()
-                            .getSingleValue());
-        }
+        assertEquals(2L, client.xlen(key).get());
 
         // test xtrim to remove 1 element
         assertEquals(1L, client.xtrim(key, new MaxLen(1)).get());
-        // TODO update test when XLEN is available
-        if (client instanceof RedisClient) {
-            assertEquals(1L, ((RedisClient) client).customCommand(new String[] {"XLEN", key}).get());
-        } else if (client instanceof RedisClusterClient) {
-            assertEquals(
-                    1L,
-                    ((RedisClusterClient) client)
-                            .customCommand(new String[] {"XLEN", key})
-                            .get()
-                            .getSingleValue());
-        }
+        assertEquals(1L, client.xlen(key).get());
 
         // Key does not exist - returns 0
-        assertEquals(0L, client.xtrim(key, new MaxLen(true, 1)).get());
+        assertEquals(0L, client.xtrim(key2, new MaxLen(true, 1)).get());
+        assertEquals(0L, client.xlen(key2).get());
 
-        // Key exists, but it is not a stream
+        // Throw Exception: Key exists - but it is not a stream
         assertEquals(OK, client.set(key2, "xtrimtest").get());
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.xtrim(key2, new MinId("0-1")).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+        executionException = assertThrows(ExecutionException.class, () -> client.xlen(key2).get());
         assertTrue(executionException.getCause() instanceof RequestException);
     }
 
@@ -4206,5 +4187,47 @@ public class SharedCommandTests {
                     () ->
                             testClient.blmpop(new String[] {key}, PopDirection.LEFT, 0).get(3, TimeUnit.SECONDS));
         }
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void lset(BaseClient client) {
+        // setup
+        String key = "testKey";
+        String nonExistingKey = "nonExisting";
+        long index = 0;
+        long oobIndex = 10;
+        long negativeIndex = -1;
+        String element = "zero";
+        String[] lpushArgs = {"four", "three", "two", "one"};
+        String[] expectedList = {"zero", "two", "three", "four"};
+        String[] expectedList2 = {"zero", "two", "three", "zero"};
+
+        // key does not exist
+        ExecutionException noSuchKeyException =
+                assertThrows(
+                        ExecutionException.class, () -> client.lset(nonExistingKey, index, element).get());
+        assertInstanceOf(RequestException.class, noSuchKeyException.getCause());
+
+        // pushing elements to list
+        client.lpush(key, lpushArgs).get();
+
+        // index out of range
+        ExecutionException indexOutOfBoundException =
+                assertThrows(ExecutionException.class, () -> client.lset(key, oobIndex, element).get());
+        assertInstanceOf(RequestException.class, indexOutOfBoundException.getCause());
+
+        // assert lset result
+        String response = client.lset(key, index, element).get();
+        assertEquals(OK, response);
+        String[] updatedList = client.lrange(key, 0, -1).get();
+        assertArrayEquals(updatedList, expectedList);
+
+        // assert lset with a negative index for the last element in the list
+        String response2 = client.lset(key, negativeIndex, element).get();
+        assertEquals(OK, response2);
+        String[] updatedList2 = client.lrange(key, 0, -1).get();
+        assertArrayEquals(updatedList2, expectedList2);
     }
 }
