@@ -50,7 +50,7 @@ pub(crate) fn convert_to_expected_type(
                     Ok(())
                 };
                 convert_array_to_map(array, closure, closure)
-            },
+            }
             _ => Err((
                 ErrorKind::TypeError,
                 "Response couldn't be converted to map",
@@ -96,7 +96,7 @@ pub(crate) fn convert_to_expected_type(
                     Ok(())
                 };
                 convert_array_to_map(array, closure, closure)
-            },
+            }
             _ => Err((
                 ErrorKind::TypeError,
                 "Response couldn't be converted to map of {string: double}",
@@ -234,11 +234,7 @@ pub(crate) fn convert_to_expected_type(
                     ));
                     Ok(())
                 };
-                let map = convert_array_to_map(
-                    nested_array,
-                    closure,
-                    closure,
-                )?;
+                let map = convert_array_to_map(nested_array, closure, closure)?;
 
                 Ok(Value::Array(vec![array[0].clone(), map]))
             }
@@ -336,7 +332,7 @@ pub(crate) fn convert_to_expected_type(
                 )
                     .into()),
             }
-        },
+        }
         ExpectedReturnType::XreadReturnType => match value {
             Value::Nil => Ok(value),
             Value::Map(_) | Value::Array(_) => convert_to_xread_map(value),
@@ -383,11 +379,7 @@ pub(crate) fn convert_to_expected_type(
                     ));
                     Ok(())
                 };
-                let map = convert_array_to_map(
-                    array,
-                    closure,
-                    closure,
-                )?;
+                let map = convert_array_to_map(array, closure, closure)?;
                 Ok(map)
             }
             _ => Err((
@@ -464,9 +456,9 @@ fn convert_array_to_map<F, G>(
     array_push_fn: F,
     other_push_fn: G,
 ) -> RedisResult<Value>
-    where
-        F: Fn(&mut Vec<(Value, Value)>, Value, Value) -> RedisResult<()>,
-        G: Fn(&mut Vec<(Value, Value)>, Value, Value) -> RedisResult<()>,
+where
+    F: Fn(&mut Vec<(Value, Value)>, Value, Value) -> RedisResult<()>,
+    G: Fn(&mut Vec<(Value, Value)>, Value, Value) -> RedisResult<()>,
 {
     let mut map = Vec::new();
     let mut iterator = array.into_iter();
@@ -591,7 +583,7 @@ fn convert_to_xread_map(value: Value) -> RedisResult<Value> {
             } else {
                 convert_array_elements(array, ExpectedReturnType::BulkString)
             }
-        },
+        }
         Value::Map(map) => {
             let map_clone = map.clone();
             let result = map
@@ -627,9 +619,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
 
     // TODO use enum to avoid mistakes
     match command.as_slice() {
-        b"HGETALL" | b"CONFIG GET" | b"FT.CONFIG GET" | b"HELLO" => {
-            Some(ExpectedReturnType::Map)
-        }
+        b"HGETALL" | b"CONFIG GET" | b"FT.CONFIG GET" | b"HELLO" => Some(ExpectedReturnType::Map),
         b"INCRBYFLOAT" | b"HINCRBYFLOAT" | b"ZINCRBY" => Some(ExpectedReturnType::Double),
         b"HEXISTS" | b"HSETNX" | b"EXPIRE" | b"EXPIREAT" | b"PEXPIRE" | b"PEXPIREAT"
         | b"SISMEMBER" | b"PERSIST" | b"SMOVE" | b"RENAMENX" => Some(ExpectedReturnType::Boolean),
@@ -798,7 +788,7 @@ mod tests {
             Value::Array(array_of_arrays),
             Some(ExpectedReturnType::XreadReturnType),
         )
-            .unwrap();
+        .unwrap();
 
         let converted_map = if let Value::Map(map) = converted_map {
             map
@@ -840,10 +830,10 @@ mod tests {
                 (
                     Value::BulkString(b"streamid-2".to_vec()),
                     Value::Array(vec![
-                            Value::BulkString(b"field21".to_vec()),
-                            Value::BulkString(b"value21".to_vec()),
-                            Value::BulkString(b"field22".to_vec()),
-                            Value::BulkString(b"value22".to_vec()),
+                        Value::BulkString(b"field21".to_vec()),
+                        Value::BulkString(b"value21".to_vec()),
+                        Value::BulkString(b"field22".to_vec()),
+                        Value::BulkString(b"value22".to_vec()),
                     ]),
                 ),
                 (
@@ -906,7 +896,7 @@ mod tests {
             Value::Map(map_of_arrays),
             Some(ExpectedReturnType::XreadReturnType),
         )
-            .unwrap();
+        .unwrap();
 
         let converted_map = if let Value::Map(map) = converted_map {
             map
@@ -948,10 +938,10 @@ mod tests {
                 (
                     Value::BulkString(b"streamid-2".to_vec()),
                     Value::Array(vec![
-                            Value::BulkString(b"field21".to_vec()),
-                            Value::BulkString(b"value21".to_vec()),
-                            Value::BulkString(b"field22".to_vec()),
-                            Value::BulkString(b"value22".to_vec()),
+                        Value::BulkString(b"field21".to_vec()),
+                        Value::BulkString(b"value21".to_vec()),
+                        Value::BulkString(b"field22".to_vec()),
+                        Value::BulkString(b"value22".to_vec()),
                     ]),
                 ),
                 (
