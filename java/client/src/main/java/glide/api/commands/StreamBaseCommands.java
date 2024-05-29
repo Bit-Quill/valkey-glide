@@ -96,7 +96,7 @@ public interface StreamBaseCommands {
      * @param key The key of the stream.
      * @param ids An array of entry ids.
      * @return The number of entries removed from the stream. This number may be less than the number
-     *     of entries if <code>ids</code>, if the specified <code>ids</code> don't exist on the
+     *     of entries in <code>ids</code>, if the specified <code>ids</code> don't exist in the
      *     stream.
      * @example
      *     <pre>{@code
