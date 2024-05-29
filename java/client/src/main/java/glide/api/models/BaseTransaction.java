@@ -19,6 +19,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.BZMPop;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMax;
 import static redis_request.RedisRequestOuterClass.RequestType.BZPopMin;
 import static redis_request.RedisRequestOuterClass.RequestType.BitCount;
+import static redis_request.RedisRequestOuterClass.RequestType.BitField;
 import static redis_request.RedisRequestOuterClass.RequestType.BitFieldReadOnly;
 import static redis_request.RedisRequestOuterClass.RequestType.BitPos;
 import static redis_request.RedisRequestOuterClass.RequestType.ClientGetName;
@@ -165,6 +166,7 @@ import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
+import glide.api.models.commands.bitmap.BitFieldOptions;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
 import glide.api.models.commands.bitmap.BitmapIndexType;
@@ -3494,9 +3496,54 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
+    /**
+     * Reads or modifies the array of bits representing the string that is held at <code>key</code>
+     * based on the specified subcommands.
+     *
+     * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
+     * @param key The key of the string.
+     * @param subCommands The subcommands to be performed on the binary value of the string at <code>
+     *     key</code>.<br>
+     *     <ul>
+     *       <li>{@link BitFieldOptions.BitFieldGet} gets the value in {@link BitFieldOptions.Offset}
+     *           or {@link BitFieldOptions.OffsetMultiplier} based on encoding being {@link
+     *           BitFieldOptions.SignedEncoding} or {@link BitFieldOptions.UnsignedEncoding}.
+     *       <li>{@link BitFieldOptions.BitFieldSet} sets the value in {@link BitFieldOptions.Offset}
+     *           or {@link BitFieldOptions.OffsetMultiplier} based on encoding being {@link
+     *           BitFieldOptions.SignedEncoding} or {@link BitFieldOptions.UnsignedEncoding}.
+     *       <li>{@link BitFieldOptions.BitFieldIncrby} increases or decreases the value in {@link
+     *           BitFieldOptions.Offset} or {@link BitFieldOptions.OffsetMultiplier} based on encoding
+     *           being {@link BitFieldOptions.SignedEncoding} or {@link
+     *           BitFieldOptions.UnsignedEncoding}.
+     *       <li>{@link BitFieldOptions.BitFieldOverflow} determines behaviour of {@link
+     *           BitFieldOptions.BitFieldSet} or {@link BitFieldOptions.BitFieldIncrby} when these
+     *           operations result in under or overflows.
+     *     </ul>
+     *     <br>
+     *     <ul>
+     *       <li>{@link BitFieldOptions.Offset} and {@link BitFieldOptions.OffsetMultiplier} must be
+     *           greater than or equal to 0.
+     *       <li>{@link BitFieldOptions.SignedEncoding} must be less than 64.
+     *       <li>{@link BitFieldOptions.UnsignedEncoding} must be less than 65.
+     *     </ul>
+     *
+     * @return Command Response - An array of results from subcommands <code>GET</code>, <code>SET
+     *     </code>, or <code>INCRBY</code>.<br>
+     *     <ul>
+     *       <li>{@link BitFieldOptions.BitFieldGet} returns the value in <code>
+     *           {@link BitFieldOptions.Offset}</code> or <code>
+     *           {@link BitFieldOptions.OffsetMultiplier}</code>.
+     *       <li>{@link BitFieldOptions.BitFieldSet} returns the old value in <code>
+     *           {@link BitFieldOptions.Offset}</code> or <code>
+     *           {@link BitFieldOptions.OffsetMultiplier}</code>.
+     *       <li>{@link BitFieldOptions.BitFieldIncrby} returns the new value in <code>
+     *           {@link BitFieldOptions.Offset}</code> or <code>
+     *           {@link BitFieldOptions.OffsetMultiplier}</code>.
+     *     </ul>
+     */
     public T bitfield(@NonNull String key, @NonNull BitFieldSubCommands[] subCommands) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(createBitFieldArgs(subCommands), key));
-        protobufTransaction.addCommands(buildCommand(BitFieldReadOnly, commandArgs));
+        protobufTransaction.addCommands(buildCommand(BitField, commandArgs));
         return getThis();
     }
 

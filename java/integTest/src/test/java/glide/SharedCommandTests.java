@@ -46,16 +46,17 @@ import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
-import glide.api.models.commands.bitmap.BitEncodingOption.SignedEncoding;
-import glide.api.models.commands.bitmap.BitEncodingOption.UnsignedEncoding;
-import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldIncrby;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldGet;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldIncrby;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldOverflow;
-import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSet;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldOverflow.BitOverflowControl;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSet;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
-import glide.api.models.commands.bitmap.BitOffsetOption.Offset;
-import glide.api.models.commands.bitmap.BitOffsetOption.OffsetMultiplier;
+import glide.api.models.commands.bitmap.BitFieldOptions.Offset;
+import glide.api.models.commands.bitmap.BitFieldOptions.OffsetMultiplier;
+import glide.api.models.commands.bitmap.BitFieldOptions.SignedEncoding;
+import glide.api.models.commands.bitmap.BitFieldOptions.UnsignedEncoding;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
@@ -3917,37 +3918,253 @@ public class SharedCommandTests {
     public void bitfieldReadOnly(BaseClient client) {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
-        BitFieldReadOnlySubCommands bitFieldGet1 = new BitFieldGet(new UnsignedEncoding(2), new Offset(1));
-        BitFieldReadOnlySubCommands bitFieldGet2 = new BitFieldGet(new SignedEncoding(8), new Offset(5));
-        BitFieldReadOnlySubCommands bitFieldGet3 = new BitFieldGet(new UnsignedEncoding(6), new OffsetMultiplier(2));
-        String missingKey = UUID.randomUUID().toString();
+        BitFieldGet unsignedOffsetGet = new BitFieldGet(new UnsignedEncoding(2), new Offset(1));
+        String emptyKey = UUID.randomUUID().toString();
+        String foobar = "foobar";
 
-        client.set(key1, "foobar");
+        client.set(key1, foobar);
         assertArrayEquals(
-                new Long[] {3L, -51L, 61L},
+                new Long[] {3L, -2L, 118L, 111L},
                 client
-                        .bitfieldReadOnly(key1, new BitFieldReadOnlySubCommands[] {bitFieldGet1, bitFieldGet2, bitFieldGet3})
+                        .bitfieldReadOnly(
+                                key1,
+                                new BitFieldReadOnlySubCommands[] {
+                                    unsignedOffsetGet,
+                                    new BitFieldGet(new SignedEncoding(3), new Offset(5)),
+                                    new BitFieldGet(new UnsignedEncoding(7), new OffsetMultiplier(3)),
+                                    new BitFieldGet(new SignedEncoding(8), new OffsetMultiplier(2))
+                                })
                         .get());
+        assertArrayEquals(
+                new Long[] {0L},
+                client
+                        .bitfieldReadOnly(emptyKey, new BitFieldReadOnlySubCommands[] {unsignedOffsetGet})
+                        .get());
+
+        // Exception thrown due to the key holding a value with the wrong type
+        assertEquals(1, client.sadd(key2, new String[] {foobar}).get());
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .bitfieldReadOnly(key2, new BitFieldReadOnlySubCommands[] {unsignedOffsetGet})
+                                        .get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Offset must be >= 0
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .bitfieldReadOnly(
+                                                key1,
+                                                new BitFieldReadOnlySubCommands[] {
+                                                    new BitFieldGet(new UnsignedEncoding(5), new Offset(-1))
+                                                })
+                                        .get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Encoding must be > 0
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .bitfieldReadOnly(
+                                                key1,
+                                                new BitFieldReadOnlySubCommands[] {
+                                                    new BitFieldGet(new UnsignedEncoding(-1), new Offset(1))
+                                                })
+                                        .get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Encoding must be < 65 for unsigned bit encoding
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .bitfieldReadOnly(
+                                                key1,
+                                                new BitFieldReadOnlySubCommands[] {
+                                                    new BitFieldGet(new UnsignedEncoding(64), new Offset(1))
+                                                })
+                                        .get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Encoding must be < 64 for signed bit encoding
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .bitfieldReadOnly(
+                                                key1,
+                                                new BitFieldReadOnlySubCommands[] {
+                                                    new BitFieldGet(new SignedEncoding(65), new Offset(1))
+                                                })
+                                        .get());
+        assertTrue(executionException.getCause() instanceof RequestException);
     }
 
-        @SneakyThrows
-        @ParameterizedTest(autoCloseArguments = false)
-        @MethodSource("getClients")
-        public void bitfield(BaseClient client) {
-            String key1 = UUID.randomUUID().toString();
-            BitFieldSubCommands bitFieldSet = new BitFieldSet(new UnsignedEncoding(2), new Offset(1), 2);
-            BitFieldReadOnlySubCommands bitFieldGet = new BitFieldGet(new UnsignedEncoding(2), new Offset(1));
-            BitFieldSubCommands bitFieldIncrby = new BitFieldIncrby(new UnsignedEncoding(2), new Offset(1), -1);
-            BitFieldSubCommands bitFieldOverflow = new BitFieldOverflow(BitFieldOverflow.BitOverflowControl.FAIL);
-            String missingKey = UUID.randomUUID().toString();
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void bitfield(BaseClient client) {
+        String key1 = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String setKey = UUID.randomUUID().toString();
+        String foobar = "foobar";
+        UnsignedEncoding u2 = new UnsignedEncoding(2);
+        UnsignedEncoding u7 = new UnsignedEncoding(7);
+        SignedEncoding i3 = new SignedEncoding(3);
+        SignedEncoding i8 = new SignedEncoding(8);
+        Offset offset1 = new Offset(1);
+        Offset offset5 = new Offset(5);
+        OffsetMultiplier offsetMultiplier4 = new OffsetMultiplier(4);
+        OffsetMultiplier offsetMultiplier8 = new OffsetMultiplier(8);
+        BitFieldSet overflowSet = new BitFieldSet(u2, offset1, -10);
+        BitFieldGet overflowGet = new BitFieldGet(u2, offset1);
 
-            client.set(key1, "foobar");
-            assertArrayEquals(new Long[] {3L, 3L, 2L, 1L}, client.bitfield(key1, new BitFieldSubCommands[]
-                {bitFieldGet, bitFieldSet, bitFieldGet, bitFieldIncrby}).get());
+        client.set(key1, foobar);
 
-            bitFieldIncrby = new BitFieldIncrby(new UnsignedEncoding(2), new Offset(102), 4);
-            client.set(key1, "");
-            assertArrayEquals(new Long[] {null}, client.bitfield(key1, new BitFieldSubCommands[]
-                {bitFieldOverflow, bitFieldIncrby}).get());
-        }
+        // SET tests
+        assertArrayEquals(
+                new Long[] {3L, -2L, 19L, 0L, 2L, 3L, 18L, 20L},
+                client
+                        .bitfield(
+                                key1,
+                                new BitFieldSubCommands[] {
+                                    new BitFieldSet(u2, offset1, 2),
+                                    new BitFieldSet(i3, offset5, 3),
+                                    new BitFieldSet(u7, offsetMultiplier4, 18),
+                                    new BitFieldSet(i8, offsetMultiplier8, 20),
+                                    new BitFieldGet(u2, offset1),
+                                    new BitFieldGet(i3, offset5),
+                                    new BitFieldGet(u7, offsetMultiplier4),
+                                    new BitFieldGet(i8, offsetMultiplier8)
+                                })
+                        .get());
+
+        // INCRBY tests
+        assertArrayEquals(
+                new Long[] {3L, -3L, 15L, 30L},
+                client
+                        .bitfield(
+                                key1,
+                                new BitFieldSubCommands[] {
+                                    new BitFieldIncrby(u2, offset1, 1),
+                                    new BitFieldIncrby(i3, offset5, 2),
+                                    new BitFieldIncrby(u7, offsetMultiplier4, -3),
+                                    new BitFieldIncrby(i8, offsetMultiplier8, 10)
+                                })
+                        .get());
+
+        // OVERFLOW WRAP is equal to without OVERFLOW WRAP when an overflow occurs
+        assertArrayEquals(
+                new Long[] {0L, 2L, 2L},
+                client
+                        .bitfield(
+                                key2,
+                                new BitFieldSubCommands[] {
+                                    overflowSet,
+                                    new BitFieldOverflow(BitOverflowControl.WRAP),
+                                    overflowSet,
+                                    overflowGet
+                                })
+                        .get());
+
+        // OVERFLOW affects only SET or INCRBY after OVERFLOW subcommand
+        assertArrayEquals(
+                new Long[] {2L, 2L, 3L, null},
+                client
+                        .bitfield(
+                                key2,
+                                new BitFieldSubCommands[] {
+                                    overflowSet,
+                                    new BitFieldOverflow(BitOverflowControl.SAT),
+                                    overflowSet,
+                                    overflowGet,
+                                    new BitFieldOverflow(BitOverflowControl.FAIL),
+                                    overflowSet
+                                })
+                        .get());
+
+        // Exceptions
+        BitFieldSet unsupportedSignedEncodingSet =
+                new BitFieldSet(new SignedEncoding(65), new Offset(1), 1);
+
+        // Encoding must be > 0
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .bitfield(
+                                                key1,
+                                                new BitFieldSubCommands[] {
+                                                    new BitFieldSet(new UnsignedEncoding(-1), new Offset(1), 1)
+                                                })
+                                        .get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Offset must be > 0
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .bitfield(
+                                                key1,
+                                                new BitFieldSubCommands[] {
+                                                    new BitFieldIncrby(new UnsignedEncoding(5), new Offset(-1), 1)
+                                                })
+                                        .get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Unsigned bit encoding must be < 65
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .bitfield(
+                                                key1,
+                                                new BitFieldSubCommands[] {
+                                                    new BitFieldIncrby(new UnsignedEncoding(64), new Offset(1), 1)
+                                                })
+                                        .get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Signed bit encoding must be < 64
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .bitfield(
+                                                key1,
+                                                new BitFieldSubCommands[] {
+                                                    new BitFieldSet(new SignedEncoding(65), new Offset(1), 1)
+                                                })
+                                        .get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+
+        // Exception thrown due to the key holding a value with the wrong type
+        assertEquals(1, client.sadd(setKey, new String[] {foobar}).get());
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .bitfield(
+                                                setKey,
+                                                new BitFieldSubCommands[] {
+                                                    new BitFieldSet(new SignedEncoding(3), new Offset(1), 2)
+                                                })
+                                        .get());
+        assertTrue(executionException.getCause() instanceof RequestException);
+    }
 }

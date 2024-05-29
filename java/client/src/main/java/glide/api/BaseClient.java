@@ -1,6 +1,8 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
+import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
 import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArgs;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.castArray;
@@ -145,7 +147,6 @@ import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.ZAddOptions;
-import glide.api.models.commands.bitmap.BitFieldOptions;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
@@ -1417,7 +1418,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Long[]> bitfield(
-            @NonNull String key, @NonNull BitFieldOptions.BitFieldSubCommands[] subCommands) {
+            @NonNull String key, @NonNull BitFieldSubCommands[] subCommands) {
         String[] arguments = ArrayUtils.addFirst(createBitFieldArgs(subCommands), key);
         return commandManager.submitNewCommand(
                 BitField,
@@ -1427,7 +1428,7 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Long[]> bitfieldReadOnly(
-            @NonNull String key, @NonNull BitFieldOptions.BitFieldReadOnlySubCommands[] subCommands) {
+            @NonNull String key, @NonNull BitFieldReadOnlySubCommands[] subCommands) {
         String[] arguments = ArrayUtils.addFirst(createBitFieldArgs(subCommands), key);
         return commandManager.submitNewCommand(
                 BitFieldReadOnly,

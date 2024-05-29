@@ -1,6 +1,9 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
+import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
+import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
+
 import glide.api.models.commands.bitmap.BitFieldOptions;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import java.util.concurrent.CompletableFuture;
@@ -215,8 +218,103 @@ public interface BitmapBaseCommands {
     CompletableFuture<Long> bitpos(
             String key, long bit, long start, long end, BitmapIndexType offsetType);
 
-    CompletableFuture<Long[]> bitfield(String key, BitFieldOptions.BitFieldSubCommands[] subCommands);
+    /**
+     * Reads or modifies the array of bits representing the string that is held at <code>key</code>
+     * based on the specified subcommands.
+     *
+     * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
+     * @param key The key of the string.
+     * @param subCommands The subcommands to be performed on the binary value of the string at <code>
+     *     key</code>.<br>
+     *     <ul>
+     *       <li>{@link BitFieldOptions.BitFieldGet} gets the value in {@link BitFieldOptions.Offset}
+     *           or {@link BitFieldOptions.OffsetMultiplier} based on encoding being {@link
+     *           BitFieldOptions.SignedEncoding} or {@link BitFieldOptions.UnsignedEncoding}.
+     *       <li>{@link BitFieldOptions.BitFieldSet} sets the value in {@link BitFieldOptions.Offset}
+     *           or {@link BitFieldOptions.OffsetMultiplier} based on encoding being {@link
+     *           BitFieldOptions.SignedEncoding} or {@link BitFieldOptions.UnsignedEncoding}.
+     *       <li>{@link BitFieldOptions.BitFieldIncrby} increases or decreases the value in {@link
+     *           BitFieldOptions.Offset} or {@link BitFieldOptions.OffsetMultiplier} based on encoding
+     *           being {@link BitFieldOptions.SignedEncoding} or {@link
+     *           BitFieldOptions.UnsignedEncoding}.
+     *       <li>{@link BitFieldOptions.BitFieldOverflow} determines behaviour of {@link
+     *           BitFieldOptions.BitFieldSet} or {@link BitFieldOptions.BitFieldIncrby} when these
+     *           operations result in under or overflows.
+     *     </ul>
+     *     <br>
+     *     <ul>
+     *       <li>{@link BitFieldOptions.Offset} and {@link BitFieldOptions.OffsetMultiplier} must be
+     *           greater than or equal to 0.
+     *       <li>{@link BitFieldOptions.SignedEncoding} must be less than 64.
+     *       <li>{@link BitFieldOptions.UnsignedEncoding} must be less than 65.
+     *     </ul>
+     *
+     * @return An array of results from subcommands <code>GET</code>, <code>SET</code>, or <code>
+     *     INCRBY</code>.<br>
+     *     <ul>
+     *       <li>{@link BitFieldOptions.BitFieldGet} returns the value in <code>
+     *           {@link BitFieldOptions.Offset}</code> or <code>
+     *           {@link BitFieldOptions.OffsetMultiplier}</code>.
+     *       <li>{@link BitFieldOptions.BitFieldSet} returns the old value in <code>
+     *           {@link BitFieldOptions.Offset}</code> or <code>
+     *           {@link BitFieldOptions.OffsetMultiplier}</code>.
+     *       <li>{@link BitFieldOptions.BitFieldIncrby} returns the new value in <code>
+     *           {@link BitFieldOptions.Offset}</code> or <code>
+     *           {@link BitFieldOptions.OffsetMultiplier}</code>.
+     *     </ul>
+     *
+     * @example
+     *     <pre>{@code
+     * client.set("sampleKey", "A"); // "A" has binary value 01000001
+     * Long[] payload =
+     *      client.
+     *          bitfield(
+     *              "sampleKey",
+     *              new BitFieldSubCommands[] {
+     *                  new BitFieldSet(new UnsignedEncoding(2), new Offset(1), 3), // Sets the new binary value to 01100001
+     *                  new BitFieldGet(new UnsignedEncoding(2), new Offset(1))
+     *              })
+     *          .get();
+     * assertArrayEquals(payload, new Long[] {2L, 3L});
+     * }</pre>
+     */
+    CompletableFuture<Long[]> bitfield(String key, BitFieldSubCommands[] subCommands);
 
-    CompletableFuture<Long[]> bitfieldReadOnly(
-            String key, BitFieldOptions.BitFieldReadOnlySubCommands[] subCommands);
+    /**
+     * Reads the array of bits representing the string that is held at <code>key</code> based on the
+     * specified subcommands.
+     *
+     * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
+     * @param key The key of the string.
+     * @param subCommands The subcommands to be performed on the binary value of the string at <code>
+     *     key</code>.<br>
+     *     <ul>
+     *       <li>{@link BitFieldOptions.BitFieldGet} gets the value in {@link BitFieldOptions.Offset}
+     *           or {@link BitFieldOptions.OffsetMultiplier} based on encoding being {@link
+     *           BitFieldOptions.SignedEncoding} or {@link BitFieldOptions.UnsignedEncoding}.
+     *     </ul>
+     *     <br>
+     *     <ul>
+     *       <li>{@link BitFieldOptions.Offset} and {@link BitFieldOptions.OffsetMultiplier} must be
+     *           greater than or equal to 0.
+     *       <li>{@link BitFieldOptions.SignedEncoding} must be less than 64.
+     *       <li>{@link BitFieldOptions.UnsignedEncoding} must be less than 65.
+     *     </ul>
+     *
+     * @return An array of results from <code>GET</code> subcommands.
+     * @example
+     *     <pre>{@code
+     * client.set("sampleKey", "A"); // "A" has binary value 01000001
+     * Long[] payload =
+     *      client.
+     *          bitfield(
+     *              "sampleKey",
+     *              new BitFieldSubCommands[] {
+     *                  new BitFieldGet(new UnsignedEncoding(2), new Offset(1))
+     *              })
+     *          .get();
+     * assertArrayEquals(payload, new Long[] {2L});
+     * }</pre>
+     */
+    CompletableFuture<Long[]> bitfieldReadOnly(String key, BitFieldReadOnlySubCommands[] subCommands);
 }

@@ -19,6 +19,14 @@ import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldGet;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSet;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
+import glide.api.models.commands.bitmap.BitFieldOptions.Offset;
+import glide.api.models.commands.bitmap.BitFieldOptions.OffsetMultiplier;
+import glide.api.models.commands.bitmap.BitFieldOptions.SignedEncoding;
+import glide.api.models.commands.bitmap.BitFieldOptions.UnsignedEncoding;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
@@ -543,6 +551,8 @@ public class TransactionTestUtilities {
     private static Object[] bitmapCommands(BaseTransaction<?> transaction) {
         String key1 = "{bitmapKey}-1" + UUID.randomUUID();
         String key2 = "{bitmapKey}-2" + UUID.randomUUID();
+        BitFieldGet bitFieldGet = new BitFieldGet(new SignedEncoding(5), new Offset(3));
+        BitFieldSet bitFieldSet = new BitFieldSet(new UnsignedEncoding(10), new OffsetMultiplier(3), 4);
 
         transaction
                 .set(key1, "foobar")
@@ -553,10 +563,13 @@ public class TransactionTestUtilities {
                 .getbit(key1, 1)
                 .bitpos(key1, 1)
                 .bitpos(key1, 1, 3)
-                .bitpos(key1, 1, 3, 5);
+                .bitpos(key1, 1, 3, 5)
+                .bitfieldReadOnly(key1, new BitFieldReadOnlySubCommands[] {bitFieldGet})
+                .bitfield(key1, new BitFieldSubCommands[] {bitFieldSet});
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             transaction
+                    .set(key1, "foobar")
                     .bitcount(key1, 5, 30, BitmapIndexType.BIT)
                     .bitpos(key1, 1, 44, 50, BitmapIndexType.BIT);
         }
@@ -572,12 +585,18 @@ public class TransactionTestUtilities {
                     1L, // bitpos(key, 1)
                     25L, // bitpos(key, 1, 3)
                     25L, // bitpos(key, 1, 3, 5)
+                    new Long[] {
+                        6L
+                    }, // bitfieldReadOnly(key1, new BitFieldReadOnlySubCommands[]{new BitFieldGet(new
+                    // SignedEncoding(5), new Offset(3))})
+                    new Long[] {609L},
                 };
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             return concatenateArrays(
                     expectedResults,
                     new Object[] {
+                        OK, // set(key1, "foobar")
                         17L, // bitcount(key, 5, 30, BitmapIndexType.BIT)
                         46L, // bitpos(key, 1, 44, 50, BitmapIndexType.BIT)
                     });
