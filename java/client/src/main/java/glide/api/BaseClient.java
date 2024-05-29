@@ -103,6 +103,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
 import static redis_request.RedisRequestOuterClass.RequestType.XLen;
+import static redis_request.RedisRequestOuterClass.RequestType.XRange;
 import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.ZAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZCard;
@@ -1241,6 +1242,22 @@ public abstract class BaseClient
     public CompletableFuture<Long> xdel(@NonNull String key, @NonNull String[] ids) {
         String[] arguments = ArrayUtils.addFirst(ids, key);
         return commandManager.submitNewCommand(XDel, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Map<String, String[]>> xrange(
+            @NonNull String key, @NonNull String start, @NonNull String end) {
+        String[] arguments = {key, start, end};
+        return commandManager.submitNewCommand(
+                XRange, arguments, response -> castMapOfArrays(handleMapResponse(response), String.class));
+    }
+
+    @Override
+    public CompletableFuture<Map<String, String[]>> xrange(
+            @NonNull String key, @NonNull String start, @NonNull String end, long count) {
+        String[] arguments = {key, start, end, Long.toString(count)};
+        return commandManager.submitNewCommand(
+                XRange, arguments, response -> castMapOfArrays(handleMapResponse(response), String.class));
     }
 
     @Override

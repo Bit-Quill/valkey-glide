@@ -3037,6 +3037,64 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
+    public void xrange(BaseClient client) {
+
+        String key = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
+        String streamId1 = "0-1";
+        String streamId2 = "0-2";
+        String streamId3 = "0-3";
+
+        assertEquals(
+                streamId1,
+                client
+                        .xadd(
+                                key,
+                                Map.of("f1", "foo1", "f2", "bar2"),
+                                StreamAddOptions.builder().id(streamId1).build())
+                        .get());
+        assertEquals(
+                streamId2,
+                client
+                        .xadd(
+                                key,
+                                Map.of("f1", "foo1", "f2", "bar2"),
+                                StreamAddOptions.builder().id(streamId2).build())
+                        .get());
+        assertEquals(2L, client.xlen(key).get());
+
+        // get everything from the stream
+        Map<String, String[]> result = client.xrange(key, "-", "+").get();
+        assertEquals(2, result.size());
+        assertNotNull(result.get(streamId1));
+        assertNotNull(result.get(streamId2));
+
+        assertEquals(
+                streamId3,
+                client
+                        .xadd(
+                                key,
+                                Map.of("f3", "foo3", "f4", "bar3"),
+                                StreamAddOptions.builder().id(streamId3).build())
+                        .get());
+
+        // get the newest entry
+        Map<String, String[]> newResult = client.xrange(key, "(" + streamId2, streamId3).get();
+        assertEquals(1, newResult.size());
+        assertNotNull(newResult.get(streamId3));
+
+        Map<String, String[]> emptyResult = client.xrange(key2, "-", "+").get();
+        assertEquals(0, emptyResult.size());
+
+        assertEquals(OK, client.set(key2, "not_a_stream").get());
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.xrange(key2, "-", "+").get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
     public void zrandmember(BaseClient client) {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();

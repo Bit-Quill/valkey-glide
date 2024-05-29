@@ -122,6 +122,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
 import static redis_request.RedisRequestOuterClass.RequestType.XLen;
+import static redis_request.RedisRequestOuterClass.RequestType.XRange;
 import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.ZAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZCard;
@@ -2658,9 +2659,42 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     less than the number of entries in <code>ids</code>, if the specified <code>ids</code>
      *     don't exist in the stream.
      */
-    public T xdel(String key, String[] ids) {
+    public T xdel(@NonNull String key, @NonNull String[] ids) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(ids, key));
         protobufTransaction.addCommands(buildCommand(XDel, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns stream entries matching a given range of IDs.
+     *
+     * @param key The key of the stream.
+     * @param start Starting ID to search. Use <code>"-"</code> to start with the minimum possible ID.
+     *     Include a <code>"("</code> prior to the ID to do an exclusive search.
+     * @param start End ID to search, or <code>"+"</code> to end with the maximum possible ID. Include
+     *     a <code>"("</code> prior to the ID to do an exclusive search.
+     * @return Command Response - A <code>Map</code> of key to stream entry data.
+     */
+    public T xrange(@NonNull String key, @NonNull String start, @NonNull String end) {
+        ArgsArray commandArgs = buildArgs(key, start, end);
+        protobufTransaction.addCommands(buildCommand(XRange, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns stream entries matching a given range of IDs.
+     *
+     * @param key The key of the stream.
+     * @param start Starting ID to search. Use <code>"-"</code> to start with the minimum possible ID.
+     *     Include a <code>"("</code> prior to the ID to do an exclusive search.
+     * @param start End ID to search, or <code>"+"</code> to end with the maximum possible ID. Include
+     *     a <code>"("</code> prior to the ID to do an exclusive search.
+     * @param count Maximum count of stream entries to return.
+     * @return Command Response - A <code>Map</code> of key to stream entry data.
+     */
+    public T xrange(@NonNull String key, @NonNull String start, @NonNull String end, long count) {
+        ArgsArray commandArgs = buildArgs(key, start, end, Long.toString(count));
+        protobufTransaction.addCommands(buildCommand(XRange, commandArgs));
         return getThis();
     }
 

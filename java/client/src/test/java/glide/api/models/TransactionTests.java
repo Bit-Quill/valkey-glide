@@ -132,6 +132,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
 import static redis_request.RedisRequestOuterClass.RequestType.XLen;
+import static redis_request.RedisRequestOuterClass.RequestType.XRange;
 import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.ZAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZCard;
@@ -684,6 +685,12 @@ public class TransactionTests {
 
         transaction.xdel("key", new String[] {"12345-1", "98765-4"});
         results.add(Pair.of(XDel, buildArgs("key", "12345-1", "98765-4")));
+
+        transaction.xrange("key", "-", "+");
+        results.add(Pair.of(XRange, buildArgs("key", "-", "+")));
+
+        transaction.xrange("key", "-", "+", 99L);
+        results.add(Pair.of(XRange, buildArgs("key", "-", "+", "99")));
 
         transaction.time();
         results.add(Pair.of(Time, buildArgs()));

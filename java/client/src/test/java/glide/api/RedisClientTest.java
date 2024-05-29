@@ -143,6 +143,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
 import static redis_request.RedisRequestOuterClass.RequestType.XLen;
+import static redis_request.RedisRequestOuterClass.RequestType.XRange;
 import static redis_request.RedisRequestOuterClass.RequestType.XTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.ZAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.ZCard;
@@ -4019,6 +4020,61 @@ public class RedisClientTest {
         // exercise
         CompletableFuture<Long> response = service.xdel(key, ids);
         Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(completedResult, payload);
+    }
+
+    @Test
+    @SneakyThrows
+    public void xrange_returns_success() {
+        // setup
+        String key = "testKey";
+        String start = "-";
+        String end = "+";
+        Map<String, String[]> completedResult =
+                Map.of(key, new String[] {"duration", "12345", "event-id", "2", "user-id", "42"});
+
+        CompletableFuture<Map<String, String[]>> testResponse = new CompletableFuture<>();
+        testResponse.complete(completedResult);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, String[]>>submitNewCommand(
+                        eq(XRange), eq(new String[] {key, start, end}), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, String[]>> response = service.xrange(key, start, end);
+        Map<String, String[]> payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(completedResult, payload);
+    }
+
+    @Test
+    @SneakyThrows
+    public void xrange_withcount_returns_success() {
+        // setup
+        String key = "testKey";
+        String start = "-";
+        String end = "+";
+        long count = 99L;
+        Map<String, String[]> completedResult =
+                Map.of(key, new String[] {"duration", "12345", "event-id", "2", "user-id", "42"});
+
+        CompletableFuture<Map<String, String[]>> testResponse = new CompletableFuture<>();
+        testResponse.complete(completedResult);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, String[]>>submitNewCommand(
+                        eq(XRange), eq(new String[] {key, start, end, Long.toString(count)}), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, String[]>> response = service.xrange(key, start, end, count);
+        Map<String, String[]> payload = response.get();
 
         // verify
         assertEquals(testResponse, response);

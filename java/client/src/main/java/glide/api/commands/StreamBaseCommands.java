@@ -105,4 +105,29 @@ public interface StreamBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> xdel(String key, String[] ids);
+
+    /**
+     * Returns stream entries matching a given range of IDs.
+     *
+     * @param key The key of the stream.
+     * @param start Starting ID to search. Use <code>"-"</code> to start with the minimum possible ID.
+     *     Include a <code>"("</code> prior to the ID to do an exclusive search.
+     * @param start End ID to search, or <code>"+"</code> to end with the maximum possible ID. Include
+     *     a <code>"("</code> prior to the ID to do an exclusive search.
+     * @return A <code>Map</code> of key to stream entry data.
+     */
+    CompletableFuture<Map<String, String[]>> xrange(String key, String start, String end);
+
+    /**
+     * Returns stream entries matching a given range of IDs.
+     *
+     * @param key The key of the stream.
+     * @param start Starting ID to search. Use <code>"-"</code> to start with the minimum possible ID.
+     *     Include a <code>"("</code> prior to the ID to do an exclusive search.
+     * @param start End ID to search, or <code>"+"</code> to end with the maximum possible ID. Include
+     *     a <code>"("</code> prior to the ID to do an exclusive search.
+     * @param count Maximum count of stream entries to return.
+     * @return A <code>Map</code> of key to stream entry data.
+     */
+    CompletableFuture<Map<String, String[]>> xrange(String key, String start, String end, long count);
 }
