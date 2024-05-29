@@ -3802,7 +3802,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param destination The key to the destination list.
      * @param wherefrom The direction the element should be removed from.
      * @param whereto The direction the element should be added to.
-     * @return Command Response - The popped element.
+     * @return Command Response - The popped element null.
      */
     public T lmove(
             @NonNull String source,

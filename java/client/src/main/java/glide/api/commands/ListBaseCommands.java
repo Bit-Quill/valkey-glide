@@ -516,7 +516,7 @@ public interface ListBaseCommands {
      * @param destination The key to the destination list.
      * @param wherefrom The direction the element should be removed from.
      * @param whereto The direction the element should be added to.
-     * @return The popped element.
+     * @return The popped element or null.
      * @example
      *     <pre>{@code
      * client.lpush("testKey1", new String[] {"two", "one"}).get();
