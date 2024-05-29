@@ -253,6 +253,8 @@ public class TransactionTestUtilities {
         String listKey3 = "{ListKey}-3-" + UUID.randomUUID();
         String listKey4 = "{ListKey}-4-" + UUID.randomUUID();
         String listKey5 = "{ListKey}-5-" + UUID.randomUUID();
+        String listKey6 = "{ListKey}-6-" + UUID.randomUUID();
+        String listKey7 = "{ListKey}-7-" + UUID.randomUUID();
 
         transaction
                 .lpush(listKey1, new String[] {value1, value1, value2, value3, value3})
@@ -287,13 +289,12 @@ public class TransactionTestUtilities {
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("6.2.0")) {
             transaction
-                    .del(new String[] {listKey4, listKey5})
-                    .lpush(listKey4, new String[] {value3, value2, value1})
-                    .lpush(listKey5, new String[] {value1, value2, value3})
-                    .lmove(listKey5, listKey5, ListDirection.LEFT, ListDirection.LEFT)
-                    .lmove(listKey4, listKey5, ListDirection.LEFT, ListDirection.RIGHT)
-                    .lrange(listKey4, 0, -1)
-                    .lrange(listKey5, 0, -1);
+                    .lpush(listKey6, new String[] {value3, value2, value1})
+                    .lpush(listKey7, new String[] {value1, value2, value3})
+                    .lmove(listKey7, listKey7, ListDirection.LEFT, ListDirection.LEFT)
+                    .lmove(listKey6, listKey7, ListDirection.LEFT, ListDirection.RIGHT)
+                    .lrange(listKey6, 0, -1)
+                    .lrange(listKey7, 0, -1);
         }
 
         var expectedResults =
@@ -338,13 +339,12 @@ public class TransactionTestUtilities {
                     concatenateArrays(
                             expectedResults,
                             new Object[] {
-                                2L, // del(listKey5)
-                                3L, // lpush(listKey4, {value3, value2, value1})
-                                3L, // lpush(listKey5, {value1, value2, value3})
-                                value3, // lmove(listKey5, listKey5, LEFT, LEFT)
-                                value1, // lmove(listKey4, listKey5, RIGHT, LEFT)
-                                new String[] {value2, value3}, // lrange(listKey4, 0, -1)
-                                new String[] {value3, value2, value1, value1}, // lrange(listKey5, 0, -1);
+                                3L, // lpush(listKey6, {value3, value2, value1})
+                                3L, // lpush(listKey7, {value1, value2, value3})
+                                value3, // lmove(listKey7, listKey5, LEFT, LEFT)
+                                value1, // lmove(listKey6, listKey5, RIGHT, LEFT)
+                                new String[] {value2, value3}, // lrange(listKey6, 0, -1)
+                                new String[] {value3, value2, value1, value1}, // lrange(listKey7, 0, -1);
                             });
         }
 
