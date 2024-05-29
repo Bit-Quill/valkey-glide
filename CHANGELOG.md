@@ -2,6 +2,9 @@
 * Python: Added OBJECT ENCODING command ([#1471](https://github.com/aws/glide-for-redis/pull/1471))
 * Python: Added OBJECT FREQ command ([#1472](https://github.com/aws/glide-for-redis/pull/1472))
 * Python: Added OBJECT IDLETIME command ([#1474](https://github.com/aws/glide-for-redis/pull/1474))
+* Node: Added RENAMENX command ([#1483](https://github.com/aws/glide-for-redis/pull/1483))
+* Python: Added OBJECT REFCOUNT command ([#1485](https://github.com/aws/glide-for-redis/pull/1485))
+* Python: Added RENAMENX command ([#1492](https://github.com/aws/glide-for-redis/pull/1492))
 
 ### Breaking Changes
 * Node: Update XREAD to return a Map of Map ([TODO](TODO))

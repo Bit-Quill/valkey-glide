@@ -154,6 +154,21 @@ class BaseTransaction:
         """
         return self.append_command(RequestType.Rename, [key, new_key])
 
+    def renamenx(self: TTransaction, key: str, new_key: str) -> TTransaction:
+        """
+        Renames `key` to `new_key` if `new_key` does not yet exist.
+
+        See https://valkey.io/commands/renamenx for more details.
+
+        Args:
+            key (str): The key to rename.
+            new_key (str): The new key name.
+
+        Command response:
+            bool: True if `key` was renamed to `new_key`, or False if `new_key` already exists.
+        """
+        return self.append_command(RequestType.RenameNX, [key, new_key])
+
     def custom_command(self: TTransaction, command_args: List[str]) -> TTransaction:
         """
         Executes a single command, without checking inputs.
@@ -2503,6 +2518,21 @@ class BaseTransaction:
             Optional[int]: If `key` exists, returns the idle time in seconds. Otherwise, returns None.
         """
         return self.append_command(RequestType.ObjectIdleTime, [key])
+
+    def object_refcount(self: TTransaction, key: str) -> TTransaction:
+        """
+        Returns the reference count of the object stored at `key`.
+
+        See https://valkey.io/commands/object-refcount for more details.
+
+        Args:
+            key (str): The key of the object to get the reference count of.
+
+        Command response:
+            Optional[int]: If `key` exists, returns the reference count of the object stored at `key` as an integer.
+                Otherwise, returns None.
+        """
+        return self.append_command(RequestType.ObjectRefCount, [key])
 
 
 class Transaction(BaseTransaction):
