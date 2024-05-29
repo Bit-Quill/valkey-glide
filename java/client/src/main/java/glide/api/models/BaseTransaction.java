@@ -69,6 +69,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LIndex;
 import static redis_request.RedisRequestOuterClass.RequestType.LInsert;
 import static redis_request.RedisRequestOuterClass.RequestType.LLen;
 import static redis_request.RedisRequestOuterClass.RequestType.LMPop;
+import static redis_request.RedisRequestOuterClass.RequestType.LMove;
 import static redis_request.RedisRequestOuterClass.RequestType.LPop;
 import static redis_request.RedisRequestOuterClass.RequestType.LPush;
 import static redis_request.RedisRequestOuterClass.RequestType.LPushX;
@@ -154,7 +155,7 @@ import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.commands.LInsertOptions.InsertPosition;
-import glide.api.models.commands.PopDirection;
+import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
@@ -3542,7 +3543,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Blocks the connection until it pops one or more elements from the first non-empty list from the
      * provided <code>keys</code>. <code>BLMPOP</code> is the blocking variant of {@link
-     * #lmpop(String[], PopDirection, Long)}.
+     * #lmpop(String[], ListDirection, Long)}.
      *
      * @apiNote <code>BLMPOP</code> is a client blocking command, see <a
      *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
@@ -3550,8 +3551,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @since Redis 7.0 and above.
      * @see <a href="https://valkey.io/commands/blmpop/">valkey.io</a> for details.
      * @param keys The list of provided <code>key</code> names.
-     * @param direction The direction based on which elements are popped from - see {@link
-     *     PopDirection}.
+     * @param listDirection The direction based on which elements are popped from - see {@link
+     *     ListDirection}.
      * @param count The maximum number of popped elements.
      * @param timeout The number of seconds to wait for a blocking operation to complete. A value of
      *     <code>0</code> will block indefinitely.
@@ -3561,7 +3562,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T blmpop(
             @NonNull String[] keys,
-            @NonNull PopDirection direction,
+            @NonNull ListDirection listDirection,
             @NonNull Long count,
             double timeout) {
         ArgsArray commandArgs =
@@ -3570,7 +3571,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                                 new String[] {Double.toString(timeout), Long.toString(keys.length)},
                                 keys,
                                 new String[] {
-                                    direction.toString(), COUNT_FOR_LIST_REDIS_API, Long.toString(count)
+                                    listDirection.toString(), COUNT_FOR_LIST_REDIS_API, Long.toString(count)
                                 }));
         protobufTransaction.addCommands(buildCommand(BLMPop, commandArgs));
         return getThis();
@@ -3579,7 +3580,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Blocks the connection until it pops one element from the first non-empty list from the provided
      * <code>keys</code>. <code>BLMPOP</code> is the blocking variant of {@link #lmpop(String[],
-     * PopDirection)}.
+     * ListDirection)}.
      *
      * @apiNote <code>BLMPOP</code> is a client blocking command, see <a
      *     href="https://github.com/aws/glide-for-redis/wiki/General-Concepts#blocking-commands">Blocking
@@ -3587,21 +3588,21 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @since Redis 7.0 and above.
      * @see <a href="https://valkey.io/commands/lmpop/">valkey.io</a> for details.
      * @param keys The list of provided <code>key</code> names.
-     * @param direction The direction based on which elements are popped from - see {@link
-     *     PopDirection}.
+     * @param listDirection The direction based on which elements are popped from - see {@link
+     *     ListDirection}.
      * @param timeout The number of seconds to wait for a blocking operation to complete. A value of
      *     <code>0</code> will block indefinitely.
      * @return Command Response - A <code>Map</code> of <code>key</code> names arrays of popped
      *     elements.<br>
      *     If no member could be popped and the timeout expired, returns <code>null</code>.
      */
-    public T blmpop(@NonNull String[] keys, @NonNull PopDirection direction, double timeout) {
+    public T blmpop(@NonNull String[] keys, @NonNull ListDirection listDirection, double timeout) {
         ArgsArray commandArgs =
                 buildArgs(
                         concatenateArrays(
                                 new String[] {Double.toString(timeout), Long.toString(keys.length)},
                                 keys,
-                                new String[] {direction.toString()}));
+                                new String[] {listDirection.toString()}));
         protobufTransaction.addCommands(buildCommand(BLMPop, commandArgs));
         return getThis();
     }
@@ -3730,20 +3731,21 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @since Redis 7.0 and above.
      * @see <a href="https://valkey.io/commands/lmpop/">valkey.io</a> for details.
      * @param keys An array of keys to lists.
-     * @param direction The direction based on which elements are popped from - see {@link
-     *     PopDirection}.
+     * @param listDirection The direction based on which elements are popped from - see {@link
+     *     ListDirection}.
      * @param count The maximum number of popped elements.
      * @return Command Response - A <code>Map</code> of <code>key</code> name mapped arrays of popped
      *     elements.
      */
-    public T lmpop(@NonNull String[] keys, @NonNull PopDirection direction, @NonNull Long count) {
+    public T lmpop(
+            @NonNull String[] keys, @NonNull ListDirection listDirection, @NonNull Long count) {
         ArgsArray commandArgs =
                 buildArgs(
                         concatenateArrays(
                                 new String[] {Long.toString(keys.length)},
                                 keys,
                                 new String[] {
-                                    direction.toString(), COUNT_FOR_LIST_REDIS_API, Long.toString(count)
+                                    listDirection.toString(), COUNT_FOR_LIST_REDIS_API, Long.toString(count)
                                 }));
         protobufTransaction.addCommands(buildCommand(LMPop, commandArgs));
         return getThis();
@@ -3755,18 +3757,18 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @since Redis 7.0 and above.
      * @see <a href="https://valkey.io/commands/lmpop/">valkey.io</a> for details.
      * @param keys An array of keys to lists.
-     * @param direction The direction based on which elements are popped from - see {@link
-     *     PopDirection}.
+     * @param listDirection The direction based on which elements are popped from - see {@link
+     *     ListDirection}.
      * @return Command Response - A <code>Map</code> of <code>key</code> name mapped array of the
      *     popped element.
      */
-    public T lmpop(@NonNull String[] keys, @NonNull PopDirection direction) {
+    public T lmpop(@NonNull String[] keys, @NonNull ListDirection listDirection) {
         ArgsArray commandArgs =
                 buildArgs(
                         concatenateArrays(
                                 new String[] {Long.toString(keys.length)},
                                 keys,
-                                new String[] {direction.toString()}));
+                                new String[] {listDirection.toString()}));
         protobufTransaction.addCommands(buildCommand(LMPop, commandArgs));
         return getThis();
     }
@@ -3786,6 +3788,30 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T lset(@NonNull String key, long index, @NonNull String element) {
         ArgsArray commandArgs = buildArgs(key, Long.toString(index), element);
         protobufTransaction.addCommands(buildCommand(LSet, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Atomically pops and removes the first/last element of the list stored at <code>source</code>
+     * depending on <code>wherefrom</code>, and pushes the element at the first/last element of the
+     * list stored at <code>destination</code> depending on <code>wherefrom</code>.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://valkey.io/commands/lmove/">valkey.io</a> for details.
+     * @param source The key to the source list.
+     * @param destination The key to the destination list.
+     * @param wherefrom The direction the element should be removed from.
+     * @param whereto The direction the element should be added to.
+     * @return Command Response - The popped element.
+     */
+    public T lmove(
+            @NonNull String source,
+            @NonNull String destination,
+            @NonNull ListDirection wherefrom,
+            @NonNull ListDirection whereto) {
+        ArgsArray commandArgs =
+                buildArgs(source, destination, wherefrom.toString(), whereto.toString());
+        protobufTransaction.addCommands(buildCommand(LMove, commandArgs));
         return getThis();
     }
 
