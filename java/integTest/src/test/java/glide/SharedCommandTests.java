@@ -3028,15 +3028,10 @@ public class SharedCommandTests {
         // Throw Exception: Key exists - but it is not a stream
         assertEquals(OK, client.set(key2, "xdeltest").get());
 
-        if (client instanceof RedisClusterClient) {
-            RedisClusterClient clusterClient = (RedisClusterClient) client;
-
-            ExecutionException executionException =
-                    assertThrows(
-                            ExecutionException.class,
-                            () -> clusterClient.xdel(key2, new String[] {streamId3}).get());
-            assertTrue(executionException.getCause() instanceof RequestException);
-        }
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class, () -> client.xdel(key2, new String[] {streamId3}).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
     }
 
     @SneakyThrows
