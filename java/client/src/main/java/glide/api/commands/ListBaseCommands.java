@@ -525,7 +525,7 @@ public interface ListBaseCommands {
      * assertEquals(result, "one");
      * String[] upratedArray1 = client.lrange("testKey1", 0, -1).get();
      * String[] upratedArray2 = client.lrange("testKey2", 0, -1).get();
-     * assertArrayEquals(new String[] {"two"});
+     * assertArrayEquals(new String[] {"two"}, updatedArray1);
      * assertArrayEquals(new String[] {"one", "three", "four"}, updatedArray2);
      * }</pre>
      */
