@@ -95,6 +95,9 @@ async def transaction_test(
     transaction.mget([key, key2])
     args.append([value, value2])
 
+    transaction.renamenx(key, key2)
+    args.append(False)
+
     transaction.incr(key3)
     args.append(1)
     transaction.incrby(key3, 2)
@@ -518,6 +521,7 @@ class TestTransaction:
             transaction = ClusterTransaction() if cluster_mode else Transaction()
             transaction.set(string_key, "foo")
             transaction.object_encoding(string_key)
+            transaction.object_refcount(string_key)
             # OBJECT FREQ requires a LFU maxmemory-policy
             transaction.config_set({maxmemory_policy_key: "allkeys-lfu"})
             transaction.object_freq(string_key)
@@ -529,15 +533,14 @@ class TestTransaction:
             assert response is not None
             assert response[0] == OK  # transaction.set(string_key, "foo")
             assert response[1] == "embstr"  # transaction.object_encoding(string_key)
-            assert (
-                response[2] == OK
-            )  # transaction.config_set({maxmemory_policy_key: "allkeys-lfu"})
-            assert cast(int, response[3]) >= 0  # transaction.object_freq(string_key)
-            assert (
-                response[4] == OK
-            )  # transaction.config_set({maxmemory_policy_key: "allkeys-random"})
-            assert (
-                cast(int, response[5]) >= 0
-            )  # transaction.object_idletime(string_key)
+            # transaction.object_refcount(string_key)
+            assert cast(int, response[2]) >= 0
+            # transaction.config_set({maxmemory_policy_key: "allkeys-lfu"})
+            assert response[3] == OK
+            assert cast(int, response[4]) >= 0  # transaction.object_freq(string_key)
+            # transaction.config_set({maxmemory_policy_key: "allkeys-random"})
+            assert response[5] == OK
+            # transaction.object_idletime(string_key)
+            assert cast(int, response[6]) >= 0
         finally:
             await redis_client.config_set({maxmemory_policy_key: maxmemory_policy})
