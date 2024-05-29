@@ -2502,10 +2502,10 @@ class BaseTransaction:
 
         Args:
             destination (str): The key of the destination HyperLogLog where the merged data sets will be stored.
-            source_keys (List[str]): he keys of the HyperLogLog structures to be merged.
+            source_keys (List[str]): The keys of the HyperLogLog structures to be merged.
 
         Command response:
-            OK: a simple OK response.
+            OK: A simple OK response.
         """
         return self.append_command(RequestType.PfMerge, [destination] + source_keys)
 

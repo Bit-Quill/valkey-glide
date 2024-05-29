@@ -3586,10 +3586,10 @@ class CoreCommands(Protocol):
 
         Args:
             destination (str): The key of the destination HyperLogLog where the merged data sets will be stored.
-            source_keys (List[str]): he keys of the HyperLogLog structures to be merged.
+            source_keys (List[str]): The keys of the HyperLogLog structures to be merged.
 
         Returns:
-            OK: a simple OK response.
+            OK: A simple OK response.
 
         Examples:
             >>> await client.pfadd("hll1", ["a", "b"])
