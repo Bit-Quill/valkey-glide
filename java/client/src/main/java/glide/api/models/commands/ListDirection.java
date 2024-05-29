@@ -4,8 +4,8 @@ package glide.api.models.commands;
 import glide.api.commands.ListBaseCommands;
 
 /**
- * Enumeration representing element popping or adding direction for the {@link
- * ListBaseCommands#lmpop} command.
+ * Enumeration representing element popping or adding direction for the {@link ListBaseCommands}
+ * commands.
  */
 public enum ListDirection {
     /**

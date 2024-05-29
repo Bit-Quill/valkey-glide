@@ -287,7 +287,7 @@ public class TransactionTestUtilities {
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("6.2.0")) {
             transaction
-                    .del(new String[] {listKey5})
+                    .del(new String[] {listKey4, listKey5})
                     .lpush(listKey4, new String[] {value3, value2, value1})
                     .lpush(listKey5, new String[] {value1, value2, value3})
                     .lmove(listKey5, listKey5, ListDirection.LEFT, ListDirection.LEFT)
@@ -338,7 +338,7 @@ public class TransactionTestUtilities {
                     concatenateArrays(
                             expectedResults,
                             new Object[] {
-                                1L, // del(listKey5)
+                                2L, // del(listKey5)
                                 3L, // lpush(listKey4, {value3, value2, value1})
                                 3L, // lpush(listKey5, {value1, value2, value3})
                                 value3, // lmove(listKey5, listKey5, LEFT, LEFT)
