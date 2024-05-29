@@ -7,7 +7,7 @@
 * Python: Added RENAMENX command ([#1492](https://github.com/aws/glide-for-redis/pull/1492))
 
 ### Breaking Changes
-* Node: Update XREAD to return a Map of Map ([TODO](TODO))
+* Node: Update XREAD to return a Map of Map ([#1494](https://github.com/aws/glide-for-redis/pull/1494))
 
 
 ## 0.4.0 (2024-05-26)
