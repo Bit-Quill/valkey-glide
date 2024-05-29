@@ -63,6 +63,7 @@ import {
     createRename,
     createSAdd,
     createSCard,
+    createSInter,
     createSIsMember,
     createSMembers,
     createSPop,
@@ -1239,6 +1240,32 @@ export class BaseClient {
      */
     public scard(key: string): Promise<number> {
         return this.createWritePromise(createSCard(key));
+    }
+
+    /** Gets the intersection of all the given sets.
+     * See https://valkey.io/docs/latest/commands/sinter/ for more details.
+     *
+     * @remarks When in cluster mode, all `keys` must map to the same hash slot.
+     * @param keys - The `keys` of the sets to get the intersection.
+     * @returns A set of members which are present in all given sets.
+     * If one or more sets do not exist, an empty set will be returned.
+     *
+     * @example
+     * ```typescript
+     * // Example usage of sinter method when member exists
+     * const result = await client.sinter(["my_set1", "my_set2"]);
+     * console.log(result); // Output: {'member2'} - Indicates that sets have one common member
+     * ```
+     *
+     * @example
+     * ```typescript
+     * // Example usage of sinter method with non-existing key
+     * const result = await client.sinter(["my_set", "non_existing_key"]);
+     * console.log(result); // Output: None - An empty member is returned since the key does not exist.
+     * ```
+     */
+    public sinter(keys: string[]): Promise<Set<string>> {
+        return this.createWritePromise(createSInter(keys));
     }
 
     /** Returns if `member` is a member of the set stored at `key`.

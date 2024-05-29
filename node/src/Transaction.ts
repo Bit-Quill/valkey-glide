@@ -66,6 +66,7 @@ import {
     createRename,
     createSAdd,
     createSCard,
+    createSInter,
     createSIsMember,
     createSMembers,
     createSPop,
@@ -687,6 +688,18 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public scard(key: string): T {
         return this.addAndReturn(createSCard(key));
+    }
+
+    /** Gets the intersection of all the given sets.
+     * When in cluster mode, all `keys` must map to the same hash slot.
+     * See https://valkey.io/docs/latest/commands/sinter/ for more details.
+     *
+     * @param keys - The `keys` of the sets to get the intersection.
+     * Command Response - A set of members which are present in all given sets.
+     * If one or more sets do not exist, an empty set will be returned.
+     */
+    public sinter(keys: string[]): T {
+        return this.addAndReturn(createSInter(keys));
     }
 
     /** Returns if `member` is a member of the set stored at `key`.
