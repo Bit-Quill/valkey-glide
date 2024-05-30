@@ -4789,7 +4789,7 @@ public class RedisClientTest {
         String key = "testKey";
         Long[] result = new Long[] {7L};
         BitFieldGet subcommand = new BitFieldGet(new SignedEncoding(4), new Offset(2));
-        String[] args = ArrayUtils.addFirst(subcommand.createArgs(), key);
+        String[] args = ArrayUtils.addFirst(subcommand.toArgs(), key);
         CompletableFuture<Long[]> testResponse = new CompletableFuture<>();
         testResponse.complete(result);
 
@@ -4814,7 +4814,7 @@ public class RedisClientTest {
         String key = "testKey";
         Long[] result = new Long[] {7L};
         BitFieldSet subcommand = new BitFieldSet(new SignedEncoding(4), new Offset(2), 3);
-        String[] args = ArrayUtils.addFirst(subcommand.createArgs(), key);
+        String[] args = ArrayUtils.addFirst(subcommand.toArgs(), key);
         CompletableFuture<Long[]> testResponse = new CompletableFuture<>();
         testResponse.complete(result);
 

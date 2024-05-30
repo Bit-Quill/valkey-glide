@@ -551,6 +551,7 @@ public class TransactionTestUtilities {
     private static Object[] bitmapCommands(BaseTransaction<?> transaction) {
         String key1 = "{bitmapKey}-1" + UUID.randomUUID();
         String key2 = "{bitmapKey}-2" + UUID.randomUUID();
+        String key3 = "{bitmapKey}-3" + UUID.randomUUID();
         BitFieldGet bitFieldGet = new BitFieldGet(new SignedEncoding(5), new Offset(3));
         BitFieldSet bitFieldSet = new BitFieldSet(new UnsignedEncoding(10), new OffsetMultiplier(3), 4);
 
@@ -569,9 +570,9 @@ public class TransactionTestUtilities {
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             transaction
-                    .set(key1, "foobar")
-                    .bitcount(key1, 5, 30, BitmapIndexType.BIT)
-                    .bitpos(key1, 1, 44, 50, BitmapIndexType.BIT);
+                    .set(key3, "foobar")
+                    .bitcount(key3, 5, 30, BitmapIndexType.BIT)
+                    .bitpos(key3, 1, 44, 50, BitmapIndexType.BIT);
         }
 
         var expectedResults =
@@ -585,11 +586,8 @@ public class TransactionTestUtilities {
                     1L, // bitpos(key, 1)
                     25L, // bitpos(key, 1, 3)
                     25L, // bitpos(key, 1, 3, 5)
-                    new Long[] {
-                        6L
-                    }, // bitfieldReadOnly(key1, new BitFieldReadOnlySubCommands[]{new BitFieldGet(new
-                    // SignedEncoding(5), new Offset(3))})
-                    new Long[] {609L},
+                    new Long[] {6L}, // bitfieldReadOnly(key1, BitFieldReadOnlySubCommands)
+                    new Long[] {609L}, // bitfield(key1, BitFieldSubCommands)
                 };
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {

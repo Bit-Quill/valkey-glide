@@ -12,97 +12,106 @@ import lombok.RequiredArgsConstructor;
  * {@link BitmapBaseCommands#bitfieldReadOnly(String, BitFieldReadOnlySubCommands[])}. Specifies
  * subcommands, bit-encoding type, and offset type.
  *
- * @see <a href="https://redis.io/commands/bitfield/">redis.io</a>
+ * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> and <a
+ *     href="https://redis.io/docs/latest/commands/bitfield_ro/">redis.io</a>
  */
 public class BitFieldOptions {
-    /** Subcommands for {@link BitmapBaseCommands#bitfield(String, BitFieldSubCommands[])}. */
+    /** Subcommands for <code>bitfield</code>. */
     public interface BitFieldSubCommands {
-        String[] createArgs();
+        String[] toArgs();
     }
 
-    /**
-     * Subcommands for {@link BitmapBaseCommands#bitfieldReadOnly(String,
-     * BitFieldReadOnlySubCommands[])}.
-     */
+    /** Subcommands for <code>bitfieldReadOnly</code>. */
     public interface BitFieldReadOnlySubCommands extends BitFieldSubCommands {}
 
     /**
-     * GET subcommand for {@link BitmapBaseCommands#bitfield(String, BitFieldSubCommands[])} and
-     * {@link BitmapBaseCommands#bitfieldReadOnly(String, BitFieldReadOnlySubCommands[])}.
+     * <code>GET</code> subcommand for getting the value in the binary representing the string stored
+     * in <code>key</code> based on {@link BitEncoding} and {@link Offset}.
      */
     @RequiredArgsConstructor
-    public static class BitFieldGet implements BitFieldReadOnlySubCommands {
+    public static final class BitFieldGet implements BitFieldReadOnlySubCommands {
+        /** Specifies if the bit encoding is signed or unsigned. */
         private final BitEncoding encoding;
+
+        /** Specifies if the offset uses encoding multiplier. */
         private final BitOffset offset;
 
-        /**
-         * Creates the GET subcommand arguments.
-         *
-         * @return a String array with GET arguments.
-         */
-        public String[] createArgs() {
+        public String[] toArgs() {
             return new String[] {"GET", encoding.getEncoding(), offset.getOffset()};
         }
     }
 
-    /** SET subcommand for {@link BitmapBaseCommands#bitfield(String, BitFieldSubCommands[])}. */
+    /**
+     * <code>SET</code> subcommand for setting the bits in the binary representing the string stored
+     * in <code>key</code> based on {@link BitEncoding} and {@link Offset}.
+     */
     @RequiredArgsConstructor
-    public static class BitFieldSet implements BitFieldSubCommands {
+    public static final class BitFieldSet implements BitFieldSubCommands {
+        /** Specifies if the bit encoding is signed or unsigned. */
         private final BitEncoding encoding;
+
+        /** Specifies if the offset uses encoding multiplier. */
         private final BitOffset offset;
+
+        /** Value to set the bits in the binary value. */
         private final long value;
 
-        /**
-         * Creates the SET subcommand arguments.
-         *
-         * @return a String array with SET arguments.
-         */
-        public String[] createArgs() {
+        public String[] toArgs() {
             return new String[] {"SET", encoding.getEncoding(), offset.getOffset(), Long.toString(value)};
         }
     }
 
-    /** INCRBY subcommand for {@link BitmapBaseCommands#bitfield(String, BitFieldSubCommands[])}. */
+    /**
+     * <code>INCRBY</code> subcommand for increasing or decreasing the bits in the binary representing
+     * the string stored in <code>key</code> based on {@link BitEncoding} and {@link Offset}.
+     */
     @RequiredArgsConstructor
-    public static class BitFieldIncrby implements BitFieldSubCommands {
+    public static final class BitFieldIncrby implements BitFieldSubCommands {
+        /** Specifies if the bit encoding is signed or unsigned. */
         private final BitEncoding encoding;
+
+        /** Specifies if the offset uses encoding multiplier. */
         private final BitOffset offset;
+
+        /** Value to increment the bits in the binary value. */
         private final long increment;
 
-        /**
-         * Creates the INCRBY subcommand arguments.
-         *
-         * @return a String array with INCRBY arguments.
-         */
-        public String[] createArgs() {
+        public String[] toArgs() {
             return new String[] {
                 "INCRBY", encoding.getEncoding(), offset.getOffset(), Long.toString(increment)
             };
         }
     }
 
-    /** OVERFLOW subcommand for {@link BitmapBaseCommands#bitfield(String, BitFieldSubCommands[])}. */
+    /**
+     * <code>OVERFLOW</code> subcommand that determines the result of the <code>SET</code> or <code>
+     * INCRBY</code> commands when an under or overflow occurs.
+     */
     @RequiredArgsConstructor
-    public static class BitFieldOverflow implements BitFieldSubCommands {
+    public static final class BitFieldOverflow implements BitFieldSubCommands {
+        /** Overflow behaviour. */
         private final BitOverflowControl overflowControl;
 
-        /**
-         * Creates the OVERFLOW subcommand arguments.
-         *
-         * @return a String array with OVERFLOW arguments.
-         */
-        public String[] createArgs() {
+        public String[] toArgs() {
             return new String[] {"OVERFLOW", overflowControl.toString()};
         }
 
-        /** Supported overflow controls */
+        /** Supported bit overflow controls */
         public enum BitOverflowControl {
+            /**
+             * Performs modulo when overflow occurs with unsigned encoding. When overflows occur with
+             * signed encoding, the value restart towards the most negative value. When underflows occur
+             * with signed, the value restart towards the most positive ones.
+             */
             WRAP,
+            /** Underflows set to the minimum value and overflows sets to the maximum value. */
             SAT,
+            /** Returns null when overflows occur. */
             FAIL
         }
     }
 
+    /** Specifies if the argument is a signed or unsigned encoding */
     private interface BitEncoding {
         String getEncoding();
     }
@@ -135,6 +144,7 @@ public class BitFieldOptions {
         }
     }
 
+    /** Offset in the array of bits. */
     private interface BitOffset {
         String getOffset();
     }
@@ -158,7 +168,7 @@ public class BitFieldOptions {
         @Getter private final String offset;
 
         /**
-         * Constructor that prepends the offset value with "#" to specify that it is a multiplier.
+         * Constructor for the offset multiplier.
          *
          * @param offset element multiplied by the encoding value in the array of bits.
          */
@@ -179,7 +189,7 @@ public class BitFieldOptions {
         String[] arguments = {};
 
         for (int i = 0; i < subCommands.length; i++) {
-            arguments = concatenateArrays(arguments, subCommands[i].createArgs());
+            arguments = concatenateArrays(arguments, subCommands[i].toArgs());
         }
 
         return arguments;

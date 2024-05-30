@@ -3929,9 +3929,13 @@ public class SharedCommandTests {
                         .bitfieldReadOnly(
                                 key1,
                                 new BitFieldReadOnlySubCommands[] {
+                                    // Get value in: 0(11)00110 01101111 01101111 01100010 01100001 01110010 00010100
                                     unsignedOffsetGet,
+                                    // Get value in: 01100(110) 01101111 01101111 01100010 01100001 01110010 00010100
                                     new BitFieldGet(new SignedEncoding(3), new Offset(5)),
+                                    // Get value in: 01100110 01101(111 0110)1111 01100010 01100001 01110010 00010100
                                     new BitFieldGet(new UnsignedEncoding(7), new OffsetMultiplier(3)),
+                                    // Get value in: 01100110 01101111 (01101111) 01100010 01100001 01110010 00010100
                                     new BitFieldGet(new SignedEncoding(8), new OffsetMultiplier(2))
                                 })
                         .get());
@@ -4028,7 +4032,7 @@ public class SharedCommandTests {
         BitFieldSet overflowSet = new BitFieldSet(u2, offset1, -10);
         BitFieldGet overflowGet = new BitFieldGet(u2, offset1);
 
-        client.set(key1, foobar);
+        client.set(key1, foobar); // binary value: 01100110 01101111 01101111 01100010 01100001 01110010
 
         // SET tests
         assertArrayEquals(
@@ -4037,9 +4041,14 @@ public class SharedCommandTests {
                         .bitfield(
                                 key1,
                                 new BitFieldSubCommands[] {
+                                    // binary value becomes: 0(10)00110 01101111 01101111 01100010 01100001 01110010
                                     new BitFieldSet(u2, offset1, 2),
+                                    // binary value becomes: 01000(011) 01101111 01101111 01100010 01100001 01110010
                                     new BitFieldSet(i3, offset5, 3),
+                                    // binary value becomes: 01000011 01101111 01101111 011(00010 010)00001 01110010
                                     new BitFieldSet(u7, offsetMultiplier4, 18),
+                                    // binary value becomes: 01000011 01101111 01101111 01100010 01000001 01110010
+                                    // (00010100)
                                     new BitFieldSet(i8, offsetMultiplier8, 20),
                                     new BitFieldGet(u2, offset1),
                                     new BitFieldGet(i3, offset5),
@@ -4055,9 +4064,17 @@ public class SharedCommandTests {
                         .bitfield(
                                 key1,
                                 new BitFieldSubCommands[] {
+                                    // binary value becomes: 0(11)00011 01101111 01101111 01100010 01000001 01110010
+                                    // 00010100
                                     new BitFieldIncrby(u2, offset1, 1),
+                                    // binary value becomes: 01100(101) 01101111 01101111 01100010 01000001 01110010
+                                    // 00010100
                                     new BitFieldIncrby(i3, offset5, 2),
+                                    // binary value becomes: 01100101 01101111 01101111 011(00001 111)00001 01110010
+                                    // 00010100
                                     new BitFieldIncrby(u7, offsetMultiplier4, -3),
+                                    // binary value becomes: 01100101 01101111 01101111 01100001 11100001 01110010
+                                    // (00011110)
                                     new BitFieldIncrby(i8, offsetMultiplier8, 10)
                                 })
                         .get());
@@ -4093,9 +4110,6 @@ public class SharedCommandTests {
                         .get());
 
         // Exceptions
-        BitFieldSet unsupportedSignedEncodingSet =
-                new BitFieldSet(new SignedEncoding(65), new Offset(1), 1);
-
         // Encoding must be > 0
         ExecutionException executionException =
                 assertThrows(

@@ -166,9 +166,16 @@ import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
-import glide.api.models.commands.bitmap.BitFieldOptions;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldGet;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldIncrby;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldOverflow;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
+import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSet;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
+import glide.api.models.commands.bitmap.BitFieldOptions.Offset;
+import glide.api.models.commands.bitmap.BitFieldOptions.OffsetMultiplier;
+import glide.api.models.commands.bitmap.BitFieldOptions.SignedEncoding;
+import glide.api.models.commands.bitmap.BitFieldOptions.UnsignedEncoding;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.function.FunctionLoadOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
@@ -3498,47 +3505,39 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /**
      * Reads or modifies the array of bits representing the string that is held at <code>key</code>
-     * based on the specified subcommands.
+     * based on the specified <code>subCommands</code>.
      *
      * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
      * @param key The key of the string.
-     * @param subCommands The subcommands to be performed on the binary value of the string at <code>
+     * @param subCommands The <code>GET</code> subCommands to be performed on the binary value of the
+     *     string at <code>
      *     key</code>.<br>
      *     <ul>
-     *       <li>{@link BitFieldOptions.BitFieldGet} gets the value in {@link BitFieldOptions.Offset}
-     *           or {@link BitFieldOptions.OffsetMultiplier} based on encoding being {@link
-     *           BitFieldOptions.SignedEncoding} or {@link BitFieldOptions.UnsignedEncoding}.
-     *       <li>{@link BitFieldOptions.BitFieldSet} sets the value in {@link BitFieldOptions.Offset}
-     *           or {@link BitFieldOptions.OffsetMultiplier} based on encoding being {@link
-     *           BitFieldOptions.SignedEncoding} or {@link BitFieldOptions.UnsignedEncoding}.
-     *       <li>{@link BitFieldOptions.BitFieldIncrby} increases or decreases the value in {@link
-     *           BitFieldOptions.Offset} or {@link BitFieldOptions.OffsetMultiplier} based on encoding
-     *           being {@link BitFieldOptions.SignedEncoding} or {@link
-     *           BitFieldOptions.UnsignedEncoding}.
-     *       <li>{@link BitFieldOptions.BitFieldOverflow} determines behaviour of {@link
-     *           BitFieldOptions.BitFieldSet} or {@link BitFieldOptions.BitFieldIncrby} when these
-     *           operations result in under or overflows.
+     *       <li>{@link BitFieldGet} gets the value in {@link Offset} or {@link OffsetMultiplier}
+     *           based on encoding being {@link SignedEncoding} or {@link UnsignedEncoding}.
+     *       <li>{@link BitFieldSet} sets the value in {@link Offset} or {@link OffsetMultiplier}
+     *           based on encoding being {@link SignedEncoding} or {@link UnsignedEncoding}.
+     *       <li>{@link BitFieldIncrby} increases or decreases the value in {@link Offset} or {@link
+     *           OffsetMultiplier} based on encoding being {@link SignedEncoding} or {@link
+     *           UnsignedEncoding}.
+     *       <li>{@link BitFieldOverflow} determines behaviour of {@link BitFieldSet} or {@link
+     *           BitFieldIncrby} when these operations result in under or overflows.
      *     </ul>
      *     <br>
+     *     Note:<br>
      *     <ul>
-     *       <li>{@link BitFieldOptions.Offset} and {@link BitFieldOptions.OffsetMultiplier} must be
-     *           greater than or equal to 0.
-     *       <li>{@link BitFieldOptions.SignedEncoding} must be less than 64.
-     *       <li>{@link BitFieldOptions.UnsignedEncoding} must be less than 65.
+     *       <li>{@link Offset} and {@link OffsetMultiplier} must be greater than or equal to 0.
+     *       <li>{@link SignedEncoding} must be less than 64.
+     *       <li>{@link UnsignedEncoding} must be less than 65.
      *     </ul>
      *
-     * @return Command Response - An array of results from subcommands <code>GET</code>, <code>SET
-     *     </code>, or <code>INCRBY</code>.<br>
+     * @return Command Response - An <code>array</code> of results from subcommands.
      *     <ul>
-     *       <li>{@link BitFieldOptions.BitFieldGet} returns the value in <code>
-     *           {@link BitFieldOptions.Offset}</code> or <code>
-     *           {@link BitFieldOptions.OffsetMultiplier}</code>.
-     *       <li>{@link BitFieldOptions.BitFieldSet} returns the old value in <code>
-     *           {@link BitFieldOptions.Offset}</code> or <code>
-     *           {@link BitFieldOptions.OffsetMultiplier}</code>.
-     *       <li>{@link BitFieldOptions.BitFieldIncrby} returns the new value in <code>
-     *           {@link BitFieldOptions.Offset}</code> or <code>
-     *           {@link BitFieldOptions.OffsetMultiplier}</code>.
+     *       <li>{@link BitFieldGet} returns the value in {@link Offset} or {@link OffsetMultiplier}.
+     *       <li>{@link BitFieldSet} returns the old value in {@link Offset} or {@link
+     *           OffsetMultiplier}.
+     *       <li>{@link BitFieldIncrby} returns the new value in {@link Offset} or {@link
+     *           OffsetMultiplier}.
      *     </ul>
      */
     public T bitfield(@NonNull String key, @NonNull BitFieldSubCommands[] subCommands) {
@@ -3547,6 +3546,27 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
+    /**
+     * Reads the array of bits representing the string that is held at <code>key</code> based on the
+     * specified <code>subCommands</code>.
+     *
+     * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
+     * @param key The key of the string.
+     * @param subCommands The <code>GET</code> subCommands to be performed.<br>
+     *     <ul>
+     *       <li>{@link BitFieldGet} gets the value in {@link Offset} or {@link OffsetMultiplier}
+     *           based on encoding being {@link SignedEncoding} or {@link UnsignedEncoding}.
+     *     </ul>
+     *     <br>
+     *     Note:<br>
+     *     <ul>
+     *       <li>{@link Offset} and {@link OffsetMultiplier} must be greater than or equal to 0.
+     *       <li>{@link SignedEncoding} must be less than 64.
+     *       <li>{@link UnsignedEncoding} must be less than 65.
+     *     </ul>
+     *
+     * @return Command Response - An array of results from <code>GET</code> subcommands.
+     */
     public T bitfieldReadOnly(
             @NonNull String key, @NonNull BitFieldReadOnlySubCommands[] subCommands) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(createBitFieldArgs(subCommands), key));
