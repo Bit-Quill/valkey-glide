@@ -1247,7 +1247,7 @@ export class BaseClient {
      *
      * @remarks When in cluster mode, all `keys` must map to the same hash slot.
      * @param keys - The `keys` of the sets to get the intersection.
-     * @returns A set of members which are present in all given sets.
+     * @returns - A set of members which are present in all given sets.
      * If one or more sets do not exist, an empty set will be returned.
      *
      * @example
