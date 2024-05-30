@@ -3278,6 +3278,7 @@ class TestCommands:
         yesterday_unix_time = time.mktime(yesterday.timetuple())
 
         result = await redis_client.lastsave()
+        assert isinstance(result, int)
         assert result > yesterday_unix_time
 
         if isinstance(redis_client, RedisClusterClient):
@@ -3285,7 +3286,6 @@ class TestCommands:
             assert isinstance(result, dict)
             for lastsave_time in result.values():
                 assert lastsave_time > yesterday_unix_time
-
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
