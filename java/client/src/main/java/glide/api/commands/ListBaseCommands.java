@@ -536,7 +536,7 @@ public interface ListBaseCommands {
      * Blocks the connection until it pops atomically and removes the left/right-most element to the
      * list stored at <code>source</code> depending on <code>wherefrom</code>, and pushes the element
      * at the first/last element of the list stored at <code>destination</code> depending on <code>
-     * wherefrom</code>. <br>
+     * wherefrom</code>.<br>
      * <code>BLMove</code> is the blocking variant of {@link #lmove(String, String, ListDirection,
      * ListDirection)}.
      *
@@ -562,7 +562,7 @@ public interface ListBaseCommands {
      *     <pre>{@code
      * client.lpush("testKey1", new String[] {"two", "one"}).get();
      * client.lpush("testKey2", new String[] {"four", "three"}).get();
-     * var result = client.blmove("testKey1", "testKey2", ListDirection.LEFT, ListDirection.LEFT).get();
+     * var result = client.blmove("testKey1", "testKey2", ListDirection.LEFT, ListDirection.LEFT, 0.1).get();
      * assertEquals(result, "one");
      * String[] upratedArray1 = client.lrange("testKey1", 0, -1).get();
      * String[] upratedArray2 = client.lrange("testKey2", 0, -1).get();

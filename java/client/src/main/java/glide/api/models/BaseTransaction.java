@@ -3837,7 +3837,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Blocks the connection until it atomically pops and removes the left/right-most element to the
      * list stored at <code>source</code> depending on <code>wherefrom</code>, and pushes the element
      * at the first/last element of the list stored at <code>destination</code> depending on <code>
-     * wherefrom</code>. <br>
+     * wherefrom</code>.<br>
      * <code>BLMove</code> is the blocking variant of {@link #lmove(String, String, ListDirection,
      * ListDirection)}.
      *

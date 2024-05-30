@@ -349,7 +349,7 @@ public class TransactionTestUtilities {
                                 value1, // lmove(listKey6, listKey5, RIGHT, LEFT)
                                 new String[] {value2, value3}, // lrange(listKey6, 0, -1)
                                 new String[] {value3, value2, value1, value1}, // lrange(listKey7, 0, -1);
-                                value3, // .blmove(listKey7, listKey7, LEFT, LEFT, 0.1)
+                                value3, // blmove(listKey7, listKey7, LEFT, LEFT, 0.1)
                                 value1, // blmove(listKey7, listKey6, RIGHT, LEFT, 0.1)
                                 new String[] {value1, value2, value3}, // lrange(listKey6, 0, -1)
                                 new String[] {value3, value2, value1}, // lrange(listKey7, 0, -1)
