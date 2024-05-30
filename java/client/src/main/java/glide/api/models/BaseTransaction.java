@@ -109,6 +109,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SIsMember;
 import static redis_request.RedisRequestOuterClass.RequestType.SMIsMember;
 import static redis_request.RedisRequestOuterClass.RequestType.SMembers;
 import static redis_request.RedisRequestOuterClass.RequestType.SMove;
+import static redis_request.RedisRequestOuterClass.RequestType.SRandMember;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
 import static redis_request.RedisRequestOuterClass.RequestType.SUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Set;
@@ -3829,6 +3830,38 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         ArgsArray commandArgs =
                 buildArgs(source, destination, wherefrom.toString(), whereto.toString());
         protobufTransaction.addCommands(buildCommand(LMove, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns a random element from the set value stored at <code>key</code>.
+     *
+     * @see <a href="https://redis.io/commands/srandmember/">redis.io</a> for details.
+     * @param key The key from which to retrieve the set member.
+     * @return Command Response - A random element from the set, or <code>null</code> if <code>key
+     *     </code> does not exist.
+     */
+    public T srandmember(@NonNull String key) {
+        ArgsArray commandArgs = buildArgs(key);
+        protobufTransaction.addCommands(buildCommand(SRandMember, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Returns an array of distinct random elements from the set value stored at <code>key</code> if a
+     * positive <code>count</code> was given, or an array of random elements allowing duplicates if a
+     * negative <code>count</code> value was given. In the negative case, the number of elements is
+     * the absolute value of <code>count</code>.
+     *
+     * @see <a href="https://redis.io/commands/srandmember/">redis.io</a> for details.
+     * @param key The key from which to retrieve the set members.
+     * @param count The count of how many elements should be returned.
+     * @return Command Response - An array of elements from the set, or an empty array if <code>key
+     *     </code> does not exist.
+     */
+    public T srandmember(@NonNull String key, long count) {
+        ArgsArray commandArgs = buildArgs(key, Long.toString(count));
+        protobufTransaction.addCommands(buildCommand(SRandMember, commandArgs));
         return getThis();
     }
 
