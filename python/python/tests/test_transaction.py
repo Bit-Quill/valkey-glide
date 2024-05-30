@@ -1,9 +1,10 @@
 # Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date, timedelta
 from typing import List, Union, cast
 
 import pytest
+import time
 from glide import RequestError
 from glide.async_commands.core import (
     GeospatialData,
@@ -548,3 +549,15 @@ class TestTransaction:
             assert cast(int, response[6]) >= 0
         finally:
             await redis_client.config_set({maxmemory_policy_key: maxmemory_policy})
+
+    @pytest.mark.parametrize("cluster_mode", [True, False])
+    @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
+    async def test_transaction_lastsave(
+            self, redis_client: TRedisClient, cluster_mode: bool
+    ):
+        yesterday = date.today() - timedelta(1)
+        yesterday_unix_time = time.mktime(yesterday.timetuple())
+        transaction = ClusterTransaction() if cluster_mode else Transaction()
+        transaction.lastsave()
+        response = await redis_client.exec(transaction)
+        assert response[0] > yesterday_unix_time
