@@ -1254,14 +1254,14 @@ export class BaseClient {
      * ```typescript
      * // Example usage of sinter method when member exists
      * const result = await client.sinter(["my_set1", "my_set2"]);
-     * console.log(result); // Output: {'member2'} - Indicates that sets have one common member
+     * console.log(result); // Output: Set {'member2'} - Indicates that sets have one common member
      * ```
      *
      * @example
      * ```typescript
      * // Example usage of sinter method with non-existing key
      * const result = await client.sinter(["my_set", "non_existing_key"]);
-     * console.log(result); // Output: None - An empty member is returned since the key does not exist.
+     * console.log(result); // Output: Set {} - An empty set is returned since the key does not exist.
      * ```
      */
     public sinter(keys: string[]): Promise<Set<string>> {
