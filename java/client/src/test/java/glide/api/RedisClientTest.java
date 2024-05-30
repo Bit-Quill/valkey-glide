@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static redis_request.RedisRequestOuterClass.RequestType.Append;
@@ -115,6 +116,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.PfAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.PfCount;
 import static redis_request.RedisRequestOuterClass.RequestType.PfMerge;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.RandomKey;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
 import static redis_request.RedisRequestOuterClass.RequestType.RPushX;
@@ -4054,12 +4056,27 @@ public class RedisClientTest {
     @Test
     public void randomKey() {
         // setup
+        String key1 = "key1";
+        String key2 = "key2";
+        String[] arguments = new String[]{};
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(key1);
 
         // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(RandomKey), eq(arguments), any()))
+            .thenReturn(testResponse);
 
         // exercise
+        service.set(key1, "a");
+
+        CompletableFuture<String> response = service.randomKey();
+//        String rS = response.get();
+//        String[] temp = new String[] {rS};
+//        Long exists = service.exists(temp).get();
 
         // verify
+        assertEquals(testResponse, response);
+        //assertEquals(1, exists);
     }
 
     @SneakyThrows
