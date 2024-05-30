@@ -700,7 +700,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If one or more sets do not exist, an empty set will be returned.
      */
     public sinter(keys: string[]): T {
-        return this.addAndReturn(createSInter(keys));
+        return this.addAndReturn(createSInter(keys), true);
     }
 
     /** Returns if `member` is a member of the set stored at `key`.

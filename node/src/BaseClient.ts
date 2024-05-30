@@ -1265,7 +1265,9 @@ export class BaseClient {
      * ```
      */
     public sinter(keys: string[]): Promise<Set<string>> {
-        return this.createWritePromise(createSInter(keys));
+        return this.createWritePromise<string[]>(createSInter(keys)).then(
+            (sinter) => new Set<string>(sinter),
+        );
     }
 
     /** Returns if `member` is a member of the set stored at `key`.

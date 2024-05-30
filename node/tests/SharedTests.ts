@@ -1118,7 +1118,9 @@ export function runBaseTests<Context>(config: {
                 // positive test case
                 expect(await client.sadd(key1, member1_list)).toEqual(4);
                 expect(await client.sadd(key2, member2_list)).toEqual(3);
-                expect(await client.sinter([key1, key2])).toEqual(["c", "d"]);
+                expect(await client.sinter([key1, key2])).toEqual(
+                    new Set(["c", "d"]),
+                );
 
                 // invalid argument - key list must not be empty
                 try {
@@ -1131,7 +1133,7 @@ export function runBaseTests<Context>(config: {
 
                 // non-existing key returns empty set
                 expect(await client.sinter([key1, non_existing_key])).toEqual(
-                    [],
+                    new Set(),
                 );
 
                 // non-set key
