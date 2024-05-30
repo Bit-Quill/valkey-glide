@@ -533,11 +533,12 @@ public interface ListBaseCommands {
             String source, String destination, ListDirection wherefrom, ListDirection whereto);
 
     /**
-     * Blocks the connection until it pops Atomically pops and removes the left/right-most element to
-     * the list stored at <code>source</code> depending on <code>wherefrom</code>, and pushes the
-     * element at the first/last element of the list stored at <code>destination</code> depending on
-     * <code>wherefrom</code>. <code>BLMove</code> is the blocking variant of {@link #lmove(String,
-     * String, ListDirection, ListDirection)}.
+     * Blocks the connection until it pops atomically and removes the left/right-most element to the
+     * list stored at <code>source</code> depending on <code>wherefrom</code>, and pushes the element
+     * at the first/last element of the list stored at <code>destination</code> depending on <code>
+     * wherefrom</code>. <br>
+     * <code>BLMove</code> is the blocking variant of {@link #lmove(String, String, ListDirection,
+     * ListDirection)}.
      *
      * @since Redis 6.2.0 and above.
      * @apiNote
