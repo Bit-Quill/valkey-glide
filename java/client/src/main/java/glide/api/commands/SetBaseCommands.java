@@ -245,8 +245,8 @@ public interface SetBaseCommands {
      * @param count The number of elements to return.<br>
      *     If <code>count</code> is positive, returns unique elements.<br>
      *     If negative, allows for duplicates.<br>
-     * @return An <code>array</code> of elements from the set, or an empty array if <code>key</code>
-     *     does not exist.
+     * @return An <code>array</code> of elements from the set, or an empty <code>array</code> if
+     *     <code>key</code> does not exist.
      * @example
      *     <pre>{@code
      * client.sadd("test", new String[] {"one"}).get();

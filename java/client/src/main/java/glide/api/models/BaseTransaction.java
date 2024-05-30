@@ -3855,8 +3855,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param count The number of elements to return.<br>
      *     If <code>count</code> is positive, returns unique elements.<br>
      *     If negative, allows for duplicates.<br>
-     * @return Command Response - An <code>array</code> of elements from the set, or an empty array if
-     *     <code>key</code> does not exist.
+     * @return Command Response - An <code>array</code> of elements from the set, or an empty <code>
+     *     array</code> if <code>key</code> does not exist.
      */
     public T srandmember(@NonNull String key, long count) {
         ArgsArray commandArgs = buildArgs(key, Long.toString(count));
