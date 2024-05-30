@@ -540,6 +540,8 @@ public class TransactionTestUtilities {
                 .xadd(streamKey1, Map.of("field2", "value2"), StreamAddOptions.builder().id("0-2").build())
                 .xadd(streamKey1, Map.of("field3", "value3"), StreamAddOptions.builder().id("0-3").build())
                 .xlen(streamKey1)
+                .xrange(streamKey1, "0-1", "0-1")
+                .xrange(streamKey1, "0-1", "0-1", 1l)
                 .xtrim(streamKey1, new MinId(true, "0-2"))
                 .xdel(streamKey1, new String[] {"0-3", "0-5"});
 
@@ -548,6 +550,7 @@ public class TransactionTestUtilities {
             "0-2", // xadd(streamKey1, Map.of("field2", "value2"), ... .id("0-2").build());
             "0-3", // xadd(streamKey1, Map.of("field3", "value3"), ... .id("0-3").build());
             3L, // xlen(streamKey1)
+            Map.of("0-1", new String[] {}),
             1L, // xtrim(streamKey1, new MinId(true, "0-2"))
             1L, // .xdel(streamKey1, new String[] {"0-1", "0-5"});
         };
