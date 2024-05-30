@@ -844,7 +844,7 @@ public class CommandTests {
                 // call the function without await
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
-                var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"});
+                var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
                 Thread.sleep(1404);
 
                 assertEquals(OK, clusterClient.functionKill().get());
