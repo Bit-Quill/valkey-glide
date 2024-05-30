@@ -123,4 +123,27 @@ public class TestUtilities {
             assertEquals(expected, actual);
         }
     }
+
+    // function runs an endless loop up to timeout sec
+    public static String createLuaLibWithLongRunningFunction(
+            String libName, String funcName, int timeout) {
+        String code =
+                "#!lua name=%s\n" // libName placeholder
+                        + "local function sleep(keys, args)\n"
+                        + "  local started = redis.pcall('time')[1]\n"
+                        + "  while (true) do\n"
+                        + "    local now = redis.pcall('time')[1]\n"
+                        + "    if now > started + %d do\n" // timeout placeholder
+                        + "      return 'Timed out %d sec\n" // timeout placeholder
+                        + "    end\n"
+                        + "  end\n"
+                        + "  return 'OK'\n"
+                        + "end\n"
+                        + "redis.register_function{\n"
+                        + "function_name='%s',\n" // funcName placeholder
+                        + "callback=sleep,\n"
+                        + "flags={ 'no-writes' }\n"
+                        + "}";
+        return String.format(code, libName, timeout, timeout, funcName);
+    }
 }

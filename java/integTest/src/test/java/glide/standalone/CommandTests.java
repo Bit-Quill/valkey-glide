@@ -3,6 +3,7 @@ package glide.standalone;
 
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestUtilities.commonClientConfig;
+import static glide.TestUtilities.createLuaLibWithLongRunningFunction;
 import static glide.TestUtilities.getValueFromInfo;
 import static glide.TestUtilities.parseInfoResponseToMap;
 import static glide.api.BaseClient.OK;
@@ -365,25 +366,7 @@ public class CommandTests {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
-        // function runs an endless loop
-        String code =
-                "#!lua name="
-                        + libName
-                        + "\n"
-                        + "local function sleep(keys, args)\n"
-                        + "  local step = 0\n"
-                        + "  while (true) do\n"
-                        + "    struct.pack('HH', 1, 2)\n"
-                        + "  end\n"
-                        + "  return 'OK'\n"
-                        + "end\n"
-                        + "redis.register_function{\n"
-                        + "function_name='"
-                        + funcName
-                        + "',\n"
-                        + "callback=sleep,\n"
-                        + "flags={ 'no-writes' }\n"
-                        + "}";
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
 
         try {
             // nothing to kill
@@ -405,8 +388,7 @@ public class CommandTests {
                 int timeout = 2000; // ms
                 while (timeout > 0) {
                     var response = regularClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
-                    if (((Object[]) response)[1] != null) {
-                        // "running_script" isn't empty
+                    if (((Map<String, Object>) response).get("running_script") != null) {
                         break;
                     }
                     Thread.sleep(100);

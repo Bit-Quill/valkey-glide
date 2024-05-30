@@ -3,6 +3,7 @@ package glide.cluster;
 
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestUtilities.commonClusterClientConfig;
+import static glide.TestUtilities.createLuaLibWithLongRunningFunction;
 import static glide.TestUtilities.getFirstEntryFromMultiValue;
 import static glide.TestUtilities.getValueFromInfo;
 import static glide.TestUtilities.parseInfoResponseToMap;
@@ -808,25 +809,7 @@ public class CommandTests {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
-        // function runs an endless loop
-        String code =
-                "#!lua name="
-                        + libName
-                        + "\n"
-                        + "local function sleep(keys, args)\n"
-                        + "  local step = 0\n"
-                        + "  while (true) do\n"
-                        + "    struct.pack('HH', 1, 2)\n"
-                        + "  end\n"
-                        + "  return 'OK'\n"
-                        + "end\n"
-                        + "redis.register_function{\n"
-                        + "function_name='"
-                        + funcName
-                        + "',\n"
-                        + "callback=sleep,\n"
-                        + "flags={ 'no-writes' }\n"
-                        + "}";
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
 
         try {
             // nothing to kill
@@ -850,8 +833,7 @@ public class CommandTests {
                 while (timeout > 0) {
                     var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
                     for (var response : stats.getMultiValue().values()) {
-                        if (((Object[]) response)[1] != null) {
-                            // "running_script" isn't empty
+                        if (((Map<String, Object>) response).get("running_script") != null) {
                             break;
                         }
                     }
@@ -896,25 +878,7 @@ public class CommandTests {
         // Thread.sleep(3333); // TODO DBG
         String libName = "functionStats_and_functionKill_with_route_" + singleNodeRoute;
         String funcName = "deadlock_with_route_" + singleNodeRoute;
-        // function runs an endless loop
-        String code =
-                "#!lua name="
-                        + libName
-                        + "\n"
-                        + "local function sleep(keys, args)\n"
-                        + "  local step = 0\n"
-                        + "  while (true) do\n"
-                        + "    struct.pack('HH', 1, 2)\n"
-                        + "  end\n"
-                        + "  return 'OK'\n"
-                        + "end\n"
-                        + "redis.register_function{\n"
-                        + "function_name='"
-                        + funcName
-                        + "',\n"
-                        + "callback=sleep,\n"
-                        + "flags={ 'no-writes' }\n"
-                        + "}";
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
         Route route = singleNodeRoute ? new SlotKeyRoute("1", PRIMARY) : ALL_PRIMARIES;
 
         try {
@@ -928,7 +892,7 @@ public class CommandTests {
             assertEquals(libName, clusterClient.functionLoadReplace(code, route).get());
 
             try (var testClient =
-                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(7000).build())
+                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(8000).build())
                             .get()) {
                 // call the function without await
                 // TODO use FCALL
@@ -940,14 +904,12 @@ public class CommandTests {
                     var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}, route).get();
                     if (singleNodeRoute) {
                         var response = stats.getSingleValue();
-                        if (((Object[]) response)[1] != null) {
-                            // "running_script" isn't empty
+                        if (((Map<String, Object>) response).get("running_script") != null) {
                             break;
                         }
                     } else {
                         for (var response : stats.getMultiValue().values()) {
-                            if (((Object[]) response)[1] != null) {
-                                // "running_script" isn't empty
+                            if (((Map<String, Object>) response).get("running_script") != null) {
                                 break;
                             }
                         }
