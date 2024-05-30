@@ -1112,13 +1112,13 @@ export function runBaseTests<Context>(config: {
                 const key1 = `{key}-1-${uuidv4()}`;
                 const key2 = `{key}-2-${uuidv4()}`;
                 const non_existing_key = `{key}`;
-                const member1_list = ["a", "b", "c"];
+                const member1_list = ["a", "b", "c", "d"];
                 const member2_list = ["c", "d", "e"];
 
                 // positive test case
-                expect(await client.sadd(key1, member1_list)).toEqual(3);
+                expect(await client.sadd(key1, member1_list)).toEqual(4);
                 expect(await client.sadd(key2, member2_list)).toEqual(3);
-                expect(await client.sinter([key1, key2])).toEqual(["c"]);
+                expect(await client.sinter([key1, key2])).toEqual(["c", "d"]);
 
                 // invalid argument - key list must not be empty
                 try {
