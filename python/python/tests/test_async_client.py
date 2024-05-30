@@ -3333,6 +3333,11 @@ class TestCommands:
         assert await redis_client.xtrim(key, TrimByMaxLen(threshold=1, exact=True)) == 1
         assert await redis_client.xlen(key) == 1
 
+        assert await redis_client.xtrim(key, TrimByMaxLen(threshold=0, exact=True)) == 1
+        # Unlike other Redis collection types, stream keys still exist even after removing all entries
+        assert await redis_client.exists([key]) == 1
+        assert await redis_client.xlen(key) == 0
+
         assert (
             await redis_client.xtrim(
                 non_existing_key, TrimByMaxLen(threshold=1, exact=True)

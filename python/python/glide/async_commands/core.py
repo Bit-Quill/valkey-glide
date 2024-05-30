@@ -2201,7 +2201,7 @@ class CoreCommands(Protocol):
             >>> await client.xadd("mystream", [("field", "value")])
             >>> await client.xadd("mystream", [("field2", "value2")])
             >>> await client.xlen("mystream")
-                3  # There are 3 entries in "mystream".
+                2  # There are 2 entries in "mystream".
         """
         return cast(
             int,
