@@ -845,7 +845,19 @@ public class CommandTests {
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
                 var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
-                Thread.sleep(1404);
+
+                int timeout = 2000; // ms
+                while (timeout > 0) {
+                    var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
+                    for (var response : stats.getMultiValue().values()) {
+                        if (((Object[]) response)[1] != null) {
+                            // "running_script" isn't empty
+                            break;
+                        }
+                    }
+                    Thread.sleep(100);
+                    timeout -= 100;
+                }
 
                 assertEquals(OK, clusterClient.functionKill().get());
                 Thread.sleep(1404);
@@ -922,7 +934,27 @@ public class CommandTests {
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
                 var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"}, route);
-                Thread.sleep(1404);
+
+                int timeout = 2000; // ms
+                while (timeout > 0) {
+                    var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}, route).get();
+                    if (singleNodeRoute) {
+                        var response = stats.getSingleValue();
+                        if (((Object[]) response)[1] != null) {
+                            // "running_script" isn't empty
+                            break;
+                        }
+                    } else {
+                        for (var response : stats.getMultiValue().values()) {
+                            if (((Object[]) response)[1] != null) {
+                                // "running_script" isn't empty
+                                break;
+                            }
+                        }
+                    }
+                    Thread.sleep(100);
+                    timeout -= 100;
+                }
 
                 // redis kills a function with 5 sec delay
                 assertEquals(OK, clusterClient.functionKill(route).get());

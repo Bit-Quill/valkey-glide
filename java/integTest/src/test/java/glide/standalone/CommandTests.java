@@ -401,7 +401,17 @@ public class CommandTests {
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
                 var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
-                Thread.sleep(1404);
+
+                int timeout = 2000; // ms
+                while (timeout > 0) {
+                    var response = regularClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
+                    if (((Object[]) response)[1] != null) {
+                        // "running_script" isn't empty
+                        break;
+                    }
+                    Thread.sleep(100);
+                    timeout -= 100;
+                }
 
                 // redis kills a function with 5 sec delay
                 assertEquals(OK, regularClient.functionKill().get());
