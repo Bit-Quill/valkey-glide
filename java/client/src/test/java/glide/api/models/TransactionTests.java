@@ -21,6 +21,9 @@ import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_A
 import static glide.api.models.commands.WeightAggregateOptions.WEIGHTS_REDIS_API;
 import static glide.api.models.commands.ZAddOptions.UpdateOptions.SCORE_LESS_THAN_CURRENT;
 import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_API;
+import static glide.api.models.commands.stream.StreamRange.MAXIMUM_RANGE_REDIS_API;
+import static glide.api.models.commands.stream.StreamRange.MINIMUM_RANGE_REDIS_API;
+import static glide.api.models.commands.stream.StreamRange.RANGE_COUNT_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_EXACT_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_MINID_REDIS_API;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -183,6 +186,7 @@ import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamRange.InfRangeBound;
 import glide.api.models.commands.stream.StreamTrimOptions.MinId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -686,11 +690,20 @@ public class TransactionTests {
         transaction.xdel("key", new String[] {"12345-1", "98765-4"});
         results.add(Pair.of(XDel, buildArgs("key", "12345-1", "98765-4")));
 
-        transaction.xrange("key", "-", "+");
-        results.add(Pair.of(XRange, buildArgs("key", "-", "+")));
+        transaction.xrange("key", InfRangeBound.MIN, InfRangeBound.MAX);
+        results.add(
+                Pair.of(XRange, buildArgs("key", MINIMUM_RANGE_REDIS_API, MAXIMUM_RANGE_REDIS_API)));
 
-        transaction.xrange("key", "-", "+", 99L);
-        results.add(Pair.of(XRange, buildArgs("key", "-", "+", "99")));
+        transaction.xrange("key", InfRangeBound.MIN, InfRangeBound.MAX, 99L);
+        results.add(
+                Pair.of(
+                        XRange,
+                        buildArgs(
+                                "key",
+                                MINIMUM_RANGE_REDIS_API,
+                                MAXIMUM_RANGE_REDIS_API,
+                                RANGE_COUNT_REDIS_API,
+                                "99")));
 
         transaction.time();
         results.add(Pair.of(Time, buildArgs()));

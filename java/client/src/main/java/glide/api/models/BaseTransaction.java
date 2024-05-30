@@ -2677,8 +2677,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param end Ending stream ID bound for range, use {@link StreamRange.IdBound#of} to specify a
      *     stream ID, or {@link StreamRange.IdBound#ofExclusive} to specify an exclusive bounded
      *     stream ID. Use {@link StreamRange.InfRangeBound#MAX>} to end with the maximum available ID.
-     *     * @return Command Response - A <code>Map</code> of key to stream entry data, where entry
-     *     data is an array with pairs of item, data.
+     * @return Command Response - A <code>Map</code> of key to stream entry data, where entry data is
+     *     an array with pairs of item, data.
      */
     public T xrange(@NonNull String key, @NonNull StreamRange start, @NonNull StreamRange end) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(StreamRange.toArgs(start, end), key));

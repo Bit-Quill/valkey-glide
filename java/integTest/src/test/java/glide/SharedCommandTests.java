@@ -3082,7 +3082,7 @@ public class SharedCommandTests {
 
         // get the newest entry
         Map<String, String[]> newResult =
-                client.xrange(key, IdBound.ofExclusive(streamId2), IdBound.of(streamId3), 1L).get();
+                client.xrange(key, IdBound.ofExclusive(streamId2), IdBound.ofExclusive(5), 1L).get();
         assertEquals(1, newResult.size());
         assertNotNull(newResult.get(streamId3));
 
@@ -3107,16 +3107,13 @@ public class SharedCommandTests {
         executionException =
                 assertThrows(
                         ExecutionException.class,
-                        () -> client.xrange(key, IdBound.of("not_a_timestamp"), InfRangeBound.MAX).get());
+                        () -> client.xrange(key, IdBound.ofExclusive("not_a_stream_id"), InfRangeBound.MAX).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         executionException =
                 assertThrows(
                         ExecutionException.class,
-                        () ->
-                                client
-                                        .xrange(key, InfRangeBound.MIN, IdBound.ofExclusive("not_a_timestamp"))
-                                        .get());
+                        () -> client.xrange(key, InfRangeBound.MIN, IdBound.ofExclusive("not_a_stream_id")).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 

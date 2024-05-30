@@ -149,7 +149,8 @@ public interface StreamBaseCommands {
      *     {@link IdBound#ofExclusive} to specify an exclusive bounded stream ID. Use {@link
      *     InfRangeBound#MAX>} to end with the maximum available ID.
      * @param count Maximum count of stream entries to return.
-     * @return A <code>Map</code> of key to stream entry data.
+     * @return A <code>Map</code> of key to stream entry data, where entry data is an array with pairs
+     *     of item, data.
      * @example
      *     <pre>{@code
      * // Retrieve the first 2 stream entries
