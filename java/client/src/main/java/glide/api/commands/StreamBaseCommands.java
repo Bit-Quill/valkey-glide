@@ -112,9 +112,24 @@ public interface StreamBaseCommands {
      * @param key The key of the stream.
      * @param start Starting ID to search. Use <code>"-"</code> to start with the minimum possible ID.
      *     Include a <code>"("</code> prior to the ID to do an exclusive search.
-     * @param start End ID to search, or <code>"+"</code> to end with the maximum possible ID. Include
-     *     a <code>"("</code> prior to the ID to do an exclusive search.
-     * @return A <code>Map</code> of key to stream entry data.
+     * @param end End ID to search, or <code>"+"</code> to end with the maximum possible ID. Include a
+     *     <code>"("</code> prior to the ID to do an exclusive search.
+     * @return A <code>Map</code> of key to stream entry data, where entry data is an array with pairs
+     *     of item, data.
+     * @example
+     *     <pre>{@code
+     * // Retrieve all stream entries
+     * Map<String, String[]> result = client.xrange("key", "-", "+").get();
+     *    result.forEach((k, v) -> {
+     *        System.out.println("Stream ID: " + k);
+     *        for (int i = 0; i < v.length;) {
+     *            System.out.println(v[i++] + ": " + v[i++]);
+     *        }
+     * });
+     * // Retrieve exactly one stream entry by id
+     * Map<String, String[]> result = client.xrange("key", streamid, streamid).get();
+     * System.out.println("Stream ID: " + streamid + " -> " + Arrays.toString(result.get(streamid)));
+     * }</pre>
      */
     CompletableFuture<Map<String, String[]>> xrange(String key, String start, String end);
 
@@ -124,8 +139,8 @@ public interface StreamBaseCommands {
      * @param key The key of the stream.
      * @param start Starting ID to search. Use <code>"-"</code> to start with the minimum possible ID.
      *     Include a <code>"("</code> prior to the ID to do an exclusive search.
-     * @param start End ID to search, or <code>"+"</code> to end with the maximum possible ID. Include
-     *     a <code>"("</code> prior to the ID to do an exclusive search.
+     * @param end End ID to search, or <code>"+"</code> to end with the maximum possible ID. Include a
+     *     <code>"("</code> prior to the ID to do an exclusive search.
      * @param count Maximum count of stream entries to return.
      * @return A <code>Map</code> of key to stream entry data.
      */

@@ -2671,9 +2671,10 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key The key of the stream.
      * @param start Starting ID to search. Use <code>"-"</code> to start with the minimum possible ID.
      *     Include a <code>"("</code> prior to the ID to do an exclusive search.
-     * @param start End ID to search, or <code>"+"</code> to end with the maximum possible ID. Include
-     *     a <code>"("</code> prior to the ID to do an exclusive search.
-     * @return Command Response - A <code>Map</code> of key to stream entry data.
+     * @param end End ID to search, or <code>"+"</code> to end with the maximum possible ID. Include a
+     *     <code>"("</code> prior to the ID to do an exclusive search.
+     * @return Command Response - A <code>Map</code> of key to stream entry data, where entry data is
+     *     an array with pairs of item, data.
      */
     public T xrange(@NonNull String key, @NonNull String start, @NonNull String end) {
         ArgsArray commandArgs = buildArgs(key, start, end);

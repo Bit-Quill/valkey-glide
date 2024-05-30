@@ -4,6 +4,7 @@ package glide.examples;
 import glide.api.RedisClient;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class ExamplesApp {
@@ -32,6 +33,15 @@ public class ExamplesApp {
 
             System.out.println("SET(apples, oranges): " + client.set("apples", "oranges").get());
             System.out.println("GET(apples): " + client.get("apples").get());
+
+            Map<String, String[]> result = client.xrange("id", "-", "+").get();
+            result.forEach(
+                    (k, v) -> {
+                        System.out.println("Stream ID: " + k);
+                        for (int i = 0; i < v.length; ) {
+                            System.out.println(v[i++] + ": " + v[i++]);
+                        }
+                    });
 
         } catch (ExecutionException | InterruptedException e) {
             System.out.println("Glide example failed with an exception: ");
