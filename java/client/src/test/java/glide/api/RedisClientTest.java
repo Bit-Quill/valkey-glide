@@ -16,6 +16,9 @@ import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_API;
 import static glide.api.models.commands.stream.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
+import static glide.api.models.commands.stream.StreamRange.MAXIMUM_RANGE_REDIS_API;
+import static glide.api.models.commands.stream.StreamRange.MINIMUM_RANGE_REDIS_API;
+import static glide.api.models.commands.stream.StreamRange.RANGE_COUNT_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_EXACT_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_LIMIT_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
@@ -201,6 +204,9 @@ import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamRange;
+import glide.api.models.commands.stream.StreamRange.IdBound;
+import glide.api.models.commands.stream.StreamRange.InfRangeBound;
 import glide.api.models.commands.stream.StreamTrimOptions;
 import glide.api.models.commands.stream.StreamTrimOptions.MaxLen;
 import glide.api.models.commands.stream.StreamTrimOptions.MinId;
@@ -4031,8 +4037,8 @@ public class RedisClientTest {
     public void xrange_returns_success() {
         // setup
         String key = "testKey";
-        String start = "-";
-        String end = "+";
+        StreamRange start = new IdBound(9999L, true);
+        StreamRange end = new IdBound("696969-10", false);
         Map<String, String[]> completedResult =
                 Map.of(key, new String[] {"duration", "12345", "event-id", "2", "user-id", "42"});
 
@@ -4041,7 +4047,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Map<String, String[]>>submitNewCommand(
-                        eq(XRange), eq(new String[] {key, start, end}), any()))
+                        eq(XRange), eq(new String[] {key, "9999", "(696969-10"}), any()))
                 .thenReturn(testResponse);
 
         // exercise
@@ -4058,8 +4064,8 @@ public class RedisClientTest {
     public void xrange_withcount_returns_success() {
         // setup
         String key = "testKey";
-        String start = "-";
-        String end = "+";
+        StreamRange start = InfRangeBound.MIN;
+        StreamRange end = InfRangeBound.MAX;
         long count = 99L;
         Map<String, String[]> completedResult =
                 Map.of(key, new String[] {"duration", "12345", "event-id", "2", "user-id", "42"});
@@ -4069,7 +4075,16 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Map<String, String[]>>submitNewCommand(
-                        eq(XRange), eq(new String[] {key, start, end, Long.toString(count)}), any()))
+                        eq(XRange),
+                        eq(
+                                new String[] {
+                                    key,
+                                    MINIMUM_RANGE_REDIS_API,
+                                    MAXIMUM_RANGE_REDIS_API,
+                                    RANGE_COUNT_REDIS_API,
+                                    Long.toString(count)
+                                }),
+                        any()))
                 .thenReturn(testResponse);
 
         // exercise

@@ -3,6 +3,7 @@ package glide.api.commands;
 
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.stream.StreamRange;
 import glide.api.models.commands.stream.StreamTrimOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -131,7 +132,7 @@ public interface StreamBaseCommands {
      * System.out.println("Stream ID: " + streamid + " -> " + Arrays.toString(result.get(streamid)));
      * }</pre>
      */
-    CompletableFuture<Map<String, String[]>> xrange(String key, String start, String end);
+    CompletableFuture<Map<String, String[]>> xrange(String key, StreamRange start, StreamRange end);
 
     /**
      * Returns stream entries matching a given range of IDs.
@@ -155,5 +156,6 @@ public interface StreamBaseCommands {
      * });
      * }</pre>
      */
-    CompletableFuture<Map<String, String[]>> xrange(String key, String start, String end, long count);
+    CompletableFuture<Map<String, String[]>> xrange(
+            String key, StreamRange start, StreamRange end, long count);
 }

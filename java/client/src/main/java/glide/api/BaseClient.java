@@ -163,6 +163,7 @@ import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamRange;
 import glide.api.models.commands.stream.StreamTrimOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
 import glide.api.models.exceptions.RedisException;
@@ -1246,16 +1247,16 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Map<String, String[]>> xrange(
-            @NonNull String key, @NonNull String start, @NonNull String end) {
-        String[] arguments = {key, start, end};
+            @NonNull String key, @NonNull StreamRange start, @NonNull StreamRange end) {
+        String[] arguments = ArrayUtils.addFirst(StreamRange.toArgs(start, end), key);
         return commandManager.submitNewCommand(
                 XRange, arguments, response -> castMapOfArrays(handleMapResponse(response), String.class));
     }
 
     @Override
     public CompletableFuture<Map<String, String[]>> xrange(
-            @NonNull String key, @NonNull String start, @NonNull String end, long count) {
-        String[] arguments = {key, start, end, Long.toString(count)};
+            @NonNull String key, @NonNull StreamRange start, @NonNull StreamRange end, long count) {
+        String[] arguments = ArrayUtils.addFirst(StreamRange.toArgs(start, end, count), key);
         return commandManager.submitNewCommand(
                 XRange, arguments, response -> castMapOfArrays(handleMapResponse(response), String.class));
     }

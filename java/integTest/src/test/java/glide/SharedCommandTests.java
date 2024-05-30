@@ -12,8 +12,6 @@ import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.BEFORE;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.NEGATIVE_INFINITY;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.POSITIVE_INFINITY;
-import static glide.api.models.commands.ScoreFilter.MAX;
-import static glide.api.models.commands.ScoreFilter.MIN;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
 import static glide.api.models.commands.SetOptions.Expiry.Milliseconds;
@@ -42,6 +40,7 @@ import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.RangeByLex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
+import glide.api.models.commands.ScoreFilter;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
@@ -54,6 +53,8 @@ import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamRange;
+import glide.api.models.commands.stream.StreamRange.InfRangeBound;
 import glide.api.models.commands.stream.StreamTrimOptions.MaxLen;
 import glide.api.models.commands.stream.StreamTrimOptions.MinId;
 import glide.api.models.configuration.NodeAddress;
@@ -1333,9 +1334,9 @@ public class SharedCommandTests {
         String key2 = "{sinter}-" + UUID.randomUUID();
         String key3 = "{sinter}-" + UUID.randomUUID();
 
-        assertEquals(3, client.sadd(key1, new String[] {"a", "b", "c"}).get());
+        assertEquals(4, client.sadd(key1, new String[] {"a", "b", "c", "d"}).get());
         assertEquals(3, client.sadd(key2, new String[] {"c", "d", "e"}).get());
-        assertEquals(Set.of("c"), client.sinter(new String[] {key1, key2}).get());
+        assertEquals(Set.of("c", "d"), client.sinter(new String[] {key1, key2}).get());
         assertEquals(0, client.sinter(new String[] {key1, key3}).get().size());
 
         // Key exists, but it is not a set
@@ -2813,32 +2814,38 @@ public class SharedCommandTests {
         assertEquals(2, client.zadd(key2, Map.of("a2", .1, "b2", .2)).get());
 
         assertArrayEquals(
-                new Object[] {key1, Map.of("b1", 2.)}, client.zmpop(new String[] {key1, key2}, MAX).get());
+                new Object[] {key1, Map.of("b1", 2.)},
+                client.zmpop(new String[] {key1, key2}, ScoreFilter.MAX).get());
         assertArrayEquals(
                 new Object[] {key2, Map.of("b2", .2, "a2", .1)},
-                client.zmpop(new String[] {key2, key1}, MAX, 10).get());
+                client.zmpop(new String[] {key2, key1}, ScoreFilter.MAX, 10).get());
 
         // nothing popped out
-        assertNull(client.zmpop(new String[] {key3}, MIN).get());
-        assertNull(client.zmpop(new String[] {key3}, MIN, 1).get());
+        assertNull(client.zmpop(new String[] {key3}, ScoreFilter.MIN).get());
+        assertNull(client.zmpop(new String[] {key3}, ScoreFilter.MIN, 1).get());
 
         // Key exists, but it is not a sorted set
         assertEquals(OK, client.set(key3, "value").get());
         ExecutionException executionException =
-                assertThrows(ExecutionException.class, () -> client.zmpop(new String[] {key3}, MAX).get());
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.zmpop(new String[] {key3}, ScoreFilter.MAX).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
         executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.zmpop(new String[] {key3}, MAX, 1).get());
+                        ExecutionException.class,
+                        () -> client.zmpop(new String[] {key3}, ScoreFilter.MAX, 1).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         // incorrect argument
         executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.zmpop(new String[] {key1}, MAX, 0).get());
+                        ExecutionException.class,
+                        () -> client.zmpop(new String[] {key1}, ScoreFilter.MAX, 0).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
         executionException =
-                assertThrows(ExecutionException.class, () -> client.zmpop(new String[0], MAX).get());
+                assertThrows(
+                        ExecutionException.class, () -> client.zmpop(new String[0], ScoreFilter.MAX).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         // check that order of entries in the response is preserved
@@ -2848,7 +2855,7 @@ public class SharedCommandTests {
             entries.put("" + ('a' + i), (double) i);
         }
         assertEquals(10, client.zadd(key2, entries).get());
-        assertEquals(entries, client.zmpop(new String[] {key2}, MIN, 10).get()[1]);
+        assertEquals(entries, client.zmpop(new String[] {key2}, ScoreFilter.MIN, 10).get()[1]);
     }
 
     @SneakyThrows
@@ -2865,30 +2872,33 @@ public class SharedCommandTests {
 
         assertArrayEquals(
                 new Object[] {key1, Map.of("b1", 2.)},
-                client.bzmpop(new String[] {key1, key2}, MAX, 0.1).get());
+                client.bzmpop(new String[] {key1, key2}, ScoreFilter.MAX, 0.1).get());
         assertArrayEquals(
                 new Object[] {key2, Map.of("b2", .2, "a2", .1)},
-                client.bzmpop(new String[] {key2, key1}, MAX, 0.1, 10).get());
+                client.bzmpop(new String[] {key2, key1}, ScoreFilter.MAX, 0.1, 10).get());
 
         // nothing popped out
-        assertNull(client.bzmpop(new String[] {key3}, MIN, 0.001).get());
-        assertNull(client.bzmpop(new String[] {key3}, MIN, 0.001, 1).get());
+        assertNull(client.bzmpop(new String[] {key3}, ScoreFilter.MIN, 0.001).get());
+        assertNull(client.bzmpop(new String[] {key3}, ScoreFilter.MIN, 0.001, 1).get());
 
         // Key exists, but it is not a sorted set
         assertEquals(OK, client.set(key3, "value").get());
         ExecutionException executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.bzmpop(new String[] {key3}, MAX, .1).get());
+                        ExecutionException.class,
+                        () -> client.bzmpop(new String[] {key3}, ScoreFilter.MAX, .1).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
         executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.bzmpop(new String[] {key3}, MAX, .1, 1).get());
+                        ExecutionException.class,
+                        () -> client.bzmpop(new String[] {key3}, ScoreFilter.MAX, .1, 1).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         // incorrect argument
         executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.bzmpop(new String[] {key1}, MAX, .1, 0).get());
+                        ExecutionException.class,
+                        () -> client.bzmpop(new String[] {key1}, ScoreFilter.MAX, .1, 0).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         // check that order of entries in the response is preserved
@@ -2898,7 +2908,7 @@ public class SharedCommandTests {
             entries.put("" + ('a' + i), (double) i);
         }
         assertEquals(10, client.zadd(key2, entries).get());
-        assertEquals(entries, client.bzmpop(new String[] {key2}, MIN, .1, 10).get()[1]);
+        assertEquals(entries, client.bzmpop(new String[] {key2}, ScoreFilter.MIN, .1, 10).get()[1]);
     }
 
     @SneakyThrows
@@ -2914,13 +2924,13 @@ public class SharedCommandTests {
                         : RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get()) {
 
             // ensure that commands doesn't time out even if timeout > request timeout
-            assertNull(testClient.bzmpop(new String[] {key}, MAX, 1).get());
+            assertNull(testClient.bzmpop(new String[] {key}, ScoreFilter.MAX, 1).get());
 
             // with 0 timeout (no timeout) should never time out,
             // but we wrap the test with timeout to avoid test failing or stuck forever
             assertThrows(
                     TimeoutException.class, // <- future timeout, not command timeout
-                    () -> testClient.bzmpop(new String[] {key}, MAX, 0).get(3, TimeUnit.SECONDS));
+                    () -> testClient.bzmpop(new String[] {key}, ScoreFilter.MAX, 0).get(3, TimeUnit.SECONDS));
         }
     }
 
@@ -3064,7 +3074,7 @@ public class SharedCommandTests {
         assertEquals(2L, client.xlen(key).get());
 
         // get everything from the stream
-        Map<String, String[]> result = client.xrange(key, "-", "+").get();
+        Map<String, String[]> result = client.xrange(key, InfRangeBound.MIN, InfRangeBound.MAX).get();
         assertEquals(2, result.size());
         assertNotNull(result.get(streamId1));
         assertNotNull(result.get(streamId2));
@@ -3079,22 +3089,39 @@ public class SharedCommandTests {
                         .get());
 
         // get the newest entry
-        Map<String, String[]> newResult = client.xrange(key, "(" + streamId2, streamId3).get();
+        Map<String, String[]> newResult =
+                client
+                        .xrange(
+                                key,
+                                new StreamRange.IdBound(streamId2, true),
+                                new StreamRange.IdBound(streamId3),
+                                1L)
+                        .get();
         assertEquals(1, newResult.size());
         assertNotNull(newResult.get(streamId3));
 
         // xrange against an emptied stream
         assertEquals(3, client.xdel(key, new String[] {streamId1, streamId2, streamId3}).get());
-        Map<String, String[]> emptiedResult = client.xrange(key, "-", "+").get();
+        Map<String, String[]> emptiedResult =
+                client.xrange(key, InfRangeBound.MIN, InfRangeBound.MAX, 10L).get();
         assertEquals(0, emptiedResult.size());
 
         // xrange against a non-existent stream
-        Map<String, String[]> emptyResult = client.xrange(key2, "-", "+").get();
+        Map<String, String[]> emptyResult =
+                client.xrange(key2, InfRangeBound.MIN, InfRangeBound.MAX).get();
         assertEquals(0, emptyResult.size());
 
         assertEquals(OK, client.set(key2, "not_a_stream").get());
         ExecutionException executionException =
-                assertThrows(ExecutionException.class, () -> client.xrange(key2, "-", "+").get());
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.xrange(key2, InfRangeBound.MIN, InfRangeBound.MAX).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.xrange(key, InfRangeBound.MIN, InfRangeBound.MAX).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 
