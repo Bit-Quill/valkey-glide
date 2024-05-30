@@ -133,7 +133,7 @@ public class TestUtilities {
                         + "  local started = redis.pcall('time')[1]\n"
                         + "  while (true) do\n"
                         + "    local now = redis.pcall('time')[1]\n"
-                        + "    if now > started + %d do\n" // timeout placeholder
+                        + "    if now > started + %d then\n" // timeout placeholder
                         + "      return 'Timed out %d sec\n" // timeout placeholder
                         + "    end\n"
                         + "  end\n"
