@@ -695,7 +695,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * See https://valkey.io/docs/latest/commands/sinter/ for more details.
      *
      * @param keys - The `keys` of the sets to get the intersection.
-     * 
+     *
      * Command Response - A set of members which are present in all given sets.
      * If one or more sets do not exist, an empty set will be returned.
      */
