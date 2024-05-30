@@ -15,6 +15,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ConfigSet;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Echo;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
+import static redis_request.RedisRequestOuterClass.RequestType.FunctionKill;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
@@ -445,5 +446,16 @@ public class RedisClusterClient extends BaseClient
                 new String[] {FunctionLoadOptions.REPLACE.toString(), libraryCode},
                 route,
                 this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> functionKill() {
+        return commandManager.submitNewCommand(FunctionKill, new String[0], this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> functionKill(@NonNull Route route) {
+        return commandManager.submitNewCommand(
+                FunctionKill, new String[0], route, this::handleStringResponse);
     }
 }

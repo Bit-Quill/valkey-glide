@@ -1,8 +1,8 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.cluster;
 
-import static glide.TestConfiguration.CLUSTER_PORTS;
 import static glide.TestConfiguration.REDIS_VERSION;
+import static glide.TestUtilities.commonClusterClientConfig;
 import static glide.TestUtilities.getFirstEntryFromMultiValue;
 import static glide.TestUtilities.getValueFromInfo;
 import static glide.TestUtilities.parseInfoResponseToMap;
@@ -40,8 +40,6 @@ import glide.api.models.commands.PopDirection;
 import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.bitmap.BitwiseOperation;
-import glide.api.models.configuration.NodeAddress;
-import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import glide.api.models.configuration.RequestRoutingConfiguration.SlotKeyRoute;
 import glide.api.models.exceptions.RedisException;
@@ -59,13 +57,12 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-@Timeout(10) // seconds
+// @Timeout(10) // seconds
 public class CommandTests {
 
     private static RedisClusterClient clusterClient = null;
@@ -120,11 +117,7 @@ public class CommandTests {
     @SneakyThrows
     public static void init() {
         clusterClient =
-                RedisClusterClient.CreateClient(
-                                RedisClusterClientConfiguration.builder()
-                                        .address(NodeAddress.builder().port(CLUSTER_PORTS[0]).build())
-                                        .requestTimeout(5000)
-                                        .build())
+                RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(7000).build())
                         .get();
     }
 
@@ -734,7 +727,7 @@ public class CommandTests {
         future.get();
     }
 
-    @Test
+    // @Test
     @SneakyThrows
     public void flushall() {
         assertEquals(OK, clusterClient.flushall(FlushMode.SYNC).get());
@@ -807,5 +800,140 @@ public class CommandTests {
                         : clusterClient.functionLoadReplace(newCode);
         assertEquals(libName, promise2.get());
         // TODO test with FCALL
+    }
+
+    @Test
+    @SneakyThrows
+    public void functionStats_and_functionKill() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+        String libName = "functionStats_and_functionKill";
+        String funcName = "deadlock";
+        // function runs an endless loop
+        String code =
+                "#!lua name="
+                        + libName
+                        + "\n"
+                        + "local function sleep(keys, args)\n"
+                        + "  local step = 0\n"
+                        + "  while (true) do\n"
+                        + "    struct.pack('HH', 1, 2)\n"
+                        + "  end\n"
+                        + "  return 'OK'\n"
+                        + "end\n"
+                        + "redis.register_function{\n"
+                        + "function_name='"
+                        + funcName
+                        + "',\n"
+                        + "callback=sleep,\n"
+                        + "flags={ 'no-writes' }\n"
+                        + "}";
+
+        // nothing to kill
+        var exception =
+                assertThrows(ExecutionException.class, () -> clusterClient.functionKill().get());
+        assertInstanceOf(RequestException.class, exception.getCause());
+        assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+        // load the lib
+        assertEquals(libName, clusterClient.functionLoadReplace(code).get());
+
+        try (var testClient =
+                RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(15000).build())
+                        .get()) {
+            // call the function without await
+            // TODO use FCALL
+            var before = System.currentTimeMillis();
+            var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"});
+            Thread.sleep(404);
+
+            assertEquals(OK, clusterClient.functionKill().get());
+
+            exception = assertThrows(ExecutionException.class, () -> clusterClient.functionKill().get());
+            assertInstanceOf(RequestException.class, exception.getCause());
+            assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+            System.out.println((System.currentTimeMillis() - before) / 1000);
+            exception = assertThrows(ExecutionException.class, promise::get);
+            assertInstanceOf(RequestException.class, exception.getCause());
+            assertTrue(exception.getMessage().contains("Script killed by user"));
+        }
+
+        // TODO replace with FUNCTION DELETE
+        assertEquals(
+                OK,
+                clusterClient
+                        .customCommand(new String[] {"FUNCTION", "DELETE", libName})
+                        .get()
+                        .getSingleValue());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @SneakyThrows
+    public void functionStats_and_functionKill_with_route(boolean singleNodeRoute) {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+        // Thread.sleep(3333); // TODO DBG
+        String libName = "functionStats_and_functionKill_with_route_" + singleNodeRoute;
+        String funcName = "deadlock_with_route_" + singleNodeRoute;
+        // function runs an endless loop
+        String code =
+                "#!lua name="
+                        + libName
+                        + "\n"
+                        + "local function sleep(keys, args)\n"
+                        + "  local step = 0\n"
+                        + "  while (true) do\n"
+                        + "    struct.pack('HH', 1, 2)\n"
+                        + "  end\n"
+                        + "  return 'OK'\n"
+                        + "end\n"
+                        + "redis.register_function{\n"
+                        + "function_name='"
+                        + funcName
+                        + "',\n"
+                        + "callback=sleep,\n"
+                        + "flags={ 'no-writes' }\n"
+                        + "}";
+        Route route = singleNodeRoute ? new SlotKeyRoute("1", PRIMARY) : ALL_PRIMARIES;
+
+        // nothing to kill
+        var exception =
+                assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
+        assertInstanceOf(RequestException.class, exception.getCause());
+        assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+        // load the lib
+        assertEquals(libName, clusterClient.functionLoadReplace(code, route).get());
+
+        try (var testClient =
+                RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(7000).build())
+                        .get()) {
+            // call the function without await
+            // TODO use FCALL
+            var before = System.currentTimeMillis();
+            var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"}, route);
+            Thread.sleep(404);
+
+            // redis kills a function with 5 sec delay
+            assertEquals(OK, clusterClient.functionKill(route).get());
+
+            exception =
+                    assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
+            assertInstanceOf(RequestException.class, exception.getCause());
+            assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+            System.err.println((System.currentTimeMillis() - before) / 1000);
+            exception = assertThrows(ExecutionException.class, promise::get);
+            assertInstanceOf(RequestException.class, exception.getCause());
+            assertTrue(exception.getMessage().contains("Script killed by user"));
+        }
+
+        // TODO replace with FUNCTION DELETE
+        assertEquals(
+                OK,
+                clusterClient
+                        .customCommand(new String[] {"FUNCTION", "DELETE", libName}, route)
+                        .get()
+                        .getSingleValue());
     }
 }

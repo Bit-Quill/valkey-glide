@@ -2,7 +2,7 @@
 package glide.standalone;
 
 import static glide.TestConfiguration.REDIS_VERSION;
-import static glide.TestConfiguration.STANDALONE_PORTS;
+import static glide.TestUtilities.commonClientConfig;
 import static glide.TestUtilities.getValueFromInfo;
 import static glide.TestUtilities.parseInfoResponseToMap;
 import static glide.api.BaseClient.OK;
@@ -25,8 +25,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import glide.api.RedisClient;
 import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
-import glide.api.models.configuration.NodeAddress;
-import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.exceptions.RequestException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -50,11 +48,7 @@ public class CommandTests {
     @SneakyThrows
     public static void init() {
         regularClient =
-                RedisClient.CreateClient(
-                                RedisClientConfiguration.builder()
-                                        .address(NodeAddress.builder().port(STANDALONE_PORTS[0]).build())
-                                        .build())
-                        .get();
+                RedisClient.CreateClient(commonClientConfig().requestTimeout(7000).build()).get();
     }
 
     @AfterAll
@@ -363,5 +357,66 @@ public class CommandTests {
                 code + "\n redis.register_function('myfunc2c', function(keys, args) return #args end)";
         assertEquals(libName, regularClient.functionLoadReplace(newCode).get());
         // TODO test with FCALL
+    }
+
+    @Test
+    @SneakyThrows
+    public void functionStats_and_functionKill() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+        String libName = "functionStats_and_functionKill";
+        String funcName = "deadlock";
+        // function runs an endless loop
+        String code =
+                "#!lua name="
+                        + libName
+                        + "\n"
+                        + "local function sleep(keys, args)\n"
+                        + "  local step = 0\n"
+                        + "  while (true) do\n"
+                        + "    struct.pack('HH', 1, 2)\n"
+                        + "  end\n"
+                        + "  return 'OK'\n"
+                        + "end\n"
+                        + "redis.register_function{\n"
+                        + "function_name='"
+                        + funcName
+                        + "',\n"
+                        + "callback=sleep,\n"
+                        + "flags={ 'no-writes' }\n"
+                        + "}";
+
+        // nothing to kill
+        var exception =
+                assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
+        assertInstanceOf(RequestException.class, exception.getCause());
+        assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+        // load the lib
+        assertEquals(libName, regularClient.functionLoadReplace(code).get());
+
+        try (var testClient =
+                RedisClient.CreateClient(commonClientConfig().requestTimeout(7000).build()).get()) {
+            // call the function without await
+            // TODO use FCALL
+            var before = System.currentTimeMillis();
+            var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"});
+            Thread.sleep(404);
+
+            // redis kills a function with 5 sec delay
+            assertEquals(OK, regularClient.functionKill().get());
+
+            exception = assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
+            assertInstanceOf(RequestException.class, exception.getCause());
+            assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+            System.out.println((System.currentTimeMillis() - before) / 1000);
+            exception = assertThrows(ExecutionException.class, promise::get);
+            assertInstanceOf(RequestException.class, exception.getCause());
+            assertTrue(exception.getMessage().contains("Script killed by user"));
+        }
+
+        // TODO replace with FUNCTION DELETE
+        assertEquals(
+                OK, regularClient.customCommand(new String[] {"FUNCTION", "DELETE", libName}).get());
     }
 }

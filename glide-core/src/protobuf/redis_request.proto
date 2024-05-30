@@ -191,6 +191,7 @@ enum RequestType {
     HStrlen = 149;
     FunctionLoad = 150;
     LMPop = 155;
+    FunctionKill = 156;
 }
 
 message Command {

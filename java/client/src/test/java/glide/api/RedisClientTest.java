@@ -58,6 +58,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Exists;
 import static redis_request.RedisRequestOuterClass.RequestType.Expire;
 import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
+import static redis_request.RedisRequestOuterClass.RequestType.FunctionKill;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoDist;
@@ -4682,6 +4683,27 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void functionKill_returns_success() {
+        // setup
+        String[] args = new String[0];
+        CompletableFuture<String> testResponse = new CompletableFuture<>();
+        testResponse.complete(OK);
+
+        // match on protobuf request
+        when(commandManager.<String>submitNewCommand(eq(FunctionKill), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String> response = service.functionKill();
+        String payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(OK, payload);
     }
 
     @SneakyThrows

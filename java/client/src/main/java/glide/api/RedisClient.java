@@ -13,6 +13,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ConfigSet;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Echo;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
+import static redis_request.RedisRequestOuterClass.RequestType.FunctionKill;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
@@ -202,5 +203,10 @@ public class RedisClient extends BaseClient
                 FunctionLoad,
                 new String[] {FunctionLoadOptions.REPLACE.toString(), libraryCode},
                 this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> functionKill() {
+        return commandManager.submitNewCommand(FunctionKill, new String[0], this::handleStringResponse);
     }
 }
