@@ -4037,8 +4037,8 @@ public class RedisClientTest {
     public void xrange_returns_success() {
         // setup
         String key = "testKey";
-        StreamRange start = new IdBound(9999L, true);
-        StreamRange end = new IdBound("696969-10", false);
+        StreamRange start = IdBound.of(9999L);
+        StreamRange end = IdBound.ofExclusive("696969-10");
         Map<String, String[]> completedResult =
                 Map.of(key, new String[] {"duration", "12345", "event-id", "2", "user-id", "42"});
 

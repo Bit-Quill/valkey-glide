@@ -47,30 +47,11 @@ public interface StreamRange {
         private final String redisApi;
 
         /**
-         * Creates an incomplete stream ID boundary without the sequence number for range search.
-         *
-         * @param timestamp The stream timestamp as ID.
-         */
-        public IdBound(long timestamp) {
-            redisApi = Long.toString(timestamp);
-        }
-
-        /**
-         * Creates an incomplete stream ID boundary without the sequence number for range search.
-         *
-         * @param timestamp The stream timestamp as ID.
-         * @param isInclusive Whether the ID range bound is inclusive. Defaults to true if not set.
-         */
-        public IdBound(long timestamp, boolean isInclusive) {
-            redisApi = isInclusive ? Long.toString(timestamp) : "(" + timestamp;
-        }
-
-        /**
-         * Creates a stream ID boundary by stream id for range search.
+         * Default constructor
          *
          * @param id The stream id.
          */
-        public IdBound(String id) {
+        private IdBound(String id) {
             redisApi = id;
         }
 
@@ -78,10 +59,37 @@ public interface StreamRange {
          * Creates a stream ID boundary by stream id for range search.
          *
          * @param id The stream id.
-         * @param isInclusive Whether the ID range bound is inclusive. Defaults to true if not set.
          */
-        public IdBound(String id, boolean isInclusive) {
-            redisApi = isInclusive ? id : "(" + id;
+        public static IdBound of(String id) {
+            return new IdBound(id);
+        }
+
+        /**
+         * Creates an incomplete stream ID boundary without the sequence number for range search.
+         *
+         * @param timestamp The stream timestamp as ID.
+         */
+        public static IdBound of(long timestamp) {
+            return new IdBound(Long.toString(timestamp));
+        }
+
+        /**
+         * Creates an incomplete stream ID exclusive boundary without the sequence number for range
+         * search.
+         *
+         * @param timestamp The stream timestamp as ID.
+         */
+        public static IdBound ofExclusive(long timestamp) {
+            return new IdBound("(" + timestamp);
+        }
+
+        /**
+         * Creates a stream ID exclusive boundary by stream id for range search.
+         *
+         * @param id The stream id.
+         */
+        public static IdBound ofExclusive(String id) {
+            return new IdBound("(" + id);
         }
     }
 

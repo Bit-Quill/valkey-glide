@@ -4,6 +4,8 @@ package glide.api.commands;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
 import glide.api.models.commands.stream.StreamRange;
+import glide.api.models.commands.stream.StreamRange.IdBound;
+import glide.api.models.commands.stream.StreamRange.InfRangeBound;
 import glide.api.models.commands.stream.StreamTrimOptions;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -111,16 +113,18 @@ public interface StreamBaseCommands {
      * Returns stream entries matching a given range of IDs.
      *
      * @param key The key of the stream.
-     * @param start Starting ID to search. Use <code>"-"</code> to start with the minimum possible ID.
-     *     Include a <code>"("</code> prior to the ID to do an exclusive search.
-     * @param end Ending ID to search, or <code>"+"</code> to end with the maximum possible ID.
-     *     Include a <code>"("</code> prior to the ID to do an exclusive search.
+     * @param start Starting stream ID bound for range, use {@link IdBound#of} to specify a stream ID,
+     *     or {@link IdBound#ofExclusive} to specify an exclusive bounded stream ID. Use {@link
+     *     InfRangeBound#MIN} to start with the minimum available ID.
+     * @param end Ending stream ID bound for range, use {@link IdBound#of} to specify a stream ID, or
+     *     {@link IdBound#ofExclusive} to specify an exclusive bounded stream ID. Use {@link
+     *     InfRangeBound#MAX>} to end with the maximum available ID.
      * @return A <code>Map</code> of key to stream entry data, where entry data is an array with pairs
      *     of item, data.
      * @example
      *     <pre>{@code
      * // Retrieve all stream entries
-     * Map<String, String[]> result = client.xrange("key", "-", "+").get();
+     * Map<String, String[]> result = client.xrange("key", InfRangeBound.MIN, InfRangeBound.MAX).get();
      * result.forEach((k, v) -> {
      *     System.out.println("Stream ID: " + k);
      *     for (int i = 0; i < v.length;) {
@@ -128,7 +132,7 @@ public interface StreamBaseCommands {
      *     }
      * });
      * // Retrieve exactly one stream entry by id
-     * Map<String, String[]> result = client.xrange("key", streamid, streamid).get();
+     * Map<String, String[]> result = client.xrange("key", IdBound.of(streamId), IdBound.of(streamId)).get();
      * System.out.println("Stream ID: " + streamid + " -> " + Arrays.toString(result.get(streamid)));
      * }</pre>
      */
@@ -138,16 +142,18 @@ public interface StreamBaseCommands {
      * Returns stream entries matching a given range of IDs.
      *
      * @param key The key of the stream.
-     * @param start Starting ID to search. Use <code>"-"</code> to start with the minimum possible ID.
-     *     Include a <code>"("</code> prior to the ID to do an exclusive search.
-     * @param end Ending ID to search, or <code>"+"</code> to end with the maximum possible ID.
-     *     Include a <code>"("</code> prior to the ID to do an exclusive search.
+     * @param start Starting stream ID bound for range, use {@link IdBound#of} to specify a stream ID,
+     *     or {@link IdBound#ofExclusive} to specify an exclusive bounded stream ID. Use {@link
+     *     InfRangeBound#MIN} to start with the minimum available ID.
+     * @param end Ending stream ID bound for range, use {@link IdBound#of} to specify a stream ID, or
+     *     {@link IdBound#ofExclusive} to specify an exclusive bounded stream ID. Use {@link
+     *     InfRangeBound#MAX>} to end with the maximum available ID.
      * @param count Maximum count of stream entries to return.
      * @return A <code>Map</code> of key to stream entry data.
      * @example
      *     <pre>{@code
      * // Retrieve the first 2 stream entries
-     * Map<String, String[]> result = client.xrange("key", "-", "+", 2).get();
+     * Map<String, String[]> result = client.xrange("key", InfRangeBound.MIN, InfRangeBound.MAX, 2).get();
      * result.forEach((k, v) -> {
      *     System.out.println("Stream ID: " + k);
      *     for (int i = 0; i < v.length;) {
