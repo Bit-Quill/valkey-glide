@@ -3107,13 +3107,19 @@ public class SharedCommandTests {
         executionException =
                 assertThrows(
                         ExecutionException.class,
-                        () -> client.xrange(key, IdBound.ofExclusive("not_a_stream_id"), InfRangeBound.MAX).get());
+                        () ->
+                                client
+                                        .xrange(key, IdBound.ofExclusive("not_a_stream_id"), InfRangeBound.MAX)
+                                        .get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         executionException =
                 assertThrows(
                         ExecutionException.class,
-                        () -> client.xrange(key, InfRangeBound.MIN, IdBound.ofExclusive("not_a_stream_id")).get());
+                        () ->
+                                client
+                                        .xrange(key, InfRangeBound.MIN, IdBound.ofExclusive("not_a_stream_id"))
+                                        .get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 
