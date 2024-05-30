@@ -238,16 +238,15 @@ public interface SetBaseCommands {
     CompletableFuture<String> srandmember(String key);
 
     /**
-     * Returns an array of distinct random elements from the set value stored at <code>key</code> if a
-     * positive <code>count</code> was given, or an array of random elements allowing duplicates if a
-     * negative <code>count</code> value was given. In the negative case, the number of elements is
-     * the absolute value of <code>count</code>.
+     * Returns one or more random elements from the set value stored at <code>key</code>.
      *
      * @see <a href="https://redis.io/commands/srandmember/">redis.io</a> for details.
      * @param key The key from which to retrieve the set members.
-     * @param count The count of how many elements should be returned.
-     * @return An array of elements from the set, or an empty array if <code>key</code> does not
-     *     exist.
+     * @param count The number of elements to return.<br>
+     *     If <code>count</code> is positive, returns unique elements.<br>
+     *     If negative, allows for duplicates.<br>
+     * @return An <code>array</code> of elements from the set, or an empty array if <code>key</code>
+     *     does not exist.
      * @example
      *     <pre>{@code
      * client.sadd("test", new String[] {"one"}).get();
