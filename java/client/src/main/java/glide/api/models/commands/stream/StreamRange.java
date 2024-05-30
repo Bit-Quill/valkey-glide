@@ -93,10 +93,20 @@ public interface StreamRange {
         }
     }
 
+    /**
+     * Convert StreamRange arguments to a string array
+     *
+     * @return arguments converted to an array to be consumed by Redis
+     */
     static String[] toArgs(StreamRange start, StreamRange end) {
         return new String[] {start.getRedisApi(), end.getRedisApi()};
     }
 
+    /**
+     * Convert StreamRange arguments to a string array
+     *
+     * @return arguments converted to an array to be consumed by Redis
+     */
     static String[] toArgs(StreamRange start, StreamRange end, long count) {
         return ArrayTransformUtils.concatenateArrays(
                 toArgs(start, end), new String[] {RANGE_COUNT_REDIS_API, Long.toString(count)});
