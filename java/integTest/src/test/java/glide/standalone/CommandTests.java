@@ -385,35 +385,43 @@ public class CommandTests {
                         + "flags={ 'no-writes' }\n"
                         + "}";
 
-        // nothing to kill
-        var exception =
-                assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
-        assertInstanceOf(RequestException.class, exception.getCause());
-        assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
-
-        // load the lib
-        assertEquals(libName, regularClient.functionLoadReplace(code).get());
-
-        try (var testClient =
-                RedisClient.CreateClient(commonClientConfig().requestTimeout(7000).build()).get()) {
-            // call the function without await
-            // TODO use FCALL
-            var before = System.currentTimeMillis();
-            var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"});
-            Thread.sleep(404);
-
-            // redis kills a function with 5 sec delay
-            assertEquals(OK, regularClient.functionKill().get());
-            Thread.sleep(404);
-
-            exception = assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
+        try {
+            // nothing to kill
+            var exception =
+                    assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
             assertInstanceOf(RequestException.class, exception.getCause());
             assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
 
-            System.out.println((System.currentTimeMillis() - before) / 1000);
-            exception = assertThrows(ExecutionException.class, promise::get);
-            assertInstanceOf(RequestException.class, exception.getCause());
-            assertTrue(exception.getMessage().contains("Script killed by user"));
+            // load the lib
+            assertEquals(libName, regularClient.functionLoadReplace(code).get());
+
+            try (var testClient =
+                    RedisClient.CreateClient(commonClientConfig().requestTimeout(7000).build()).get()) {
+                // call the function without await
+                // TODO use FCALL
+                var before = System.currentTimeMillis();
+                var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
+                Thread.sleep(1404);
+
+                // redis kills a function with 5 sec delay
+                assertEquals(OK, regularClient.functionKill().get());
+                Thread.sleep(1404);
+
+                exception =
+                        assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+                System.out.println((System.currentTimeMillis() - before) / 1000);
+                exception = assertThrows(ExecutionException.class, promise::get);
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().contains("Script killed by user"));
+            }
+        } finally {
+            try {
+                regularClient.functionKill().get();
+            } catch (Exception ignored) {
+            }
         }
 
         // TODO replace with FUNCTION DELETE
