@@ -3083,12 +3083,12 @@ public class SharedCommandTests {
         assertEquals(1, newResult.size());
         assertNotNull(newResult.get(streamId3));
 
-        // remove all extries
+        // xrange against an emptied stream
         assertEquals(3, client.xdel(key, new String[] {streamId1, streamId2, streamId3}).get());
         Map<String, String[]> emptiedResult = client.xrange(key, "-", "+").get();
         assertEquals(0, emptiedResult.size());
 
-        // Test
+        // xrange against a non-existent stream
         Map<String, String[]> emptyResult = client.xrange(key2, "-", "+").get();
         assertEquals(0, emptyResult.size());
 
