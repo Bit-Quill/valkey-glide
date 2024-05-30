@@ -404,6 +404,7 @@ public class CommandTests {
 
             // redis kills a function with 5 sec delay
             assertEquals(OK, regularClient.functionKill().get());
+            Thread.sleep(404);
 
             exception = assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
             assertInstanceOf(RequestException.class, exception.getCause());
