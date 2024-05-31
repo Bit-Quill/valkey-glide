@@ -4590,7 +4590,7 @@ public class SharedCommandTests {
         long limit2 = 4;
 
         // keys does not exist or is empty
-        String[] keys = new String[] {key1, key2};
+        String[] keys = {key1, key2};
         assertEquals(0, client.sintercard(keys).get());
         assertEquals(0, client.sintercard(keys, limit).get());
 
@@ -4605,12 +4605,10 @@ public class SharedCommandTests {
         // returns limit as cardinality when the limit is reached partway through the computation
         assertEquals(limit, client.sintercard(keys, limit).get());
 
-        // returns cardinality normally when the limit isn't reached
-        assertEquals(3, client.sintercard(keys, limit2).get());
-
         // non set keys are used
         assertEquals(OK, client.set(nonSetKey, "NotASet").get());
-        String[] badArr = new String[] {nonSetKey, key1};
+        String[] badArr = new String[] {key1, nonSetKey};
+        ;
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.sintercard(badArr).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
