@@ -4608,7 +4608,6 @@ public class SharedCommandTests {
         // non set keys are used
         assertEquals(OK, client.set(nonSetKey, "NotASet").get());
         String[] badArr = new String[] {key1, nonSetKey};
-        ;
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.sintercard(badArr).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
