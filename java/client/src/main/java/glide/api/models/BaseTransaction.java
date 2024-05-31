@@ -3424,7 +3424,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-kill/">redis.io</a> for details.
-     * @return Command Response - <code>OK</code>.
+     * @return Command Response - <code>OK</code> if killed a function or throws an error if nothing
+     *     can be killed.
      */
     public T functionKill() {
         protobufTransaction.addCommands(buildCommand(FunctionKill));

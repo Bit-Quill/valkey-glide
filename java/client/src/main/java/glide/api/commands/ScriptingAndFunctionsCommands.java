@@ -51,7 +51,7 @@ public interface ScriptingAndFunctionsCommands {
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-kill/">redis.io</a> for details.
-     * @return <code>OK</code>.
+     * @return <code>OK</code> if killed a function or throws an error if nothing can be killed.
      * @example
      *     <pre>{@code
      * String response = client.functionKill().get();

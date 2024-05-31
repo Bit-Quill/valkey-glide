@@ -92,7 +92,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-kill/">redis.io</a> for details.
-     * @return <code>OK</code>.
+     * @return <code>OK</code> if killed a function or throws an error if nothing can be killed.
      * @example
      *     <pre>{@code
      * String response = client.functionKill().get();
@@ -110,7 +110,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @see <a href="https://redis.io/docs/latest/commands/function-kill/">redis.io</a> for details.
      * @param route Specifies the routing configuration for the command. The client will route the
      *     command to the nodes defined by <code>route</code>.
-     * @return <code>OK</code>.
+     * @return <code>OK</code> if killed a function or throws an error if nothing can be killed.
      * @example
      *     <pre>{@code
      * String response = client.functionKill(RANDOM).get();
