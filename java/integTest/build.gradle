@@ -78,7 +78,7 @@ tasks.register('startCluster') {
         new ByteArrayOutputStream().withStream { os ->
             exec {
                 workingDir "${project.rootDir}/../utils"
-                commandLine 'python3', 'cluster_manager.py', 'start', '--cluster-mode'
+                commandLine 'python3', 'cluster_manager.py', 'start', '--cluster-mode', '-p', '7000', '7001', '7002', '7003', '7004', '7005'
                 standardOutput = os
             }
             clusterRedisPorts = extractPortsFromClusterManagerOutput(os.toString())
@@ -91,7 +91,7 @@ tasks.register('startStandalone') {
         new ByteArrayOutputStream().withStream { os ->
             exec {
                 workingDir "${project.rootDir}/../utils"
-                commandLine 'python3', 'cluster_manager.py', 'start', '-r', '0'
+                commandLine 'python3', 'cluster_manager.py', 'start', '-r', '0', '-p', '6379'
                 standardOutput = os
             }
             standaloneRedisPorts = extractPortsFromClusterManagerOutput(os.toString())

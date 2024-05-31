@@ -885,6 +885,9 @@ public class CommandTests {
     public void functionStats_and_functionKill_with_route(boolean singleNodeRoute) {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         // Thread.sleep(3333); // TODO DBG
+
+        clusterClient.set("=============", " ").get();
+
         String libName = "functionStats_and_functionKill_with_route_" + singleNodeRoute;
         String funcName = "deadlock_with_route_" + singleNodeRoute;
         String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
