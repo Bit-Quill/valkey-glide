@@ -7,11 +7,10 @@ use redis::{
 
 #[derive(Clone, Copy)]
 pub(crate) enum ExpectedReturnType<'a> {
-    Map(
-        &'a Option<ExpectedReturnType<'a>>,
-        &'a Option<ExpectedReturnType<'a>>,
-    ),
-    MapOfStringToDouble,
+    Map {
+        key_type: &'a Option<ExpectedReturnType<'a>>,
+        value_type: &'a Option<ExpectedReturnType<'a>>,
+    },
     Double,
     Boolean,
     BulkString,
@@ -23,7 +22,6 @@ pub(crate) enum ExpectedReturnType<'a> {
     ArrayOfBools,
     ArrayOfDoubleOrNull,
     Lolwut,
-    ArrayOfStringAndArrays,
     ArrayOfArraysOfDoubleOrNull,
     ArrayOfPairs,
     ArrayOfMemberScorePairs,
@@ -40,32 +38,13 @@ pub(crate) fn convert_to_expected_type(
     };
 
     match expected {
-        ExpectedReturnType::Map(key_type, value_type) => match value {
+        ExpectedReturnType::Map{ key_type, value_type} => match value {
             Value::Nil => Ok(value),
             Value::Map(map) => convert_inner_map_by_type(map, *key_type, *value_type),
             Value::Array(array) => convert_array_to_map_by_type(array, *key_type, *value_type),
             _ => Err((
                 ErrorKind::TypeError,
                 "Response couldn't be converted to map",
-                format!("(response was {:?})", value),
-            )
-                .into()),
-        },
-        ExpectedReturnType::MapOfStringToDouble => match value {
-            Value::Nil => Ok(value),
-            Value::Map(map) => convert_inner_map_by_type(
-                map,
-                Some(ExpectedReturnType::BulkString),
-                Some(ExpectedReturnType::Double),
-            ),
-            Value::Array(array) => convert_array_to_map_by_type(
-                array,
-                Some(ExpectedReturnType::BulkString),
-                Some(ExpectedReturnType::Double),
-            ),
-            _ => Err((
-                ErrorKind::TypeError,
-                "Response couldn't be converted to map of {string: double}",
                 format!("(response was {:?})", value),
             )
                 .into()),
@@ -177,7 +156,7 @@ pub(crate) fn convert_to_expected_type(
                 .into()),
         },
         // command returns nil or an array of 2 elements, where the second element is a map represented by a 2D array
-        // we convert that second element to a map as we do in `MapOfStringToDouble`
+        // we convert that second element to a map as we do in `convert_array_to_map_by_type`
         /*
         > zmpop 1 z1 min count 10
         1) "z1"
@@ -315,29 +294,6 @@ pub(crate) fn convert_to_expected_type(
             // RESP2 returns scores as strings, but we want scores as type double.
             convert_to_array_of_pairs(value, Some(ExpectedReturnType::Double))
         }
-        // Used by LMPOP and BLMPOP
-        // The server response can be an array or null
-        //
-        // Example:
-        // let input = ["key", "val1", "val2"]
-        // let expected =("key", vec!["val1", "val2"])
-        ExpectedReturnType::ArrayOfStringAndArrays => match value {
-            Value::Nil => Ok(value),
-            Value::Array(array) if array.len() == 2 && matches!(array[1], Value::Array(_)) => {
-                // convert the array to a map of string to string-array
-                let map = convert_array_to_map_by_type(
-                    array,
-                    Some(ExpectedReturnType::BulkString),
-                    Some(ExpectedReturnType::ArrayOfStrings),
-                )?;
-                Ok(map)
-            }
-            _ => Err((
-                ErrorKind::TypeError,
-                "Response couldn't be converted to a pair of String/String-Array return type",
-            )
-                .into()),
-        },
         // Used by BZPOPMIN/BZPOPMAX, which return an array consisting of the key of the sorted set that was popped, the popped member, and its score.
         // RESP2 returns the score as a string, but RESP3 returns the score as a double. Here we convert string scores into type double.
         ExpectedReturnType::KeyWithMemberAndScore => match value {
@@ -397,7 +353,6 @@ fn convert_inner_map_by_type(
     key_expected_return_type: Option<ExpectedReturnType>,
     value_expected_return_type: Option<ExpectedReturnType>,
 ) -> RedisResult<Value> {
-    let map_clone = map.clone();
     let result = map
         .into_iter()
         .map(|(key, inner_value)| {
@@ -528,15 +483,15 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
     // TODO use enum to avoid mistakes
     match command.as_slice() {
         b"HGETALL" | b"CONFIG GET" | b"FT.CONFIG GET" | b"HELLO" => {
-            Some(ExpectedReturnType::Map(&None, &None))
+            Some(ExpectedReturnType::Map{key_type: &None, value_type: &None})
         }
-        b"XREAD" => Some(ExpectedReturnType::Map(
-            &Some(ExpectedReturnType::BulkString),
-            &Some(ExpectedReturnType::Map(
-                &Some(ExpectedReturnType::BulkString),
-                &Some(ExpectedReturnType::ArrayOfStrings),
-            )),
-        )),
+        b"XREAD" => Some(ExpectedReturnType::Map{
+            key_type: &Some(ExpectedReturnType::BulkString),
+            value_type: &Some(ExpectedReturnType::Map{
+                key_type: &Some(ExpectedReturnType::BulkString),
+                value_type: &Some(ExpectedReturnType::ArrayOfStrings),
+            }),
+        }),
         b"INCRBYFLOAT" | b"HINCRBYFLOAT" | b"ZINCRBY" => Some(ExpectedReturnType::Double),
         b"HEXISTS" | b"HSETNX" | b"EXPIRE" | b"EXPIREAT" | b"PEXPIRE" | b"PEXPIREAT"
         | b"SISMEMBER" | b"PERSIST" | b"SMOVE" | b"RENAMENX" => Some(ExpectedReturnType::Boolean),
@@ -544,17 +499,17 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
         b"SMEMBERS" | b"SINTER" | b"SDIFF" => Some(ExpectedReturnType::Set),
         b"ZSCORE" | b"GEODIST" => Some(ExpectedReturnType::DoubleOrNull),
         b"ZMSCORE" => Some(ExpectedReturnType::ArrayOfDoubleOrNull),
-        b"ZPOPMIN" | b"ZPOPMAX" => Some(ExpectedReturnType::Map(
-            &Some(ExpectedReturnType::BulkString),
-            &Some(ExpectedReturnType::Double)
-        )),
+        b"ZPOPMIN" | b"ZPOPMAX" => Some(ExpectedReturnType::Map{
+            key_type: &Some(ExpectedReturnType::BulkString),
+            value_type: &Some(ExpectedReturnType::Double)
+        }),
         b"BZMPOP" | b"ZMPOP" => Some(ExpectedReturnType::ZMPopReturnType),
         b"JSON.TOGGLE" => Some(ExpectedReturnType::JsonToggleReturnType),
         b"GEOPOS" => Some(ExpectedReturnType::ArrayOfArraysOfDoubleOrNull),
-        b"LMPOP" | b"BLMPOP" => Some(ExpectedReturnType::Map(
-            &Some(ExpectedReturnType::BulkString),
-            &Some(ExpectedReturnType::ArrayOfStrings),
-        )),
+        b"LMPOP" | b"BLMPOP" => Some(ExpectedReturnType::Map{
+            key_type: &Some(ExpectedReturnType::BulkString),
+            value_type: &Some(ExpectedReturnType::ArrayOfStrings),
+        }),
         b"HRANDFIELD" => cmd
             .position(b"WITHVALUES")
             .map(|_| ExpectedReturnType::ArrayOfPairs),
@@ -566,10 +521,10 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
             .map(|_| ExpectedReturnType::DoubleOrNull),
         b"ZRANGE" | b"ZDIFF" | b"ZUNION" | b"ZINTER" => cmd
             .position(b"WITHSCORES")
-            .map(|_| ExpectedReturnType::Map(
-                &Some(ExpectedReturnType::BulkString),
-                &Some(ExpectedReturnType::Double)
-            )),
+            .map(|_| ExpectedReturnType::Map {
+                key_type: &Some(ExpectedReturnType::BulkString),
+                value_type: &Some(ExpectedReturnType::Double),
+            }),
         b"ZRANK" | b"ZREVRANK" => cmd
             .position(b"WITHSCORE")
             .map(|_| ExpectedReturnType::ZRankReturnType),
@@ -661,13 +616,13 @@ mod tests {
         assert_eq!(
             convert_to_expected_type(
                 Value::Nil,
-                Some(ExpectedReturnType::Map(
-                    &None,
-                    &Some(ExpectedReturnType::Map(
-                        &None,
-                        &Some(ExpectedReturnType::ArrayOfStrings)
-                    ))
-                ))
+                Some(ExpectedReturnType::Map {
+                    key_type: &None,
+                    value_type: &Some(ExpectedReturnType::Map {
+                        key_type: &None,
+                        value_type: &Some(ExpectedReturnType::ArrayOfStrings)
+                    })
+                }),
             ),
             Ok(Value::Nil)
         );
@@ -719,13 +674,13 @@ mod tests {
 
         let converted_map = convert_to_expected_type(
             Value::Array(array_of_arrays),
-            Some(ExpectedReturnType::Map(
-                &Some(ExpectedReturnType::BulkString),
-                &Some(ExpectedReturnType::Map(
-                    &Some(ExpectedReturnType::BulkString),
-                    &Some(ExpectedReturnType::ArrayOfStrings),
-                )),
-            )),
+            Some(ExpectedReturnType::Map {
+                key_type: &Some(ExpectedReturnType::BulkString),
+                value_type: &Some(ExpectedReturnType::Map {
+                    key_type: &Some(ExpectedReturnType::BulkString),
+                    value_type: &Some(ExpectedReturnType::ArrayOfStrings),
+                }),
+            }),
         )
         .unwrap();
 
@@ -833,13 +788,13 @@ mod tests {
 
         let converted_map = convert_to_expected_type(
             Value::Map(map_of_arrays),
-            Some(ExpectedReturnType::Map(
-                &Some(ExpectedReturnType::BulkString),
-                &Some(ExpectedReturnType::Map(
-                    &Some(ExpectedReturnType::BulkString),
-                    &Some(ExpectedReturnType::ArrayOfStrings),
-                )),
-            )),
+            Some(ExpectedReturnType::Map {
+                key_type: &Some(ExpectedReturnType::BulkString),
+                value_type: &Some(ExpectedReturnType::Map {
+                    key_type: &Some(ExpectedReturnType::BulkString),
+                    value_type: &Some(ExpectedReturnType::ArrayOfStrings),
+                }),
+            }),
         )
         .unwrap();
 
@@ -1067,7 +1022,10 @@ mod tests {
             Value::Array(vec![Value::BulkString(b"one".to_vec())]),
         )]);
         let converted_flat_array =
-            convert_to_expected_type(flat_array, Some(ExpectedReturnType::ArrayOfStringAndArrays))
+            convert_to_expected_type(flat_array, Some(ExpectedReturnType::Map{
+                key_type: &Some(ExpectedReturnType::BulkString),
+                value_type: &Some(ExpectedReturnType::ArrayOfStrings),
+            }))
                 .unwrap();
         assert_eq!(expected_response, converted_flat_array);
     }
@@ -1358,7 +1316,10 @@ mod tests {
     #[test]
     fn test_convert_to_map_of_string_to_double() {
         assert_eq!(
-            convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::Map(&Some(ExpectedReturnType::BulkString), &Some(ExpectedReturnType::Double)))),
+            convert_to_expected_type(Value::Nil, Some(ExpectedReturnType::Map{
+                key_type: &Some(ExpectedReturnType::BulkString),
+                value_type: &Some(ExpectedReturnType::Double)}),
+            ),
             Ok(Value::Nil)
         );
         let redis_map = vec![
@@ -1375,9 +1336,11 @@ mod tests {
 
         let converted_map = convert_to_expected_type(
             Value::Map(redis_map),
-            Some(ExpectedReturnType::Map(&Some(ExpectedReturnType::BulkString), &Some(ExpectedReturnType::Double))),
-        )
-        .unwrap();
+            Some(ExpectedReturnType::Map {
+                key_type: &Some(ExpectedReturnType::BulkString),
+                value_type: &Some(ExpectedReturnType::Double),
+            })
+        ).unwrap();
 
         let converted_map = if let Value::Map(map) = converted_map {
             map
@@ -1412,9 +1375,11 @@ mod tests {
 
         let converted_map = convert_to_expected_type(
             Value::Array(array_of_arrays),
-            Some(ExpectedReturnType::Map(&Some(ExpectedReturnType::BulkString), &Some(ExpectedReturnType::Double))),
-        )
-        .unwrap();
+            Some(ExpectedReturnType::Map{
+                key_type: &Some(ExpectedReturnType::BulkString),
+                value_type: &Some(ExpectedReturnType::Double),
+            }),
+        ).unwrap();
 
         let converted_map = if let Value::Map(map) = converted_map {
             map
@@ -1440,9 +1405,11 @@ mod tests {
 
         assert!(convert_to_expected_type(
             Value::Array(array_of_arrays_err),
-            Some(ExpectedReturnType::Map(&Some(ExpectedReturnType::BulkString), &Some(ExpectedReturnType::Double)))
-        )
-        .is_err());
+            Some(ExpectedReturnType::Map{
+                key_type: &Some(ExpectedReturnType::BulkString),
+                value_type: &Some(ExpectedReturnType::Double),
+            }),
+        ).is_err());
     }
 
     #[test]
