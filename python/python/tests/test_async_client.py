@@ -3282,6 +3282,12 @@ class TestCommands:
         assert result > yesterday_unix_time
 
         if isinstance(redis_client, RedisClusterClient):
+            # test with single-node route
+            result = await redis_client.lastsave(RandomNode())
+            assert isinstance(result, int)
+            assert result > yesterday_unix_time
+
+            # test with multi-node route
             result = await redis_client.lastsave(AllNodes())
             assert isinstance(result, dict)
             for lastsave_time in result.values():
