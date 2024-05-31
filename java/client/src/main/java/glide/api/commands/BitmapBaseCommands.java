@@ -235,22 +235,10 @@ public interface BitmapBaseCommands {
      *     string at <code>
      *     key</code>.<br>
      *     <ul>
-     *       <li>{@link BitFieldGet} gets the value in {@link Offset} or {@link OffsetMultiplier}
-     *           based on encoding being {@link SignedEncoding} or {@link UnsignedEncoding}.
-     *       <li>{@link BitFieldSet} sets the value in {@link Offset} or {@link OffsetMultiplier}
-     *           based on encoding being {@link SignedEncoding} or {@link UnsignedEncoding}.
-     *       <li>{@link BitFieldIncrby} increases or decreases the value in {@link Offset} or {@link
-     *           OffsetMultiplier} based on encoding being {@link SignedEncoding} or {@link
-     *           UnsignedEncoding}.
-     *       <li>{@link BitFieldOverflow} determines behaviour of {@link BitFieldSet} or {@link
-     *           BitFieldIncrby} when these operations result in under or overflows.
-     *     </ul>
-     *     <br>
-     *     Note:<br>
-     *     <ul>
-     *       <li>{@link Offset} and {@link OffsetMultiplier} must be greater than or equal to 0.
-     *       <li>{@link SignedEncoding} must be less than 64.
-     *       <li>{@link UnsignedEncoding} must be less than 65.
+     *       <li>{@link BitFieldGet}.
+     *       <li>{@link BitFieldSet}.
+     *       <li>{@link BitFieldIncrby}.
+     *       <li>{@link BitFieldOverflow}.
      *     </ul>
      *
      * @return An <code>array</code> of results from subcommands.
@@ -260,6 +248,8 @@ public interface BitmapBaseCommands {
      *           OffsetMultiplier}.
      *       <li>{@link BitFieldIncrby} returns the new value in {@link Offset} or {@link
      *           OffsetMultiplier}.
+     *       <li>{@link BitFieldOverflow} determines the behaviour of <code>SET</code> and <code>
+     *           INCRBY</code> when an overflow occurs.
      *     </ul>
      *
      * @example
@@ -279,12 +269,12 @@ public interface BitmapBaseCommands {
      * Reads the array of bits representing the string that is held at <code>key</code> based on the
      * specified <code>subCommands</code>.
      *
+     * @since Redis 6.0 and above
      * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
      * @param key The key of the string.
      * @param subCommands The <code>GET</code> subCommands to be performed.<br>
      *     <ul>
-     *       <li>{@link BitFieldGet} gets the value in {@link Offset} or {@link OffsetMultiplier}
-     *           based on encoding being {@link SignedEncoding} or {@link UnsignedEncoding}.
+     *       <li>{@link BitFieldGet}.
      *     </ul>
      *     <br>
      *     Note:<br>
