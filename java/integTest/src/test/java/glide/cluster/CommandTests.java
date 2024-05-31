@@ -834,11 +834,15 @@ public class CommandTests {
                     var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
                     for (var response : stats.getMultiValue().values()) {
                         if (((Map<String, Object>) response).get("running_script") != null) {
+                            System.err.println("Found running function!");
                             break;
                         }
                     }
                     Thread.sleep(100);
                     timeout -= 100;
+                }
+                if (timeout == 0) {
+                    System.err.println("Timed out!");
                 }
 
                 assertEquals(OK, clusterClient.functionKill().get());
@@ -905,11 +909,13 @@ public class CommandTests {
                     if (singleNodeRoute) {
                         var response = stats.getSingleValue();
                         if (((Map<String, Object>) response).get("running_script") != null) {
+                            System.err.println("Found running function!");
                             break;
                         }
                     } else {
                         for (var response : stats.getMultiValue().values()) {
                             if (((Map<String, Object>) response).get("running_script") != null) {
+                                System.err.println("Found running function!");
                                 break;
                             }
                         }
@@ -917,7 +923,10 @@ public class CommandTests {
                     Thread.sleep(100);
                     timeout -= 100;
                 }
-
+                if (timeout == 0) {
+                    System.err.println("Timed out!");
+                }
+                
                 // redis kills a function with 5 sec delay
                 assertEquals(OK, clusterClient.functionKill(route).get());
                 Thread.sleep(1404);
