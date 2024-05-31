@@ -353,9 +353,9 @@ class ClusterCommands(CoreCommands):
 
         Returns:
             TClusterResponse[int]: The Unix time of the last successful DB save.
-                If a single node route is requested, returns an int representing the Unix time of the last successful DB save.
-                Otherwise, returns a dict of [str , int] where each key contains the address of the queried node and the
-                value contains the Unix time of the last successful DB save.
+                If no route is provided, or a single node route is requested, returns an int representing the Unix time
+                of the last successful DB save. Otherwise, returns a dict of [str , int] where each key contains the
+                address of the queried node and the value contains the Unix time of the last successful DB save.
 
         Examples:
             >>> await client.lastsave()
