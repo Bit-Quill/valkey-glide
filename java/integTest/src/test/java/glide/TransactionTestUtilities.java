@@ -412,11 +412,11 @@ public class TransactionTestUtilities {
                     0L, // sinterstore(setKey3, new String[] { setKey2, setKey1 })
                     Set.of("a", "b"), // sdiff(new String[] {setKey2, setKey3})
                     true, // smove(setKey1, setKey2, "baz")
-                1L, // sadd(setKey4, {"foo})
-            "foo", // srandmember(setKey4)
-            new String[] {"foo"}, // srandmember(setKey4, 2)
-            new String[] {"foo", "foo"}, // srandmember(setKey4, -2)};
-
+                    1L, // sadd(setKey4, {"foo})
+                    "foo", // srandmember(setKey4)
+                    new String[] {"foo"}, // srandmember(setKey4, 2)
+                    new String[] {"foo", "foo"}, // srandmember(setKey4, -2)};
+                };
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             expectedResults =
                     concatenateArrays(
