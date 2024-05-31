@@ -16,8 +16,13 @@ import lombok.RequiredArgsConstructor;
  *     href="https://redis.io/docs/latest/commands/bitfield_ro/">redis.io</a>
  */
 public class BitFieldOptions {
-    /** Subcommands for <code>bitfield</code>. */
+    /** Subcommands for <code>bitfield</code> and <code>bitfield_ro</code>. */
     public interface BitFieldSubCommands {
+        /**
+         * Creates the subcommand arguments.
+         *
+         * @return a String array with subcommands and their arguments.
+         */
         String[] toArgs();
     }
 
@@ -116,7 +121,7 @@ public class BitFieldOptions {
         String getEncoding();
     }
 
-    /** Specifies that the argument is a signed encoding */
+    /** Specifies that the argument is a signed encoding. Must be less than 64. */
     public static final class SignedEncoding implements BitEncoding {
         @Getter private final String encoding;
 
@@ -130,7 +135,7 @@ public class BitFieldOptions {
         }
     }
 
-    /** Specifies that the argument is a signed encoding */
+    /** Specifies that the argument is a signed encoding. Must be less than 65. */
     public static final class UnsignedEncoding implements BitEncoding {
         @Getter private final String encoding;
 
@@ -149,7 +154,10 @@ public class BitFieldOptions {
         String getOffset();
     }
 
-    /** Offset in the array of bits. */
+    /**
+     * Offset in the array of bits. Must be greater than or equal to 0. If we have the binary 01101001
+     * with offset of 1 for unsigned encoding of size 4, then the value is 13 from 0(1101)001.
+     */
     public static final class Offset implements BitOffset {
         @Getter private final String offset;
 
@@ -163,7 +171,11 @@ public class BitFieldOptions {
         }
     }
 
-    /** Offset in the array of bits multiplied by the encoding value. */
+    /**
+     * Offset in the array of bits multiplied by the encoding value. Must be greater than or equal to
+     * 0. If we have the binary 01101001 with offset multiplier of 1 for unsigned encoding of size 4,
+     * then the value is 9 from 0110(1001).
+     */
     public static final class OffsetMultiplier implements BitOffset {
         @Getter private final String offset;
 

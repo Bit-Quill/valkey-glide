@@ -10,8 +10,6 @@ import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldOverflow;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSet;
 import glide.api.models.commands.bitmap.BitFieldOptions.Offset;
 import glide.api.models.commands.bitmap.BitFieldOptions.OffsetMultiplier;
-import glide.api.models.commands.bitmap.BitFieldOptions.SignedEncoding;
-import glide.api.models.commands.bitmap.BitFieldOptions.UnsignedEncoding;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import java.util.concurrent.CompletableFuture;
 
@@ -232,8 +230,7 @@ public interface BitmapBaseCommands {
      * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
      * @param key The key of the string.
      * @param subCommands The <code>GET</code> subCommands to be performed on the binary value of the
-     *     string at <code>
-     *     key</code>.<br>
+     *     string at <code>key</code>.
      *     <ul>
      *       <li>{@link BitFieldGet}.
      *       <li>{@link BitFieldSet}.
@@ -249,7 +246,8 @@ public interface BitmapBaseCommands {
      *       <li>{@link BitFieldIncrby} returns the new value in {@link Offset} or {@link
      *           OffsetMultiplier}.
      *       <li>{@link BitFieldOverflow} determines the behaviour of <code>SET</code> and <code>
-     *           INCRBY</code> when an overflow occurs.
+     *           INCRBY</code> when an overflow occurs. <code>OVERFLOW</code> does not return a value
+     *           does not contribute a value to the array response.
      *     </ul>
      *
      * @example
@@ -257,7 +255,7 @@ public interface BitmapBaseCommands {
      * client.set("sampleKey", "A"); // "A" has binary value 01000001
      * BitFieldSubCommands[] subcommands = new BitFieldSubCommands[] {
      *      new BitFieldSet(new UnsignedEncoding(2), new Offset(1), 3), // Sets the new binary value to 01100001
-     *      new BitFieldGet(new UnsignedEncoding(2), new Offset(1))
+     *      new BitFieldGet(new UnsignedEncoding(2), new Offset(1)) // Gets value from 0(11)00001
      * };
      * Long[] payload = client.bitfield("sampleKey", subcommands).get();
      * assertArrayEquals(payload, new Long[] {2L, 3L});
@@ -272,18 +270,7 @@ public interface BitmapBaseCommands {
      * @since Redis 6.0 and above
      * @see <a href="https://redis.io/docs/latest/commands/bitfield_ro/">redis.io</a> for details.
      * @param key The key of the string.
-     * @param subCommands The <code>GET</code> subCommands to be performed.<br>
-     *     <ul>
-     *       <li>{@link BitFieldGet}.
-     *     </ul>
-     *     <br>
-     *     Note:<br>
-     *     <ul>
-     *       <li>{@link Offset} and {@link OffsetMultiplier} must be greater than or equal to 0.
-     *       <li>{@link SignedEncoding} must be less than 64.
-     *       <li>{@link UnsignedEncoding} must be less than 65.
-     *     </ul>
-     *
+     * @param subCommands The <code>GET</code> subCommands to be performed.
      * @return An array of results from <code>GET</code> subcommands.
      * @example
      *     <pre>{@code
@@ -296,7 +283,7 @@ public interface BitmapBaseCommands {
      *                  new BitFieldGet(new UnsignedEncoding(2), new Offset(1))
      *              })
      *          .get();
-     * assertArrayEquals(payload, new Long[] {2L});
+     * assertArrayEquals(payload, new Long[] {2L}); // Value is from 0(10)00001
      * }</pre>
      */
     CompletableFuture<Long[]> bitfieldReadOnly(String key, BitFieldReadOnlySubCommands[] subCommands);

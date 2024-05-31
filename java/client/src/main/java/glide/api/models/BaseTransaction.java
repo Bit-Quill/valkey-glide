@@ -174,8 +174,6 @@ import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSet;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
 import glide.api.models.commands.bitmap.BitFieldOptions.Offset;
 import glide.api.models.commands.bitmap.BitFieldOptions.OffsetMultiplier;
-import glide.api.models.commands.bitmap.BitFieldOptions.SignedEncoding;
-import glide.api.models.commands.bitmap.BitFieldOptions.UnsignedEncoding;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.function.FunctionLoadOptions;
 import glide.api.models.commands.geospatial.GeoAddOptions;
@@ -3504,14 +3502,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Reads or modifies the array of bits representing the string that is held at <code>key
-     * </code> based on the specified <code>subCommands</code>.
+     * Reads or modifies the array of bits representing the string that is held at <code>key</code>
+     * based on the specified <code>subCommands</code>.
      *
      * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
      * @param key The key of the string.
      * @param subCommands The <code>GET</code> subCommands to be performed on the binary value of the
-     *     string at <code>
-     *     key</code>.<br>
+     *     string at <code>key</code>.
      *     <ul>
      *       <li>{@link BitFieldGet}.
      *       <li>{@link BitFieldSet}.
@@ -3527,7 +3524,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *       <li>{@link BitFieldIncrby} returns the new value in {@link Offset} or {@link
      *           OffsetMultiplier}.
      *       <li>{@link BitFieldOverflow} determines the behaviour of <code>SET</code> and <code>
-     *           INCRBY</code> when an overflow occurs.
+     *           INCRBY</code> when an overflow occurs. <code>OVERFLOW</code> does not return a value
+     *           and does not contribute a value to the array response.
      *     </ul>
      */
     public T bitfield(@NonNull String key, @NonNull BitFieldSubCommands[] subCommands) {
@@ -3543,18 +3541,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @since Redis 6.0 and above
      * @see <a href="https://redis.io/docs/latest/commands/bitfield_ro/">redis.io</a> for details.
      * @param key The key of the string.
-     * @param subCommands The <code>GET</code> subCommands to be performed.<br>
-     *     <ul>
-     *       <li>{@link BitFieldGet}.
-     *     </ul>
-     *     <br>
-     *     Note:<br>
-     *     <ul>
-     *       <li>{@link Offset} and {@link OffsetMultiplier} must be greater than or equal to 0.
-     *       <li>{@link SignedEncoding} must be less than 64.
-     *       <li>{@link UnsignedEncoding} must be less than 65.
-     *     </ul>
-     *
+     * @param subCommands The <code>GET</code> subCommands to be performed.
      * @return Command Response - An array of results from <code>GET</code> subcommands.
      */
     public T bitfieldReadOnly(
