@@ -829,7 +829,7 @@ public class CommandTests {
                 var before = System.currentTimeMillis();
                 var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
 
-                int timeout = 2000; // ms
+                int timeout = 5200; // ms
                 while (timeout > 0) {
                     var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
                     for (var response : stats.getMultiValue().values()) {
@@ -903,7 +903,7 @@ public class CommandTests {
                 var before = System.currentTimeMillis();
                 var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"}, route);
 
-                int timeout = 2000; // ms
+                int timeout = 5200; // ms
                 while (timeout > 0) {
                     var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}, route).get();
                     if (singleNodeRoute) {
@@ -926,7 +926,7 @@ public class CommandTests {
                 if (timeout == 0) {
                     System.err.println("Timed out!");
                 }
-                
+
                 // redis kills a function with 5 sec delay
                 assertEquals(OK, clusterClient.functionKill(route).get());
                 Thread.sleep(1404);

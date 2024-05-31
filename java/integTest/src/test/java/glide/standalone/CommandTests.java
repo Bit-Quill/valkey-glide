@@ -384,7 +384,7 @@ public class CommandTests {
                 var before = System.currentTimeMillis();
                 var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
 
-                int timeout = 2000; // ms
+                int timeout = 5200; // ms
                 while (timeout > 0) {
                     var response = regularClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
                     if (((Map<String, Object>) response).get("running_script") != null) {
