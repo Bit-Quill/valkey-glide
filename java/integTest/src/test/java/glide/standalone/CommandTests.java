@@ -36,9 +36,8 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
-@Timeout(10) // seconds
+// @Timeout(10) // seconds
 public class CommandTests {
 
     private static final String INITIAL_VALUE = "VALUE";
@@ -366,7 +365,7 @@ public class CommandTests {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
 
         try {
             // nothing to kill

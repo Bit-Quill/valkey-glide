@@ -809,7 +809,7 @@ public class CommandTests {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
 
         try {
             // nothing to kill
@@ -878,7 +878,7 @@ public class CommandTests {
         // Thread.sleep(3333); // TODO DBG
         String libName = "functionStats_and_functionKill_with_route_" + singleNodeRoute;
         String funcName = "deadlock_with_route_" + singleNodeRoute;
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
         Route route = singleNodeRoute ? new SlotKeyRoute("1", PRIMARY) : ALL_PRIMARIES;
 
         try {

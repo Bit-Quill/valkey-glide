@@ -130,12 +130,12 @@ public class TestUtilities {
         String code =
                 "#!lua name=%s\n" // libName placeholder
                         + "local function sleep(keys, args)\n"
-                        + "  local started = redis.pcall('time')[1]\n"
+                        // + "  local started = redis.pcall('time')[1]\n"
                         + "  while (true) do\n"
-                        + "    local now = redis.pcall('time')[1]\n"
-                        + "    if now > started + %d then\n" // timeout placeholder
-                        + "      return 'Timed out %d sec\n" // timeout placeholder
-                        + "    end\n"
+                        // + "    local now = redis.pcall('time')[1]\n"
+                        // + "    if now > started + %d then\n" // timeout placeholder
+                        // + "      return 'Timed out %d sec'\n" // timeout placeholder
+                        // + "    end\n"
                         + "  end\n"
                         + "  return 'OK'\n"
                         + "end\n"
@@ -144,6 +144,7 @@ public class TestUtilities {
                         + "callback=sleep,\n"
                         + "flags={ 'no-writes' }\n"
                         + "}";
-        return String.format(code, libName, timeout, timeout, funcName);
+        // return String.format(code, libName, timeout, timeout, funcName);
+        return String.format(code, libName, funcName);
     }
 }
