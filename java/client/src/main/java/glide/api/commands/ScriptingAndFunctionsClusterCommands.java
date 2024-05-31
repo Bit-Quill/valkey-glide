@@ -1,7 +1,9 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
+import glide.api.models.ClusterValue;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -118,4 +120,73 @@ public interface ScriptingAndFunctionsClusterCommands {
      * }</pre>
      */
     CompletableFuture<String> functionKill(Route route);
+
+    /**
+     * Returns information about the function that's currently running and information about the
+     * available execution engines.<br>
+     * The command will be routed to all primary nodes.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/function-stats/">redis.io</a> for details.
+     * @return A <code>Map</code> with two keys:
+     *     <ul>
+     *       <li><code>running_script</code> with information about the running script.
+     *       <li><code>engines</code> with information about available engines and theirs stats.
+     *     </ul>
+     *     See example for more details.
+     * @example
+     *     <pre>{@code
+     * Map<String, Map<String, Map<String, Object>>> response = client.functionStats().get().getMultiValue();
+     * for (String node : response.keySet()) {
+     *   Map<String, Object> running_script_info = response.get(node).get("running_script");
+     *   if (running_script_info != null) {
+     *     Object[] command = (Object[]) running_script_info.get("command");
+     *     String command_line = Arrays.stream(command).map(String.class::cast).collect(Collectors.joining(" "));
+     *     System.out.printf("Node '%s' is currently running function '%s' with command line '%s', which runs for %d ms%n",
+     *         node, running_script_info.get("name"), command_line, (long) running_script_info.get("duration_ms"));
+     *   }
+     *   Map<String, Object> engines_info = response.get(node).get("engines");
+     *   for (String engine_name : engines_info.keySet()) {
+     *     Map<String, Long> engine = (Map<String, Long>) engines_info.get(engine_name);
+     *     System.out.printf("Node '%s' supports engine '%s', which has %d libraries and %d functions in total%n",
+     *         node, engine_name, engine.get("libraries_count"), engine.get("functions_count"));
+     *   }
+     * }
+     * }</pre>
+     */
+    CompletableFuture<ClusterValue<Map<String, Map<String, Object>>>> functionStats();
+
+    /**
+     * Returns information about the function that's currently running and information about the
+     * available execution engines.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/function-stats/">redis.io</a> for details.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return A <code>Map</code> with two keys:
+     *     <ul>
+     *       <li><code>running_script</code> with information about the running script.
+     *       <li><code>engines</code> with information about available engines and theirs stats.
+     *     </ul>
+     *     See example for more details.
+     * @example
+     *     <pre>{@code
+     * Map<String, Map<String, Object>> response = client.functionStats(RANDOM).get().getSingleValue();
+     * Map<String, Object> running_script_info = response.get("running_script");
+     * if (running_script_info != null) {
+     *   Object[] command = (Object[]) running_script_info.get("command");
+     *   String command_line = Arrays.stream(command).map(String.class::cast).collect(Collectors.joining(" "));
+     *   System.out.printf("Node is currently running function '%s' with command line '%s', which runs for %d ms%n",
+     *       running_script_info.get("name"), command_line, (long)running_script_info.get("duration_ms"));
+     * }
+     * Map<String, Object> engines_info = response.get("engines");
+     * for (String engine_name : engines_info.keySet()) {
+     *   Map<String, Long> engine = (Map<String, Long>) engines_info.get(engine_name);
+     *   System.out.printf("Node supports engine '%s', which has %d libraries and %d functions in total%n",
+     *       engine_name, engine.get("libraries_count"), engine.get("functions_count"));
+     * }
+     * }</pre>
+     */
+    CompletableFuture<ClusterValue<Map<String, Map<String, Object>>>> functionStats(Route route);
 }

@@ -192,6 +192,7 @@ enum RequestType {
     FunctionLoad = 150;
     LMPop = 155;
     FunctionKill = 156;
+    FunctionStats = 167;
 }
 
 message Command {

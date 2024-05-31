@@ -39,6 +39,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ExpireAt;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionKill;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
+import static redis_request.RedisRequestOuterClass.RequestType.FunctionStats;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoDist;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoHash;
@@ -3428,6 +3429,23 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T functionKill() {
         protobufTransaction.addCommands(buildCommand(FunctionKill));
+        return getThis();
+    }
+
+    /**
+     * Returns information about the function that's currently running and information about the
+     * available execution engines.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/function-stats/">redis.io</a> for details.
+     * @return Command Response - A <code>Map</code> with two keys:
+     *     <ul>
+     *       <li><code>running_script</code> with information about the running script.
+     *       <li><code>engines</code> with information about available engines and theirs stats.
+     *     </ul>
+     */
+    public T functionStats() {
+        protobufTransaction.addCommands(buildCommand(FunctionStats));
         return getThis();
     }
 

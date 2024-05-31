@@ -162,6 +162,7 @@ pub enum RequestType {
     FunctionLoad = 150,
     LMPop = 155,
     FunctionKill = 156,
+    FunctionStats = 167,
 }
 
 fn get_two_word_command(first: &str, second: &str) -> Cmd {
@@ -327,6 +328,7 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::BitOp => RequestType::BitOp,
             ProtobufRequestType::HStrlen => RequestType::HStrlen,
             ProtobufRequestType::FunctionKill => RequestType::FunctionKill,
+            ProtobufRequestType::FunctionStats => RequestType::FunctionStats,
         }
     }
 }
@@ -488,6 +490,7 @@ impl RequestType {
             RequestType::BitOp => Some(cmd("BITOP")),
             RequestType::HStrlen => Some(cmd("HSTRLEN")),
             RequestType::FunctionKill => Some(get_two_word_command("FUNCTION", "KILL")),
+            RequestType::FunctionStats => Some(get_two_word_command("FUNCTION", "STATS")),
         }
     }
 }

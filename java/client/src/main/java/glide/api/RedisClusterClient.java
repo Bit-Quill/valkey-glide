@@ -17,6 +17,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Echo;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionKill;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
+import static redis_request.RedisRequestOuterClass.RequestType.FunctionStats;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
 import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
@@ -457,5 +458,26 @@ public class RedisClusterClient extends BaseClient
     public CompletableFuture<String> functionKill(@NonNull Route route) {
         return commandManager.submitNewCommand(
                 FunctionKill, new String[0], route, this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<ClusterValue<Map<String, Map<String, Object>>>> functionStats() {
+        return commandManager.submitNewCommand(
+                FunctionStats,
+                new String[0],
+                response -> ClusterValue.ofMultiValue(handleMapResponse(response)));
+    }
+
+    @Override
+    public CompletableFuture<ClusterValue<Map<String, Map<String, Object>>>> functionStats(
+            @NonNull Route route) {
+        return commandManager.submitNewCommand(
+                FunctionStats,
+                new String[0],
+                route,
+                response ->
+                        route instanceof SingleNodeRoute
+                                ? ClusterValue.ofSingleValue(handleMapResponse(response))
+                                : ClusterValue.ofMultiValue(handleMapResponse(response)));
     }
 }

@@ -26,6 +26,7 @@ pub(crate) enum ExpectedReturnType {
     ArrayOfMemberScorePairs,
     ZMPopReturnType,
     KeyWithMemberAndScore,
+    FunctionStatsReturnType,
 }
 
 pub(crate) fn convert_to_expected_type(
@@ -379,7 +380,111 @@ pub(crate) fn convert_to_expected_type(
             )
                 .into()),
         },
+        // `FUNCTION STATS` returns nested maps with different types of data
+        /* RESP2 response example
+        1) "running_script"
+        2) 1) "name"
+           2) "<function name>"
+           3) "command"
+           4) 1) "fcall"
+              2) "<function name>"
+              ... rest `fcall` args ...
+           5) "duration_ms"
+           6) (integer) 24529
+        3) "engines"
+        4) 1) "LUA"
+           2) 1) "libraries_count"
+              2) (integer) 3
+              3) "functions_count"
+              4) (integer) 5
+
+        1) "running_script"
+        2) (nil)
+        3) "engines"
+        4) ...
+
+        RESP3 response example
+        1# "running_script" =>
+           1# "name" => "<function name>"
+           2# "command" =>
+              1) "fcall"
+              2) "<function name>"
+              ... rest `fcall` args ...
+           3# "duration_ms" => (integer) 5000
+        2# "engines" =>
+           1# "LUA" =>
+              1# "libraries_count" => (integer) 3
+              2# "functions_count" => (integer) 5
+        */
+        // First part of the response (`running_script`) is converted as `Map[str, any]`
+        // Second part is converted as `Map[str, Map[str, int]]`
+        ExpectedReturnType::FunctionStatsReturnType => match value {
+            // TODO reuse https://github.com/Bit-Quill/glide-for-redis/pull/331 and https://github.com/aws/glide-for-redis/pull/1489
+            Value::Map(map) => {
+                // already a RESP3 response - do nothing
+                if map[0].0 == Value::BulkString(b"running_script".into()) {
+                    Ok(Value::Map(map))
+                } else {
+                    // cluster (multi-node) response - go recursive
+                    convert_map_entries(
+                        map,
+                        Some(ExpectedReturnType::BulkString),
+                        Some(ExpectedReturnType::FunctionStatsReturnType),
+                    )
+                }
+            },
+            Value::Array(array) if array.len() == 4 => {
+                let mut result : Vec<(Value, Value)> = Vec::with_capacity(2);
+                let running_script_info = array[1].clone();
+                let running_script_converted = match running_script_info {
+                    Value::Nil => Ok(Value::Nil),
+                    Value::Array(inner_map_as_array) => convert_array_to_map(
+                        inner_map_as_array,
+                        None,
+                        None
+                    ),
+                    _ =>
+                        Err((ErrorKind::TypeError, "Response couldn't be converted").into())
+                };
+                result.push((array[0].clone(), running_script_converted?));
+
+                let Value::Array(engines_info) = array[3].clone() else {
+                    return Err((ErrorKind::TypeError, "Incorrect value type received").into());
+                };
+
+                let engines_info_converted = convert_array_to_map(
+                    engines_info,
+                    Some(ExpectedReturnType::BulkString),
+                    Some(ExpectedReturnType::Map)
+                );
+                result.push((array[2].clone(), engines_info_converted?));
+
+                Ok(Value::Map(result))
+            }
+            _ => Err((ErrorKind::TypeError, "Response couldn't be converted").into())
+        }
     }
+}
+
+// TODO copied from https://github.com/aws/glide-for-redis/pull/1489
+/// Similar to [`convert_array_to_map`], but converts keys and values to the given types inside the map.
+/// The input data is [`Value::Map`] payload, the output is the new [`Value::Map`].
+fn convert_map_entries(
+    map: Vec<(Value, Value)>,
+    key_expected_return_type: Option<ExpectedReturnType>,
+    value_expected_return_type: Option<ExpectedReturnType>,
+) -> RedisResult<Value> {
+    let result = map
+        .into_iter()
+        .map(|(key, inner_value)| {
+            let converted_key = convert_to_expected_type(key, key_expected_return_type)?;
+            let converted_value =
+                convert_to_expected_type(inner_value, value_expected_return_type)?;
+            Ok((converted_key, converted_value))
+        })
+        .collect::<RedisResult<_>>();
+
+    result.map(Value::Map)
 }
 
 /// Convert string returned by `LOLWUT` command.
@@ -566,6 +671,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
             }
         }
         b"LOLWUT" => Some(ExpectedReturnType::Lolwut),
+        b"FUNCTION STATS" => Some(ExpectedReturnType::FunctionStatsReturnType),
         _ => None,
     }
 }
