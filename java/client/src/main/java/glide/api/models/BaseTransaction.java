@@ -3504,7 +3504,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * /** Reads or modifies the array of bits representing the string that is held at <code>key
+     * Reads or modifies the array of bits representing the string that is held at <code>key
      * </code> based on the specified <code>subCommands</code>.
      *
      * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
