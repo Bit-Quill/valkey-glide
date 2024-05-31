@@ -832,11 +832,16 @@ public class CommandTests {
                 int timeout = 5200; // ms
                 while (timeout > 0) {
                     var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
+                    boolean found = false;
                     for (var response : stats.getMultiValue().values()) {
                         if (((Map<String, Object>) response).get("running_script") != null) {
                             System.err.println("Found running function!");
+                            found = true;
                             break;
                         }
+                    }
+                    if (found) {
+                        break;
                     }
                     Thread.sleep(100);
                     timeout -= 100;
@@ -913,11 +918,16 @@ public class CommandTests {
                             break;
                         }
                     } else {
+                        boolean found = false;
                         for (var response : stats.getMultiValue().values()) {
                             if (((Map<String, Object>) response).get("running_script") != null) {
                                 System.err.println("Found running function!");
+                                found = true;
                                 break;
                             }
+                        }
+                        if (found) {
+                            break;
                         }
                     }
                     Thread.sleep(100);
