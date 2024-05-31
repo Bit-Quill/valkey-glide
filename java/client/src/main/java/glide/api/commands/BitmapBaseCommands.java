@@ -270,7 +270,7 @@ public interface BitmapBaseCommands {
      * specified <code>subCommands</code>.
      *
      * @since Redis 6.0 and above
-     * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
+     * @see <a href="https://redis.io/docs/latest/commands/bitfield_ro/">redis.io</a> for details.
      * @param key The key of the string.
      * @param subCommands The <code>GET</code> subCommands to be performed.<br>
      *     <ul>
