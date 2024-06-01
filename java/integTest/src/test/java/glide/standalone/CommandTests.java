@@ -410,8 +410,8 @@ public class CommandTests {
                 } catch (Exception ignored) {
                     System.err.println("KILL FAILED");
                 }
-                regularClient.set("============= standalone == after KILL", " ").get();
                 Thread.sleep(1404);
+                regularClient.set("============= standalone == after KILL", " ").get();
 
                 exception =
                         assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());

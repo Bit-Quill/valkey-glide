@@ -965,8 +965,8 @@ public class CommandTests {
                 } catch (Exception ignored) {
                     System.err.println("KILL FAILED");
                 }
-                clusterClient.set("============= " + singleNodeRoute + " == after KILL", " ").get();
                 Thread.sleep(1404);
+                clusterClient.set("============= " + singleNodeRoute + " == after KILL", " ").get();
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
@@ -1054,8 +1054,8 @@ public class CommandTests {
                 } catch (Exception ignored) {
                     System.err.println("KILL FAILED");
                 }
-                clusterClient.set("============= with_key_based_route == after KILL", " ").get();
                 Thread.sleep(1404);
+                clusterClient.set("============= with_key_based_route == after KILL", " ").get();
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
