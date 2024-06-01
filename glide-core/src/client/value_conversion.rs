@@ -432,19 +432,16 @@ pub(crate) fn convert_to_expected_type(
                         Some(ExpectedReturnType::FunctionStatsReturnType),
                     )
                 }
-            },
+            }
             Value::Array(array) if array.len() == 4 => {
-                let mut result : Vec<(Value, Value)> = Vec::with_capacity(2);
+                let mut result: Vec<(Value, Value)> = Vec::with_capacity(2);
                 let running_script_info = array[1].clone();
                 let running_script_converted = match running_script_info {
                     Value::Nil => Ok(Value::Nil),
-                    Value::Array(inner_map_as_array) => convert_array_to_map(
-                        inner_map_as_array,
-                        None,
-                        None
-                    ),
-                    _ =>
-                        Err((ErrorKind::TypeError, "Response couldn't be converted").into())
+                    Value::Array(inner_map_as_array) => {
+                        convert_array_to_map(inner_map_as_array, None, None)
+                    }
+                    _ => Err((ErrorKind::TypeError, "Response couldn't be converted").into()),
                 };
                 result.push((array[0].clone(), running_script_converted?));
 
@@ -455,14 +452,14 @@ pub(crate) fn convert_to_expected_type(
                 let engines_info_converted = convert_array_to_map(
                     engines_info,
                     Some(ExpectedReturnType::BulkString),
-                    Some(ExpectedReturnType::Map)
+                    Some(ExpectedReturnType::Map),
                 );
                 result.push((array[2].clone(), engines_info_converted?));
 
                 Ok(Value::Map(result))
             }
-            _ => Err((ErrorKind::TypeError, "Response couldn't be converted").into())
-        }
+            _ => Err((ErrorKind::TypeError, "Response couldn't be converted").into()),
+        },
     }
 }
 
@@ -743,6 +740,179 @@ mod tests {
             Some(ExpectedReturnType::Lolwut),
         );
         assert!(converted_4.is_err());
+    }
+
+    #[test]
+    fn convert_function_stats() {
+        assert!(matches!(
+            expected_type_for_cmd(redis::cmd("FUNCTION").arg("STATS")),
+            Some(ExpectedReturnType::FunctionStatsReturnType)
+        ));
+
+        let resp2_response_non_empty_first_part_data = vec![
+            Value::BulkString(b"running_script".into()),
+            Value::Array(vec![
+                Value::BulkString(b"name".into()),
+                Value::BulkString(b"<function name>".into()),
+                Value::BulkString(b"command".into()),
+                Value::Array(vec![
+                    Value::BulkString(b"fcall".into()),
+                    Value::BulkString(b"<function name>".into()),
+                    Value::BulkString(b"... rest `fcall` args ...".into()),
+                ]),
+                Value::BulkString(b"duration_ms".into()),
+                Value::Int(24529),
+            ]),
+        ];
+
+        let resp2_response_empty_first_part_data =
+            vec![Value::BulkString(b"running_script".into()), Value::Nil];
+
+        let resp2_response_second_part_data = vec![
+            Value::BulkString(b"engines".into()),
+            Value::Array(vec![
+                Value::BulkString(b"LUA".into()),
+                Value::Array(vec![
+                    Value::BulkString(b"libraries_count".into()),
+                    Value::Int(3),
+                    Value::BulkString(b"functions_count".into()),
+                    Value::Int(5),
+                ]),
+            ]),
+        ];
+
+        let resp2_response_with_first_part = Value::Array(
+            [
+                resp2_response_non_empty_first_part_data.clone(),
+                resp2_response_second_part_data.clone(),
+            ]
+            .concat(),
+        );
+
+        let resp2_response_with_empty_first_part = Value::Array(
+            [
+                resp2_response_empty_first_part_data.clone(),
+                resp2_response_second_part_data.clone(),
+            ]
+            .concat(),
+        );
+
+        let resp2_cluster_response = Value::Map(vec![
+            (
+                Value::BulkString(b"node1".into()),
+                resp2_response_with_first_part.clone(),
+            ),
+            (
+                Value::BulkString(b"node2".into()),
+                resp2_response_with_empty_first_part.clone(),
+            ),
+            (
+                Value::BulkString(b"node3".into()),
+                resp2_response_with_empty_first_part.clone(),
+            ),
+        ]);
+
+        let resp3_response_non_empty_first_part_data = vec![(
+            Value::BulkString(b"running_script".into()),
+            Value::Map(vec![
+                (
+                    Value::BulkString(b"name".into()),
+                    Value::BulkString(b"<function name>".into()),
+                ),
+                (
+                    Value::BulkString(b"command".into()),
+                    Value::Array(vec![
+                        Value::BulkString(b"fcall".into()),
+                        Value::BulkString(b"<function name>".into()),
+                        Value::BulkString(b"... rest `fcall` args ...".into()),
+                    ]),
+                ),
+                (Value::BulkString(b"duration_ms".into()), Value::Int(24529)),
+            ]),
+        )];
+
+        let resp3_response_empty_first_part_data =
+            vec![(Value::BulkString(b"running_script".into()), Value::Nil)];
+
+        let resp3_response_second_part_data = vec![(
+            Value::BulkString(b"engines".into()),
+            Value::Map(vec![(
+                Value::BulkString(b"LUA".into()),
+                Value::Map(vec![
+                    (Value::BulkString(b"libraries_count".into()), Value::Int(3)),
+                    (Value::BulkString(b"functions_count".into()), Value::Int(5)),
+                ]),
+            )]),
+        )];
+
+        let resp3_response_with_first_part = Value::Map(
+            [
+                resp3_response_non_empty_first_part_data.clone(),
+                resp3_response_second_part_data.clone(),
+            ]
+            .concat(),
+        );
+
+        let resp3_response_with_empty_first_part = Value::Map(
+            [
+                resp3_response_empty_first_part_data.clone(),
+                resp3_response_second_part_data.clone(),
+            ]
+            .concat(),
+        );
+
+        let resp3_cluster_response = Value::Map(vec![
+            (
+                Value::BulkString(b"node1".into()),
+                resp3_response_with_first_part.clone(),
+            ),
+            (
+                Value::BulkString(b"node2".into()),
+                resp3_response_with_empty_first_part.clone(),
+            ),
+            (
+                Value::BulkString(b"node3".into()),
+                resp3_response_with_empty_first_part.clone(),
+            ),
+        ]);
+
+        let conversion_type = Some(ExpectedReturnType::FunctionStatsReturnType);
+        // resp2 -> resp3 conversion with `running_script` block
+        assert_eq!(
+            convert_to_expected_type(resp2_response_with_first_part.clone(), conversion_type),
+            Ok(resp3_response_with_first_part.clone())
+        );
+        // resp2 -> resp3 conversion without `running_script` block
+        assert_eq!(
+            convert_to_expected_type(
+                resp2_response_with_empty_first_part.clone(),
+                conversion_type
+            ),
+            Ok(resp3_response_with_empty_first_part.clone())
+        );
+        // resp2 -> resp3 cluster response
+        assert_eq!(
+            convert_to_expected_type(resp2_cluster_response.clone(), conversion_type),
+            Ok(resp3_cluster_response.clone())
+        );
+        // resp3 -> resp3 conversion with `running_script` block
+        assert_eq!(
+            convert_to_expected_type(resp3_response_with_first_part.clone(), conversion_type),
+            Ok(resp3_response_with_first_part.clone())
+        );
+        // resp3 -> resp3 conversion without `running_script` block
+        assert_eq!(
+            convert_to_expected_type(
+                resp3_response_with_empty_first_part.clone(),
+                conversion_type
+            ),
+            Ok(resp3_response_with_empty_first_part.clone())
+        );
+        // resp3 -> resp3 cluster response
+        assert_eq!(
+            convert_to_expected_type(resp3_cluster_response.clone(), conversion_type),
+            Ok(resp3_cluster_response.clone())
+        );
     }
 
     #[test]

@@ -213,6 +213,9 @@ public class RedisClient extends BaseClient
 
     @Override
     public CompletableFuture<Map<String, Map<String, Object>>> functionStats() {
-        return commandManager.submitNewCommand(FunctionStats, new String[0], this::handleMapResponse);
+        return commandManager.submitNewCommand(
+                FunctionStats,
+                new String[0],
+                response -> handleFunctionStatsResponse(handleMapResponse(response)));
     }
 }

@@ -76,18 +76,17 @@ public interface ScriptingAndFunctionsCommands {
      * @example
      *     <pre>{@code
      * Map<String, Map<String, Object>> response = client.functionStats().get();
-     * Map<String, Object> running_script_info = response.get("running_script");
-     * if (running_script_info != null) {
-     *   Object[] command = (Object[]) running_script_info.get("command");
-     *   String command_line = Arrays.stream(command).map(String.class::cast).collect(Collectors.joining(" "));
+     * Map<String, Object> runningScriptInfo = response.get("running_script");
+     * if (runningScriptInfo != null) {
+     *   String[] commandLine = (String[]) runningScriptInfo.get("command");
      *   System.out.printf("Server is currently running function '%s' with command line '%s', which runs for %d ms%n",
-     *       running_script_info.get("name"), command_line, (long)running_script_info.get("duration_ms"));
+     *       runningScriptInfo.get("name"), String.join(" ", commandLine), (long)runningScriptInfo.get("duration_ms"));
      * }
-     * Map<String, Object> engines_info = response.get("engines");
-     * for (String engine_name : engines_info.keySet()) {
-     *   Map<String, Long> engine = (Map<String, Long>) engines_info.get(engine_name);
+     * Map<String, Object> enginesInfo = response.get("engines");
+     * for (String engineName : enginesInfo.keySet()) {
+     *   Map<String, Long> engine = (Map<String, Long>) enginesInfo.get(engineName);
      *   System.out.printf("Server supports engine '%s', which has %d libraries and %d functions in total%n",
-     *       engine_name, engine.get("libraries_count"), engine.get("functions_count"));
+     *       engineName, engine.get("libraries_count"), engine.get("functions_count"));
      * }
      * }</pre>
      */

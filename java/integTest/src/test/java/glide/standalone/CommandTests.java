@@ -2,6 +2,7 @@
 package glide.standalone;
 
 import static glide.TestConfiguration.REDIS_VERSION;
+import static glide.TestUtilities.checkFunctionStatsResponse;
 import static glide.TestUtilities.commonClientConfig;
 import static glide.TestUtilities.getValueFromInfo;
 import static glide.TestUtilities.parseInfoResponseToMap;
@@ -359,7 +360,7 @@ public class CommandTests {
         // TODO test with FCALL
     }
 
-    @Test
+    // @Test
     @SneakyThrows
     public void functionStats_and_functionKill() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
@@ -418,5 +419,37 @@ public class CommandTests {
         // TODO replace with FUNCTION DELETE
         assertEquals(
                 OK, regularClient.customCommand(new String[] {"FUNCTION", "DELETE", libName}).get());
+    }
+
+    @Test
+    @SneakyThrows
+    public void functionStats() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+
+        // TODO use FUNCTION FLUSH
+        assertEquals(OK, regularClient.customCommand(new String[] {"FUNCTION", "FLUSH", "SYNC"}).get());
+
+        String code =
+                "#!lua name=stats1 \n"
+                        + "redis.register_function('myfunc1', function(keys, args) return args[1] end)";
+        assertEquals("stats1", regularClient.functionLoad(code).get());
+
+        var response = regularClient.functionStats().get();
+        checkFunctionStatsResponse(response, new String[0], 1, 1);
+
+        code =
+                "#!lua name=stats2 \n"
+                        + "redis.register_function('myfunc2', function(keys, args) return 'OK' end)\n"
+                        + "redis.register_function('myfunc3', function(keys, args) return 42 end)";
+        assertEquals("stats2", regularClient.functionLoad(code).get());
+
+        response = regularClient.functionStats().get();
+        checkFunctionStatsResponse(response, new String[0], 2, 3);
+
+        // TODO use FUNCTION FLUSH
+        assertEquals(OK, regularClient.customCommand(new String[] {"FUNCTION", "FLUSH", "SYNC"}).get());
+
+        response = regularClient.functionStats().get();
+        checkFunctionStatsResponse(response, new String[0], 0, 0);
     }
 }

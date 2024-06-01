@@ -26,6 +26,7 @@ import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamTrimOptions.MinId;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -567,15 +568,46 @@ public class TransactionTestUtilities {
             return new Object[0];
         }
 
-        final String code =
-                "#!lua name=mylib1T \n"
-                        + " redis.register_function('myfunc1T', function(keys, args) return args[1] end)";
+        final String libName = "mylib1T";
+        final String funcName = "myfunc1T";
 
-        transaction.functionLoad(code).functionLoadReplace(code);
+        final String code =
+                "#!lua name="
+                        + libName
+                        + "\n redis.register_function('"
+                        + funcName
+                        + "', function(keys, args) return args[1] end)";
+
+        var expectedFunctionStatsNonEmpty =
+                new HashMap<String, Map<String, Object>>() {
+                    {
+                        put("running_script", null);
+                        put("engines", Map.of("LUA", Map.of("libraries_count", 1L, "functions_count", 1L)));
+                    }
+                };
+        var expectedFunctionStatsEmpty =
+                new HashMap<String, Map<String, Object>>() {
+                    {
+                        put("running_script", null);
+                        put("engines", Map.of("LUA", Map.of("libraries_count", 0L, "functions_count", 0L)));
+                    }
+                };
+
+        transaction
+                .customCommand(new String[] {"FUNCTION", "FLUSH"})
+                .functionLoad(code)
+                .functionLoadReplace(code)
+                .functionStats()
+                .customCommand(new String[] {"FUNCTION", "DELETE", libName})
+                .functionStats();
 
         return new Object[] {
-            "mylib1T", // functionLoad(code)
-            "mylib1T" // functionLoadReplace(code)
+            OK, // functionFlush()
+            libName, // functionLoad(code)
+            libName, // functionLoadReplace(code)
+            expectedFunctionStatsNonEmpty, // functionStats()
+            OK, // functionDelete(libName)
+            expectedFunctionStatsEmpty, // functionStats()
         };
     }
 

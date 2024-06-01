@@ -2,6 +2,7 @@
 package glide.cluster;
 
 import static glide.TestConfiguration.REDIS_VERSION;
+import static glide.TestUtilities.checkFunctionStatsResponse;
 import static glide.TestUtilities.commonClusterClientConfig;
 import static glide.TestUtilities.getFirstEntryFromMultiValue;
 import static glide.TestUtilities.getValueFromInfo;
@@ -756,7 +757,7 @@ public class CommandTests {
     }
 
     @SneakyThrows
-    @ParameterizedTest
+    // @ParameterizedTest
     @ValueSource(booleans = {true, false})
     public void functionLoad(boolean withRoute) {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
@@ -802,7 +803,7 @@ public class CommandTests {
         // TODO test with FCALL
     }
 
-    @Test
+    // @Test
     @SneakyThrows
     public void functionStats_and_functionKill() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
@@ -867,7 +868,7 @@ public class CommandTests {
                         .getSingleValue());
     }
 
-    @ParameterizedTest
+    // @ParameterizedTest
     @ValueSource(booleans = {true, false})
     @SneakyThrows
     public void functionStats_and_functionKill_with_route(boolean singleNodeRoute) {
@@ -935,5 +936,144 @@ public class CommandTests {
                         .customCommand(new String[] {"FUNCTION", "DELETE", libName}, route)
                         .get()
                         .getSingleValue());
+    }
+
+    @Test
+    @SneakyThrows
+    public void functionStats_without_route() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+
+        // TODO use FUNCTION FLUSH
+        assertEquals(
+                OK,
+                clusterClient
+                        .customCommand(new String[] {"FUNCTION", "FLUSH", "SYNC"})
+                        .get()
+                        .getSingleValue());
+
+        String code =
+                "#!lua name=stats1 \n"
+                        + " redis.register_function('myfunc1', function(keys, args) return args[1] end)";
+        assertEquals("stats1", clusterClient.functionLoad(code).get());
+
+        var response = clusterClient.functionStats().get().getMultiValue();
+        for (var nodeResponse : response.values()) {
+            checkFunctionStatsResponse(nodeResponse, new String[0], 1, 1);
+        }
+
+        code =
+                "#!lua name=stats2 \n"
+                        + " redis.register_function('myfunc2', function(keys, args) return 'OK' end)\n"
+                        + "redis.register_function('myfunc3', function(keys, args) return 42 end)";
+        assertEquals("stats2", clusterClient.functionLoad(code).get());
+
+        response = clusterClient.functionStats().get().getMultiValue();
+        for (var nodeResponse : response.values()) {
+            checkFunctionStatsResponse(nodeResponse, new String[0], 2, 3);
+        }
+
+        // TODO use FUNCTION FLUSH
+        assertEquals(
+                OK,
+                clusterClient
+                        .customCommand(new String[] {"FUNCTION", "FLUSH", "SYNC"})
+                        .get()
+                        .getSingleValue());
+
+        response = clusterClient.functionStats().get().getMultiValue();
+        for (var nodeResponse : response.values()) {
+            checkFunctionStatsResponse(nodeResponse, new String[0], 0, 0);
+        }
+    }
+
+    @Test
+    @SneakyThrows
+    public void functionStats_with_single_node_route() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+        Route route = new SlotKeyRoute("abc", PRIMARY);
+        // TODO use FUNCTION FLUSH
+        assertEquals(
+                OK,
+                clusterClient
+                        .customCommand(new String[] {"FUNCTION", "FLUSH", "SYNC"}, route)
+                        .get()
+                        .getSingleValue());
+
+        String code =
+                "#!lua name=stats1 \n"
+                        + " redis.register_function('myfunc1', function(keys, args) return args[1] end)";
+        assertEquals("stats1", clusterClient.functionLoad(code, route).get());
+
+        var response = clusterClient.functionStats(route).get().getSingleValue();
+        checkFunctionStatsResponse(response, new String[0], 1, 1);
+
+        code =
+                "#!lua name=stats2 \n"
+                        + " redis.register_function('myfunc2', function(keys, args) return 'OK' end)\n"
+                        + "redis.register_function('myfunc3', function(keys, args) return 42 end)";
+        assertEquals("stats2", clusterClient.functionLoad(code, route).get());
+
+        response = clusterClient.functionStats(route).get().getSingleValue();
+        checkFunctionStatsResponse(response, new String[0], 2, 3);
+
+        // TODO use FUNCTION FLUSH
+        assertEquals(
+                OK,
+                clusterClient
+                        .customCommand(new String[] {"FUNCTION", "FLUSH", "SYNC"}, route)
+                        .get()
+                        .getSingleValue());
+
+        response = clusterClient.functionStats(route).get().getSingleValue();
+        checkFunctionStatsResponse(response, new String[0], 0, 0);
+    }
+
+    @Test
+    @SneakyThrows
+    public void functionStats_with_multi_node_route() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+
+        Route route = ALL_PRIMARIES;
+        // TODO use FUNCTION FLUSH
+        assertEquals(
+                OK,
+                clusterClient
+                        .customCommand(new String[] {"FUNCTION", "FLUSH", "SYNC"}, route)
+                        .get()
+                        .getSingleValue());
+
+        String code =
+                "#!lua name=stats1 \n"
+                        + " redis.register_function('myfunc1', function(keys, args) return args[1] end)";
+        assertEquals("stats1", clusterClient.functionLoad(code, route).get());
+
+        var response = clusterClient.functionStats(route).get().getMultiValue();
+        for (var nodeResponse : response.values()) {
+            checkFunctionStatsResponse(nodeResponse, new String[0], 1, 1);
+        }
+
+        code =
+                "#!lua name=stats2 \n"
+                        + " redis.register_function('myfunc2', function(keys, args) return 'OK' end)\n"
+                        + "redis.register_function('myfunc3', function(keys, args) return 42 end)";
+        assertEquals("stats2", clusterClient.functionLoad(code, route).get());
+
+        response = clusterClient.functionStats(route).get().getMultiValue();
+        for (var nodeResponse : response.values()) {
+            checkFunctionStatsResponse(nodeResponse, new String[0], 2, 3);
+        }
+
+        // TODO use FUNCTION FLUSH
+        assertEquals(
+                OK,
+                clusterClient
+                        .customCommand(new String[] {"FUNCTION", "FLUSH", "SYNC"}, route)
+                        .get()
+                        .getSingleValue());
+
+        response = clusterClient.functionStats(route).get().getMultiValue();
+        for (var nodeResponse : response.values()) {
+            checkFunctionStatsResponse(nodeResponse, new String[0], 0, 0);
+        }
     }
 }

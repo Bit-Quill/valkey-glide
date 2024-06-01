@@ -460,12 +460,24 @@ public class RedisClusterClient extends BaseClient
                 FunctionKill, new String[0], route, this::handleStringResponse);
     }
 
+    /** Process a <code>FUNCTION STATS</code> cluster response. */
+    protected ClusterValue<Map<String, Map<String, Object>>> handleFunctionStatsResponse(
+            Response response, boolean isSingleValue) {
+        if (isSingleValue) {
+            return ClusterValue.ofSingleValue(handleFunctionStatsResponse(handleMapResponse(response)));
+        } else {
+            Map<String, Map<String, Map<String, Object>>> data = handleMapResponse(response);
+            for (var nodeInfo : data.entrySet()) {
+                nodeInfo.setValue(handleFunctionStatsResponse(nodeInfo.getValue()));
+            }
+            return ClusterValue.ofMultiValue(data);
+        }
+    }
+
     @Override
     public CompletableFuture<ClusterValue<Map<String, Map<String, Object>>>> functionStats() {
         return commandManager.submitNewCommand(
-                FunctionStats,
-                new String[0],
-                response -> ClusterValue.ofMultiValue(handleMapResponse(response)));
+                FunctionStats, new String[0], response -> handleFunctionStatsResponse(response, false));
     }
 
     @Override
@@ -475,9 +487,6 @@ public class RedisClusterClient extends BaseClient
                 FunctionStats,
                 new String[0],
                 route,
-                response ->
-                        route instanceof SingleNodeRoute
-                                ? ClusterValue.ofSingleValue(handleMapResponse(response))
-                                : ClusterValue.ofMultiValue(handleMapResponse(response)));
+                response -> handleFunctionStatsResponse(response, route instanceof SingleNodeRoute));
     }
 }
