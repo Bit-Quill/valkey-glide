@@ -67,11 +67,11 @@ jobs:
                   
             - name: tcpdump
               if: ${{ matrix.host.RUNNER == 'ubuntu-latest' }}
-              run: sudo tcpdump -i lo -w dump.pcap tcp port '(7000 or 7001 or 7002 or 7003 or 7004 or 7005 or 6379)' &
+              run: sudo tcpdump -i lo -w ${{ github.workspace }}/dump.pcap tcp port '(7000 or 7001 or 7002 or 7003 or 7004 or 7005 or 6379)' &
               
             - name: tcpdump
               if: ${{ matrix.host.RUNNER == 'macos-latest' }}
-              run: sudo tcpdump -i lo0 -w dump.pcap tcp port '(7000 or 7001 or 7002 or 7003 or 7004 or 7005 or 6379)' &
+              run: sudo tcpdump -i lo0 -w ${{ github.workspace }}/dump.pcap tcp port '(7000 or 7001 or 7002 or 7003 or 7004 or 7005 or 6379)' &
 
             - name: Install shared software dependencies
               uses: ./.github/workflows/install-shared-dependencies
@@ -106,7 +106,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                 name: tcpdump-java-${{ matrix.java }}-redis-${{ matrix.redis }}-${{ matrix.host.RUNNER }}
-                path: dump.pcap
+                path: ${{ github.workspace }}/dump.pcap
 
             - name: Ensure no skipped files by linter
               working-directory: java
