@@ -421,8 +421,8 @@ pub(crate) fn convert_to_expected_type(
         ExpectedReturnType::FunctionStatsReturnType => match value {
             // TODO reuse https://github.com/Bit-Quill/glide-for-redis/pull/331 and https://github.com/aws/glide-for-redis/pull/1489
             Value::Map(map) => {
-                // already a RESP3 response - do nothing
                 if map[0].0 == Value::BulkString(b"running_script".into()) {
+                    // already a RESP3 response - do nothing
                     Ok(Value::Map(map))
                 } else {
                     // cluster (multi-node) response - go recursive
@@ -781,7 +781,7 @@ mod tests {
             ]),
         ];
 
-        let resp2_response_with_first_part = Value::Array(
+        let resp2_response_with_non_empty_first_part = Value::Array(
             [
                 resp2_response_non_empty_first_part_data.clone(),
                 resp2_response_second_part_data.clone(),
@@ -800,7 +800,7 @@ mod tests {
         let resp2_cluster_response = Value::Map(vec![
             (
                 Value::BulkString(b"node1".into()),
-                resp2_response_with_first_part.clone(),
+                resp2_response_with_non_empty_first_part.clone(),
             ),
             (
                 Value::BulkString(b"node2".into()),
@@ -845,7 +845,7 @@ mod tests {
             )]),
         )];
 
-        let resp3_response_with_first_part = Value::Map(
+        let resp3_response_with_non_empty_first_part = Value::Map(
             [
                 resp3_response_non_empty_first_part_data.clone(),
                 resp3_response_second_part_data.clone(),
@@ -864,7 +864,7 @@ mod tests {
         let resp3_cluster_response = Value::Map(vec![
             (
                 Value::BulkString(b"node1".into()),
-                resp3_response_with_first_part.clone(),
+                resp3_response_with_non_empty_first_part.clone(),
             ),
             (
                 Value::BulkString(b"node2".into()),
@@ -877,12 +877,15 @@ mod tests {
         ]);
 
         let conversion_type = Some(ExpectedReturnType::FunctionStatsReturnType);
-        // resp2 -> resp3 conversion with `running_script` block
+        // resp2 -> resp3 conversion with non-empty `running_script` block
         assert_eq!(
-            convert_to_expected_type(resp2_response_with_first_part.clone(), conversion_type),
-            Ok(resp3_response_with_first_part.clone())
+            convert_to_expected_type(
+                resp2_response_with_non_empty_first_part.clone(),
+                conversion_type
+            ),
+            Ok(resp3_response_with_non_empty_first_part.clone())
         );
-        // resp2 -> resp3 conversion without `running_script` block
+        // resp2 -> resp3 conversion with empty `running_script` block
         assert_eq!(
             convert_to_expected_type(
                 resp2_response_with_empty_first_part.clone(),
@@ -895,12 +898,15 @@ mod tests {
             convert_to_expected_type(resp2_cluster_response.clone(), conversion_type),
             Ok(resp3_cluster_response.clone())
         );
-        // resp3 -> resp3 conversion with `running_script` block
+        // resp3 -> resp3 conversion with non-empty `running_script` block
         assert_eq!(
-            convert_to_expected_type(resp3_response_with_first_part.clone(), conversion_type),
-            Ok(resp3_response_with_first_part.clone())
+            convert_to_expected_type(
+                resp3_response_with_non_empty_first_part.clone(),
+                conversion_type
+            ),
+            Ok(resp3_response_with_non_empty_first_part.clone())
         );
-        // resp3 -> resp3 conversion without `running_script` block
+        // resp3 -> resp3 conversion with empty `running_script` block
         assert_eq!(
             convert_to_expected_type(
                 resp3_response_with_empty_first_part.clone(),
