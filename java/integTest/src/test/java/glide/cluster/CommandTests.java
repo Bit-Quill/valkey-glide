@@ -807,6 +807,9 @@ public class CommandTests {
     @SneakyThrows
     public void functionStats_and_functionKill() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+
+        clusterClient.set("============= no route == start", " ").get();
+
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
         String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
@@ -827,6 +830,7 @@ public class CommandTests {
                 // call the function without await
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
+                clusterClient.set("============= no route == before FCALL", " ").get();
                 var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
 
                 int timeout = 5200; // ms
@@ -850,13 +854,17 @@ public class CommandTests {
                     System.err.println("Timed out!");
                 }
 
+                clusterClient.set("============= no route == before KILL", " ");
                 assertEquals(OK, clusterClient.functionKill().get());
                 Thread.sleep(1404);
+                clusterClient.set("============= no route == after KILL", " ").get();
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill().get());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+                clusterClient.set("============= no route == after second KILL", " ").get();
 
                 System.out.println((System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
@@ -865,7 +873,9 @@ public class CommandTests {
             }
         } finally {
             try {
+                clusterClient.set("============= no route == before last KILL", " ").get();
                 clusterClient.functionKill().get();
+                clusterClient.set("============= no route == after last KILL", " ").get();
             } catch (Exception ignored) {
             }
         }
@@ -886,7 +896,7 @@ public class CommandTests {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         // Thread.sleep(3333); // TODO DBG
 
-        clusterClient.set("=============", " ").get();
+        clusterClient.set("============= " + singleNodeRoute + " == start", " ").get();
 
         String libName = "functionStats_and_functionKill_with_route_" + singleNodeRoute;
         String funcName = "deadlock_with_route_" + singleNodeRoute;
@@ -909,6 +919,7 @@ public class CommandTests {
                 // call the function without await
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
+                clusterClient.set("============= " + singleNodeRoute + " == before FCALL", " ").get();
                 var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"}, route);
 
                 int timeout = 5200; // ms
@@ -941,13 +952,17 @@ public class CommandTests {
                 }
 
                 // redis kills a function with 5 sec delay
+                clusterClient.set("============= " + singleNodeRoute + " == before KILL", " ");
                 assertEquals(OK, clusterClient.functionKill(route).get());
+                clusterClient.set("============= " + singleNodeRoute + " == after KILL", " ").get();
                 Thread.sleep(1404);
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+                clusterClient.set("============= " + singleNodeRoute + " == after second KILL", " ").get();
 
                 System.err.println((System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
@@ -956,7 +971,9 @@ public class CommandTests {
             }
         } finally {
             try {
+                clusterClient.set("============= " + singleNodeRoute + " == before last KILL", " ").get();
                 clusterClient.functionKill(route).get();
+                clusterClient.set("============= " + singleNodeRoute + " == after last KILL", " ").get();
             } catch (Exception ignored) {
             }
         }

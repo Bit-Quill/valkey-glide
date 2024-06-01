@@ -364,7 +364,7 @@ public class CommandTests {
     public void functionStats_and_functionKill() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
-        regularClient.set("=============", " ").get();
+        regularClient.set("============= standalone == start", " ").get();
 
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
@@ -385,6 +385,7 @@ public class CommandTests {
                 // call the function without await
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
+                regularClient.set("============= standalone == before FCALL", " ").get();
                 var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
 
                 int timeout = 5200; // ms
@@ -402,13 +403,17 @@ public class CommandTests {
                 }
 
                 // redis kills a function with 5 sec delay
+                regularClient.set("============= standalone == before KILL", " ");
                 assertEquals(OK, regularClient.functionKill().get());
+                regularClient.set("============= standalone == after KILL", " ").get();
                 Thread.sleep(1404);
 
                 exception =
                         assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+                regularClient.set("============= standalone == after second KILL", " ").get();
 
                 System.out.println((System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
@@ -417,7 +422,9 @@ public class CommandTests {
             }
         } finally {
             try {
+                regularClient.set("============= standalone == before last KILL", " ").get();
                 regularClient.functionKill().get();
+                regularClient.set("============= standalone == after last KILL", " ").get();
             } catch (Exception ignored) {
             }
         }

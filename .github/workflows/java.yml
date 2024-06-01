@@ -99,7 +99,7 @@ jobs:
               
             - name: tcpdump stop
               if: always()
-              run: sudo pkill tcpdump
+              run: sudo killall tcpdump
               
             - name: tcpdump Upload
               if: always()
