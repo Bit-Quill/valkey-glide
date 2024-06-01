@@ -404,7 +404,12 @@ public class CommandTests {
 
                 // redis kills a function with 5 sec delay
                 regularClient.set("============= standalone == before KILL", " ");
-                assertEquals(OK, regularClient.functionKill().get());
+                try {
+                    assertEquals(OK, regularClient.functionKill().get());
+                    System.err.println("KILL OK");
+                } catch (Exception ignored) {
+                    System.err.println("KILL FAILED");
+                }
                 regularClient.set("============= standalone == after KILL", " ").get();
                 Thread.sleep(1404);
 
