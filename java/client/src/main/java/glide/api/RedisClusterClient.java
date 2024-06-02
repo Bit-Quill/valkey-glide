@@ -21,6 +21,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
 import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
+import static redis_request.RedisRequestOuterClass.RequestType.Watch;
 
 import glide.api.commands.ConnectionManagementClusterCommands;
 import glide.api.commands.GenericClusterCommands;
@@ -103,6 +104,11 @@ public class RedisClusterClient extends BaseClient
             @NonNull ClusterTransaction transaction, @NonNull SingleNodeRoute route) {
         return commandManager.submitNewTransaction(
                 transaction, Optional.of(route), this::handleArrayOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> watch(@NonNull String[] keys) {
+        return commandManager.submitNewCommand(Watch, keys, this::handleStringResponse);
     }
 
     @Override

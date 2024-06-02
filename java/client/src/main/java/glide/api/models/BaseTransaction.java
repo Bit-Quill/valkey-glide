@@ -123,6 +123,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Touch;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.Unwatch;
+import static redis_request.RedisRequestOuterClass.RequestType.Watch;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
 import static redis_request.RedisRequestOuterClass.RequestType.XLen;
@@ -3979,6 +3981,18 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T srandmember(@NonNull String key, long count) {
         ArgsArray commandArgs = buildArgs(key, Long.toString(count));
         protobufTransaction.addCommands(buildCommand(SRandMember, commandArgs));
+        return getThis();
+    }
+
+    public T watch(@NonNull String[] keys) {
+        ArgsArray commandArgs = buildArgs(keys);
+        protobufTransaction.addCommands(buildCommand(Watch, commandArgs));
+        return getThis();
+    }
+
+    public T unwatch(@NonNull String[] keys) {
+        ArgsArray commandArgs = buildArgs(keys);
+        protobufTransaction.addCommands(buildCommand(Unwatch, commandArgs));
         return getThis();
     }
 

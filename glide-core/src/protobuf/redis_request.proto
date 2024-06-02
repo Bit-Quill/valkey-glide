@@ -202,6 +202,8 @@ enum RequestType {
     BLMove = 169;
     GetDel = 170;
     SRandMember = 171;
+    Watch = 172;
+    Unwatch = 173;
 }
 
 message Command {

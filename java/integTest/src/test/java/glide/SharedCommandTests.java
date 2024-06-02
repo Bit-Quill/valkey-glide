@@ -30,7 +30,10 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
+import glide.api.models.BaseTransaction;
+import glide.api.models.ClusterTransaction;
 import glide.api.models.Script;
+import glide.api.models.Transaction;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.ListDirection;
@@ -4573,5 +4576,19 @@ public class SharedCommandTests {
         ExecutionException executionExceptionWithCount =
                 assertThrows(ExecutionException.class, () -> client.srandmember(nonSetKey, count).get());
         assertInstanceOf(RequestException.class, executionExceptionWithCount.getCause());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void match(BaseClient client) {
+        String key1 = "{key}-1" + UUID.randomUUID();
+        assertEquals("OK", standaloneClient.watch(new String[] {key1}).get());
+        assertEquals("OK", standaloneClient.set(key1, "").get());
+
+        Transaction transaction = new Transaction().customCommand(new String[] {"SET", key1, "a"});
+        transaction.set(key1, "1");
+
+        assertEquals(null, standaloneClient.exec(transaction).get());
     }
 }
