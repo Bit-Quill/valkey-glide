@@ -364,4 +364,6 @@ public class CommandTests {
         assertEquals(libName, regularClient.functionLoadReplace(newCode).get());
         // TODO test with FCALL
     }
+
+    // regualr client
 }
