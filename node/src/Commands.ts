@@ -1334,3 +1334,10 @@ export function createPfAdd(
     const args = [key, ...elements];
     return createCommand(RequestType.PfAdd, args);
 }
+
+/**
+ * @internal
+ */
+export function createObjectEncoding(key: string): redis_request.Command {
+    return createCommand(RequestType.ObjectEncoding, [key]);
+}
