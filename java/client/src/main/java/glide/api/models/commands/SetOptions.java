@@ -8,6 +8,7 @@ import static glide.api.models.commands.SetOptions.ExpiryType.UNIX_MILLISECONDS;
 import static glide.api.models.commands.SetOptions.ExpiryType.UNIX_SECONDS;
 
 import glide.api.commands.StringBaseCommands;
+import glide.utils.ArrayTransformUtils;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
@@ -152,6 +153,9 @@ public final class SetOptions {
         if (conditionalSet != null) {
             optionArgs.add(conditionalSet.redisApi);
         }
+
+        String[] subCommands = new String[];
+        ArrayTransformUtils.concatenateArrays();
 
         if (returnOldValue) {
             optionArgs.add(RETURN_OLD_VALUE);
