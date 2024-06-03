@@ -156,6 +156,25 @@ public class CommandTests {
 
     @Test
     @SneakyThrows
+    public void move() {
+        String key = UUID.randomUUID().toString();
+        String value = UUID.randomUUID().toString();
+        String nonExistingKey = UUID.randomUUID().toString();
+        assertEquals(false, regularClient.move(nonExistingKey, 1L).get());
+
+        assertEquals(OK, regularClient.set(key, value).get());
+        assertEquals(true, regularClient.move(key, 1L).get());
+        assertEquals(OK, regularClient.select(1).get());
+        assertEquals(value, regularClient.get(key).get());
+
+        // Incorrect argument - DB index must be non-negative
+        ExecutionException e =
+                assertThrows(ExecutionException.class, () -> regularClient.move(key, -1L).get());
+        assertTrue(e.getCause() instanceof RequestException);
+    }
+
+    @Test
+    @SneakyThrows
     public void clientId() {
         var id = regularClient.clientId().get();
         assertTrue(id > 0);
