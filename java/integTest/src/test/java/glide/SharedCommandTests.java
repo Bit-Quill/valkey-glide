@@ -2942,12 +2942,13 @@ public class SharedCommandTests {
     public void bzmpop_timeout_check(BaseClient client) {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         String key = UUID.randomUUID().toString();
+
         // create new client with default request timeout (250 millis)
         try (var testClient =
-                client instanceof RedisClient
-                        ? RedisClient.CreateClient(commonClientConfig().build()).get()
-                        : RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get()) {
-
+                 client instanceof RedisClient ? RedisClient.CreateClient(commonClientConfig().build()).get() :
+                 client instanceof RedisClusterClient ? RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get() :
+                 null
+            ) {
             // ensure that commands doesn't time out even if timeout > request timeout
             assertNull(testClient.bzmpop(new String[] {key}, MAX, 1).get());
 

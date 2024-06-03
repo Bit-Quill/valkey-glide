@@ -1278,6 +1278,22 @@ public abstract class BaseClient
     }
 
     @Override
+    public CompletableFuture<Map<String, String[]>> xrevrange(
+        @NonNull String key, @NonNull StreamRange end, @NonNull StreamRange start) {
+        String[] arguments = ArrayUtils.addFirst(StreamRange.toArgs(start, end), key);
+        return commandManager.submitNewCommand(
+            XRevRange, arguments, response -> castMapOfArrays(handleMapResponse(response), String.class));
+    }
+
+    @Override
+    public CompletableFuture<Map<String, String[]>> xrevrange(
+        @NonNull String key, @NonNull StreamRange start, @NonNull StreamRange end, long count) {
+        String[] arguments = ArrayUtils.addFirst(StreamRange.toArgs(start, end, count), key);
+        return commandManager.submitNewCommand(
+            XRange, arguments, response -> castMapOfArrays(handleMapResponse(response), String.class));
+    }
+
+    @Override
     public CompletableFuture<Long> pttl(@NonNull String key) {
         return commandManager.submitNewCommand(PTTL, new String[] {key}, this::handleLongResponse);
     }

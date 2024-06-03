@@ -183,7 +183,7 @@ public interface StreamBaseCommands {
             String key, StreamRange start, StreamRange end, long count);
 
     /**
-     * Returns stream entries matching a given range of IDs reverse order.<br>
+     * Returns stream entries matching a given range of IDs in reverse order.<br>
      * Equivalent to {@link #xrange(String, StreamRange, StreamRange, long)} but returns the entries
      * in reverse order.
      *
@@ -206,7 +206,7 @@ public interface StreamBaseCommands {
      * @example
      *     <pre>{@code
      * // Retrieve all stream entries
-     * Map<String, String[]> result = client.xrange("key", InfRangeBound.MIN, InfRangeBound.MAX).get();
+     * Map<String, String[]> result = client.xrevrange("key", InfRangeBound.MAX, InfRangeBound.MIN).get();
      * result.forEach((k, v) -> {
      *     System.out.println("Stream ID: " + k);
      *     for (int i = 0; i < v.length;) {
@@ -214,7 +214,7 @@ public interface StreamBaseCommands {
      *     }
      * });
      * // Retrieve exactly one stream entry by id
-     * Map<String, String[]> result = client.xrange("key", IdBound.of(streamId), IdBound.of(streamId)).get();
+     * Map<String, String[]> result = client.xrevrange("key", IdBound.of(streamId), IdBound.of(streamId)).get();
      * System.out.println("Stream ID: " + streamid + " -> " + Arrays.toString(result.get(streamid)));
      * }</pre>
      */
@@ -246,7 +246,7 @@ public interface StreamBaseCommands {
      * @example
      *     <pre>{@code
      * // Retrieve the first 2 stream entries
-     * Map<String, String[]> result = client.xrange("key", InfRangeBound.MIN, InfRangeBound.MAX, 2).get();
+     * Map<String, String[]> result = client.xrange("key", InfRangeBound.MAX, InfRangeBound.MIN, 2).get();
      * result.forEach((k, v) -> {
      *     System.out.println("Stream ID: " + k);
      *     for (int i = 0; i < v.length;) {
