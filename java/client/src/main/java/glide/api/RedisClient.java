@@ -208,6 +208,6 @@ public class RedisClient extends BaseClient
     @Override
     public CompletableFuture<String> randomKey() {
         return commandManager.submitNewCommand(
-            RandomKey, new String[0], this::handleStringOrNullResponse);
+                RandomKey, new String[0], this::handleStringOrNullResponse);
     }
 }
