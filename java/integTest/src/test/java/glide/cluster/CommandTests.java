@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import glide.api.BaseClient;
 import glide.api.RedisClusterClient;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.FlushMode;
@@ -816,5 +817,24 @@ public class CommandTests {
                         : clusterClient.functionLoadReplace(newCode);
         assertEquals(libName, promise2.get());
         // TODO test with FCALL
+    }
+
+    @Test
+    @SneakyThrows
+    public void randomKey() {
+        String key1 = "{key}" + UUID.randomUUID();
+        String key2 = "{key}" + UUID.randomUUID();
+
+        assertEquals(OK, clusterClient.set(key1, "a").get());
+        assertEquals(OK, clusterClient.set(key2, "b").get());
+
+        String randomKey = clusterClient.randomKey().get();
+        assertEquals(1L, clusterClient.exists(new String[] {randomKey}).get());
+
+        // no keys in database
+        assertEquals(OK, clusterClient.flushall().get());
+        ExecutionException executionException =
+            assertThrows(ExecutionException.class, () -> clusterClient.randomKey().get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
     }
 }

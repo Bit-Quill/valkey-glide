@@ -20,6 +20,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
 import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.RandomKey;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
 
 import glide.api.commands.ConnectionManagementClusterCommands;
@@ -445,5 +446,17 @@ public class RedisClusterClient extends BaseClient
                 new String[] {FunctionLoadOptions.REPLACE.toString(), libraryCode},
                 route,
                 this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> randomKey(@NonNull SingleNodeRoute route) {
+        return commandManager.submitNewCommand(
+            RandomKey, new String[0], route, this::handleStringOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> randomKey() {
+        return commandManager.submitNewCommand(
+            RandomKey, new String[0], this::handleStringOrNullResponse);
     }
 }

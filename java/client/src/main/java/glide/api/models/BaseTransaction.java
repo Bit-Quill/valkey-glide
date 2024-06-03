@@ -2836,6 +2836,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /**
      * Return a random key from the currently selected database.
+     *
      * @see <a href="https://redis.io/docs/latest/commands/randomkey/">redis.io</a> for details.
      * @return Command Response - A random <code>key</code> from the currently selected database.
      * */
