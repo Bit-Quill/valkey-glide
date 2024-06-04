@@ -804,14 +804,14 @@ public class CommandTests {
         // TODO test with FCALL
     }
 
-//    @Test
+    //    @Test
     @SneakyThrows
     @RepeatedTest(10)
     public void functionStats_and_functionKill() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
         clusterClient.set("============= no route == start", " ").get();
-        clusterClient.customCommand(new String[]{"CLUSTER", "NODES"}, ALL_NODES).get();
+        clusterClient.customCommand(new String[] {"CLUSTER", "NODES"}, ALL_NODES).get();
 
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
@@ -875,9 +875,13 @@ public class CommandTests {
 
                 clusterClient.set("============= no route == after second KILL", " ").get();
 
-                System.out.println("Elapsed time before calling promise.get(): " + (System.currentTimeMillis() - before) / 1000);
+                System.out.println(
+                        "Elapsed time before calling promise.get(): "
+                                + (System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
-                System.out.println("Elapsed time after calling promise.get(): " + (System.currentTimeMillis() - before) / 1000);
+                System.out.println(
+                        "Elapsed time after calling promise.get(): "
+                                + (System.currentTimeMillis() - before) / 1000);
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().contains("Script killed by user"));
             }
