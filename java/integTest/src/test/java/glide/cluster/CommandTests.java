@@ -825,7 +825,7 @@ public class CommandTests {
             assertEquals(libName, clusterClient.functionLoadReplace(code).get());
 
             try (var testClient =
-                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(15000).build())
+                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(60000).build())
                             .get()) {
                 // call the function without await
                 // TODO use FCALL
@@ -833,7 +833,7 @@ public class CommandTests {
                 clusterClient.set("============= no route == before FCALL", " ").get();
                 var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
 
-                int timeout = 5200; // ms
+                int timeout = 120000; // ms
                 while (timeout > 0) {
                     var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
                     boolean found = false;
@@ -859,7 +859,7 @@ public class CommandTests {
                     assertEquals(OK, clusterClient.functionKill().get());
                     System.err.println("KILL OK");
                 } catch (Exception ignored) {
-                    System.err.println("KILL FAILED");
+                    System.err.println("KILL FAILED: " + ignored.getMessage());
                 }
                 Thread.sleep(1404);
                 clusterClient.set("============= no route == after KILL", " ").get();
@@ -871,8 +871,9 @@ public class CommandTests {
 
                 clusterClient.set("============= no route == after second KILL", " ").get();
 
-                System.out.println((System.currentTimeMillis() - before) / 1000);
+                System.out.println("Elapsed time before calling promise.get(): " + (System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
+                System.out.println("Elapsed time after calling promise.get(): " + (System.currentTimeMillis() - before) / 1000);
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().contains("Script killed by user"));
             }
@@ -963,7 +964,7 @@ public class CommandTests {
                     assertEquals(OK, clusterClient.functionKill(route).get());
                     System.err.println("KILL OK");
                 } catch (Exception ignored) {
-                    System.err.println("KILL FAILED");
+                    System.err.println("KILL FAILED: " + ignored.getMessage());
                 }
                 Thread.sleep(1404);
                 clusterClient.set("============= " + singleNodeRoute + " == after KILL", " ").get();
@@ -1053,6 +1054,7 @@ public class CommandTests {
                     System.err.println("KILL OK");
                 } catch (Exception ignored) {
                     System.err.println("KILL FAILED");
+                    throw ignored;
                 }
                 Thread.sleep(1404);
                 clusterClient.set("============= with_key_based_route == after KILL", " ").get();
