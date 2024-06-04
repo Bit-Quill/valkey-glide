@@ -184,8 +184,8 @@ public interface StreamBaseCommands {
 
     /**
      * Returns stream entries matching a given range of IDs in reverse order.<br>
-     * Equivalent to {@link #xrange(String, StreamRange, StreamRange, long)} but returns the entries
-     * in reverse order.
+     * Equivalent to {@link #xrange(String, StreamRange, StreamRange)} but returns the entries in
+     * reverse order.
      *
      * @param key The key of the stream.
      * @param end Ending stream ID bound for range.

@@ -3188,7 +3188,7 @@ public class SharedCommandTests {
                                         .get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
-        // ... and exrevrange
+        // ... and xrevrange
 
         executionException =
                 assertThrows(
