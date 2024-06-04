@@ -154,9 +154,6 @@ public final class SetOptions {
             optionArgs.add(conditionalSet.redisApi);
         }
 
-        String[] subCommands = new String[];
-        ArrayTransformUtils.concatenateArrays();
-
         if (returnOldValue) {
             optionArgs.add(RETURN_OLD_VALUE);
         }

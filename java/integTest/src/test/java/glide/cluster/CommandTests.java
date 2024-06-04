@@ -544,9 +544,6 @@ public class CommandTests {
         String singlePayload = clusterClient.echo(message, RANDOM).get().getSingleValue();
         assertEquals(message, singlePayload);
 
-        String randomkey = clusterClient.randomkey().get();
-        String randomkey = clusterClient.randomkey(RANDOM).get();
-
         Map<String, String> multiPayload = clusterClient.echo(message, ALL_NODES).get().getMultiValue();
         multiPayload.forEach((key, value) -> assertEquals(message, value));
     }
