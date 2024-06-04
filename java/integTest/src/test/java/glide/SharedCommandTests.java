@@ -30,8 +30,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
-import glide.api.models.BaseTransaction;
-import glide.api.models.ClusterTransaction;
 import glide.api.models.Script;
 import glide.api.models.Transaction;
 import glide.api.models.commands.ConditionalChange;
@@ -4581,14 +4579,88 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
-    public void match(BaseClient client) {
+    public void watch(BaseClient client) {
         String key1 = "{key}-1" + UUID.randomUUID();
-        assertEquals("OK", standaloneClient.watch(new String[] {key1}).get());
-        assertEquals("OK", standaloneClient.set(key1, "").get());
+        String key2 = "{key}-2" + UUID.randomUUID();
+        String key3 = "{key}-3" + UUID.randomUUID();
+        String key4 = "{key}-4" + UUID.randomUUID();
+        String foobarString = "foobar";
+        String helloString = "hello";
+        String[] keys = new String[] {key1, key2, key3};
+        Transaction setFoobarTransaction = new Transaction();
+        Transaction setHelloTransaction = new Transaction();
+        String[] expectedExecResponse = new String[] {OK, OK, OK};
 
-        Transaction transaction = new Transaction().customCommand(new String[] {"SET", key1, "a"});
-        transaction.set(key1, "1");
+        // Returns null when a watched key is modified before it is executed in a transaction command.
+        // Transaction commands are not performed.
+        assertEquals(OK, standaloneClient.watch(keys).get());
+        assertEquals(OK, standaloneClient.set(key2, helloString).get());
+        setFoobarTransaction.set(key1, foobarString).set(key2, foobarString).set(key3, foobarString);
+        assertEquals(null, standaloneClient.exec(setFoobarTransaction).get());
+        assertEquals(null, standaloneClient.get(key1).get());
+        assertEquals(helloString, standaloneClient.get(key2).get());
+        assertEquals(null, standaloneClient.get(key3).get());
 
-        assertEquals(null, standaloneClient.exec(transaction).get());
+        // Transaction executes command successfully with a read command on the watch key before
+        // transaction is executed.
+        assertEquals(OK, standaloneClient.watch(keys).get());
+        assertEquals(helloString, standaloneClient.get(key2).get());
+        assertArrayEquals(expectedExecResponse, standaloneClient.exec(setFoobarTransaction).get());
+        assertEquals(foobarString, standaloneClient.get(key1).get());
+        assertEquals(foobarString, standaloneClient.get(key2).get());
+        assertEquals(foobarString, standaloneClient.get(key3).get());
+
+        // Transaction executes command successfully with an unmodified watched key
+        assertEquals(OK, standaloneClient.watch(keys).get());
+        assertArrayEquals(expectedExecResponse, standaloneClient.exec(setFoobarTransaction).get());
+        assertEquals(foobarString, standaloneClient.get(key1).get());
+        assertEquals(foobarString, standaloneClient.get(key2).get());
+        assertEquals(foobarString, standaloneClient.get(key3).get());
+
+        // Transaction executes command successfully with a modified watched key but is not in the
+        // transaction.
+        assertEquals(OK, standaloneClient.watch(new String[] {key4}).get());
+        setHelloTransaction.set(key1, helloString).set(key2, helloString).set(key3, helloString);
+        assertArrayEquals(expectedExecResponse, standaloneClient.exec(setHelloTransaction).get());
+        assertEquals(helloString, standaloneClient.get(key1).get());
+        assertEquals(helloString, standaloneClient.get(key2).get());
+        assertEquals(helloString, standaloneClient.get(key3).get());
+
+        // Transaction executes command successfully with an unmodified watched key
+        assertEquals(OK, standaloneClient.watch(keys).get());
+        assertArrayEquals(expectedExecResponse, standaloneClient.exec(setFoobarTransaction).get());
+        assertEquals(foobarString, standaloneClient.get(key1).get());
+        assertEquals(foobarString, standaloneClient.get(key2).get());
+        assertEquals(foobarString, standaloneClient.get(key3).get());
+
+        // WATCH can not have an empty String array parameter
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> standaloneClient.watch(new String[] {}).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void unwatch(BaseClient client) {
+        String key1 = "{key}-1" + UUID.randomUUID();
+        String key2 = "{key}-2" + UUID.randomUUID();
+        String foobarString = "foobar";
+        String helloString = "hello";
+        String[] keys = new String[] {key1, key2};
+        Transaction setFoobarTransaction = new Transaction();
+        String[] expectedExecResponse = new String[] {OK, OK};
+
+        // UNWATCH returns OK when there no watched keys
+        assertEquals(OK, standaloneClient.unwatch().get());
+
+        // Transaction executes successfully after modifying a watched key then calling UNWATCH
+        assertEquals(OK, standaloneClient.watch(keys).get());
+        assertEquals(OK, standaloneClient.set(key2, helloString).get());
+        assertEquals(OK, standaloneClient.unwatch().get());
+        setFoobarTransaction.set(key1, foobarString).set(key2, foobarString);
+        assertArrayEquals(expectedExecResponse, standaloneClient.exec(setFoobarTransaction).get());
+        assertEquals(foobarString, standaloneClient.get(key1).get());
+        assertEquals(foobarString, standaloneClient.get(key2).get());
     }
 }
