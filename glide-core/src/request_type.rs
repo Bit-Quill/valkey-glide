@@ -523,7 +523,7 @@ impl RequestType {
             RequestType::GetDel => Some(cmd("GETDEL")),
             RequestType::SRandMember => Some(cmd("SRANDMEMBER")),
             RequestType::Watch => Some(cmd("WATCH")),
-            RequestType::Unwatch => Some(cmd("Unwatch")),
+            RequestType::Unwatch => Some(cmd("UNWATCH")),
         }
     }
 }
