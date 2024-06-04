@@ -714,7 +714,8 @@ public class CommandTests {
                 Arguments.of(
                         "blmove",
                         "6.2.0",
-                        clusterClient.blmove("abc", "def", ListDirection.LEFT, ListDirection.LEFT, 1)));
+                        clusterClient.blmove("abc", "def", ListDirection.LEFT, ListDirection.LEFT, 1)),
+                Arguments.of("copy", "6.2.0", clusterClient.copy("abc", "def", true)));
     }
 
     @SneakyThrows
