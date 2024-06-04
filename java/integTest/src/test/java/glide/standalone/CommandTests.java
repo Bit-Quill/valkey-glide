@@ -394,4 +394,31 @@ public class CommandTests {
         assertEquals(libName, regularClient.functionLoad(newCode, true).get());
         // TODO test with FCALL
     }
+
+    @Test
+    @SneakyThrows
+    public void copy() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("6.2.0"), "This feature added in redis 6.2.0");
+        // setup
+        String source = "{key}-1" + UUID.randomUUID();
+        String destination = "{key}-2" + UUID.randomUUID();
+        long destIndex = 1;
+
+        // neither key exists, returns 0
+        assertEquals(0L, regularClient.copy(source, destination, false).get());
+        assertEquals(0L, regularClient.copy(source, destination, destIndex, false).get());
+
+        // source exists, destination does not
+        regularClient.set(source, "one");
+        assertEquals(1L, regularClient.copy(source, destination, false).get());
+        assertEquals(1L, regularClient.copy(source, destination, destIndex, false).get());
+
+        // both exists, no REPLACE
+        assertEquals(0L, regularClient.copy(source, destination, false).get());
+        assertEquals(0L, regularClient.copy(source, destination, destIndex, false).get());
+
+        // both exists, with REPLACE
+        assertEquals(1L, regularClient.copy(source, destination, true).get());
+        assertEquals(1L, regularClient.copy(source, destination, destIndex, true).get());
+    }
 }
