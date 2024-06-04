@@ -57,6 +57,7 @@ import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -803,12 +804,14 @@ public class CommandTests {
         // TODO test with FCALL
     }
 
-    @Test
+//    @Test
     @SneakyThrows
+    @RepeatedTest(10)
     public void functionStats_and_functionKill() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
         clusterClient.set("============= no route == start", " ").get();
+        clusterClient.customCommand(new String[]{"CLUSTER", "NODES"}, ALL_NODES).get();
 
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
@@ -825,15 +828,16 @@ public class CommandTests {
             assertEquals(libName, clusterClient.functionLoadReplace(code).get());
 
             try (var testClient =
-                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(60000).build())
+                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(15000).build())
                             .get()) {
                 // call the function without await
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
                 clusterClient.set("============= no route == before FCALL", " ").get();
-                var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
+                Route route = new SlotKeyRoute(UUID.randomUUID().toString(), PRIMARY);
+                var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"}, route);
 
-                int timeout = 120000; // ms
+                int timeout = 15000; // ms
                 while (timeout > 0) {
                     var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
                     boolean found = false;
