@@ -127,8 +127,8 @@ public interface StreamBaseCommands {
      *       <li>Use {@link InfRangeBound#MAX} to end with the maximum available ID.
      *     </ul>
      *
-     * @return @return A <code>Map</code> of key to stream entry data, where entry data is an array of
-     *     item pairings.
+     * @return A <code>Map</code> of key to stream entry data, where entry data is an array of item
+     *     pairings.
      * @example
      *     <pre>{@code
      * // Retrieve all stream entries
@@ -194,6 +194,7 @@ public interface StreamBaseCommands {
      *       <li>Use {@link IdBound#ofExclusive} to specify an exclusive bounded stream ID.
      *       <li>Use {@link InfRangeBound#MAX} to end with the maximum available ID.
      *     </ul>
+     *
      * @param start Starting stream ID bound for range.
      *     <ul>
      *       <li>Use {@link IdBound#of} to specify a stream ID.
@@ -201,8 +202,8 @@ public interface StreamBaseCommands {
      *       <li>Use {@link InfRangeBound#MIN} to start with the minimum available ID.
      *     </ul>
      *
-     * @return @return A <code>Map</code> of key to stream entry data, where entry data is an array of
-     *     item pairings.
+     * @return A <code>Map</code> of key to stream entry data, where entry data is an array of item
+     *     pairings.
      * @example
      *     <pre>{@code
      * // Retrieve all stream entries
@@ -218,7 +219,8 @@ public interface StreamBaseCommands {
      * System.out.println("Stream ID: " + streamid + " -> " + Arrays.toString(result.get(streamid)));
      * }</pre>
      */
-    CompletableFuture<Map<String, String[]>> xrevrange(String key, StreamRange end, StreamRange start);
+    CompletableFuture<Map<String, String[]>> xrevrange(
+            String key, StreamRange end, StreamRange start);
 
     /**
      * Returns stream entries matching a given range of IDs in reverse order.<br>
@@ -226,13 +228,13 @@ public interface StreamBaseCommands {
      * in reverse order.
      *
      * @param key The key of the stream.
-
      * @param end Ending stream ID bound for range.
      *     <ul>
      *       <li>Use {@link IdBound#of} to specify a stream ID.
      *       <li>Use {@link IdBound#ofExclusive} to specify an exclusive bounded stream ID.
      *       <li>Use {@link InfRangeBound#MAX} to end with the maximum available ID.
      *     </ul>
+     *
      * @param start Starting stream ID bound for range.
      *     <ul>
      *       <li>Use {@link IdBound#of} to specify a stream ID.
@@ -256,5 +258,5 @@ public interface StreamBaseCommands {
      * }</pre>
      */
     CompletableFuture<Map<String, String[]>> xrevrange(
-        String key, StreamRange end, StreamRange start, long count);
+            String key, StreamRange end, StreamRange start, long count);
 }
