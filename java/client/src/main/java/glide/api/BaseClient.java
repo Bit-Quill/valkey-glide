@@ -103,8 +103,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Touch;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
+import static redis_request.RedisRequestOuterClass.RequestType.UnWatch;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
-import static redis_request.RedisRequestOuterClass.RequestType.Unwatch;
 import static redis_request.RedisRequestOuterClass.RequestType.Watch;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
@@ -148,7 +148,7 @@ import glide.api.commands.SetBaseCommands;
 import glide.api.commands.SortedSetBaseCommands;
 import glide.api.commands.StreamBaseCommands;
 import glide.api.commands.StringBaseCommands;
-import glide.api.commands.TransactionsCommands;
+import glide.api.commands.TransactionsBaseCommands;
 import glide.api.models.Script;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.LInsertOptions.InsertPosition;
@@ -209,7 +209,7 @@ public abstract class BaseClient
                 StreamBaseCommands,
                 HyperLogLogBaseCommands,
                 GeospatialIndicesBaseCommands,
-                TransactionsCommands {
+                TransactionsBaseCommands {
 
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
@@ -1649,6 +1649,6 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<String> unwatch() {
-        return commandManager.submitNewCommand(Unwatch, new String[0], this::handleStringResponse);
+        return commandManager.submitNewCommand(UnWatch, new String[0], this::handleStringResponse);
     }
 }

@@ -146,8 +146,8 @@ import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Touch;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
+import static redis_request.RedisRequestOuterClass.RequestType.UnWatch;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
-import static redis_request.RedisRequestOuterClass.RequestType.Unwatch;
 import static redis_request.RedisRequestOuterClass.RequestType.Watch;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
@@ -5433,7 +5433,7 @@ public class RedisClientTest {
         testResponse.complete(OK);
 
         // match on protobuf request
-        when(commandManager.<String>submitNewCommand(eq(Unwatch), eq(new String[0]), any()))
+        when(commandManager.<String>submitNewCommand(eq(UnWatch), eq(new String[0]), any()))
                 .thenReturn(testResponse);
 
         // exercise

@@ -203,7 +203,7 @@ enum RequestType {
     GetDel = 170;
     SRandMember = 171;
     Watch = 172;
-    Unwatch = 173;
+    UnWatch = 173;
 }
 
 message Command {

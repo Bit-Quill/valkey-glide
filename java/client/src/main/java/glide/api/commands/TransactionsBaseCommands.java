@@ -4,19 +4,21 @@ package glide.api.commands;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Supports commands for the "Transactions Commands" group for a standalone client.
+ * Supports commands for the "Transactions Commands" group for a standalone and cluster clients.
  *
  * @see <a href="https://redis.io/commands/?group=transactions">Transactions Commands</a>
  */
-public interface TransactionsCommands {
+public interface TransactionsBaseCommands {
     /**
      * Marks the given keys to be watched for conditional execution of a transaction. Transactions
      * will only execute commands if the watched keys are not modified before execution of the
      * transaction.
      *
+     * @apiNote When in cluster mode, the command may route to multiple nodes when <code>keys</code>
+     *     map to different hash slots.
      * @see <a href="https://redis.io/docs/latest/commands/watch/">redis.io</a> for details.
      * @param keys The keys to watch.
-     * @return The string "OK"
+     * @return The string <code>OK</code>.
      * @example
      *     <pre>{@code
      * client.watch("sampleKey");
@@ -31,11 +33,11 @@ public interface TransactionsCommands {
      * automatically flush all previously watched keys.
      *
      * @see <a href="https://redis.io/docs/latest/commands/unwatch/">redis.io</a> for details.
-     * @return The string "OK"
+     * @return The string <code>OK</code>.
      * @example
      *     <pre>{@code
      * client.watch("sampleKey");
-     * client.unwatch();
+     * client.unwatch(); // Flushes "sampleKey" from watched keys.
      * }</pre>
      */
     CompletableFuture<String> unwatch();
