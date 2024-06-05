@@ -395,7 +395,9 @@ public class TransactionTestUtilities {
                 .sadd(setKey4, new String[] {"foo"})
                 .srandmember(setKey4)
                 .srandmember(setKey4, 2)
-                .srandmember(setKey4, -2);
+                .srandmember(setKey4, -2)
+                .spop(setKey4)
+                .spopCount(setKey4, 3);
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             transaction
@@ -424,6 +426,8 @@ public class TransactionTestUtilities {
                     "foo", // srandmember(setKey4)
                     new String[] {"foo"}, // srandmember(setKey4, 2)
                     new String[] {"foo", "foo"}, // srandmember(setKey4, -2)};
+                    "foo", // spop(setKey4)
+                    Set.of(), // spopCount(setKey4, 3)
                 };
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             expectedResults =
