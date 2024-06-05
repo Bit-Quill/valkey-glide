@@ -397,7 +397,7 @@ public class TransactionTestUtilities {
                 .srandmember(setKey4, 2)
                 .srandmember(setKey4, -2)
                 .spop(setKey4)
-                .spopCount(setKey4, 3);
+                .spopCount(setKey4, 3); // setKey4 is now empty
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             transaction

@@ -4601,6 +4601,7 @@ public class SharedCommandTests {
         assertEquals(member1, client.spop(key).get());
 
         assertEquals(3, client.sadd(key, new String[] {member1, member2, member3}).get());
+        // Pop with count value greater than the size of the set
         assertEquals(Set.of(member1, member2, member3), client.spopCount(key, 4).get());
         assertEquals(0, client.scard(key).get());
 
