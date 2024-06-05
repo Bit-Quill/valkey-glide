@@ -5601,7 +5601,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Boolean>submitNewCommand(eq(Copy), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Boolean> response = service.copy(source, destination);
