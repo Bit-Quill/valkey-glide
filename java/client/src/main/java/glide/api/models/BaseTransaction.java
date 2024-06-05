@@ -3442,7 +3442,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Copies the value stored at the <code>source</code> to the <code>destination</code> key.
+     * Copies the value stored at the <code>source</code> to the <code>destination</code> key. When
+     * <code>replace</code> is true, removes the <code>destination</code> key first if it already
+     * exists, otherwise performs no action.
      *
      * @since Redis 6.2.0 and above.
      * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
@@ -3458,6 +3460,23 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             args = ArrayUtils.add(args, REPLACE_REDIS_API);
         }
         ArgsArray commandArgs = buildArgs(args);
+        protobufTransaction.addCommands(buildCommand(Copy, commandArgs));
+        return getThis();
+    }
+
+    /**
+     * Copies the value stored at the <code>source</code> to the <code>destination</code> key if the
+     * <code>destination</code> key does not yet exist.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
+     * @param source The key to the source value.
+     * @param destination The key where the value should be copied to.
+     * @return Command Response - <code>1L</code> if <code>source</code> was copied, <code>0L</code>
+     *     if <code>source</code> was not copied.
+     */
+    public T copy(@NonNull String source, @NonNull String destination) {
+        ArgsArray commandArgs = buildArgs(source, destination);
         protobufTransaction.addCommands(buildCommand(Copy, commandArgs));
         return getThis();
     }

@@ -71,7 +71,9 @@ public class Transaction extends BaseTransaction<Transaction> {
     }
 
     /**
-     * Copies the value stored at the <code>source</code> to the <code>destination</code> key.
+     * * Copies the value stored at the <code>source</code> to the <code>destination</code> key on
+     * <code>destinationDB</code>. When <code>replace</code> is true, removes the <code>destination
+     * </code> key first if it already exists, otherwise performs no action.
      *
      * @since Redis 6.2.0 and above.
      * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
