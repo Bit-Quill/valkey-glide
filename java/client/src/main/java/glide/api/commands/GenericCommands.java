@@ -56,7 +56,7 @@ public interface GenericCommands {
     CompletableFuture<Object[]> exec(Transaction transaction);
 
     /**
-     * Return a random key.
+     * Returns a random key from currently selected database..
      *
      * @see <a href="https://redis.io/docs/latest/commands/randomkey/">redis.io</a> for details.
      * @return A random <code>key</code> from the database.

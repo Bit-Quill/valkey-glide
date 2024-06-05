@@ -365,5 +365,9 @@ public class CommandTests {
         // TODO test with FCALL
     }
 
-    // regualr client
+    // regualar client
+    // for randomkey, see:
+    // This isn't based on response_tips, but on the discussion here - https://github.com/redis/redis/issues/12410
+    // b"FUNCTION KILL" | b"SCRIPT KILL" | b"RANDOMKEY" => Some(OneSucceeded),
+    // TODO checkout amazon-contributing/redis-rs#149
 }
