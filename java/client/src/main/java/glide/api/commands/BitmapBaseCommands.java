@@ -24,7 +24,7 @@ public interface BitmapBaseCommands {
     /**
      * Counts the number of set bits (population counting) in a string stored at <code>key</code>.
      *
-     * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/bitcount/">valkey.io</a> for details.
      * @param key The key for the string to count the set bits of.
      * @return The number of set bits in the string. Returns zero if the key is missing as it is
      *     treated as an empty string.
@@ -44,7 +44,7 @@ public interface BitmapBaseCommands {
      * <code>-1</code> being the last element of the list, <code>-2</code> being the penultimate, and
      * so on.
      *
-     * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/bitcount/">valkey.io</a> for details.
      * @param key The key for the string to count the set bits of.
      * @param start The starting offset byte index.
      * @param end The ending offset byte index.
@@ -67,7 +67,7 @@ public interface BitmapBaseCommands {
      * so on.
      *
      * @since Redis 7.0 and above
-     * @see <a href="https://redis.io/commands/bitcount/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/bitcount/">valkey.io</a> for details.
      * @param key The key for the string to count the set bits of.
      * @param start The starting offset.
      * @param end The ending offset.
@@ -92,7 +92,7 @@ public interface BitmapBaseCommands {
      * non-existent then the bit at <code>offset</code> is set to <code>value</code> and the preceding
      * bits are set to <code>0</code>.
      *
-     * @see <a href="https://redis.io/commands/setbit/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/setbit/">valkey.io</a> for details.
      * @param key The key of the string.
      * @param offset The index of the bit to be set.
      * @param value The bit value to set at <code>offset</code>. The value must be <code>0</code> or
@@ -110,7 +110,7 @@ public interface BitmapBaseCommands {
      * Returns the bit value at <code>offset</code> in the string value stored at <code>key</code>.
      * <code>offset</code> should be greater than or equal to zero.
      *
-     * @see <a href="https://redis.io/commands/getbit/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/getbit/">valkey.io</a> for details.
      * @param key The key of the string.
      * @param offset The index of the bit to return.
      * @return The bit at offset of the string. Returns zero if the key is empty or if the positive
@@ -127,7 +127,7 @@ public interface BitmapBaseCommands {
     /**
      * Returns the position of the first bit matching the given <code>bit</code> value.
      *
-     * @see <a href="https://redis.io/commands/bitpos/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/bitpos/">valkey.io</a> for details.
      * @param key The key of the string.
      * @param bit The bit value to match. The value must be <code>0</code> or <code>1</code>.
      * @return The position of the first occurrence matching <code>bit</code> in the binary value of
@@ -150,7 +150,7 @@ public interface BitmapBaseCommands {
      * indicating offsets starting at the end of the list, with <code>-1</code> being the last byte of
      * the list, <code>-2</code> being the penultimate, and so on.
      *
-     * @see <a href="https://redis.io/commands/bitpos/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/bitpos/">valkey.io</a> for details.
      * @param key The key of the string.
      * @param bit The bit value to match. The value must be <code>0</code> or <code>1</code>.
      * @param start The starting offset.
@@ -174,7 +174,7 @@ public interface BitmapBaseCommands {
      * negative numbers indicating offsets starting at the end of the list, with <code>-1</code> being
      * the last byte of the list, <code>-2</code> being the penultimate, and so on.
      *
-     * @see <a href="https://redis.io/commands/bitpos/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/bitpos/">valkey.io</a> for details.
      * @param key The key of the string.
      * @param bit The bit value to match. The value must be <code>0</code> or <code>1</code>.
      * @param start The starting offset.
@@ -203,7 +203,7 @@ public interface BitmapBaseCommands {
      * list, <code>-2</code> being the penultimate, and so on.
      *
      * @since Redis 7.0 and above.
-     * @see <a href="https://redis.io/commands/bitpos/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/bitpos/">valkey.io</a> for details.
      * @param key The key of the string.
      * @param bit The bit value to match. The value must be <code>0</code> or <code>1</code>.
      * @param start The starting offset.
@@ -230,7 +230,7 @@ public interface BitmapBaseCommands {
      *
      * @apiNote When in cluster mode, <code>destination</code> and all <code>keys</code> must map to
      *     the same hash slot.
-     * @see <a href="https://redis.io/commands/bitop/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/bitop/">valkey.io</a> for details.
      * @param bitwiseOperation The bitwise operation to perform.
      * @param destination The key that will store the resulting string.
      * @param keys The list of keys to perform the bitwise operation on.
@@ -251,7 +251,7 @@ public interface BitmapBaseCommands {
      * Reads or modifies the array of bits representing the string that is held at <code>key</code>
      * based on the specified <code>subCommands</code>.
      *
-     * @see <a href="https://redis.io/commands/bitfield/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/bitfield/">valkey.io</a> for details.
      * @param key The key of the string.
      * @param subCommands The subCommands to be performed on the binary value of the string at <code>
      *     key</code>, which could be any of the following:
@@ -289,10 +289,11 @@ public interface BitmapBaseCommands {
 
     /**
      * Reads the array of bits representing the string that is held at <code>key</code> based on the
-     * specified <code>subCommands</code>.
+     * specified <code>subCommands</code>. Can be routed to read-only replicas to allow for <code>
+     * BitField</code> behaviour in read-only replicas.
      *
      * @since Redis 6.0 and above
-     * @see <a href="https://redis.io/docs/latest/commands/bitfield_ro/">redis.io</a> for details.
+     * @see <a href="https://valkey.io/commands/bitfield_ro/">valkey.io</a> for details.
      * @param key The key of the string.
      * @param subCommands The <code>GET</code> subCommands to be performed.
      * @return An array of results from the <code>GET</code> subcommands.
