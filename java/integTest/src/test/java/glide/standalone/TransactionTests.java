@@ -244,11 +244,11 @@ public class TransactionTests {
                         .copy(copyKey1, copyKey2, 1, true);
         Object[] expectedResult =
                 new Object[] {
-                    0L, // copy(copyKey1, copyKey2, 1, false)
+                    false, // copy(copyKey1, copyKey2, 1, false)
                     OK, // set(copyKey1, "one")
                     OK, // set(copyKey2, "two")
-                    1L, // copy(copyKey1, copyKey2, 1, false)
-                    1L, // copy(copyKey1, copyKey2, 1, true)
+                    true, // copy(copyKey1, copyKey2, 1, false)
+                    true, // copy(copyKey1, copyKey2, 1, true)
                 };
 
         Object[] result = client.exec(transaction).get();

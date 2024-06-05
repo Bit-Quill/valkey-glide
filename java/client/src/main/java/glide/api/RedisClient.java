@@ -11,6 +11,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ConfigGet;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigResetStat;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigRewrite;
 import static redis_request.RedisRequestOuterClass.RequestType.ConfigSet;
+import static redis_request.RedisRequestOuterClass.RequestType.Copy;
 import static redis_request.RedisRequestOuterClass.RequestType.CustomCommand;
 import static redis_request.RedisRequestOuterClass.RequestType.Echo;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
@@ -37,6 +38,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Async (non-blocking) client for Redis in Standalone mode. Use {@link #CreateClient} to request a
@@ -202,5 +204,16 @@ public class RedisClient extends BaseClient
     public CompletableFuture<Boolean> move(@NonNull String key, long dbIndex) {
         return commandManager.submitNewCommand(
                 Move, new String[] {key, Long.toString(dbIndex)}, this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> copy(
+            @NonNull String source, @NonNull String destination, long destinationDB, boolean replace) {
+        String[] arguments =
+                new String[] {source, destination, DB_REDIS_API, Long.toString(destinationDB)};
+        if (replace) {
+            arguments = ArrayUtils.add(arguments, REPLACE_REDIS_API);
+        }
+        return commandManager.submitNewCommand(Copy, arguments, this::handleBooleanResponse);
     }
 }

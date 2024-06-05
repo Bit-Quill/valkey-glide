@@ -1680,23 +1680,18 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> copy(
+    public CompletableFuture<Boolean> copy(
             @NonNull String source, @NonNull String destination, boolean replace) {
         String[] arguments = new String[] {source, destination};
         if (replace) {
             arguments = ArrayUtils.add(arguments, REPLACE_REDIS_API);
         }
-        return commandManager.submitNewCommand(Copy, arguments, this::handleLongResponse);
+        return commandManager.submitNewCommand(Copy, arguments, this::handleBooleanResponse);
     }
 
     @Override
-    public CompletableFuture<Long> copy(
-            @NonNull String source, @NonNull String destination, long destinationDB, boolean replace) {
-        String[] arguments =
-                new String[] {source, destination, DB_REDIS_API, Long.toString(destinationDB)};
-        if (replace) {
-            arguments = ArrayUtils.add(arguments, REPLACE_REDIS_API);
-        }
-        return commandManager.submitNewCommand(Copy, arguments, this::handleLongResponse);
+    public CompletableFuture<Boolean> copy(@NonNull String source, @NonNull String destination) {
+        String[] arguments = new String[] {source, destination};
+        return commandManager.submitNewCommand(Copy, arguments, this::handleBooleanResponse);
     }
 }

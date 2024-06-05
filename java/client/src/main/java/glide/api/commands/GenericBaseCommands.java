@@ -13,9 +13,6 @@ import java.util.concurrent.CompletableFuture;
  * @see <a href="https://redis.io/commands/?group=generic">Generic Commands</a>
  */
 public interface GenericBaseCommands {
-    /** Redis API keyword used to denote the destination db index. */
-    String DB_REDIS_API = "DB";
-
     /** Redis API keyword used to replace the destination key. */
     String REPLACE_REDIS_API = "REPLACE";
 
@@ -549,17 +546,17 @@ public interface GenericBaseCommands {
     CompletableFuture<Long> touch(String[] keys);
 
     /**
-     * Copies the value stored at the <code>source</code> to the <code>destination</code> key.
+     * Copies the value stored at the <code>source</code> to the <code>destination</code> key. When
+     * <code>replace</code> is true, removes the <code>destination</code> key first if it already
+     * exists, otherwise performs no action.
      *
-     * @since Redis 6.2.0 and above.
      * @apiNote When in cluster mode, both <code>source</code> and <code>destination</code> must map
      *     to the same hash slot.
-     * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
      * @param source The key to the source value.
      * @param destination The key where the value should be copied to.
      * @param replace If the destination key should be removed before copying the value to it.
-     * @return <code>1L</code> if <code>source</code> was copied, <code>0L</code> if <code>source
-     *     </code> was not copied.
+     * @return <code>true</code> if <code>source</code> was copied, <code>false</code> if <code>source
+     * </code> was not copied.
      * @example
      *     <pre>{@code
      * client.set("test1", "one").get();
@@ -567,26 +564,32 @@ public interface GenericBaseCommands {
      * assertEquals(0L, client.copy("test1", "test2", false).get());
      * assertEquals(1L, client.copy("test1", "test2", true).get());
      * }</pre>
+     *
+     * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
+     * @since Redis 6.2.0 and above.
      */
-    CompletableFuture<Long> copy(String source, String destination, boolean replace);
+    CompletableFuture<Boolean> copy(String source, String destination, boolean replace);
 
     /**
-     * Copies the value stored at the <code>source</code> to the <code>destination</code> key.
+     * Copies the value stored at the <code>source</code> to the <code>destination</code> key if the
+     * <code>destination</code> key does not yet exist.
      *
-     * @since Redis 6.2.0 and above.
-     * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
+     * @apiNote When in cluster mode, both <code>source</code> and <code>destination</code> must map
+     *     to the same hash slot.
      * @param source The key to the source value.
      * @param destination The key where the value should be copied to.
-     * @param destinationDB The alternative logical database index for the destination key.
-     * @param replace If the destination key should be removed before copying the value to it.
-     * @return <code>1L</code> if <code>source</code> was copied, <code>0L</code> if <code>source
-     *     </code> was not copied.
+     * @return <code>true</code> if <code>source</code> was copied, <code>false</code> if <code>source
+     * </code> was not copied.
      * @example
      *     <pre>{@code
      * client.set("test1", "one").get();
-     * assertEquals(1L, client.copy("test1", "test2", 1, false).get());
+     * client.set("test2", "two").get();
+     * assertEquals(0L, client.copy("test1", "test2", false).get());
+     * assertEquals(1L, client.copy("test1", "test2", true).get());
      * }</pre>
+     *
+     * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
+     * @since Redis 6.2.0 and above.
      */
-    CompletableFuture<Long> copy(
-            String source, String destination, long destinationDB, boolean replace);
+    CompletableFuture<Boolean> copy(String source, String destination);
 }

@@ -186,8 +186,8 @@ public class TransactionTestUtilities {
                             new Object[] {
                                 OK, // set(genericKey3, "value1")
                                 OK, // set(genericKey4, "value2")
-                                0L, // copy(genericKey3, genericKey4, false)
-                                1L, // copy(genericKey3, genericKey4, true)
+                                false, // copy(genericKey3, genericKey4, false)
+                                true, // copy(genericKey3, genericKey4, true)
                             });
         }
         return expectedResults;

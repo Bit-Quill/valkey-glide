@@ -1,7 +1,6 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
-import static glide.api.commands.GenericBaseCommands.DB_REDIS_API;
 import static glide.api.commands.GenericBaseCommands.REPLACE_REDIS_API;
 import static glide.api.commands.HashBaseCommands.WITH_VALUES_REDIS_API;
 import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
@@ -933,9 +932,6 @@ public class TransactionTests {
 
         transaction.copy("key1", "key2", true);
         results.add(Pair.of(Copy, buildArgs("key1", "key2", REPLACE_REDIS_API)));
-
-        transaction.copy("key1", "key2", 1, true);
-        results.add(Pair.of(Copy, buildArgs("key1", "key2", DB_REDIS_API, "1", REPLACE_REDIS_API)));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

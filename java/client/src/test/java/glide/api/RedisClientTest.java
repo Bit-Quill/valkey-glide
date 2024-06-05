@@ -2,8 +2,8 @@
 package glide.api;
 
 import static glide.api.BaseClient.OK;
-import static glide.api.commands.GenericBaseCommands.DB_REDIS_API;
 import static glide.api.commands.GenericBaseCommands.REPLACE_REDIS_API;
+import static glide.api.commands.GenericCommands.DB_REDIS_API;
 import static glide.api.commands.HashBaseCommands.WITH_VALUES_REDIS_API;
 import static glide.api.commands.ListBaseCommands.COUNT_FOR_LIST_REDIS_API;
 import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
@@ -5594,18 +5594,18 @@ public class RedisClientTest {
         String source = "testKey1";
         String destination = "testKey2";
         String[] arguments = new String[] {source, destination, REPLACE_REDIS_API};
-        Long value = 1L;
+        Boolean value = true;
 
-        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(Copy), eq(arguments), any()))
+        when(commandManager.<Boolean>submitNewCommand(eq(Copy), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Long> response = service.copy(source, destination, true);
-        Long payload = response.get();
+        CompletableFuture<Boolean> response = service.copy(source, destination, true);
+        Boolean payload = response.get();
 
         // verify
         assertEquals(testResponse, response);
@@ -5620,18 +5620,18 @@ public class RedisClientTest {
         String destination = "testKey2";
         long destinationDB = 1;
         String[] arguments = new String[] {source, destination, DB_REDIS_API, "1", REPLACE_REDIS_API};
-        Long value = 1L;
+        Boolean value = true;
 
-        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
 
         // match on protobuf request
-        when(commandManager.<Long>submitNewCommand(eq(Copy), eq(arguments), any()))
+        when(commandManager.<Boolean>submitNewCommand(eq(Copy), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Long> response = service.copy(source, destination, destinationDB, true);
-        Long payload = response.get();
+        CompletableFuture<Boolean> response = service.copy(source, destination, destinationDB, true);
+        Boolean payload = response.get();
 
         // verify
         assertEquals(testResponse, response);

@@ -405,20 +405,22 @@ public class CommandTests {
         long destIndex = 1;
 
         // neither key exists, returns 0
-        assertEquals(0L, regularClient.copy(source, destination, false).get());
-        assertEquals(0L, regularClient.copy(source, destination, destIndex, false).get());
+        assertEquals(false, regularClient.copy(source, destination).get());
+        assertEquals(false, regularClient.copy(source, destination, false).get());
+        assertEquals(false, regularClient.copy(source, destination, destIndex, false).get());
 
         // source exists, destination does not
         regularClient.set(source, "one");
-        assertEquals(1L, regularClient.copy(source, destination, false).get());
-        assertEquals(1L, regularClient.copy(source, destination, destIndex, false).get());
+        assertEquals(true, regularClient.copy(source, destination, false).get());
+        assertEquals(true, regularClient.copy(source, destination, destIndex, false).get());
 
         // both exists, no REPLACE
-        assertEquals(0L, regularClient.copy(source, destination, false).get());
-        assertEquals(0L, regularClient.copy(source, destination, destIndex, false).get());
+        assertEquals(false, regularClient.copy(source, destination).get());
+        assertEquals(false, regularClient.copy(source, destination, false).get());
+        assertEquals(false, regularClient.copy(source, destination, destIndex, false).get());
 
         // both exists, with REPLACE
-        assertEquals(1L, regularClient.copy(source, destination, true).get());
-        assertEquals(1L, regularClient.copy(source, destination, destIndex, true).get());
+        assertEquals(true, regularClient.copy(source, destination, true).get());
+        assertEquals(true, regularClient.copy(source, destination, destIndex, true).get());
     }
 }
