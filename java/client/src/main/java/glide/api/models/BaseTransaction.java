@@ -210,6 +210,7 @@ import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
 import glide.api.models.commands.stream.StreamRange;
 import glide.api.models.commands.stream.StreamTrimOptions;
+import glide.api.models.configuration.ReadFrom;
 import java.util.Arrays;
 import java.util.Map;
 import lombok.Getter;
@@ -4092,8 +4093,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /**
      * Reads the array of bits representing the string that is held at <code>key</code> based on the
-     * specified <code>subCommands</code>. Can be routed to read-only replicas to allow for <code>
-     * BitField</code> behaviour in read-only replicas.
+     * specified <code>subCommands</code>. This command is routed depending on the client's {@link
+     * ReadFrom} strategy.
      *
      * @since Redis 6.0 and above
      * @see <a href="https://valkey.io/commands/bitfield_ro/">valkey.io</a> for details.

@@ -12,6 +12,7 @@ import glide.api.models.commands.bitmap.BitFieldOptions.Offset;
 import glide.api.models.commands.bitmap.BitFieldOptions.OffsetMultiplier;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.bitmap.BitwiseOperation;
+import glide.api.models.configuration.ReadFrom;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -289,8 +290,8 @@ public interface BitmapBaseCommands {
 
     /**
      * Reads the array of bits representing the string that is held at <code>key</code> based on the
-     * specified <code>subCommands</code>. Can be routed to read-only replicas to allow for <code>
-     * BitField</code> behaviour in read-only replicas.
+     * specified <code>subCommands</code>. This command is routed depending on the client's {@link
+     * ReadFrom} strategy.
      *
      * @since Redis 6.0 and above
      * @see <a href="https://valkey.io/commands/bitfield_ro/">valkey.io</a> for details.
