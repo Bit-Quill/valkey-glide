@@ -123,6 +123,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Set;
 import static redis_request.RedisRequestOuterClass.RequestType.SetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.SetRange;
+import static redis_request.RedisRequestOuterClass.RequestType.Sort;
 import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
@@ -4069,6 +4070,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull String key, @NonNull BitFieldReadOnlySubCommands[] subCommands) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(createBitFieldArgs(subCommands), key));
         protobufTransaction.addCommands(buildCommand(BitFieldReadOnly, commandArgs));
+        return getThis();
+    }
+
+    public T sort(
+        @NonNull String key) {
+        ArgsArray commandArgs = buildArgs(key);
+        protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
         return getThis();
     }
 

@@ -105,6 +105,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Set;
 import static redis_request.RedisRequestOuterClass.RequestType.SetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.SetRange;
+import static redis_request.RedisRequestOuterClass.RequestType.Sort;
 import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Touch;
@@ -1676,5 +1677,10 @@ public abstract class BaseClient
                         keys,
                         new String[] {SET_LIMIT_REDIS_API, Long.toString(limit)});
         return commandManager.submitNewCommand(SInterCard, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<String[]> sort(@NonNull String key) {
+        return commandManager.submitNewCommand(Sort, new String[] {key}, response -> castArray(handleArrayResponse(response), String.class));
     }
 }

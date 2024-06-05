@@ -176,6 +176,7 @@ pub enum RequestType {
     BitFieldReadOnly = 173,
     Move = 174,
     SInterCard = 175,
+    Sort = 176,
 }
 
 fn get_two_word_command(first: &str, second: &str) -> Cmd {
@@ -355,6 +356,7 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::BitFieldReadOnly => RequestType::BitFieldReadOnly,
             ProtobufRequestType::Move => RequestType::Move,
             ProtobufRequestType::SInterCard => RequestType::SInterCard,
+            ProtobufRequestType::Sort => RequestType::Sort,
         }
     }
 }
@@ -530,6 +532,7 @@ impl RequestType {
             RequestType::BitFieldReadOnly => Some(cmd("BITFIELD_RO")),
             RequestType::Move => Some(cmd("MOVE")),
             RequestType::SInterCard => Some(cmd("SINTERCARD")),
+            RequestType::Sort => Some(cmd("SORT")),
         }
     }
 }

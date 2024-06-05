@@ -542,4 +542,6 @@ public interface GenericBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> touch(String[] keys);
+
+    CompletableFuture<String[]> sort(String key);
 }

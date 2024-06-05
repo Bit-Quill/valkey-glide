@@ -4900,4 +4900,16 @@ public class SharedCommandTests {
                 assertThrows(ExecutionException.class, () -> client.sintercard(badArr).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void sort(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String[] lpushArgs = {"4", "3", "7", "1"};
+        String[] sortedList = {"1", "3", "4", "7"};
+
+        assertEquals(4, client.lpush(key, lpushArgs).get());
+        assertArrayEquals(sortedList, client.sort(key).get());
+    }
 }
