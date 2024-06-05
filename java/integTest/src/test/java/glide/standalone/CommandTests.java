@@ -344,6 +344,22 @@ public class CommandTests {
 
     @Test
     @SneakyThrows
+    public void dbsize() {
+        assertEquals(OK, regularClient.flushall().get());
+        assertEquals(OK, regularClient.select(0).get());
+
+        int numKeys = 10;
+        for (int i = 0; i < numKeys; i++) {
+            assertEquals(OK, regularClient.set(UUID.randomUUID().toString(), "foo").get());
+        }
+        assertEquals(10L, regularClient.dbsize().get());
+
+        assertEquals(OK, regularClient.select(1).get());
+        assertEquals(0L, regularClient.dbsize().get());
+    }
+
+    @Test
+    @SneakyThrows
     public void objectFreq() {
         String key = UUID.randomUUID().toString();
         String maxmemoryPolicy = "maxmemory-policy";
