@@ -5593,6 +5593,31 @@ public class RedisClientTest {
         // setup
         String source = "testKey1";
         String destination = "testKey2";
+        String[] arguments = new String[] {source, destination};
+        Boolean value = true;
+
+        CompletableFuture<Boolean> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Boolean>submitNewCommand(eq(Copy), eq(arguments), any()))
+            .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Boolean> response = service.copy(source, destination);
+        Boolean payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void copy_with_replace_returns_success() {
+        // setup
+        String source = "testKey1";
+        String destination = "testKey2";
         String[] arguments = new String[] {source, destination, REPLACE_REDIS_API};
         Boolean value = true;
 
