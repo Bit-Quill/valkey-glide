@@ -402,25 +402,48 @@ public class CommandTests {
         // setup
         String source = "{key}-1" + UUID.randomUUID();
         String destination = "{key}-2" + UUID.randomUUID();
-        long destIndex = 1;
+        long index1 = 1;
+        long index2 = 2;
 
-        // neither key exists, returns 0
+        // neither key exists, returns false
         assertEquals(false, regularClient.copy(source, destination).get());
         assertEquals(false, regularClient.copy(source, destination, false).get());
-        assertEquals(false, regularClient.copy(source, destination, destIndex, false).get());
+        assertEquals(false, regularClient.copy(source, destination, index1, false).get());
 
         // source exists, destination does not
-        regularClient.set(source, "one");
+        regularClient.set(source, "one").get();
         assertEquals(true, regularClient.copy(source, destination, false).get());
-        assertEquals(true, regularClient.copy(source, destination, destIndex, false).get());
+        assertEquals(true, regularClient.copy(source, destination, index1, false).get());
+        assertEquals("one", regularClient.get(destination).get());
+        regularClient.select(1).get();
+        assertEquals("one", regularClient.get(destination).get());
 
-        // both exists, no REPLACE
+        // new value for source key
+        regularClient.select(0).get();
+        regularClient.set(source, "two").get();
+
+        // no REPLACE, copying to existing key on DB 0&1, non-existing key on DB 2
         assertEquals(false, regularClient.copy(source, destination).get());
         assertEquals(false, regularClient.copy(source, destination, false).get());
-        assertEquals(false, regularClient.copy(source, destination, destIndex, false).get());
+        assertEquals(false, regularClient.copy(source, destination, index1, false).get());
+        assertEquals(true, regularClient.copy(source, destination, index2, false).get());
 
-        // both exists, with REPLACE
+        // new value only gets copied to DB 2
+        assertEquals("one", regularClient.get(destination).get());
+        regularClient.select(1).get();
+        assertEquals("one", regularClient.get(destination).get());
+        regularClient.select(2).get();
+        assertEquals("two", regularClient.get(destination).get());
+
+        // both exists, with REPLACE, when value isn't the same, source always get copied to destination
+        regularClient.select(0).get();
         assertEquals(true, regularClient.copy(source, destination, true).get());
-        assertEquals(true, regularClient.copy(source, destination, destIndex, true).get());
+        assertEquals(true, regularClient.copy(source, destination, index1, true).get());
+        assertEquals("two", regularClient.get(destination).get());
+        regularClient.select(1).get();
+        assertEquals("two", regularClient.get(destination).get());
+
+        // switching back to db 0
+        regularClient.select(0).get();
     }
 }

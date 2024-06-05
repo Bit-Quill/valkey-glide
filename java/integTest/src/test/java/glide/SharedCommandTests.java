@@ -4909,7 +4909,7 @@ public class SharedCommandTests {
         String source = "{key}-1" + UUID.randomUUID();
         String destination = "{key}-2" + UUID.randomUUID();
 
-        // neither key exists, returns 0
+        // neither key exists, returns false
         assertEquals(false, clusterClient.copy(source, destination, false).get());
         assertEquals(false, clusterClient.copy(source, destination).get());
 

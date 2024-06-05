@@ -241,7 +241,12 @@ public class TransactionTests {
                         .set(copyKey1, "one")
                         .set(copyKey2, "two")
                         .copy(copyKey1, copyKey2, 1, false)
-                        .copy(copyKey1, copyKey2, 1, true);
+                        .copy(copyKey1, copyKey2, 1, true)
+                        .copy(copyKey1, copyKey2, 2, true)
+                        .select(1)
+                        .get(copyKey2)
+                        .select(2)
+                        .get(copyKey2);
         Object[] expectedResult =
                 new Object[] {
                     false, // copy(copyKey1, copyKey2, 1, false)
@@ -249,6 +254,11 @@ public class TransactionTests {
                     OK, // set(copyKey2, "two")
                     true, // copy(copyKey1, copyKey2, 1, false)
                     true, // copy(copyKey1, copyKey2, 1, true)
+                    true, // copy(copyKey1, copyKey2, 2, true)
+                    OK, // select(1)
+                    "one", // get(copyKey2)
+                    OK, // select(2)
+                    "one", // get(copyKey2)
                 };
 
         Object[] result = client.exec(transaction).get();

@@ -71,7 +71,7 @@ public class Transaction extends BaseTransaction<Transaction> {
     }
 
     /**
-     * * Copies the value stored at the <code>source</code> to the <code>destination</code> key on
+     * Copies the value stored at the <code>source</code> to the <code>destination</code> key on
      * <code>destinationDB</code>. When <code>replace</code> is true, removes the <code>destination
      * </code> key first if it already exists, otherwise performs no action.
      *
@@ -81,8 +81,8 @@ public class Transaction extends BaseTransaction<Transaction> {
      * @param destination The key where the value should be copied to.
      * @param destinationDB The alternative logical database index for the destination key.
      * @param replace If the destination key should be removed before copying the value to it.
-     * @return Command Response - <code>1L</code> if <code>source</code> was copied, <code>0L</code>
-     *     if <code>source</code> was not copied.
+     * @return Command Response - <code>true</code> if <code>source</code> was copied, <code>false
+     *     </code> if <code>source</code> was not copied.
      */
     public Transaction copy(
             @NonNull String source, @NonNull String destination, long destinationDB, boolean replace) {

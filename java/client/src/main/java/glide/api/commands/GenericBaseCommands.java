@@ -552,6 +552,8 @@ public interface GenericBaseCommands {
      *
      * @apiNote When in cluster mode, both <code>source</code> and <code>destination</code> must map
      *     to the same hash slot.
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
      * @param source The key to the source value.
      * @param destination The key where the value should be copied to.
      * @param replace If the destination key should be removed before copying the value to it.
@@ -561,12 +563,9 @@ public interface GenericBaseCommands {
      *     <pre>{@code
      * client.set("test1", "one").get();
      * client.set("test2", "two").get();
-     * assertEquals(0L, client.copy("test1", "test2", false).get());
-     * assertEquals(1L, client.copy("test1", "test2", true).get());
+     * assert !client.copy("test1", "test2", false).get();
+     * assert client.copy("test1", "test2", true).get();
      * }</pre>
-     *
-     * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
-     * @since Redis 6.2.0 and above.
      */
     CompletableFuture<Boolean> copy(String source, String destination, boolean replace);
 
@@ -576,6 +575,8 @@ public interface GenericBaseCommands {
      *
      * @apiNote When in cluster mode, both <code>source</code> and <code>destination</code> must map
      *     to the same hash slot.
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
      * @param source The key to the source value.
      * @param destination The key where the value should be copied to.
      * @return <code>true</code> if <code>source</code> was copied, <code>false</code> if <code>source
@@ -584,12 +585,9 @@ public interface GenericBaseCommands {
      *     <pre>{@code
      * client.set("test1", "one").get();
      * client.set("test2", "two").get();
-     * assertEquals(0L, client.copy("test1", "test2", false).get());
-     * assertEquals(1L, client.copy("test1", "test2", true).get());
+     * assert !client.copy("test1", "test2", false).get();
+     * assert client.copy("test1", "test2", true).get();
      * }</pre>
-     *
-     * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
-     * @since Redis 6.2.0 and above.
      */
     CompletableFuture<Boolean> copy(String source, String destination);
 }

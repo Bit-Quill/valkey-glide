@@ -3472,8 +3472,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
      * @param source The key to the source value.
      * @param destination The key where the value should be copied to.
-     * @return Command Response - <code>1L</code> if <code>source</code> was copied, <code>0L</code>
-     *     if <code>source</code> was not copied.
+     * @return Command Response - <code>true</code> if <code>source</code> was copied, <code>false
+     *     </code> if <code>source</code> was not copied.
      */
     public T copy(@NonNull String source, @NonNull String destination) {
         ArgsArray commandArgs = buildArgs(source, destination);

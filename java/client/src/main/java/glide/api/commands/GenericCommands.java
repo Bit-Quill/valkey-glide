@@ -80,20 +80,18 @@ public interface GenericCommands {
      * <code>destinationDB</code>. When <code>replace</code> is true, removes the <code>destination
      * </code> key first if it already exists, otherwise performs no action.
      *
-     * @apiNote When in cluster mode, both <code>source</code> and <code>destination</code> must map
-     *     to the same hash slot.
      * @since Redis 6.2.0 and above.
      * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
      * @param source The key to the source value.
      * @param destination The key where the value should be copied to.
      * @param destinationDB The alternative logical database index for the destination key.
      * @param replace If the destination key should be removed before copying the value to it.
-     * @return <code>1L</code> if <code>source</code> was copied, <code>0L</code> if <code>source
+     * @return <code>true</code> if <code>source</code> was copied, <code>false</code> if <code>source
      * </code> was not copied.
      * @example
      *     <pre>{@code
      * client.set("test1", "one").get();
-     * assertEquals(1L, client.copy("test1", "test2", 1, false).get());
+     * assert client.copy("test1", "test2", 1, false).get();
      * }</pre>
      */
     CompletableFuture<Boolean> copy(
