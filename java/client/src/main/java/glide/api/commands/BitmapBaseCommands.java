@@ -290,8 +290,8 @@ public interface BitmapBaseCommands {
 
     /**
      * Reads the array of bits representing the string that is held at <code>key</code> based on the
-     * specified <code>subCommands</code>. This command is routed depending on the client's {@link
-     * ReadFrom} strategy.
+     * specified <code>subCommands</code>.<br>
+     * This command is routed depending on the client's {@link ReadFrom} strategy.
      *
      * @since Redis 6.0 and above
      * @see <a href="https://valkey.io/commands/bitfield_ro/">valkey.io</a> for details.
