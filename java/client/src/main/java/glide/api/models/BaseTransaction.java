@@ -3476,9 +3476,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     </code> if <code>source</code> was not copied.
      */
     public T copy(@NonNull String source, @NonNull String destination) {
-        ArgsArray commandArgs = buildArgs(source, destination);
-        protobufTransaction.addCommands(buildCommand(Copy, commandArgs));
-        return getThis();
+        return copy(source, destination, false);
     }
 
     /**

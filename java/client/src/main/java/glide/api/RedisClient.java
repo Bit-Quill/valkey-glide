@@ -208,6 +208,14 @@ public class RedisClient extends BaseClient
 
     @Override
     public CompletableFuture<Boolean> copy(
+            @NonNull String source, @NonNull String destination, long destinationDB) {
+        String[] arguments =
+                new String[] {source, destination, DB_REDIS_API, Long.toString(destinationDB)};
+        return commandManager.submitNewCommand(Copy, arguments, this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> copy(
             @NonNull String source, @NonNull String destination, long destinationDB, boolean replace) {
         String[] arguments =
                 new String[] {source, destination, DB_REDIS_API, Long.toString(destinationDB)};

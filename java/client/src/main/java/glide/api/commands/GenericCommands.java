@@ -96,4 +96,24 @@ public interface GenericCommands {
      */
     CompletableFuture<Boolean> copy(
             String source, String destination, long destinationDB, boolean replace);
+
+    /**
+     * Copies the value stored at the <code>source</code> to the <code>destination</code> key on
+     * <code>destinationDB</code>. When <code>replace</code> is true, removes the <code>destination
+     * </code> key first if it already exists, otherwise performs no action.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://redis.io/commands/copy/">redis.io</a> for details.
+     * @param source The key to the source value.
+     * @param destination The key where the value should be copied to.
+     * @param destinationDB The alternative logical database index for the destination key.
+     * @return <code>true</code> if <code>source</code> was copied, <code>false</code> if <code>source
+     * </code> was not copied.
+     * @example
+     *     <pre>{@code
+     * client.set("test1", "one").get();
+     * assert client.copy("test1", "test2", 1).get();
+     * }</pre>
+     */
+    CompletableFuture<Boolean> copy(String source, String destination, long destinationDB);
 }

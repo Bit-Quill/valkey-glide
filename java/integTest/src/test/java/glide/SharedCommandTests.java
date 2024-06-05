@@ -4901,27 +4901,34 @@ public class SharedCommandTests {
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 
-    @Test
     @SneakyThrows
-    public void copy() {
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void copy(BaseClient client) {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("6.2.0"), "This feature added in redis 6.2.0");
         // setup
         String source = "{key}-1" + UUID.randomUUID();
         String destination = "{key}-2" + UUID.randomUUID();
 
         // neither key exists, returns false
-        assertEquals(false, clusterClient.copy(source, destination, false).get());
-        assertEquals(false, clusterClient.copy(source, destination).get());
+        assertFalse(client.copy(source, destination, false).get());
+        assertFalse(client.copy(source, destination).get());
 
         // source exists, destination does not
-        clusterClient.set(source, "one");
-        assertEquals(true, clusterClient.copy(source, destination, false).get());
+        client.set(source, "one");
+        assertTrue(client.copy(source, destination, false).get());
+        assertEquals("one", client.get(destination).get());
+
+        // setting new value for source
+        client.set(source, "two");
 
         // both exists, no REPLACE
-        assertEquals(false, clusterClient.copy(source, destination).get());
-        assertEquals(false, clusterClient.copy(source, destination, false).get());
+        assertFalse(client.copy(source, destination).get());
+        assertFalse(client.copy(source, destination, false).get());
+        assertEquals("one", client.get(destination).get());
 
         // both exists, with REPLACE
-        assertEquals(true, clusterClient.copy(source, destination, true).get());
+        assertTrue(client.copy(source, destination, true).get());
+        assertEquals("two", client.get(destination).get());
     }
 }
