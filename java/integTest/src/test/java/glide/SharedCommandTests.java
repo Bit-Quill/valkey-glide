@@ -2948,6 +2948,9 @@ public class SharedCommandTests {
                         ? RedisClient.CreateClient(commonClientConfig().build()).get()
                         : RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get()) {
 
+            // ensure that commands doesn't time out even if timeout > request timeout
+            assertNull(testClient.bzmpop(new String[] {key}, MAX, 1).get());
+
             // with 0 timeout (no timeout) should never time out,
             // but we wrap the test with timeout to avoid test failing or stuck forever
             assertThrows(
@@ -3069,7 +3072,7 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
-    public void xrange(BaseClient client) {
+    public void xrange_and_xrevrange(BaseClient client) {
 
         String key = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();
