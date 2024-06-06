@@ -650,8 +650,8 @@ public class CommandTests {
         }
         assertEquals(10L, clusterClient.dbsize(ALL_PRIMARIES).get());
 
-        // test dbsize with routing - flush the database first to ensure the set() call is directed to a node with 0
-        // keys.
+        // test dbsize with routing - flush the database first to ensure the set() call is directed to a
+        // node with 0 keys.
         assertEquals(OK, clusterClient.flushall().get());
         assertEquals(0L, clusterClient.dbsize().get());
         String key = UUID.randomUUID().toString();
