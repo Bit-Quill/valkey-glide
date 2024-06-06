@@ -123,4 +123,22 @@ public class TestUtilities {
             assertEquals(expected, actual);
         }
     }
+
+    /** Generate a LUA library code. */
+    public static String generateLuaLibCode(
+            String libName, Map<String, String> functions, boolean readonly) {
+        StringBuilder code = new StringBuilder("#!lua name=" + libName + "\n");
+        for (var function : functions.entrySet()) {
+            code.append("redis.register_function{ function_name = '")
+                    .append(function.getKey())
+                    .append("', callback = function(keys, args) ")
+                    .append(function.getValue())
+                    .append(" end");
+            if (readonly) {
+                code.append(", flags = { 'no-writes' }");
+            }
+            code.append(" }\n");
+        }
+        return code.toString();
+    }
 }

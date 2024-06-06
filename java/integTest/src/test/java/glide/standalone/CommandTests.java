@@ -3,6 +3,7 @@ package glide.standalone;
 
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestConfiguration.STANDALONE_PORTS;
+import static glide.TestUtilities.generateLuaLibCode;
 import static glide.TestUtilities.getValueFromInfo;
 import static glide.TestUtilities.parseInfoResponseToMap;
 import static glide.api.BaseClient.OK;
@@ -342,14 +343,13 @@ public class CommandTests {
     public void functionLoad_and_fcall() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         String libName = "mylib1C";
-        String code =
-                "#!lua name="
-                        + libName
-                        + " \n redis.register_function('myfunc1c', function(keys, args) return args[1] end)";
+        String funcName = "myfunc1c";
+        // function $funcName returns first argument
+        String code = generateLuaLibCode(libName, Map.of(funcName, "return args[1]"), false);
         assertEquals(libName, regularClient.functionLoad(code).get());
 
         var functionResult =
-                regularClient.fcall("myfunc1c", new String[0], new String[] {"one", "two"}).get();
+                regularClient.fcall(funcName, new String[0], new String[] {"one", "two"}).get();
         assertEquals("one", functionResult);
 
         // TODO test with FUNCTION LIST
@@ -363,12 +363,17 @@ public class CommandTests {
 
         // re-load library with overwriting
         assertEquals(libName, regularClient.functionLoadReplace(code).get());
+        String newFuncName = "myfunc2c";
+        // function $funcName returns first argument
+        // function $newFuncName returns argument array len
         String newCode =
-                code + "\n redis.register_function('myfunc2c', function(keys, args) return #args end)";
+                generateLuaLibCode(
+                        libName, Map.of(funcName, "return args[1]", newFuncName, "return #args"), false);
+
         assertEquals(libName, regularClient.functionLoadReplace(newCode).get());
 
         functionResult =
-                regularClient.fcall("myfunc2c", new String[0], new String[] {"one", "two"}).get();
+                regularClient.fcall(newFuncName, new String[0], new String[] {"one", "two"}).get();
         assertEquals(2L, functionResult);
     }
 }
