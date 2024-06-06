@@ -485,6 +485,7 @@ public class TransactionTestUtilities {
         if (REDIS_VERSION.isGreaterThanOrEqualTo("6.2.0")) {
             transaction
                     .zadd(zSetKey5, Map.of("one", 1.0, "two", 2.0))
+                    // zSetKey6 is empty
                     .zdiffstore(zSetKey6, new String[] {zSetKey6, zSetKey6})
                     .zdiff(new String[] {zSetKey5, zSetKey6})
                     .zdiffWithScores(new String[] {zSetKey5, zSetKey6})
@@ -534,7 +535,7 @@ public class TransactionTestUtilities {
                     0L, // zremrangebyscore(zSetKey1, new ScoreBoundary(5), InfScoreBound.POSITIVE_INFINITY)
                     2L, // zadd(zSetKey2, Map.of("one", 1.0, "two", 2.0))
                     new Object[] {zSetKey2, "two", 2.0}, // bzpopmax(new String[] { zsetKey2 }, .1)
-                    "one", // .zrandmember(zSetKey2)
+                    "one", // zrandmember(zSetKey2)
                     new String[] {"one"}, // .zrandmemberWithCount(zSetKey2, 1)
                     new Object[][] {{"one", 1.0}}, // .zrandmemberWithCountWithScores(zSetKey2, 1);
                     new Object[] {zSetKey2, "one", 1.0}, // bzpopmin(new String[] { zsetKey2 }, .1)
@@ -548,14 +549,11 @@ public class TransactionTestUtilities {
                                 2L, // zadd(zSetKey5, Map.of("one", 1.0, "two", 2.0))
                                 0L, // zdiffstore(zSetKey6, new String[] {zSetKey6, zSetKey6})
                                 new String[] {"one", "two"}, // zdiff(new String[] {zSetKey5, zSetKey6})
-                                Map.of(
-                                        "one", 1.0, "two", 2.0), // zdiffWithScores(new String[] {zSetKey5, zSetKey6})
+                                Map.of("one", 1.0, "two", 2.0), // zdiffWithScores({zSetKey5, zSetKey6})
                                 2L, // zunionstore(zSetKey5, new KeyArray(new String[] {zSetKey5, zSetKey6}))
                                 new String[] {"one", "two"}, // zunion(new KeyArray({zSetKey5, zSetKey6}))
-                                Map.of("one", 1.0, "two", 2.0), // zunionWithScores(KeyArray({zSetKey5, zSetKey6}));
-                                Map.of(
-                                        "one", 1.0, "two",
-                                        2.0), // zunionWithScores(KeyArray({zSetKey5, zSetKey6}), MAX)
+                                Map.of("one", 1.0, "two", 2.0), // zunionWithScores({zSetKey5, zSetKey6})
+                                Map.of("one", 1.0, "two", 2.0), // zunionWithScores({zSetKey5, zSetKey6}, MAX)
                                 0L, // zinterstore(zSetKey6, new String[] {zSetKey5, zSetKey6})
                                 new String[0], // zinter(new KeyArray({zSetKey5, zSetKey6}))
                                 Map.of(), // zinterWithScores(new KeyArray({zSetKey5, zSetKey6}))

@@ -2473,8 +2473,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Returns the union of members from sorted sets specified by the given <code>keys
-     * </code>.<br>
+     * Returns the union of members from sorted sets specified by the given <code>keys</code>.<br>
      * To get the elements with their scores, see {@link #zunionWithScores}.
      *
      * @since Redis 6.2 and above.
@@ -2541,8 +2540,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Returns the intersection of members from sorted sets specified by the given <code>
-     * keys</code>.<br>
+     * Returns the intersection of members from sorted sets specified by the given <code>keys</code>.
+     * <br>
      * To get the elements with their scores, see {@link #zinterWithScores}.
      *
      * @since Redis 6.2 and above.
