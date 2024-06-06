@@ -428,7 +428,7 @@ public class RedisClusterClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> dbsize(Route route) {
+    public CompletableFuture<Long> dbsize(@NonNull Route route) {
         return commandManager.submitNewCommand(DBSize, new String[0], route, this::handleLongResponse);
     }
 

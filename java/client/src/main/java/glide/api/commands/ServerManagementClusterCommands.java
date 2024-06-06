@@ -566,7 +566,7 @@ public interface ServerManagementClusterCommands {
      * The command will be routed to all primary nodes.
      *
      * @see <a href="https://redis.io/docs/latest/commands/dbsize/">redis.io</a> for details.
-     * @return The aggregated number of keys across the primary nodes.
+     * @return The total number of keys across the primary nodes.
      * @example
      *     <pre>{@code
      * Long numKeys = client.dbsize().get();
@@ -582,11 +582,11 @@ public interface ServerManagementClusterCommands {
      * @param route Specifies the routing configuration for the command. The client will route the
      *     command to the nodes defined by <code>route</code>.
      * @return The number of keys in the database.<br>
-     *     If the query is routed to multiple nodes, returns the aggregated number of keys across the
+     *     If the query is routed to multiple nodes, returns the total number of keys across the
      *     different nodes.
      * @example
      *     <pre>{@code
-     * Route route = new ByAddressRoute("localhost", 8000)
+     * Route route = new ByAddressRoute("localhost", 8000);
      * Long numKeys = client.dbsize(route).get();
      * System.out.printf("Number of keys for node at port 8000: %d%n", numKeys);
      * }</pre>
