@@ -166,9 +166,9 @@ public class CommandTests {
         String value1 = UUID.randomUUID().toString();
         String value2 = UUID.randomUUID().toString();
         String nonExistingKey = UUID.randomUUID().toString();
-        assertEquals(false, regularClient.move(nonExistingKey, 1L).get());
-
         assertEquals(OK, regularClient.select(0).get());
+
+        assertEquals(false, regularClient.move(nonExistingKey, 1L).get());
         assertEquals(OK, regularClient.set(key1, value1).get());
         assertEquals(OK, regularClient.set(key2, value2).get());
         assertEquals(true, regularClient.move(key1, 1L).get());
