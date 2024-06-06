@@ -71,6 +71,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.LSet;
 import static redis_request.RedisRequestOuterClass.RequestType.LTrim;
 import static redis_request.RedisRequestOuterClass.RequestType.MGet;
 import static redis_request.RedisRequestOuterClass.RequestType.MSet;
+import static redis_request.RedisRequestOuterClass.RequestType.MSetNX;
 import static redis_request.RedisRequestOuterClass.RequestType.ObjectEncoding;
 import static redis_request.RedisRequestOuterClass.RequestType.ObjectFreq;
 import static redis_request.RedisRequestOuterClass.RequestType.ObjectIdleTime;
@@ -1732,5 +1733,11 @@ public abstract class BaseClient
                         keys,
                         new String[] {SET_LIMIT_REDIS_API, Long.toString(limit)});
         return commandManager.submitNewCommand(SInterCard, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> msetnx(@NonNull Map<String, String> keyValueMap) {
+        String[] args = convertMapToKeyValueStringArray(keyValueMap);
+        return commandManager.submitNewCommand(MSetNX, args, this::handleBooleanResponse);
     }
 }
