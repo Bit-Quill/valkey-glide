@@ -17,6 +17,7 @@ pub use ffi_test::*;
 
 // TODO: Consider caching method IDs here in a static variable (might need RwLock to mutate)
 fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<'local> {
+    //dbg!(val.clone());
     match val {
         Value::Nil => JObject::null(),
         Value::SimpleString(str) => JObject::from(env.new_string(str).unwrap()),
@@ -24,13 +25,15 @@ fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<
         Value::Int(num) => env
             .new_object("java/lang/Long", "(J)V", &[num.into()])
             .unwrap(),
-        Value::BulkString(data) => match std::str::from_utf8(data.as_ref()) {
-            Ok(val) => JObject::from(env.new_string(val).unwrap()),
-            Err(_err) => {
-                let _ = env.throw("Error decoding Unicode data");
-                JObject::null()
-            }
-        },
+        Value::BulkString(data) => {
+            // TODO handle unwraps
+            let array = env.new_byte_array(data.len() as i32).unwrap();
+            // TODO convert &[u8] to &[i8] without `unsafe`
+            let i8slice = unsafe { &*(data.as_slice() as *const [u8] as *const [i8]) };
+            env.set_byte_array_region(&array, 0, i8slice).unwrap();
+            env.new_object("java/lang/String", "([B)V", &[(&array).into()])
+                .unwrap()
+        }
         Value::Array(array) => {
             let items: JObjectArray = env
                 .new_object_array(array.len() as i32, "java/lang/Object", JObject::null())
