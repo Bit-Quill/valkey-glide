@@ -199,6 +199,9 @@ public class TransactionTestUtilities {
         String stringKey1 = "{StringKey}-1-" + UUID.randomUUID();
         String stringKey2 = "{StringKey}-2-" + UUID.randomUUID();
         String stringKey3 = "{StringKey}-3-" + UUID.randomUUID();
+        String stringKey6 = "{StringKey}-6-" + UUID.randomUUID();
+        String stringKey7 = "{StringKey}-7-" + UUID.randomUUID();
+        String stringKey8 = "{StringKey}-8-" + UUID.randomUUID();
 
         transaction
                 .set(stringKey1, value1)
@@ -217,23 +220,52 @@ public class TransactionTestUtilities {
                 .setrange(stringKey3, 0, "GLIDE")
                 .getrange(stringKey3, 0, 5);
 
-        return new Object[] {
-            OK, // set(stringKey1, value1)
-            value1, // get(stringKey1)
-            value1, // getdel(stringKey1)
-            null, // set(stringKey2, value2, returnOldValue(true))
-            (long) value1.length(), // strlen(key2)
-            Long.valueOf(value2.length() * 2), // append(key2, value2)
-            OK, // mset(Map.of(stringKey1, value2, stringKey2, value1))
-            new String[] {value2, value1}, // mget(new String[] {stringKey1, stringKey2})
-            1L, // incr(stringKey3)
-            3L, // incrBy(stringKey3, 2)
-            2L, // decr(stringKey3)
-            0L, // decrBy(stringKey3, 2)
-            0.5, // incrByFloat(stringKey3, 0.5)
-            5L, // setrange(stringKey3, 0, "GLIDE")
-            "GLIDE" // getrange(stringKey3, 0, 5)
-        };
+        if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
+            transaction
+                    .set(stringKey6, "abcd")
+                    .set(stringKey7, "bcde")
+                    .set(stringKey8, "wxyz")
+                    .lcs(stringKey6, stringKey7)
+                    .lcs(stringKey6, stringKey8)
+                    .lcsLEN(stringKey6, stringKey7)
+                    .lcsLEN(stringKey6, stringKey8);
+        }
+
+        var expectedResults =
+                new Object[] {
+                    OK, // set(stringKey1, value1)
+                    value1, // get(stringKey1)
+                    value1, // getdel(stringKey1)
+                    null, // set(stringKey2, value2, returnOldValue(true))
+                    (long) value1.length(), // strlen(key2)
+                    Long.valueOf(value2.length() * 2), // append(key2, value2)
+                    OK, // mset(Map.of(stringKey1, value2, stringKey2, value1))
+                    new String[] {value2, value1}, // mget(new String[] {stringKey1, stringKey2})
+                    1L, // incr(stringKey3)
+                    3L, // incrBy(stringKey3, 2)
+                    2L, // decr(stringKey3)
+                    0L, // decrBy(stringKey3, 2)
+                    0.5, // incrByFloat(stringKey3, 0.5)
+                    5L, // setrange(stringKey3, 0, "GLIDE")
+                    "GLIDE" // getrange(stringKey3, 0, 5)
+                };
+
+        if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
+            expectedResults =
+                    concatenateArrays(
+                            expectedResults,
+                            new Object[] {
+                                OK, // set(stringKey6, "abcd")
+                                OK, // set(stringKey6, "bcde")
+                                OK, // set(stringKey6, "wxyz")
+                                "bcd", // lcs(stringKey6, stringKey7)
+                                "", // lcs(stringKey6, stringKey8)
+                                3L, // lcsLEN(stringKey6, stringKey7)
+                                0L, // lcsLEN(stringKey6, stringKey8)
+                            });
+        }
+
+        return expectedResults;
     }
 
     private static Object[] hashCommands(BaseTransaction<?> transaction) {
