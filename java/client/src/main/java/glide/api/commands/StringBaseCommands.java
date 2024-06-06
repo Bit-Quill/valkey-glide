@@ -157,7 +157,7 @@ public interface StringBaseCommands {
     CompletableFuture<String> mset(Map<String, String> keyValueMap);
 
     /**
-     * Sets multiple keys to multiple values in a single operation.Perform any operation at all even
+     * Sets multiple keys to multiple values in a single operation. Performs not operation at all even
      * if just a single key already exists.
      *
      * @apiNote When in cluster mode, the command may route to multiple nodes when keys in <code>

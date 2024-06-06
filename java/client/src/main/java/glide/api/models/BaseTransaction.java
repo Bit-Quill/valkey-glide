@@ -449,7 +449,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Sets multiple keys to multiple values in a single operation.Perform any operation at all even
+     * Sets multiple keys to multiple values in a single operation. Performs no operation at all even
      * if just a single key already exists.
      *
      * @apiNote When in cluster mode, the command may route to multiple nodes when keys in <code>
