@@ -714,7 +714,11 @@ public class CommandTests {
                 Arguments.of(
                         "blmove",
                         "6.2.0",
-                        clusterClient.blmove("abc", "def", ListDirection.LEFT, ListDirection.LEFT, 1)));
+                        clusterClient.blmove("abc", "def", ListDirection.LEFT, ListDirection.LEFT, 1)),
+                Arguments.of(
+                        "watch",
+                        "2.2.0",
+                        clusterClient.watch(new String[] {"abc"})));
     }
 
     @SneakyThrows

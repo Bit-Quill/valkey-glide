@@ -14,8 +14,7 @@ public interface TransactionsBaseCommands {
      * will only execute commands if the watched keys are not modified before execution of the
      * transaction.
      *
-     * @apiNote When in cluster mode, the command may route to multiple nodes when <code>keys</code>
-     *     map to different hash slots.
+     * @apiNote When in cluster mode, all <code>keys</code> must map to the same hash slot.
      * @see <a href="https://redis.io/docs/latest/commands/watch/">redis.io</a> for details.
      * @param keys The keys to watch.
      * @return The string <code>OK</code>.
