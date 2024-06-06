@@ -452,8 +452,6 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Sets multiple keys to multiple values in a single operation. Performs no operation at all even
      * if just a single key already exists.
      *
-     * @apiNote When in cluster mode, the command may route to multiple nodes when keys in <code>
-     *     keyValueMap</code> map to different hash slots.
      * @see <a href="https://redis.io/commands/msetnx/">redis.io</a> for details.
      * @param keyValueMap A key-value map consisting of keys and their respective values to set.
      * @return Command Response - <code>true</code> if all keys were set, <code>false</code> if no key
