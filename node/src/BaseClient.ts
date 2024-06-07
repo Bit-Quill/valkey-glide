@@ -2392,7 +2392,7 @@ export class BaseClient {
      *     The cardinality of a key that does not exist is 0.
      * @example
      * ```typescript
-     * const result = await client.pfcount("hll_1", "hll_2");
+     * const result = await client.pfcount(["hll_1", "hll_2"]);
      * console.log(result); // Output: 4 - The approximated cardinality of the union of "hll_1" and "hll_2"
      * ```
      */
