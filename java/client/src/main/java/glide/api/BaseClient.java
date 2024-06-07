@@ -1163,7 +1163,7 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<String[]> zunion(KeyArray keys) {
+    public CompletableFuture<String[]> zunion(@NonNull KeyArray keys) {
         return commandManager.submitNewCommand(
                 ZUnion, keys.toArgs(), response -> castArray(handleArrayResponse(response), String.class));
     }
