@@ -1056,6 +1056,20 @@ export function createLIndex(
     return createCommand(RequestType.LIndex, [key, index.toString()]);
 }
 
+export enum InsertPosition {
+    Before = "before",
+    After = "after",
+}
+
+/**
+ * @internal
+ */
+export function createLInsert(
+    key: string, position: InsertPosition, pivot: string, element: string
+): redis_request.Command {
+    return createCommand(RequestType.LInsert, [key, position, pivot, element]);
+}
+
 /**
  * @internal
  */

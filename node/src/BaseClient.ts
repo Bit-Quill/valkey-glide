@@ -12,6 +12,7 @@ import * as net from "net";
 import { Buffer, BufferWriter, Reader, Writer } from "protobufjs";
 import {
     ExpireOptions,
+    InsertPosition,
     RangeByIndex,
     RangeByLex,
     RangeByScore,
@@ -45,6 +46,7 @@ import {
     createIncrBy,
     createIncrByFloat,
     createLIndex,
+    createLInsert,
     createLLen,
     createLPop,
     createLPush,
@@ -2240,6 +2242,30 @@ export class BaseClient {
      */
     public lindex(key: string, index: number): Promise<string | null> {
         return this.createWritePromise(createLIndex(key, index));
+    }
+
+    /**
+     * Inserts `element` in the list at `key` either before or after the `pivot`.
+     *
+     * See https://valkey.io/commands/linsert/ for more details.
+     *
+     * @param key - The key of the list.
+     * @param position - The relative position to insert into - either {@link InsertPosition.Before} or
+     *     {@link InsertPosition.After} the `pivot`.
+     * @param pivot - An element of the list.
+     * @param element - The new element to insert.
+     * @returns The list length after a successful insert operation.
+     * If the `key` doesn't exist returns `-1`.
+     * If the `pivot` wasn't found, returns `0`.
+     *
+     * @example
+     * ```typescript
+     * const length = await client.linsert("my_list", BEFORE, "World", "There");
+     * console.log(length); // Output: 2 - The list has a length of 2 after performing the insert.
+     * ```
+     */
+    public linsert(key: string, position: InsertPosition, pivot: string, element: string): Promise<number> {
+        return this.createWritePromise(createLInsert(key, position, pivot, element));
     }
 
     /** Remove the existing timeout on `key`, turning the key from volatile (a key with an expire set) to
