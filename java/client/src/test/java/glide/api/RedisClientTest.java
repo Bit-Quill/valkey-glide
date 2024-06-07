@@ -1719,7 +1719,7 @@ public class RedisClientTest {
         String[] set = {"a", "b", "c", "a", "c"};
         String element = "b";
         LPosOptions options = LPosOptions.builder().rank(1L).maxLength(1000L).build();
-        String[] args = new String[] {"set", "element", Arrays.toString(options.toArgs())};
+        String[] args = new String[] {"set", "element", "RANK", "1", "MAXLEN", "1000"};
         long index = 1L;
 
         CompletableFuture<Long> testResponse = new CompletableFuture<>();
@@ -1744,7 +1744,7 @@ public class RedisClientTest {
         // setup
         String[] set = {"a", "b", "c", "a", "c"};
         String element = "a";
-        String[] args = new String[] {"set", "element", Long.toString(1L)};
+        String[] args = new String[] {"set", "element", "COUNT", Long.toString(1L)};
         Long[] index = new Long[] {1L};
 
         CompletableFuture<Long[]> testResponse = new CompletableFuture<>();
@@ -1772,7 +1772,7 @@ public class RedisClientTest {
         String[] set = {"a", "b", "c", "a", "c"};
         String element = "a";
         LPosOptions options = LPosOptions.builder().rank(1L).maxLength(1000L).build();
-        String[] args = new String[] {"set", "element", Long.toString(1L), Arrays.toString(options.toArgs())};
+        String[] args = new String[] {"set", "element", "RANK", "1",  "COUNT", Long.toString(1L), "MAXLEN", "1000"};
         Long[] index = new Long[] {1L};
 
         CompletableFuture<Long[]> testResponse = new CompletableFuture<>();

@@ -650,7 +650,7 @@ public abstract class BaseClient
     public CompletableFuture<Long[]> lposCount(@NonNull String key, @NonNull String element, long count) {
         return commandManager.submitNewCommand(
             LPos,
-            new String[] {key, element, Long.toString(count)},
+            new String[] {key, element, COUNT_REDIS_API, Long.toString(count)},
             response -> castArray(handleArrayResponse(response), Long.class));
     }
 
@@ -658,7 +658,7 @@ public abstract class BaseClient
     public CompletableFuture<Long[]> lposCount(@NonNull String key, @NonNull String element, long count, @NonNull LPosOptions options) {
         return commandManager.submitNewCommand(
             LPos,
-            new String[] {key, element, Long.toString(count), Arrays.toString((options.toArgs()))},
+            new String[] {key, element, COUNT_REDIS_API, Long.toString(count), Arrays.toString((options.toArgs()))},
             response -> castArray(handleArrayResponse(response), Long.class));
     }
 
