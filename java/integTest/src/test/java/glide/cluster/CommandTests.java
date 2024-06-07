@@ -798,12 +798,13 @@ public class CommandTests {
 
     @SneakyThrows
     @Test
-    public void functionLoad_and_fcall_without_keys() {
+    public void functionLoad_and_fcall_without_keys_and_without_route() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         String libName = "mylib1c";
         String funcName = "myfunc1c";
         // function $funcName returns first argument
-        String code = generateLuaLibCode(libName, Map.of(funcName, "return args[1]"), false);
+        // generating RO functions to execution on a replica (default routing goes to RANDOM including replicas)
+        String code = generateLuaLibCode(libName, Map.of(funcName, "return args[1]"), true);
 
         assertEquals(libName, clusterClient.functionLoad(code).get());
 
@@ -825,7 +826,7 @@ public class CommandTests {
         // function $newFuncName returns argument array len
         String newCode =
                 generateLuaLibCode(
-                        libName, Map.of(funcName, "return args[1]", newFuncName, "return #args"), false);
+                        libName, Map.of(funcName, "return args[1]", newFuncName, "return #args"), true);
 
         assertEquals(libName, clusterClient.functionLoadReplace(newCode).get());
 
@@ -845,6 +846,7 @@ public class CommandTests {
         // function $funcName returns array with first two arguments
         String code = generateLuaLibCode(libName, Map.of(funcName, "return {keys[1], keys[2]}"), false);
 
+        // loading function to the node where key is stored
         assertEquals(libName, clusterClient.functionLoad(code, route).get());
 
         // due to common prefix, all keys are mapped to the same hash slot
@@ -871,6 +873,7 @@ public class CommandTests {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
         String libName = "fcall_readonly_function";
+        // intentionally using a REPLICA route
         Route route = new SlotKeyRoute(libName, REPLICA);
         String funcName = "fcall_readonly_function";
 
