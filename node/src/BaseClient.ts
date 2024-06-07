@@ -2260,7 +2260,7 @@ export class BaseClient {
      *
      * @example
      * ```typescript
-     * const length = await client.linsert("my_list", BEFORE, "World", "There");
+     * const length = await client.linsert("my_list", InsertPosition.BEFORE, "World", "There");
      * console.log(length); // Output: 2 - The list has a length of 2 after performing the insert.
      * ```
      */

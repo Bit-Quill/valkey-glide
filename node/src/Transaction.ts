@@ -1232,6 +1232,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      *     {@link InsertPosition.After} the `pivot`.
      * @param pivot - An element of the list.
      * @param element - The new element to insert.
+     *
      * Command Response - The list length after a successful insert operation.
      * If the `key` doesn't exist returns `-1`.
      * If the `pivot` wasn't found, returns `0`.
