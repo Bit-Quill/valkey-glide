@@ -803,7 +803,8 @@ public class CommandTests {
         String libName = "mylib1c";
         String funcName = "myfunc1c";
         // function $funcName returns first argument
-        // generating RO functions to execution on a replica (default routing goes to RANDOM including replicas)
+        // generating RO functions to execution on a replica (default routing goes to RANDOM including
+        // replicas)
         String code = generateLuaLibCode(libName, Map.of(funcName, "return args[1]"), true);
 
         assertEquals(libName, clusterClient.functionLoad(code).get());
