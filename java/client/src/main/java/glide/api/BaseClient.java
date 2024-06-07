@@ -9,6 +9,7 @@ import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.castArrayofArrays;
 import static glide.utils.ArrayTransformUtils.castMapOfArrays;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
+import static glide.utils.ArrayTransformUtils.convertMapToKeyValueBinaryStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
 import static glide.utils.ArrayTransformUtils.mapGeoDataToArray;
@@ -152,6 +153,7 @@ import glide.api.commands.SetBaseCommands;
 import glide.api.commands.SortedSetBaseCommands;
 import glide.api.commands.StreamBaseCommands;
 import glide.api.commands.StringBaseCommands;
+import glide.api.models.GlideString;
 import glide.api.models.Script;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.LInsertOptions.InsertPosition;
@@ -186,6 +188,7 @@ import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -318,11 +321,21 @@ public abstract class BaseClient
     }
 
     protected String handleStringResponse(Response response) throws RedisException {
-        return handleRedisResponse(String.class, false, response);
+        return handleRedisResponse(GlideString.class, false, response).getString();
+        // return handleRedisResponse(String.class, false, response);
     }
 
     protected String handleStringOrNullResponse(Response response) throws RedisException {
-        return handleRedisResponse(String.class, true, response);
+        return handleRedisResponse(GlideString.class, true, response).getString();
+        // return handleRedisResponse(String.class, true, response);
+    }
+
+    protected GlideString handleBinaryStringResponse(Response response) throws RedisException {
+        return handleRedisResponse(GlideString.class, false, response);
+    }
+
+    protected GlideString handleBinaryStringOrNullResponse(Response response) throws RedisException {
+        return handleRedisResponse(GlideString.class, true, response);
     }
 
     protected Boolean handleBooleanResponse(Response response) throws RedisException {
@@ -388,6 +401,34 @@ public abstract class BaseClient
             libraryInfo.put("functions", functionInfo);
         }
         return data;
+    }
+
+    public CompletableFuture<String> setBinary(@NonNull GlideString key, @NonNull GlideString value) {
+        return commandManager.submitNewCommand(
+                Set, new GlideString[] {key, value}, this::handleStringResponse);
+    }
+
+    public CompletableFuture<GlideString> setBinary(
+            @NonNull GlideString key, @NonNull GlideString value, @NonNull SetOptions options) {
+        GlideString[] arguments =
+                Arrays.stream(options.toArgs()).map(GlideString::of).toArray(GlideString[]::new);
+        arguments = ArrayUtils.addAll(new GlideString[] {key, value}, arguments);
+        return commandManager.submitNewCommand(Set, arguments, this::handleBinaryStringOrNullResponse);
+    }
+
+    public CompletableFuture<GlideString> getBinary(@NonNull GlideString key) {
+        return commandManager.submitNewCommand(
+                Get, new GlideString[] {key}, this::handleBinaryStringOrNullResponse);
+    }
+
+    public CompletableFuture<GlideString[]> mgetBinary(@NonNull GlideString[] keys) {
+        return commandManager.submitNewCommand(
+                MGet, keys, response -> castArray(handleArrayOrNullResponse(response), GlideString.class));
+    }
+
+    public CompletableFuture<String> msetBinary(@NonNull Map<GlideString, GlideString> keyValueMap) {
+        GlideString[] args = convertMapToKeyValueBinaryStringArray(keyValueMap);
+        return commandManager.submitNewCommand(MSet, args, this::handleStringResponse);
     }
 
     @Override

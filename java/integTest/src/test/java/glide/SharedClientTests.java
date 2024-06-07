@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
+import glide.api.models.GlideString;
 import glide.api.models.commands.SetOptions;
 import java.util.List;
 import java.util.Map;
@@ -71,21 +72,21 @@ public class SharedClientTests {
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void send_and_receive_non_ascii_unicode(BaseClient client) {
-        String key = "foo";
-        String value1 = "\u05E9\u05DC\u05D5\u05DD hello \u6C49\u5B57";
+        GlideString key = GlideString.of("foo");
+        GlideString value1 = GlideString.of("\u05E9\u05DC\u05D5\u05DD hello \u6C49\u5B57");
 
-        assertEquals(OK, client.set(key, value1).get());
-        assertEquals(value1, client.get(key).get());
+        assertEquals(OK, client.setBinary(key, value1).get());
+        assertEquals(value1, client.getBinary(key).get());
 
         // Test all possible 1 byte symbols (some of them are ASCII, some of them - not)
         byte[] arr = new byte[255];
         for (var i = 0; i < arr.length; i++) {
             arr[i] = (byte) i;
         }
-        String value2 = new String(arr);
+        GlideString value2 = GlideString.of(arr);
 
-        assertEquals(OK, client.set(key, value2).get());
-        assertEquals(value2, client.get(key).get());
+        assertEquals(OK, client.setBinary(key, value2).get());
+        assertEquals(value2, client.getBinary(key).get());
 
         // Test all possible 2 byte symbols (most of them are UTF-8, some of them - not)
         StringBuilder value3builder = new StringBuilder();
@@ -96,42 +97,66 @@ public class SharedClientTests {
                 value3builder.append(Character.toChars(i));
             }
         }
-        String value3 = value3builder.toString();
+        GlideString value3 = GlideString.of(value3builder.toString());
 
-        assertEquals(OK, client.set(key, value3builder.toString()).get());
-        var res = client.get(key).get();
+        assertEquals(OK, client.setBinary(key, value3).get());
+        var res = client.getBinary(key).get();
         assertEquals(value3, res);
 
         // test set with options
         var options = SetOptions.builder().returnOldValue(true).build();
-        assertEquals(value3, client.set(key, value2, options).get());
+        assertEquals(value3, client.setBinary(key, value2, options).get());
 
         // test mset
-        var data = Map.of("unicode1", value1, "unicode2", value2, "unicode3", value3);
-        assertEquals(OK, client.mset(data).get());
+        var data =
+                Map.of(
+                        GlideString.of("unicode1"),
+                        value1,
+                        GlideString.of("unicode2"),
+                        value2,
+                        GlideString.of("unicode3"),
+                        value3);
+        assertEquals(OK, client.msetBinary(data).get());
 
         // test mget
         assertArrayEquals(
-                data.values().toArray(String[]::new),
-                client.mget(data.keySet().toArray(new String[0])).get());
+                data.values().toArray(GlideString[]::new),
+                client.mgetBinary(data.keySet().toArray(new GlideString[0])).get());
 
         // test dump-restore
         // TODO replace with commands when implemented
-        //var dumpCmd = new String[] { "DUMP", "unicode2" };
-        var dumpCmd = new String[] { "DUMP", key };
+        // var dumpCmd = new String[] { "DUMP", "unicode2" };
+        var dumpCmd = new GlideString[] {GlideString.of("DUMP"), key};
         if (client instanceof RedisClient) {
-            var dump = ((RedisClient) client).customCommand(dumpCmd ).get();
-            var restoreCmd = new String[] { "RESTORE", "unicode4", "0", (String) dump, "REPLACE" };
-            assertEquals(OK, ((RedisClient) client).customCommand(restoreCmd).get());
-            // compare values
-            assertEquals(client.get("unicode4").get(), client.get("unicode2").get());
+            var dump = ((RedisClient) client).customCommandBinary(dumpCmd).get();
+            var restoreCmd =
+                    new GlideString[] {
+                        GlideString.of("RESTORE"),
+                        GlideString.of("unicode4"),
+                        GlideString.of("0"),
+                        (GlideString) dump,
+                        GlideString.of("REPLACE")
+                    };
+            assertEquals(
+                    GlideString.of(OK), ((RedisClient) client).customCommandBinary(restoreCmd).get());
         } else {
-            var dump = ((RedisClusterClient) client).customCommand(dumpCmd).get().getSingleValue();
-            var restoreCmd = new String[] { "RESTORE", "unicode4", "0", (String) dump, "REPLACE" };
-            assertEquals(OK, ((RedisClusterClient) client).customCommand(restoreCmd).get().getSingleValue());
-            // compare values
-            assertEquals(client.get("unicode4").get(), client.get("unicode2").get());
+            var dump = ((RedisClusterClient) client).customCommandBinary(dumpCmd).get().getSingleValue();
+            var restoreCmd =
+                    new GlideString[] {
+                        GlideString.of("RESTORE"),
+                        GlideString.of("unicode4"),
+                        GlideString.of("0"),
+                        (GlideString) dump,
+                        GlideString.of("REPLACE")
+                    };
+            assertEquals(
+                    GlideString.of(OK),
+                    ((RedisClusterClient) client).customCommandBinary(restoreCmd).get().getSingleValue());
         }
+        // compare values
+        assertEquals(
+                client.getBinary(GlideString.of("unicode4")).get(),
+                client.getBinary(GlideString.of("unicode2")).get());
     }
 
     private static Stream<Arguments> clientAndDataSize() {

@@ -32,6 +32,7 @@ import glide.api.commands.ScriptingAndFunctionsClusterCommands;
 import glide.api.commands.ServerManagementClusterCommands;
 import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
+import glide.api.models.GlideString;
 import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
@@ -75,6 +76,11 @@ public class RedisClusterClient extends BaseClient
     @Override
     public CompletableFuture<ClusterValue<Object>> customCommand(@NonNull String[] args) {
         // TODO if a command returns a map as a single value, ClusterValue misleads user
+        return commandManager.submitNewCommand(
+                CustomCommand, args, response -> ClusterValue.of(handleObjectOrNullResponse(response)));
+    }
+
+    public CompletableFuture<ClusterValue<Object>> customCommandBinary(@NonNull GlideString[] args) {
         return commandManager.submitNewCommand(
                 CustomCommand, args, response -> ClusterValue.of(handleObjectOrNullResponse(response)));
     }
