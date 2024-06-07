@@ -45,7 +45,7 @@ import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SortReadOnlyOptions;
-import glide.api.models.commands.SortReadOnlyOptions.SortBy;
+import glide.api.models.commands.SortReadOnlyOptions.Order;
 import glide.api.models.commands.SortStandaloneOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
@@ -4916,7 +4916,7 @@ public class SharedCommandTests {
 
         assertEquals(4, client.lpush(key1, lpushArgs).get());
         assertArrayEquals(ascendingList, client.sort(key1).get());
-        assertArrayEquals(descendingList, client.sort(key1, SortStandaloneOptions.builder().sortBy(SortBy.DESC).limit(new SortReadOnlyOptions.Limit(0L, 2L)).build()).get());
+        assertArrayEquals(descendingList, client.sort(key1, SortStandaloneOptions.builder().order(Order.DESC).limit(new SortReadOnlyOptions.Limit(0L, 2L)).build()).get());
 //        client.sort(key1, SortOptions.builder().sortBy(SortBy.DESC).store(new Store(key2)).build()).get();
     }
 }
