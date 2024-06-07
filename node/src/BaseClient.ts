@@ -2264,8 +2264,15 @@ export class BaseClient {
      * console.log(length); // Output: 2 - The list has a length of 2 after performing the insert.
      * ```
      */
-    public linsert(key: string, position: InsertPosition, pivot: string, element: string): Promise<number> {
-        return this.createWritePromise(createLInsert(key, position, pivot, element));
+    public linsert(
+        key: string,
+        position: InsertPosition,
+        pivot: string,
+        element: string,
+    ): Promise<number> {
+        return this.createWritePromise(
+            createLInsert(key, position, pivot, element),
+        );
     }
 
     /** Remove the existing timeout on `key`, turning the key from volatile (a key with an expire set) to

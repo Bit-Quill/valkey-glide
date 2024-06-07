@@ -1236,7 +1236,12 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * If the `key` doesn't exist returns `-1`.
      * If the `pivot` wasn't found, returns `0`.
      */
-    public linsert(key: string, position: InsertPosition, pivot: string, element: string): T {
+    public linsert(
+        key: string,
+        position: InsertPosition,
+        pivot: string,
+        element: string,
+    ): T {
         return this.addAndReturn(createLInsert(key, position, pivot, element));
     }
 

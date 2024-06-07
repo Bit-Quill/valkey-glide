@@ -1065,7 +1065,10 @@ export enum InsertPosition {
  * @internal
  */
 export function createLInsert(
-    key: string, position: InsertPosition, pivot: string, element: string
+    key: string,
+    position: InsertPosition,
+    pivot: string,
+    element: string,
 ): redis_request.Command {
     return createCommand(RequestType.LInsert, [key, position, pivot, element]);
 }

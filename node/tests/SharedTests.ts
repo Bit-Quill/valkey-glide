@@ -1990,17 +1990,56 @@ export function runBaseTests<Context>(config: {
                 const stringKey = uuidv4();
                 const nonExistingKey = uuidv4();
 
-                expect(await client.lpush(key1, ["4", "3", "2", "1"])).toEqual(4);
-                expect(await client.linsert(key1, InsertPosition.Before, "2", "1.5")).toEqual(5);
-                expect(await client.linsert(key1, InsertPosition.After, "3", "3.5")).toEqual(6);
-                expect(await client.lrange(key1, 0, -1)).toEqual(["1", "1.5", "2", "3", "3.5", "4",]);
+                expect(await client.lpush(key1, ["4", "3", "2", "1"])).toEqual(
+                    4,
+                );
+                expect(
+                    await client.linsert(
+                        key1,
+                        InsertPosition.Before,
+                        "2",
+                        "1.5",
+                    ),
+                ).toEqual(5);
+                expect(
+                    await client.linsert(
+                        key1,
+                        InsertPosition.After,
+                        "3",
+                        "3.5",
+                    ),
+                ).toEqual(6);
+                expect(await client.lrange(key1, 0, -1)).toEqual([
+                    "1",
+                    "1.5",
+                    "2",
+                    "3",
+                    "3.5",
+                    "4",
+                ]);
 
-                expect(await client.linsert(key1, InsertPosition.Before, "nonExistingPivot", "4")).toEqual(-1);
-                expect(await client.linsert(nonExistingKey, InsertPosition.Before, "pivot", "elem")).toEqual(0);
+                expect(
+                    await client.linsert(
+                        key1,
+                        InsertPosition.Before,
+                        "nonExistingPivot",
+                        "4",
+                    ),
+                ).toEqual(-1);
+                expect(
+                    await client.linsert(
+                        nonExistingKey,
+                        InsertPosition.Before,
+                        "pivot",
+                        "elem",
+                    ),
+                ).toEqual(0);
 
                 // key exists, but it is not a list
                 expect(await client.set(stringKey, "value")).toEqual("OK");
-                await expect(client.linsert(stringKey, InsertPosition.Before, "a", "b")).rejects.toThrow();
+                await expect(
+                    client.linsert(stringKey, InsertPosition.Before, "a", "b"),
+                ).rejects.toThrow();
             }, protocol);
         },
         config.timeout,
