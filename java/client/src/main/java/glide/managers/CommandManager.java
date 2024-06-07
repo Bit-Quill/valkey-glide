@@ -236,7 +236,7 @@ public class CommandManager {
     protected RedisRequest.Builder prepareRedisRequest(RequestType requestType, String[] arguments) {
         ArgsArray.Builder commandArgs = ArgsArray.newBuilder();
         for (var arg : arguments) {
-            commandArgs.addArgs(ByteString.copyFromUtf8(arg));
+            commandArgs.addArgs(ByteString.copyFrom(arg.getBytes()));
         }
 
         return RedisRequest.newBuilder()

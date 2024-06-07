@@ -17,7 +17,6 @@ pub use ffi_test::*;
 
 // TODO: Consider caching method IDs here in a static variable (might need RwLock to mutate)
 fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<'local> {
-    //dbg!(val.clone());
     match val {
         Value::Nil => JObject::null(),
         Value::SimpleString(str) => JObject::from(env.new_string(str).unwrap()),
@@ -28,9 +27,8 @@ fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<
         Value::BulkString(data) => {
             // TODO handle unwraps
             let array = env.new_byte_array(data.len() as i32).unwrap();
-            // TODO convert &[u8] to &[i8] without `unsafe`
-            let i8slice = unsafe { &*(data.as_slice() as *const [u8] as *const [i8]) };
-            env.set_byte_array_region(&array, 0, i8slice).unwrap();
+            let i8vec: Vec<i8> = data.into_iter().map(|b| b as i8).collect();
+            env.set_byte_array_region(&array, 0, &i8vec[..]).unwrap();
             env.new_object("java/lang/String", "([B)V", &[(&array).into()])
                 .unwrap()
         }

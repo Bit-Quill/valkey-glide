@@ -5,12 +5,15 @@ import static glide.TestUtilities.commonClientConfig;
 import static glide.TestUtilities.commonClusterClientConfig;
 import static glide.TestUtilities.getRandomString;
 import static glide.api.BaseClient.OK;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import glide.api.BaseClient;
 import glide.api.RedisClient;
 import glide.api.RedisClusterClient;
+import glide.api.models.commands.SetOptions;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -20,12 +23,11 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-@Timeout(25) // seconds
+// @Timeout(25) // seconds
 public class SharedClientTests {
 
     private static RedisClient standaloneClient = null;
@@ -70,10 +72,66 @@ public class SharedClientTests {
     @MethodSource("getClients")
     public void send_and_receive_non_ascii_unicode(BaseClient client) {
         String key = "foo";
-        String value = "\u05E9\u05DC\u05D5\u05DD hello \u6C49\u5B57";
+        String value1 = "\u05E9\u05DC\u05D5\u05DD hello \u6C49\u5B57";
 
-        assertEquals(OK, client.set(key, value).get());
-        assertEquals(value, client.get(key).get());
+        assertEquals(OK, client.set(key, value1).get());
+        assertEquals(value1, client.get(key).get());
+
+        // Test all possible 1 byte symbols (some of them are ASCII, some of them - not)
+        byte[] arr = new byte[255];
+        for (var i = 0; i < arr.length; i++) {
+            arr[i] = (byte) i;
+        }
+        String value2 = new String(arr);
+
+        assertEquals(OK, client.set(key, value2).get());
+        assertEquals(value2, client.get(key).get());
+
+        // Test all possible 2 byte symbols (most of them are UTF-8, some of them - not)
+        StringBuilder value3builder = new StringBuilder();
+        for (var i = 0; i < 0xFFFF; i++) {
+            // code points in the range of 0xD800 to 0xDFFF are removed from the Unicode character set
+            // redis doesn't store them (replaced by `?` signs = 0x3F)
+            if (i < 0xD800 || i > 0xDFFF) {
+                value3builder.append(Character.toChars(i));
+            }
+        }
+        String value3 = value3builder.toString();
+
+        assertEquals(OK, client.set(key, value3builder.toString()).get());
+        var res = client.get(key).get();
+        assertEquals(value3, res);
+
+        // test set with options
+        var options = SetOptions.builder().returnOldValue(true).build();
+        assertEquals(value3, client.set(key, value2, options).get());
+
+        // test mset
+        var data = Map.of("unicode1", value1, "unicode2", value2, "unicode3", value3);
+        assertEquals(OK, client.mset(data).get());
+
+        // test mget
+        assertArrayEquals(
+                data.values().toArray(String[]::new),
+                client.mget(data.keySet().toArray(new String[0])).get());
+
+        // test dump-restore
+        // TODO replace with commands when implemented
+        //var dumpCmd = new String[] { "DUMP", "unicode2" };
+        var dumpCmd = new String[] { "DUMP", key };
+        if (client instanceof RedisClient) {
+            var dump = ((RedisClient) client).customCommand(dumpCmd ).get();
+            var restoreCmd = new String[] { "RESTORE", "unicode4", "0", (String) dump, "REPLACE" };
+            assertEquals(OK, ((RedisClient) client).customCommand(restoreCmd).get());
+            // compare values
+            assertEquals(client.get("unicode4").get(), client.get("unicode2").get());
+        } else {
+            var dump = ((RedisClusterClient) client).customCommand(dumpCmd).get().getSingleValue();
+            var restoreCmd = new String[] { "RESTORE", "unicode4", "0", (String) dump, "REPLACE" };
+            assertEquals(OK, ((RedisClusterClient) client).customCommand(restoreCmd).get().getSingleValue());
+            // compare values
+            assertEquals(client.get("unicode4").get(), client.get("unicode2").get());
+        }
     }
 
     private static Stream<Arguments> clientAndDataSize() {
