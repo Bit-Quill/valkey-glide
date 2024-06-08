@@ -4574,4 +4574,17 @@ public class SharedCommandTests {
                 assertThrows(ExecutionException.class, () -> client.srandmember(nonSetKey, count).get());
         assertInstanceOf(RequestException.class, executionExceptionWithCount.getCause());
     }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void lpos(BaseClient client) {
+//        String listKey1 = "{ListKey}-1-" + UUID.randomUUID();
+//        String listKey2 = "{ListKey}-2-" + UUID.randomUUID();
+//
+//        client.lpush(listKey1, new String[] {"a", "a", "b", "c", "c"}).get();
+//        client.lpos(listKey1, "a").get();
+//        assertEquals(0L, client.lpos(listKey1, "a").get());
+    }
+
 }
