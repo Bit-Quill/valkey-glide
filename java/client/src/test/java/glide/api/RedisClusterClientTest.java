@@ -78,7 +78,7 @@ public class RedisClusterClientTest {
 
         try (var client = new TestClient(commandManager, GlideString.of("TEST"))) {
             var value = client.customCommand(TEST_ARGS).get();
-            assertEquals(GlideString.of("TEST"), value.getSingleValue());
+            assertEquals("TEST", value.getSingleValue());
         }
     }
 
