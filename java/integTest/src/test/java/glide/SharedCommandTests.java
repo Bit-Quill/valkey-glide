@@ -4209,7 +4209,9 @@ public class SharedCommandTests {
         // First bit is flipped to 1 and throws 'utf-8' codec can't decode byte 0x9e in position 0:
         // invalid start byte
         // TODO: update once fix is implemented for https://github.com/aws/glide-for-redis/issues/1447
-        client.get(destination).get();
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.get(destination).get());
+        assertTrue(executionException.getCause() instanceof AssertionError);
 
         assertEquals(0, client.setbit(key1, 0, 1).get());
         assertEquals(1L, client.bitop(BitwiseOperation.NOT, destination, new String[] {key1}).get());
@@ -4228,10 +4230,11 @@ public class SharedCommandTests {
 
         // Exception thrown due to the key holding a value with the wrong type
         assertEquals(1, client.sadd(emptyKey1, new String[] {value1}).get());
-        var executionException =
+        executionException =
                 assertThrows(
                         ExecutionException.class,
                         () -> client.bitop(BitwiseOperation.AND, destination, new String[] {emptyKey1}).get());
+        assertTrue(executionException.getCause() instanceof RequestException);
 
         // Source keys is an empty list
         executionException =

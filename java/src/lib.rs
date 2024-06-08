@@ -21,7 +21,7 @@ fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<
     match val {
         Value::Nil => JObject::null(),
         Value::SimpleString(str) => {
-            let jstr = env.new_string(str).unwrap();
+            let jstr = JObject::from(env.new_string(str).unwrap());
 
             // TODO cache class
             let class = Desc::<JClass>::lookup("glide/api/models/GlideString", env).unwrap();
@@ -30,7 +30,7 @@ fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<
                 env.call_static_method(
                     class,
                     "of",
-                    "(Ljava.lang.String;)Lglide/api/models/GlideString;",
+                    "(Ljava/lang/String;)Lglide/api/models/GlideString;",
                     &[(&jstr).into()],
                 )
                 .unwrap(),
@@ -112,7 +112,7 @@ fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<
                 env.call_static_method(
                     class,
                     "of",
-                    "(Ljava.lang.String;)Lglide/api/models/GlideString;",
+                    "(Ljava/lang/String;)Lglide/api/models/GlideString;",
                     &[(&jstr).into()],
                 )
                 .unwrap(),

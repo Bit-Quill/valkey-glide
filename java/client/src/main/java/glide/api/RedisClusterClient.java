@@ -82,7 +82,9 @@ public class RedisClusterClient extends BaseClient
 
     public CompletableFuture<ClusterValue<Object>> customCommandBinary(@NonNull GlideString[] args) {
         return commandManager.submitNewCommand(
-                CustomCommand, args, response -> ClusterValue.of(handleObjectOrNullResponse(response)));
+                CustomCommand,
+                args,
+                response -> ClusterValue.of(handleBinaryObjectOrNullResponse(response)));
     }
 
     @Override

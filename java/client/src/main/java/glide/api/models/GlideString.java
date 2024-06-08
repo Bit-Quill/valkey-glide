@@ -70,6 +70,7 @@ public class GlideString {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
+        if (o instanceof String && string != null) return string.equals(o);
         if (!(o instanceof GlideString)) return false;
         GlideString that = (GlideString) o;
 

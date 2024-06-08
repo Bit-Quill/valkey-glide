@@ -106,6 +106,7 @@ public class SharedClientTests {
         // test set with options
         var options = SetOptions.builder().returnOldValue(true).build();
         assertEquals(value3, client.setBinary(key, value2, options).get());
+        assertEquals(value2, client.getBinary(key).get());
 
         // test mset
         var data =

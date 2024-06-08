@@ -73,7 +73,8 @@ public class RedisClient extends BaseClient
     }
 
     public CompletableFuture<Object> customCommandBinary(@NonNull GlideString[] args) {
-        return commandManager.submitNewCommand(CustomCommand, args, this::handleObjectOrNullResponse);
+        return commandManager.submitNewCommand(
+                CustomCommand, args, this::handleBinaryObjectOrNullResponse);
     }
 
     @Override
