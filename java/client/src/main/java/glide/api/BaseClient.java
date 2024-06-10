@@ -182,8 +182,6 @@ import glide.ffi.resolvers.RedisValueResolver;
 import glide.managers.BaseCommandResponseResolver;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
-
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -193,7 +191,6 @@ import java.util.function.BiFunction;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
-import redis_request.RedisRequestOuterClass;
 import response.ResponseOuterClass.ConstantResponse;
 import response.ResponseOuterClass.Response;
 
@@ -638,32 +635,34 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> lpos(@NonNull String key, @NonNull String element) {
         return commandManager.submitNewCommand(
-            LPos, new String[] {key, element}, this::handleLongOrNullResponse);
+                LPos, new String[] {key, element}, this::handleLongOrNullResponse);
     }
 
     @Override
-    public CompletableFuture<Long> lpos(@NonNull String key, @NonNull String element, @NonNull LPosOptions options) {
+    public CompletableFuture<Long> lpos(
+            @NonNull String key, @NonNull String element, @NonNull LPosOptions options) {
         String[] arguments = concatenateArrays(new String[] {key, element}, options.toArgs());
-        return commandManager.submitNewCommand(
-            LPos, arguments, this::handleLongOrNullResponse);
+        return commandManager.submitNewCommand(LPos, arguments, this::handleLongOrNullResponse);
     }
 
     @Override
-    public CompletableFuture<Long[]> lposCount(@NonNull String key, @NonNull String element, long count) {
+    public CompletableFuture<Long[]> lposCount(
+            @NonNull String key, @NonNull String element, long count) {
         return commandManager.submitNewCommand(
-            LPos,
-            new String[] {key, element, COUNT_REDIS_API, Long.toString(count)},
-            response -> castArray(handleArrayResponse(response), Long.class));
+                LPos,
+                new String[] {key, element, COUNT_REDIS_API, Long.toString(count)},
+                response -> castArray(handleArrayResponse(response), Long.class));
     }
 
     @Override
-    public CompletableFuture<Long[]> lposCount(@NonNull String key, @NonNull String element, long count, @NonNull LPosOptions options) {
-        String[] arguments = concatenateArrays(new String[] {key, element, COUNT_REDIS_API, Long.toString(count)}, options.toArgs());
+    public CompletableFuture<Long[]> lposCount(
+            @NonNull String key, @NonNull String element, long count, @NonNull LPosOptions options) {
+        String[] arguments =
+                concatenateArrays(
+                        new String[] {key, element, COUNT_REDIS_API, Long.toString(count)}, options.toArgs());
 
         return commandManager.submitNewCommand(
-            LPos,
-            arguments,
-            response -> castArray(handleArrayResponse(response), Long.class));
+                LPos, arguments, response -> castArray(handleArrayResponse(response), Long.class));
     }
 
     @Override

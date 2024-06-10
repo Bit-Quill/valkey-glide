@@ -82,7 +82,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -1031,13 +1030,17 @@ public class SharedCommandTests {
         assertEquals(2L, client.lpos(key, "b", LPosOptions.builder().rank(-2L).build()).get());
 
         // unlimited comparisions
-        assertEquals(0L, client.lpos(key, "a", LPosOptions.builder().rank(1L).maxLength(0L).build()).get());
+        assertEquals(
+                0L, client.lpos(key, "a", LPosOptions.builder().rank(1L).maxLength(0L).build()).get());
 
         // limited comparisons
         assertNull(client.lpos(key, "c", LPosOptions.builder().rank(1L).maxLength(2L).build()).get());
 
         // invalid rank value
-        ExecutionException lposException = assertThrows(ExecutionException.class, () -> client.lpos(key, "a", LPosOptions.builder().rank(0L).build()).get());
+        ExecutionException lposException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.lpos(key, "a", LPosOptions.builder().rank(0L).build()).get());
         assertTrue(lposException.getCause() instanceof RequestException);
     }
 
@@ -1051,7 +1054,6 @@ public class SharedCommandTests {
 
         assertArrayEquals(new Long[] {0L, 1L}, client.lposCount(key, "a", 2L).get());
         assertArrayEquals(new Long[] {0L, 1L, 4L}, client.lposCount(key, "a", 0L).get());
-
     }
 
     @SneakyThrows
@@ -1062,12 +1064,20 @@ public class SharedCommandTests {
         String[] valueArray = new String[] {"a", "a", "b", "c", "a", "b"};
         assertEquals(6L, client.rpush(key, valueArray).get());
 
-        assertArrayEquals(new Long[] {0L, 1L, 4L}, client.lposCount(key, "a", 0L, LPosOptions.builder().rank(1L).build()).get());
-        assertArrayEquals(new Long[] {1L, 4L}, client.lposCount(key, "a", 0L, LPosOptions.builder().rank(2L).build()).get());
-        assertArrayEquals(new Long[] {4L}, client.lposCount(key, "a", 0L, LPosOptions.builder().rank(3L).build()).get());
+        assertArrayEquals(
+                new Long[] {0L, 1L, 4L},
+                client.lposCount(key, "a", 0L, LPosOptions.builder().rank(1L).build()).get());
+        assertArrayEquals(
+                new Long[] {1L, 4L},
+                client.lposCount(key, "a", 0L, LPosOptions.builder().rank(2L).build()).get());
+        assertArrayEquals(
+                new Long[] {4L},
+                client.lposCount(key, "a", 0L, LPosOptions.builder().rank(3L).build()).get());
 
         // reverse traversal
-        assertArrayEquals(new Long[] {4L, 1L, 0L}, client.lposCount(key, "a", 0L, LPosOptions.builder().rank(-1L).build()).get());
+        assertArrayEquals(
+                new Long[] {4L, 1L, 0L},
+                client.lposCount(key, "a", 0L, LPosOptions.builder().rank(-1L).build()).get());
     }
 
     @SneakyThrows
