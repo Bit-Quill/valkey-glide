@@ -3,8 +3,11 @@ package glide.api.models;
 
 import static redis_request.RedisRequestOuterClass.RequestType.Move;
 import static redis_request.RedisRequestOuterClass.RequestType.Select;
+import static redis_request.RedisRequestOuterClass.RequestType.Sort;
 
+import glide.api.models.commands.SortStandaloneOptions;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.ArrayUtils;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
 
 /**
@@ -62,6 +65,12 @@ public class Transaction extends BaseTransaction<Transaction> {
     public Transaction move(String key, long dbIndex) {
         ArgsArray commandArgs = buildArgs(key, Long.toString(dbIndex));
         protobufTransaction.addCommands(buildCommand(Move, commandArgs));
+        return this;
+    }
+
+    public Transaction sort(String key, SortStandaloneOptions sortStandaloneOptions) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortStandaloneOptions.toArgs(), key));
+        protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
         return this;
     }
 }

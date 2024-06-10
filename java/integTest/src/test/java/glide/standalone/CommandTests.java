@@ -15,6 +15,7 @@ import static glide.api.models.commands.InfoOptions.Section.STATS;
 import static glide.cluster.CommandTests.DEFAULT_INFO_SECTIONS;
 import static glide.cluster.CommandTests.EVERYTHING_INFO_SECTIONS;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -25,6 +26,8 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import glide.api.RedisClient;
 import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
+import glide.api.models.commands.SortOptions;
+import glide.api.models.commands.SortStandaloneOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.exceptions.RequestException;
@@ -393,5 +396,20 @@ public class CommandTests {
                 code + "\n redis.register_function('myfunc2c', function(keys, args) return #args end)";
         assertEquals(libName, regularClient.functionLoad(newCode, true).get());
         // TODO test with FCALL
+    }
+
+    @Test
+    @SneakyThrows
+    public void sort() {
+        String key1 = "{key}-1" + UUID.randomUUID();
+        String key2 = "{key}-2" + UUID.randomUUID();
+        String[] lpushArgs = {"4", "3", "7", "1"};
+        String[] ascendingList = {"1", "3", "4", "7"};
+        String[] descendingList = {"7", "4"};//, "3", "1"};
+
+        assertEquals(4, regularClient.lpush(key1, lpushArgs).get());
+//        assertArrayEquals(ascendingList, client.sort(key1).get());
+//        assertArrayEquals(descendingList, client.sort(key1, SortOptions.builder().order(SortOptions.Order.DESC).limit(new SortOptions.Limit(0L, 2L)).build()).get());
+        regularClient.sort(key1, SortOptions.builder().limit(new SortOptions.Limit( 10L, 12L)).build(), SortStandaloneOptions.builder().byPattern("apasdf").getPatterns(new String[] {"a", "b", "asd", "134r3 32"}).build()).get();
     }
 }

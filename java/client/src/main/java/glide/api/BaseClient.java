@@ -165,7 +165,7 @@ import glide.api.models.commands.RangeOptions.ScoredRangeQuery;
 import glide.api.models.commands.ScoreFilter;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
-import glide.api.models.commands.SortReadOnlyOptions;
+import glide.api.models.commands.SortOptions;
 import glide.api.models.commands.SortStandaloneOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
@@ -1687,8 +1687,8 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<String[]> sort(@NonNull String key, @NonNull SortStandaloneOptions sortStandaloneOptions) {
-        String[] arguments = ArrayUtils.addFirst(sortStandaloneOptions.toArgs(), key);
+    public CompletableFuture<String[]> sort(@NonNull String key, @NonNull SortOptions sortOptions) {
+        String[] arguments = ArrayUtils.addFirst(sortOptions.toArgs(), key);
         return commandManager.submitNewCommand(Sort, arguments, response -> castArray(handleArrayResponse(response), String.class));
     }
 }

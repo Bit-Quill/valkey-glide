@@ -21,6 +21,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
 import static redis_request.RedisRequestOuterClass.RequestType.Move;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
 import static redis_request.RedisRequestOuterClass.RequestType.Select;
+import static redis_request.RedisRequestOuterClass.RequestType.Sort;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
 
 import glide.api.commands.ConnectionManagementCommands;
@@ -30,6 +31,8 @@ import glide.api.commands.ServerManagementCommands;
 import glide.api.models.Transaction;
 import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
+import glide.api.models.commands.SortOptions;
+import glide.api.models.commands.SortStandaloneOptions;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
@@ -37,6 +40,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Async (non-blocking) client for Redis in Standalone mode. Use {@link #CreateClient} to request a
@@ -202,5 +206,11 @@ public class RedisClient extends BaseClient
     public CompletableFuture<Boolean> move(@NonNull String key, long dbIndex) {
         return commandManager.submitNewCommand(
                 Move, new String[] {key, Long.toString(dbIndex)}, this::handleBooleanResponse);
+    }
+
+    @Override
+    public CompletableFuture<String[]> sort(@NonNull String key, @NonNull SortOptions sortOptions, @NonNull SortStandaloneOptions sortStandaloneOptions) {
+        String[] arguments = ArrayUtils.addFirst(ArrayUtils.addAll(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
+        return commandManager.submitNewCommand(Sort, arguments, response -> castArray(handleArrayResponse(response), String.class));
     }
 }
