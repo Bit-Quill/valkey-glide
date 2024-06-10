@@ -33,6 +33,7 @@ import glide.api.RedisClusterClient;
 import glide.api.models.Script;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.ExpireOptions;
+import glide.api.models.commands.LPosOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
@@ -81,6 +82,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -1008,6 +1010,64 @@ public class SharedCommandTests {
         assertEquals(1, client.lrem(key, 0, "value2").get());
         assertArrayEquals(new String[] {"value1"}, client.lrange(key, 0, -1).get());
         assertEquals(0, client.lrem("non_existing_key", 0, "value").get());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void lpos_with_options(BaseClient client) {
+        String key = "{ListKey}-1-" + UUID.randomUUID();
+        String[] valueArray = new String[] {"a", "a", "b", "c", "a", "b"};
+        assertEquals(6L, client.rpush(key, valueArray).get());
+
+        // simplest case
+        assertEquals(0L, client.lpos(key, "a").get());
+        assertEquals(5L, client.lpos(key, "b", LPosOptions.builder().rank(2L).build()).get());
+
+        // no match
+        assertNull(client.lpos(key, "e").get());
+
+        // reverse traversal
+        assertEquals(2L, client.lpos(key, "b", LPosOptions.builder().rank(-2L).build()).get());
+
+        // unlimited comparisions
+        assertEquals(0L, client.lpos(key, "a", LPosOptions.builder().rank(1L).maxLength(0L).build()).get());
+
+        // limited comparisons
+        assertNull(client.lpos(key, "c", LPosOptions.builder().rank(1L).maxLength(2L).build()).get());
+
+        // invalid rank value
+        ExecutionException lposException = assertThrows(ExecutionException.class, () -> client.lpos(key, "a", LPosOptions.builder().rank(0L).build()).get());
+        assertTrue(lposException.getCause() instanceof RequestException);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void lposCount(BaseClient client) {
+        String key = "{ListKey}-1-" + UUID.randomUUID();
+        String[] valueArray = new String[] {"a", "a", "b", "c", "a", "b"};
+        assertEquals(6L, client.rpush(key, valueArray).get());
+
+        assertArrayEquals(new Long[] {0L, 1L}, client.lposCount(key, "a", 2L).get());
+        assertArrayEquals(new Long[] {0L, 1L, 4L}, client.lposCount(key, "a", 0L).get());
+
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void lposCount_with_options(BaseClient client) {
+        String key = "{ListKey}-1-" + UUID.randomUUID();
+        String[] valueArray = new String[] {"a", "a", "b", "c", "a", "b"};
+        assertEquals(6L, client.rpush(key, valueArray).get());
+
+        assertArrayEquals(new Long[] {0L, 1L, 4L}, client.lposCount(key, "a", 0L, LPosOptions.builder().rank(1L).build()).get());
+        assertArrayEquals(new Long[] {1L, 4L}, client.lposCount(key, "a", 0L, LPosOptions.builder().rank(2L).build()).get());
+        assertArrayEquals(new Long[] {4L}, client.lposCount(key, "a", 0L, LPosOptions.builder().rank(3L).build()).get());
+
+        // reverse traversal
+        assertArrayEquals(new Long[] {4L, 1L, 0L}, client.lposCount(key, "a", 0L, LPosOptions.builder().rank(-1L).build()).get());
     }
 
     @SneakyThrows
@@ -4574,17 +4634,4 @@ public class SharedCommandTests {
                 assertThrows(ExecutionException.class, () -> client.srandmember(nonSetKey, count).get());
         assertInstanceOf(RequestException.class, executionExceptionWithCount.getCause());
     }
-
-    @SneakyThrows
-    @ParameterizedTest(autoCloseArguments = false)
-    @MethodSource("getClients")
-    public void lpos(BaseClient client) {
-//        String listKey1 = "{ListKey}-1-" + UUID.randomUUID();
-//        String listKey2 = "{ListKey}-2-" + UUID.randomUUID();
-//
-//        client.lpush(listKey1, new String[] {"a", "a", "b", "c", "c"}).get();
-//        client.lpos(listKey1, "a").get();
-//        assertEquals(0L, client.lpos(listKey1, "a").get());
-    }
-
 }
