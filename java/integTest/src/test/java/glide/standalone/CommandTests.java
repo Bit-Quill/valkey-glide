@@ -422,6 +422,7 @@ public class CommandTests {
 
                 System.out.println((System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
+                System.err.println("Script kill error = " + exception.getMessage());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().contains("Script killed by user"));
             }

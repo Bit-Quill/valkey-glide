@@ -882,6 +882,7 @@ public class CommandTests {
                 System.out.println(
                         "Elapsed time after calling promise.get(): "
                                 + (System.currentTimeMillis() - before) / 1000);
+                System.err.println("Script kill error = " + exception.getMessage());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().contains("Script killed by user"));
             }
@@ -987,6 +988,7 @@ public class CommandTests {
 
                 System.err.println((System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
+                System.err.println("Script kill error = " + exception.getMessage());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().contains("Script killed by user"));
             }
@@ -1078,6 +1080,7 @@ public class CommandTests {
 
                 System.err.println((System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
+                System.err.println("Script kill error = " + exception.getMessage());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().contains("Script killed by user"));
             }
