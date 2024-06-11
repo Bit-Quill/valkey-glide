@@ -1023,13 +1023,16 @@ public class SharedCommandTests {
         assertEquals(0L, client.lpos(key, "a").get());
         assertEquals(5L, client.lpos(key, "b", LPosOptions.builder().rank(2L).build()).get());
 
+        // element not in the list
+        assertArrayEquals(new Long[] {}, client.lposCount(key, "doesn't_exist", 0L).get());
+
         // no match
         assertNull(client.lpos(key, "e").get());
 
         // reverse traversal
         assertEquals(2L, client.lpos(key, "b", LPosOptions.builder().rank(-2L).build()).get());
 
-        // unlimited comparisions
+        // unlimited comparisons
         assertEquals(
                 0L, client.lpos(key, "a", LPosOptions.builder().rank(1L).maxLength(0L).build()).get());
 
@@ -1042,6 +1045,13 @@ public class SharedCommandTests {
                         ExecutionException.class,
                         () -> client.lpos(key, "a", LPosOptions.builder().rank(0L).build()).get());
         assertTrue(lposException.getCause() instanceof RequestException);
+
+        // invalid maxlen value
+        ExecutionException lposMaxlenException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.lpos(key, "a", LPosOptions.builder().maxLength(-1L).build()).get());
+        assertTrue(lposMaxlenException.getCause() instanceof RequestException);
     }
 
     @SneakyThrows
@@ -1054,16 +1064,13 @@ public class SharedCommandTests {
 
         assertArrayEquals(new Long[] {0L, 1L}, client.lposCount(key, "a", 2L).get());
         assertArrayEquals(new Long[] {0L, 1L, 4L}, client.lposCount(key, "a", 0L).get());
-    }
 
-    @SneakyThrows
-    @ParameterizedTest(autoCloseArguments = false)
-    @MethodSource("getClients")
-    public void lposCount_with_options(BaseClient client) {
-        String key = "{ListKey}-1-" + UUID.randomUUID();
-        String[] valueArray = new String[] {"a", "a", "b", "c", "a", "b"};
-        assertEquals(6L, client.rpush(key, valueArray).get());
+        // invalid count value
+        ExecutionException lposCountException =
+                assertThrows(ExecutionException.class, () -> client.lposCount(key, "a", -1L).get());
+        assertTrue(lposCountException.getCause() instanceof RequestException);
 
+        // with option
         assertArrayEquals(
                 new Long[] {0L, 1L, 4L},
                 client.lposCount(key, "a", 0L, LPosOptions.builder().rank(1L).build()).get());

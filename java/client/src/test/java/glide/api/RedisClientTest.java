@@ -24,7 +24,6 @@ import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_LIMIT_REDI
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_MAXLEN_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_MINID_REDIS_API;
 import static glide.api.models.commands.stream.StreamTrimOptions.TRIM_NOT_EXACT_REDIS_API;
-import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -1765,8 +1764,7 @@ public class RedisClientTest {
         String[] set = {"a", "b", "c", "a", "c"};
         String element = "a";
         LPosOptions options = LPosOptions.builder().rank(1L).maxLength(1000L).build();
-        String[] args =
-                new String[] {"set", "element", "RANK", "1", "COUNT", "0", "MAXLEN", "1000"};
+        String[] args = new String[] {"set", "element", "COUNT", "0", "RANK", "1", "MAXLEN", "1000"};
         Long[] index = new Long[] {0L};
 
         CompletableFuture<Long[]> testResponse = new CompletableFuture<>();
@@ -1778,12 +1776,11 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<Long[]> response = service.lposCount("set", "element", 0L, options);
-        // null error here
         Long[] payload = response.get();
 
         // verify
-        // assertEquals(testResponse, response);
-        // assertArrayEquals(index, payload);
+        assertEquals(testResponse, response);
+        assertArrayEquals(index, payload);
     }
 
     @SneakyThrows
