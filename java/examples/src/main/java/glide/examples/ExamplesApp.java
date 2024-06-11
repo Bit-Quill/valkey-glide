@@ -33,13 +33,6 @@ public class ExamplesApp {
             System.out.println("SET(apples, oranges): " + client.set("apples", "oranges").get());
             System.out.println("GET(apples): " + client.get("apples").get());
 
-            client.del(new String[] {"a1", "a2"});
-            client.set("a1", "abcd");
-            client.set("a2", "abzz");
-            var res =
-                    (String) client.customCommand(new String[] {"LCS", "a1", "a2", "MINMATCHLEN", "3"}).get();
-            System.out.println(res);
-
         } catch (ExecutionException | InterruptedException e) {
             System.out.println("Glide example failed with an exception: ");
             e.printStackTrace();
