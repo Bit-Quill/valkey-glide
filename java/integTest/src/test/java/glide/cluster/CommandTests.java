@@ -728,7 +728,7 @@ public class CommandTests {
         future.get();
     }
 
-    // @Test
+    @Test
     @SneakyThrows
     public void flushall() {
         assertEquals(OK, clusterClient.flushall(FlushMode.SYNC).get());
@@ -813,7 +813,7 @@ public class CommandTests {
 
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
 
         try {
             // nothing to kill
@@ -915,7 +915,7 @@ public class CommandTests {
 
         String libName = "functionStats_and_functionKill_with_route_" + singleNodeRoute;
         String funcName = "deadlock_with_route_" + singleNodeRoute;
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
         Route route =
                 singleNodeRoute ? new SlotKeyRoute(UUID.randomUUID().toString(), PRIMARY) : ALL_PRIMARIES;
 
@@ -975,7 +975,7 @@ public class CommandTests {
                 } catch (Exception ignored) {
                     System.err.println("KILL FAILED: " + ignored.getMessage());
                 }
-                Thread.sleep(1404);
+                Thread.sleep(404);
                 clusterClient.set("============= " + singleNodeRoute + " == after KILL", " ").get();
 
                 exception =
@@ -1020,7 +1020,7 @@ public class CommandTests {
         String libName = "functionStats_and_functionKill_with_key_based_route";
         String funcName = "deadlock_with_key_based_route";
         String key = libName;
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
         Route route = new SlotKeyRoute(key, PRIMARY);
 
         try {

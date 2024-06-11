@@ -386,7 +386,7 @@ public class CommandTests {
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
                 regularClient.set("============= standalone == before FCALL", " ").get();
-                var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"});
+                var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"});
 
                 int timeout = 5200; // ms
                 while (timeout > 0) {
@@ -410,7 +410,7 @@ public class CommandTests {
                 } catch (Exception ignored) {
                     System.err.println("KILL FAILED");
                 }
-                Thread.sleep(1404);
+                Thread.sleep(404);
                 regularClient.set("============= standalone == after KILL", " ").get();
 
                 exception =
@@ -429,6 +429,7 @@ public class CommandTests {
             try {
                 regularClient.set("============= standalone == before last KILL", " ").get();
                 regularClient.functionKill().get();
+                System.err.println("LAST KILL");
                 regularClient.set("============= standalone == after last KILL", " ").get();
             } catch (Exception ignored) {
             }
