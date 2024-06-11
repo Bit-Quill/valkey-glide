@@ -2288,7 +2288,7 @@ export class BaseClient {
      */
     public xlen(
         key: string,
-    ): Promise<Record<string, Record<string, string[][]>>> {
+    ): Promise<number> {
         return this.createWritePromise(createXLen(key));
     }
 
