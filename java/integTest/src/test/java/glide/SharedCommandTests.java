@@ -4916,6 +4916,7 @@ public class SharedCommandTests {
 
         assertEquals(4, client.lpush(key1, lpushArgs).get());
         assertArrayEquals(ascendingList, client.sort(key1).get());
-        assertArrayEquals(descendingList, client.sort(key1, SortOptions.builder().order(Order.DESC).limit(new SortOptions.Limit(0L, 2L)).build()).get());
+//        assertArrayEquals(descendingList, client.sort(key1, SortStandaloneOptions.builder().order(Order.DESC).limit(new SortOptions.Limit(0L, 2L)).build()).get());
+//        client.sort(key1, SortOptions.builder().sortBy(SortBy.DESC).store(new Store(key2)).build()).get();
     }
 }

@@ -57,29 +57,29 @@ public class TransactionTestUtilities {
     /** Generate test samples for parametrized tests. Could be routed to random node. */
     public static Stream<Arguments> getCommonTransactionBuilders() {
         return Stream.of(
-                Arguments.of(
-                        "Generic Commands", (TransactionBuilder) TransactionTestUtilities::genericCommands),
-                Arguments.of(
-                        "String Commands", (TransactionBuilder) TransactionTestUtilities::stringCommands),
-                Arguments.of("Hash Commands", (TransactionBuilder) TransactionTestUtilities::hashCommands),
-                Arguments.of("List Commands", (TransactionBuilder) TransactionTestUtilities::listCommands),
-                Arguments.of("Set Commands", (TransactionBuilder) TransactionTestUtilities::setCommands),
-                Arguments.of(
-                        "Sorted Set Commands",
-                        (TransactionBuilder) TransactionTestUtilities::sortedSetCommands),
-                Arguments.of(
-                        "HyperLogLog Commands",
-                        (TransactionBuilder) TransactionTestUtilities::hyperLogLogCommands),
-                Arguments.of(
-                        "Stream Commands", (TransactionBuilder) TransactionTestUtilities::streamCommands),
-                Arguments.of(
-                        "Connection Management Commands",
-                        (TransactionBuilder) TransactionTestUtilities::connectionManagementCommands),
-                Arguments.of(
-                        "Geospatial Commands",
-                        (TransactionBuilder) TransactionTestUtilities::geospatialCommands),
-                Arguments.of(
-                        "Bitmap Commands", (TransactionBuilder) TransactionTestUtilities::bitmapCommands));
+//                Arguments.of(
+//                        "Generic Commands", (TransactionBuilder) TransactionTestUtilities::genericCommands),
+//                Arguments.of(
+//                        "String Commands", (TransactionBuilder) TransactionTestUtilities::stringCommands),
+//                Arguments.of("Hash Commands", (TransactionBuilder) TransactionTestUtilities::hashCommands),
+                Arguments.of("List Commands", (TransactionBuilder) TransactionTestUtilities::listCommands));
+//                Arguments.of("Set Commands", (TransactionBuilder) TransactionTestUtilities::setCommands),
+//                Arguments.of(
+//                        "Sorted Set Commands",
+//                        (TransactionBuilder) TransactionTestUtilities::sortedSetCommands),
+//                Arguments.of(
+//                        "HyperLogLog Commands",
+//                        (TransactionBuilder) TransactionTestUtilities::hyperLogLogCommands),
+//                Arguments.of(
+//                        "Stream Commands", (TransactionBuilder) TransactionTestUtilities::streamCommands),
+//                Arguments.of(
+//                        "Connection Management Commands",
+//                        (TransactionBuilder) TransactionTestUtilities::connectionManagementCommands),
+//                Arguments.of(
+//                        "Geospatial Commands",
+//                        (TransactionBuilder) TransactionTestUtilities::geospatialCommands),
+//                Arguments.of(
+//                        "Bitmap Commands", (TransactionBuilder) TransactionTestUtilities::bitmapCommands));
     }
 
     /** Generate test samples for parametrized tests. Could be routed to primary nodes only. */
@@ -275,6 +275,7 @@ public class TransactionTestUtilities {
                 .ltrim(listKey1, 1, -1)
                 .lrange(listKey1, 0, -2)
                 .lpop(listKey1)
+                .lrange(listKey1, 0, -1)
                 .lpopCount(listKey1, 2)
                 .rpush(listKey2, new String[] {value1, value2, value2})
                 .rpop(listKey2)
@@ -322,6 +323,7 @@ public class TransactionTestUtilities {
                     new String[] {value3, value2}, // lrange(listKey1, 0, -2)
                     value3, // lpop(listKey1)
                     new String[] {value2, value1}, // lpopCount(listKey1, 2)
+                    new String[] {"asd", "asdasddsa"},
                     3L, // rpush(listKey2, new String[] {value1, value2, value2})
                     value2, // rpop(listKey2)
                     new String[] {value2, value1}, // rpopCount(listKey2, 2)

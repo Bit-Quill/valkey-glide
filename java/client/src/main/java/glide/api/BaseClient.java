@@ -1691,4 +1691,10 @@ public abstract class BaseClient
         String[] arguments = ArrayUtils.addFirst(sortOptions.toArgs(), key);
         return commandManager.submitNewCommand(Sort, arguments, response -> castArray(handleArrayResponse(response), String.class));
     }
+
+//    @Override
+//    public CompletableFuture<String[]> sort(@NonNull String key, @NonNull SortStandaloneOptions sortStandaloneOptions) {
+//        String[] arguments = ArrayUtils.addFirst(sortStandaloneOptions.toArgs(), key);
+//        return commandManager.submitNewCommand(Sort, arguments, response -> castArray(handleArrayResponse(response), String.class));
+//    }
 }

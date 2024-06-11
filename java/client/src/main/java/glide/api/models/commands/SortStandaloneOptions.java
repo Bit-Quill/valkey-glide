@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @SuperBuilder
-public class SortStandaloneOptions{
+public class SortStandaloneOptions {
     public static final String BY_COMMAND_STRING = "BY";
     public static final String GET_COMMAND_STRING = "GET";
     private final String byPattern;
