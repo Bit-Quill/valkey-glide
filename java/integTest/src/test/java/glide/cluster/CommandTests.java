@@ -57,7 +57,6 @@ import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -804,10 +803,9 @@ public class CommandTests {
         // TODO test with FCALL
     }
 
-    //    @Test
+    @Test
     @SneakyThrows
-    @RepeatedTest(10)
-    public void functionStats_and_functionKill() {
+    public void functionStats_and_functionKill_without_route() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
         clusterClient.set("============= no route == start", " ").get();
@@ -815,7 +813,7 @@ public class CommandTests {
 
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
 
         try {
             // nothing to kill
@@ -834,8 +832,10 @@ public class CommandTests {
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
                 clusterClient.set("============= no route == before FCALL", " ").get();
+                // Using a random primary node route, otherwise FCALL can go to a replica.
+                // FKILL and FSTATS go to primary nodes if no route given, test fails in such case.
                 Route route = new SlotKeyRoute(UUID.randomUUID().toString(), PRIMARY);
-                var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"}, route);
+                var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"}, route);
 
                 int timeout = 15000; // ms
                 while (timeout > 0) {
@@ -889,6 +889,7 @@ public class CommandTests {
             try {
                 clusterClient.set("============= no route == before last KILL", " ").get();
                 clusterClient.functionKill().get();
+                System.err.println("LAST KILL");
                 clusterClient.set("============= no route == after last KILL", " ").get();
             } catch (Exception ignored) {
             }
@@ -903,7 +904,7 @@ public class CommandTests {
                         .getSingleValue());
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "single node route = {0}")
     @ValueSource(booleans = {true, false})
     @SneakyThrows
     public void functionStats_and_functionKill_with_route(boolean singleNodeRoute) {
@@ -914,7 +915,7 @@ public class CommandTests {
 
         String libName = "functionStats_and_functionKill_with_route_" + singleNodeRoute;
         String funcName = "deadlock_with_route_" + singleNodeRoute;
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
         Route route =
                 singleNodeRoute ? new SlotKeyRoute(UUID.randomUUID().toString(), PRIMARY) : ALL_PRIMARIES;
 
@@ -935,7 +936,7 @@ public class CommandTests {
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
                 clusterClient.set("============= " + singleNodeRoute + " == before FCALL", " ").get();
-                var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "0"}, route);
+                var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"}, route);
 
                 int timeout = 5200; // ms
                 while (timeout > 0) {
@@ -993,6 +994,7 @@ public class CommandTests {
             try {
                 clusterClient.set("============= " + singleNodeRoute + " == before last KILL", " ").get();
                 clusterClient.functionKill(route).get();
+                System.err.println("LAST KILL");
                 clusterClient.set("============= " + singleNodeRoute + " == after last KILL", " ").get();
             } catch (Exception ignored) {
             }
@@ -1018,7 +1020,7 @@ public class CommandTests {
         String libName = "functionStats_and_functionKill_with_key_based_route";
         String funcName = "deadlock_with_key_based_route";
         String key = libName;
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 5);
         Route route = new SlotKeyRoute(key, PRIMARY);
 
         try {
@@ -1038,7 +1040,7 @@ public class CommandTests {
                 // TODO use FCALL
                 var before = System.currentTimeMillis();
                 clusterClient.set("============= with_key_based_route == before FCALL", " ").get();
-                var promise = testClient.customCommand(new String[] {"FCALL_RO", funcName, "1", key});
+                var promise = testClient.customCommand(new String[] {"FCALL", funcName, "1", key});
 
                 int timeout = 5200; // ms
                 while (timeout > 0) {
@@ -1083,6 +1085,7 @@ public class CommandTests {
             try {
                 clusterClient.set("============= with_key_based_route == before last KILL", " ").get();
                 clusterClient.functionKill(route).get();
+                System.err.println("LAST KILL");
                 clusterClient.set("============= with_key_based_route == after last KILL", " ").get();
             } catch (Exception ignored) {
             }

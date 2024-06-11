@@ -124,27 +124,31 @@ public class TestUtilities {
         }
     }
 
-    // function runs an endless loop up to timeout sec
+    /**
+     * Create a lua lib with a RO function which runs an endless loop up to timeout sec.<br>
+     * Execution takes at least 5 sec regardless of the timeout configured.
+     */
     public static String createLuaLibWithLongRunningFunction(
             String libName, String funcName, int timeout) {
         String code =
-                "#!lua name=%s\n" // libName placeholder
-                        + "local function sleep(keys, args)\n"
-                        // + "  local started = redis.pcall('time')[1]\n"
+                "#!lua name=$libName\n"
+                        + "local function $libName_$funcName(keys, args)\n"
+                        + "  local started = redis.pcall('time')[1]\n"
                         + "  while (true) do\n"
-                        // + "    local now = redis.pcall('time')[1]\n"
-                        // + "    if now > started + %d then\n" // timeout placeholder
-                        // + "      return 'Timed out %d sec'\n" // timeout placeholder
-                        // + "    end\n"
+                        + "    local now = redis.pcall('time')[1]\n"
+                        + "    if now > started + $timeout then\n"
+                        + "      return 'Timed out $timeout sec'\n"
+                        + "    end\n"
                         + "  end\n"
                         + "  return 'OK'\n"
                         + "end\n"
                         + "redis.register_function{\n"
-                        + "function_name='%s',\n" // funcName placeholder
-                        + "callback=sleep,\n"
+                        + "function_name='$funcName',\n"
+                        + "callback=$libName_$funcName,\n"
                         + "flags={ 'no-writes' }\n"
                         + "}";
-        // return String.format(code, libName, timeout, timeout, funcName);
-        return String.format(code, libName, funcName);
+        return code.replace("$timeout", Integer.toString(timeout))
+                .replace("$funcName", funcName)
+                .replace("$libName", libName);
     }
 }
