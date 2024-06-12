@@ -661,7 +661,7 @@ public class TransactionTestUtilities {
     private static Object[] streamCommands(BaseTransaction<?> transaction) {
         final String streamKey1 = "{streamKey}-1-" + UUID.randomUUID();
         final String groupName1 = "{groupName}-1-" + UUID.randomUUID();
-        final String groupName2 = "{groupName}-1-" + UUID.randomUUID();
+        final String groupName2 = "{groupName}-2-" + UUID.randomUUID();
 
         transaction
                 .xadd(streamKey1, Map.of("field1", "value1"), StreamAddOptions.builder().id("0-1").build())

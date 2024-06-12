@@ -3327,7 +3327,7 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
-    public void zgroupCreate_xgroupDestroy(BaseClient client) {
+    public void xgroupCreate_xgroupDestroy(BaseClient client) {
         String key = UUID.randomUUID().toString();
         String stringKey = UUID.randomUUID().toString();
         String groupName = "group" + UUID.randomUUID();
@@ -3372,7 +3372,7 @@ public class SharedCommandTests {
             assertInstanceOf(RequestException.class, executionException.getCause());
         }
 
-        // key is a string and cannot be created as a string
+        // key is a string and cannot be created as a stream
         assertEquals(OK, client.set(stringKey, "not_a_stream").get());
         executionException =
                 assertThrows(
