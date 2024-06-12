@@ -367,7 +367,7 @@ public class CommandTests {
 
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15, true);
         String error = "";
 
         try {
@@ -401,7 +401,78 @@ public class CommandTests {
 
                 // redis kills a function with 5 sec delay
                 assertEquals(OK, regularClient.functionKill().get());
-                Thread.sleep(404);
+
+                exception =
+                        assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+                exception = assertThrows(ExecutionException.class, promise::get);
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().contains("Script killed by user"));
+            }
+        } finally {
+            // If function wasn't killed, and it didn't time out - it blocks the server and cause rest
+            // test to fail.
+            try {
+                regularClient.functionKill().get();
+                // should throw `notbusy` error, because the function should be killed before
+                error += "Function should be killed before.";
+            } catch (Exception ignored) {
+            }
+        }
+
+        // TODO replace with FUNCTION DELETE
+        assertEquals(
+                OK, regularClient.customCommand(new String[] {"FUNCTION", "DELETE", libName}).get());
+
+        assertTrue(error.isEmpty(), "Something went wrong during the test");
+    }
+
+    @Test
+    @SneakyThrows
+    public void functionStats_and_functionKill_write_function() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+
+        String libName = "functionStats_and_functionKill_write_function";
+        String funcName = "deadlock";
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 6, false);
+        String error = "";
+
+        try {
+            // nothing to kill
+            var exception =
+                    assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
+            assertInstanceOf(RequestException.class, exception.getCause());
+            assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+            // load the lib
+            assertEquals(libName, regularClient.functionLoadReplace(code).get());
+
+            try (var testClient =
+                    RedisClient.CreateClient(commonClientConfig().requestTimeout(7000).build()).get()) {
+                // call the function without await
+                // TODO use FCALL
+                var promise = testClient.customCommand(new String[] {"FCALL", funcName, "1", libName});
+
+                int timeout = 5200; // ms
+                while (timeout > 0) {
+                    var response = regularClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
+                    if (((Map<String, Object>) response).get("running_script") != null) {
+                        break;
+                    }
+                    Thread.sleep(100);
+                    timeout -= 100;
+                }
+                if (timeout == 0) {
+                    error += "Can't find a running function.";
+                }
+
+                // can't kill a write function
+                exception =
+                        assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().toLowerCase().contains("unkillable"));
 
                 exception =
                         assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());

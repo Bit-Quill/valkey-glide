@@ -126,14 +126,18 @@ public class TestUtilities {
 
     /**
      * Create a lua lib with a RO function which runs an endless loop up to timeout sec.<br>
-     * Execution takes at least 5 sec regardless of the timeout configured.
+     * Execution takes at least 5 sec regardless of the timeout configured.<br>
+     * If <code>readOnly</code> is <code>false</code>, function sets a dummy value to the first key
+     * given.
      */
     public static String createLuaLibWithLongRunningFunction(
-            String libName, String funcName, int timeout) {
+            String libName, String funcName, int timeout, boolean readOnly) {
         String code =
                 "#!lua name=$libName\n"
                         + "local function $libName_$funcName(keys, args)\n"
                         + "  local started = tonumber(redis.pcall('time')[1])\n"
+                        // fun fact - redis does no writes if 'no-writes' flag is set
+                        + "  redis.pcall('set', keys[1], 42)\n"
                         + "  while (true) do\n"
                         + "    local now = tonumber(redis.pcall('time')[1])\n"
                         + "    if now > started + $timeout then\n"
@@ -145,7 +149,7 @@ public class TestUtilities {
                         + "redis.register_function{\n"
                         + "function_name='$funcName',\n"
                         + "callback=$libName_$funcName,\n"
-                        + "flags={ 'no-writes' }\n"
+                        + (readOnly ? "flags={ 'no-writes' }\n" : "")
                         + "}";
         return code.replace("$timeout", Integer.toString(timeout))
                 .replace("$funcName", funcName)

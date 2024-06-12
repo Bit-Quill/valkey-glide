@@ -811,7 +811,7 @@ public class CommandTests {
 
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15, true);
         String error = "";
 
         try {
@@ -825,7 +825,7 @@ public class CommandTests {
             assertEquals(libName, clusterClient.functionLoadReplace(code).get());
 
             try (var testClient =
-                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(15000).build())
+                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(7000).build())
                             .get()) {
                 // call the function without await
                 // TODO use FCALL
@@ -834,7 +834,7 @@ public class CommandTests {
                 Route route = new SlotKeyRoute(UUID.randomUUID().toString(), PRIMARY);
                 var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"}, route);
 
-                int timeout = 15000; // ms
+                int timeout = 5200; // ms
                 while (timeout > 0) {
                     var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
                     boolean found = false;
@@ -855,7 +855,6 @@ public class CommandTests {
                 }
 
                 assertEquals(OK, clusterClient.functionKill().get());
-                Thread.sleep(404);
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill().get());
@@ -896,7 +895,7 @@ public class CommandTests {
 
         String libName = "functionStats_and_functionKill_with_route_" + singleNodeRoute;
         String funcName = "deadlock_with_route_" + singleNodeRoute;
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15, true);
         Route route =
                 singleNodeRoute ? new SlotKeyRoute(UUID.randomUUID().toString(), PRIMARY) : ALL_PRIMARIES;
         String error = "";
@@ -912,7 +911,7 @@ public class CommandTests {
             assertEquals(libName, clusterClient.functionLoadReplace(code, route).get());
 
             try (var testClient =
-                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(8000).build())
+                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(7000).build())
                             .get()) {
                 // call the function without await
                 // TODO use FCALL
@@ -947,7 +946,6 @@ public class CommandTests {
 
                 // redis kills a function with 5 sec delay
                 assertEquals(OK, clusterClient.functionKill(route).get());
-                Thread.sleep(404);
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
@@ -988,7 +986,7 @@ public class CommandTests {
         String libName = "functionStats_and_functionKill_with_key_based_route";
         String funcName = "deadlock_with_key_based_route";
         String key = libName;
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15, true);
         Route route = new SlotKeyRoute(key, PRIMARY);
         String error = "";
 
@@ -1003,7 +1001,7 @@ public class CommandTests {
             assertEquals(libName, clusterClient.functionLoadReplace(code, route).get());
 
             try (var testClient =
-                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(8000).build())
+                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(7000).build())
                             .get()) {
                 // call the function without await
                 // TODO use FCALL
@@ -1025,7 +1023,86 @@ public class CommandTests {
 
                 // redis kills a function with 5 sec delay
                 assertEquals(OK, clusterClient.functionKill(route).get());
-                Thread.sleep(404);
+
+                exception =
+                        assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+                exception = assertThrows(ExecutionException.class, promise::get);
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().contains("Script killed by user"));
+            }
+        } finally {
+            // If function wasn't killed, and it didn't time out - it blocks the server and cause rest
+            // test to fail.
+            try {
+                clusterClient.functionKill(route).get();
+                // should throw `notbusy` error, because the function should be killed before
+                error += "Function should be killed before.";
+            } catch (Exception ignored) {
+            }
+        }
+
+        // TODO replace with FUNCTION DELETE
+        assertEquals(
+                OK,
+                clusterClient
+                        .customCommand(new String[] {"FUNCTION", "DELETE", libName}, route)
+                        .get()
+                        .getSingleValue());
+
+        assertTrue(error.isEmpty(), "Something went wrong during the test");
+    }
+
+    @Test
+    @SneakyThrows
+    public void functionStats_and_functionKill_write_function() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+
+        String libName = "functionStats_and_functionKill_write_function";
+        String funcName = "deadlock_write_function_with_key_based_route";
+        String key = libName;
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15, false);
+        Route route = new SlotKeyRoute(key, PRIMARY);
+        String error = "";
+
+        try {
+            // nothing to kill
+            var exception =
+                    assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
+            assertInstanceOf(RequestException.class, exception.getCause());
+            assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+            // load the lib
+            assertEquals(libName, clusterClient.functionLoadReplace(code, route).get());
+
+            try (var testClient =
+                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(7000).build())
+                            .get()) {
+                // call the function without await
+                // TODO use FCALL
+                var promise = testClient.customCommand(new String[] {"FCALL", funcName, "1", key});
+
+                int timeout = 5200; // ms
+                while (timeout > 0) {
+                    var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}, route).get();
+                    var response = stats.getSingleValue();
+                    if (((Map<String, Object>) response).get("running_script") != null) {
+                        break;
+                    }
+                    Thread.sleep(100);
+                    timeout -= 100;
+                }
+                if (timeout == 0) {
+                    error += "Can't find a running function.";
+                }
+
+                // redis kills a function with 5 sec delay
+                exception =
+                        assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().toLowerCase().contains("unkillable"));
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());

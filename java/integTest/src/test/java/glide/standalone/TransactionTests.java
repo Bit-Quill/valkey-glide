@@ -3,11 +3,15 @@ package glide.standalone;
 
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestUtilities.assertDeepEquals;
+import static glide.TestUtilities.commonClientConfig;
+import static glide.TestUtilities.createLuaLibWithLongRunningFunction;
 import static glide.api.BaseClient.OK;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -18,10 +22,12 @@ import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
+import glide.api.models.exceptions.RequestException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -213,5 +219,73 @@ public class TransactionTests {
         assertEquals(OK, client.customCommand(new String[] {"WATCH", "key"}).get());
         assertEquals(OK, client.set("key", "foo").get());
         assertNull(client.exec(transaction).get());
+    }
+
+    @Test
+    @SneakyThrows
+    // 1:1 functionStats_and_functionKill
+    public void functionKill() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+
+        String libName = "functionStats_and_functionKill";
+        String funcName = "deadlock";
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15, true);
+        String error = "";
+        Transaction transaction = new Transaction().functionKill();
+
+        try {
+            // nothing to kill
+            var exception = assertThrows(ExecutionException.class, () -> client.exec(transaction).get());
+            assertInstanceOf(RequestException.class, exception.getCause());
+            assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+            // load the lib
+            assertEquals(libName, client.functionLoadReplace(code).get());
+
+            try (var testClient =
+                    RedisClient.CreateClient(commonClientConfig().requestTimeout(7000).build()).get()) {
+                // call the function without await
+                // TODO use FCALL
+                var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"});
+
+                int timeout = 5200; // ms
+                while (timeout > 0) {
+                    var response = client.customCommand(new String[] {"FUNCTION", "STATS"}).get();
+                    if (((Map<String, Object>) response).get("running_script") != null) {
+                        break;
+                    }
+                    Thread.sleep(100);
+                    timeout -= 100;
+                }
+                if (timeout == 0) {
+                    error += "Can't find a running function.";
+                }
+
+                // redis kills a function with 5 sec delay
+                assertArrayEquals(new Object[] {OK}, client.exec(transaction).get());
+
+                exception = assertThrows(ExecutionException.class, () -> client.exec(transaction).get());
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+                exception = assertThrows(ExecutionException.class, promise::get);
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().contains("Script killed by user"));
+            }
+        } finally {
+            // If function wasn't killed, and it didn't time out - it blocks the server and cause rest
+            // test to fail.
+            try {
+                client.exec(transaction).get();
+                // should throw `notbusy` error, because the function should be killed before
+                error += "Function should be killed before.";
+            } catch (Exception ignored) {
+            }
+        }
+
+        // TODO replace with FUNCTION DELETE
+        assertEquals(OK, client.customCommand(new String[] {"FUNCTION", "DELETE", libName}).get());
+
+        assertTrue(error.isEmpty(), "Something went wrong during the test");
     }
 }
