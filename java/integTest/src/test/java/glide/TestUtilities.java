@@ -133,9 +133,9 @@ public class TestUtilities {
         String code =
                 "#!lua name=$libName\n"
                         + "local function $libName_$funcName(keys, args)\n"
-                        + "  local started = redis.pcall('time')[1]\n"
+                        + "  local started = tonumber(redis.pcall('time')[1])\n"
                         + "  while (true) do\n"
-                        + "    local now = redis.pcall('time')[1]\n"
+                        + "    local now = tonumber(redis.pcall('time')[1])\n"
                         + "    if now > started + $timeout then\n"
                         + "      return 'Timed out $timeout sec'\n"
                         + "    end\n"
