@@ -335,9 +335,9 @@ public interface StringBaseCommands {
      *     subsequences.
      * @example
      *     <pre>{@code
-     * client.set("testKey1", "abcd");
-     * client.set("testKey2", "axcd");
-     * assertEquals("acd", client.lcs("testKey1", "testKey2").get());
+     * // testKey1 = abcd, testKey2 = axcd
+     * String result = client.lcs("testKey1", "testKey2").get();
+     * assert result.equals("acd");
      * }</pre>
      */
     CompletableFuture<String> lcs(String key1, String key2);
@@ -356,8 +356,8 @@ public interface StringBaseCommands {
      * @example
      *     <pre>{@code
      * // testKey1 = abcd, testKey2 = axcd
-     * String result = client.lcs("testKey1", "testKey2").get();
-     * assert result.equals("acd");
+     * Long result = client.lcs("testKey1", "testKey2").get();
+     * assert result.equals(3L);
      * }</pre>
      */
     CompletableFuture<Long> lcsLen(String key1, String key2);
