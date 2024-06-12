@@ -34,6 +34,7 @@ import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamRange.IdBound;
 import glide.api.models.commands.stream.StreamTrimOptions.MinId;
 import java.util.HashMap;
@@ -674,10 +675,10 @@ public class TransactionTestUtilities {
                 .xrevrange(streamKey1, IdBound.of("0-1"), IdBound.of("0-1"), 1L)
                 .xtrim(streamKey1, new MinId(true, "0-2"))
                 .xgroupCreate(streamKey1, groupName1, "0-0")
-                //                .xgroupCreate(
-                //                        streamKey1, groupName2, "0-0",
-                // StreamGroupOptions.builder().makeStream(true).build())
-                //                .xgroupDestroy(streamKey1, groupName1)
+                .xgroupCreate(
+                        streamKey1, groupName2, "0-0", StreamGroupOptions.builder().makeStream(true).build())
+                .xgroupDestroy(streamKey1, groupName1)
+                .xgroupDestroy(streamKey1, groupName2)
                 .xdel(streamKey1, new String[] {"0-3", "0-5"});
 
         return new Object[] {
@@ -694,9 +695,10 @@ public class TransactionTestUtilities {
             Map.of(
                     "0-1", new String[][] {{"field1", "value1"}}), // .xrevrange(streamKey1, "0-1", "0-1", 1l)
             1L, // xtrim(streamKey1, new MinId(true, "0-2"))
-            OK,
-            //            OK,
-            //            true,
+            OK, // xgroupCreate(streamKey1, groupName1, "0-0")
+            OK, // xgroupCreate(streamKey1, groupName1, "0-0", options)
+            true, // xgroupDestroy(streamKey1, groupName1)
+            true, // xgroupDestroy(streamKey1, groupName2)
             1L, // .xdel(streamKey1, new String[] {"0-1", "0-5"});
         };
     }

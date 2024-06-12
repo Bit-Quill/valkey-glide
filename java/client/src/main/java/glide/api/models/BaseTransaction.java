@@ -141,6 +141,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
 import static redis_request.RedisRequestOuterClass.RequestType.XGroupCreate;
+import static redis_request.RedisRequestOuterClass.RequestType.XGroupDestroy;
 import static redis_request.RedisRequestOuterClass.RequestType.XLen;
 import static redis_request.RedisRequestOuterClass.RequestType.XRange;
 import static redis_request.RedisRequestOuterClass.RequestType.XRead;
@@ -2902,7 +2903,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     <code>false</code>.
      */
     public T xgroupDestroy(@NonNull String key, @NonNull String groupname) {
-        protobufTransaction.addCommands(buildCommand(XGroupCreate, buildArgs(key, groupname)));
+        protobufTransaction.addCommands(buildCommand(XGroupDestroy, buildArgs(key, groupname)));
         return getThis();
     }
 

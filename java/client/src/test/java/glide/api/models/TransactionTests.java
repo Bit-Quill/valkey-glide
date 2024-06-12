@@ -156,6 +156,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
 import static redis_request.RedisRequestOuterClass.RequestType.XGroupCreate;
+import static redis_request.RedisRequestOuterClass.RequestType.XGroupDestroy;
 import static redis_request.RedisRequestOuterClass.RequestType.XLen;
 import static redis_request.RedisRequestOuterClass.RequestType.XRange;
 import static redis_request.RedisRequestOuterClass.RequestType.XRead;
@@ -748,6 +749,9 @@ public class TransactionTests {
                         XGroupCreate,
                         buildArgs(
                                 "key", "group", "id", MAKE_STREAM_REDIS_API, ENTRIES_READ_REDIS_API, "entry")));
+
+        transaction.xgroupDestroy("key", "group");
+        results.add(Pair.of(XGroupDestroy, buildArgs("key", "group")));
 
         transaction.time();
         results.add(Pair.of(Time, buildArgs()));
