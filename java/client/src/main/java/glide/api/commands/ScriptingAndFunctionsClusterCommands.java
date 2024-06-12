@@ -140,8 +140,8 @@ public interface ScriptingAndFunctionsClusterCommands {
      * for (String node : response.keySet()) {
      *   Map<String, Object> runningScriptInfo = response.get(node).get("running_script");
      *   if (runningScriptInfo != null) {
-     *     Object[] commandLine = (String[]) runningScriptInfo.get("command");
-     *     System.out.printf("Node '%s' is currently running function '%s' with command line '%s', which runs for %d ms%n",
+     *     String[] commandLine = (String[]) runningScriptInfo.get("command");
+     *     System.out.printf("Node '%s' is currently running function '%s' with command line '%s', which has been running for %d ms%n",
      *         node, runningScriptInfo.get("name"), String.join(" ", commandLine), (long) runningScriptInfo.get("duration_ms"));
      *   }
      *   Map<String, Object> enginesInfo = response.get(node).get("engines");
@@ -174,8 +174,8 @@ public interface ScriptingAndFunctionsClusterCommands {
      * Map<String, Map<String, Object>> response = client.functionStats(RANDOM).get().getSingleValue();
      * Map<String, Object> runningScriptInfo = response.get("running_script");
      * if (runningScriptInfo != null) {
-     *   Object[] commandLine = (String[]) runningScriptInfo.get("command");
-     *   System.out.printf("Node is currently running function '%s' with command line '%s', which runs for %d ms%n",
+     *   String[] commandLine = (String[]) runningScriptInfo.get("command");
+     *   System.out.printf("Node is currently running function '%s' with command line '%s', which has been running for %d ms%n",
      *       runningScriptInfo.get("name"), String.join(" ", commandLine), (long)runningScriptInfo.get("duration_ms"));
      * }
      * Map<String, Object> enginesInfo = response.get("engines");

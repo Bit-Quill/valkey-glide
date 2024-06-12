@@ -79,7 +79,7 @@ public interface ScriptingAndFunctionsCommands {
      * Map<String, Object> runningScriptInfo = response.get("running_script");
      * if (runningScriptInfo != null) {
      *   String[] commandLine = (String[]) runningScriptInfo.get("command");
-     *   System.out.printf("Server is currently running function '%s' with command line '%s', which runs for %d ms%n",
+     *   System.out.printf("Server is currently running function '%s' with command line '%s', which has been running for %d ms%n",
      *       runningScriptInfo.get("name"), String.join(" ", commandLine), (long)runningScriptInfo.get("duration_ms"));
      * }
      * Map<String, Object> enginesInfo = response.get("engines");
