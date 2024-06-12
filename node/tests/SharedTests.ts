@@ -3234,11 +3234,9 @@ export function runBaseTests<Context>(config: {
                     );
                     expect(await client.set(key, "foobar")).toEqual("OK");
 
-                    await wait(2);
+                    await wait(2000);
 
-                    expect(
-                        await client.objectIdletime(key),
-                    ).toBeGreaterThanOrEqual(0);
+                    expect(await client.objectIdletime(key)).toBeGreaterThan(0);
                 } finally {
                     expect(
                         await client.configSet({
@@ -3251,9 +3249,9 @@ export function runBaseTests<Context>(config: {
         config.timeout,
     );
 
-    function wait(numSeconds: number) {
+    function wait(numMilliseconds: number) {
         return new Promise((resolve) => {
-            setTimeout(resolve, numSeconds);
+            setTimeout(resolve, numMilliseconds);
         });
     }
 }
