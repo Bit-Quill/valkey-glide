@@ -24,6 +24,8 @@ import static glide.api.models.commands.ZAddOptions.UpdateOptions.SCORE_LESS_THA
 import static glide.api.models.commands.function.FunctionListOptions.LIBRARY_NAME_REDIS_API;
 import static glide.api.models.commands.function.FunctionListOptions.WITH_CODE_REDIS_API;
 import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_API;
+import static glide.api.models.commands.stream.StreamGroupOptions.ENTRIES_READ_REDIS_API;
+import static glide.api.models.commands.stream.StreamGroupOptions.MAKE_STREAM_REDIS_API;
 import static glide.api.models.commands.stream.StreamRange.MAXIMUM_RANGE_REDIS_API;
 import static glide.api.models.commands.stream.StreamRange.MINIMUM_RANGE_REDIS_API;
 import static glide.api.models.commands.stream.StreamRange.RANGE_COUNT_REDIS_API;
@@ -153,6 +155,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
+import static redis_request.RedisRequestOuterClass.RequestType.XGroupCreate;
 import static redis_request.RedisRequestOuterClass.RequestType.XLen;
 import static redis_request.RedisRequestOuterClass.RequestType.XRange;
 import static redis_request.RedisRequestOuterClass.RequestType.XRead;
@@ -217,6 +220,7 @@ import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamRange.InfRangeBound;
 import glide.api.models.commands.stream.StreamReadOptions;
 import glide.api.models.commands.stream.StreamTrimOptions.MinId;
@@ -730,6 +734,20 @@ public class TransactionTests {
                                 MINIMUM_RANGE_REDIS_API,
                                 RANGE_COUNT_REDIS_API,
                                 "99")));
+
+        transaction.xgroupCreate("key", "group", "id");
+        results.add(Pair.of(XGroupCreate, buildArgs("key", "group", "id")));
+
+        transaction.xgroupCreate(
+                "key",
+                "group",
+                "id",
+                StreamGroupOptions.builder().makeStream(true).entriesRead("entry").build());
+        results.add(
+                Pair.of(
+                        XGroupCreate,
+                        buildArgs(
+                                "key", "group", "id", MAKE_STREAM_REDIS_API, ENTRIES_READ_REDIS_API, "entry")));
 
         transaction.time();
         results.add(Pair.of(Time, buildArgs()));

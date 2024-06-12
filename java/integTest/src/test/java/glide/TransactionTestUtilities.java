@@ -659,6 +659,8 @@ public class TransactionTestUtilities {
 
     private static Object[] streamCommands(BaseTransaction<?> transaction) {
         final String streamKey1 = "{streamKey}-1-" + UUID.randomUUID();
+        final String groupName1 = "{groupName}-1-" + UUID.randomUUID();
+        final String groupName2 = "{groupName}-1-" + UUID.randomUUID();
 
         transaction
                 .xadd(streamKey1, Map.of("field1", "value1"), StreamAddOptions.builder().id("0-1").build())
@@ -671,6 +673,11 @@ public class TransactionTestUtilities {
                 .xrevrange(streamKey1, IdBound.of("0-1"), IdBound.of("0-1"))
                 .xrevrange(streamKey1, IdBound.of("0-1"), IdBound.of("0-1"), 1L)
                 .xtrim(streamKey1, new MinId(true, "0-2"))
+                .xgroupCreate(streamKey1, groupName1, "0-0")
+                //                .xgroupCreate(
+                //                        streamKey1, groupName2, "0-0",
+                // StreamGroupOptions.builder().makeStream(true).build())
+                //                .xgroupDestroy(streamKey1, groupName1)
                 .xdel(streamKey1, new String[] {"0-3", "0-5"});
 
         return new Object[] {
@@ -687,6 +694,9 @@ public class TransactionTestUtilities {
             Map.of(
                     "0-1", new String[][] {{"field1", "value1"}}), // .xrevrange(streamKey1, "0-1", "0-1", 1l)
             1L, // xtrim(streamKey1, new MinId(true, "0-2"))
+            OK,
+            //            OK,
+            //            true,
             1L, // .xdel(streamKey1, new String[] {"0-1", "0-5"});
         };
     }
