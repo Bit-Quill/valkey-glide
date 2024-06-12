@@ -4,7 +4,6 @@ package glide.api.models.commands.stream;
 import glide.api.commands.StreamBaseCommands;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Builder;
 
 /**
  * Optional arguments for {@link StreamBaseCommands#xgroupCreate(String, String, String,
@@ -12,14 +11,13 @@ import lombok.Builder;
  *
  * @see <a href="https://valkey.io/commands/xgroup-create/">valkey.io</a>
  */
-@Builder
 public final class StreamGroupOptions {
 
     public static final String MAKE_STREAM_REDIS_API = "MKSTREAM";
     public static final String ENTRIES_READ_REDIS_API = "ENTRIESREAD";
 
     /** If the stream doesn't exist, creates a new stream with a length of 0. */
-    Boolean makeStream;
+    boolean makeStream;
 
     /**
      * An arbitrary ID (that isn't the first ID, last ID, or the zero <code>"0-0"</code>. Use it to
@@ -30,6 +28,20 @@ public final class StreamGroupOptions {
      */
     String entriesRead;
 
+    public StreamGroupOptions(Boolean makeStream) {
+        this.makeStream = makeStream;
+    }
+
+    public StreamGroupOptions(String entriesRead) {
+        this.makeStream = false;
+        this.entriesRead = entriesRead;
+    }
+
+    public StreamGroupOptions(Boolean makeStream, String entriesRead) {
+        this.makeStream = makeStream;
+        this.entriesRead = entriesRead;
+    }
+
     /**
      * Converts options and the key-to-id input for {@link StreamBaseCommands#xgroupCreate(String,
      * String, String, StreamGroupOptions)} into a String[].
@@ -39,7 +51,7 @@ public final class StreamGroupOptions {
     public String[] toArgs() {
         List<String> optionArgs = new ArrayList<>();
 
-        if (this.makeStream != null && this.makeStream) {
+        if (this.makeStream) {
             optionArgs.add(MAKE_STREAM_REDIS_API);
         }
 

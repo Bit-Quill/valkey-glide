@@ -739,11 +739,7 @@ public class TransactionTests {
         transaction.xgroupCreate("key", "group", "id");
         results.add(Pair.of(XGroupCreate, buildArgs("key", "group", "id")));
 
-        transaction.xgroupCreate(
-                "key",
-                "group",
-                "id",
-                StreamGroupOptions.builder().makeStream(true).entriesRead("entry").build());
+        transaction.xgroupCreate("key", "group", "id", new StreamGroupOptions(true, "entry"));
         results.add(
                 Pair.of(
                         XGroupCreate,

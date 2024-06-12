@@ -319,8 +319,8 @@ public interface StreamBaseCommands {
             String key, StreamRange end, StreamRange start, long count);
 
     /**
-     * Create a new consumer group uniquely identified by <code>groupname</code> for the stream stored
-     * at <code>key</code>.
+     * Creates a new consumer group uniquely identified by <code>groupname</code> for the stream
+     * stored at <code>key</code>.
      *
      * @see <a href="https://valkey.io/commands/xgroup-create/">valkey.io</a> for details.
      * @param key The key of the stream.
@@ -332,14 +332,14 @@ public interface StreamBaseCommands {
      * @example
      *     <pre>{@code
      * // Create the consumer group "mygroup", using zero as the starting ID:
-     * assert client.xgroupCreate("mystream", "mygroup", "0-0").get() == "OK";
+     * assert client.xgroupCreate("mystream", "mygroup", "0-0").get().equals("OK");
      * }</pre>
      */
     CompletableFuture<String> xgroupCreate(String key, String groupname, String id);
 
     /**
-     * Create a new consumer group uniquely identified by <code>groupname</code> for the stream stored
-     * at <code>key</code>.
+     * Creates a new consumer group uniquely identified by <code>groupname</code> for the stream
+     * stored at <code>key</code>.
      *
      * @see <a href="https://valkey.io/commands/xgroup-create/">valkey.io</a> for details.
      * @param key The key of the stream.
@@ -352,7 +352,7 @@ public interface StreamBaseCommands {
      * @example
      *     <pre>{@code
      * // Create the consumer group "mygroup", and the stream if it does not exist, after the last ID
-     * assert client.xgroupCreate("mystream", "mygroup", "$", StreamGroupOptions.builder().makeStream(true).build()).get() == "OK";
+     * assert client.xgroupCreate("mystream", "mygroup", "$", new StreamGroupOptions(true)).get().equals("OK");
      * }</pre>
      */
     CompletableFuture<String> xgroupCreate(
@@ -368,7 +368,7 @@ public interface StreamBaseCommands {
      * @example
      *     <pre>{@code
      * // Destroys the consumer group "mygroup"
-     * assert client.xgroupDestroy("mystream", "mygroup").get() == "OK";
+     * assert client.xgroupDestroy("mystream", "mygroup").get().equals("OK");
      * }</pre>
      */
     CompletableFuture<Boolean> xgroupDestroy(String key, String groupname);

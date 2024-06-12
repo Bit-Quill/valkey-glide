@@ -3341,11 +3341,7 @@ public class SharedCommandTests {
 
         // Stream with option to create creates stream & Group
         assertEquals(
-                OK,
-                client
-                        .xgroupCreate(
-                                key, groupName, streamId, StreamGroupOptions.builder().makeStream(true).build())
-                        .get());
+                OK, client.xgroupCreate(key, groupName, streamId, new StreamGroupOptions(true)).get());
 
         // ...and again results in BUSYGROUP error, because group names must be unique
         executionException =
@@ -3361,7 +3357,7 @@ public class SharedCommandTests {
         assertEquals(false, client.xgroupDestroy(key, groupName).get());
 
         // ENTRIESREAD option was added in redis 7.0.0
-        StreamGroupOptions entriesReadOption = StreamGroupOptions.builder().entriesRead("10").build();
+        StreamGroupOptions entriesReadOption = new StreamGroupOptions("10");
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
             assertEquals(OK, client.xgroupCreate(key, groupName, streamId, entriesReadOption).get());
         } else {
@@ -3379,11 +3375,7 @@ public class SharedCommandTests {
                         ExecutionException.class,
                         () ->
                                 client
-                                        .xgroupCreate(
-                                                stringKey,
-                                                groupName,
-                                                streamId,
-                                                StreamGroupOptions.builder().makeStream(true).build())
+                                        .xgroupCreate(stringKey, groupName, streamId, new StreamGroupOptions(true))
                                         .get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 

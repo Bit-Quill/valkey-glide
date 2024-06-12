@@ -2853,8 +2853,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Create a new consumer group uniquely identified by <code>groupname</code> for the stream stored
-     * at <code>key</code>.
+     * Creates a new consumer group uniquely identified by <code>groupname</code> for the stream
+     * stored at <code>key</code>.
      *
      * @see <a href="https://valkey.io/commands/xgroup-create/">valkey.io</a> for details.
      * @param key The key of the stream.
@@ -2870,8 +2870,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Create a new consumer group uniquely identified by <code>groupname</code> for the stream stored
-     * at <code>key</code>.
+     * Creates a new consumer group uniquely identified by <code>groupname</code> for the stream
+     * stored at <code>key</code>.
      *
      * @see <a href="https://valkey.io/commands/xgroup-create/">valkey.io</a> for details.
      * @param key The key of the stream.
