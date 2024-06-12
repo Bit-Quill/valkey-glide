@@ -177,6 +177,7 @@ pub enum RequestType {
     Move = 174,
     SInterCard = 175,
     Sort = 176,
+    SortReadOnly = 177,
 }
 
 fn get_two_word_command(first: &str, second: &str) -> Cmd {
@@ -357,6 +358,7 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::Move => RequestType::Move,
             ProtobufRequestType::SInterCard => RequestType::SInterCard,
             ProtobufRequestType::Sort => RequestType::Sort,
+            ProtobufRequestType::SortReadOnly => RequestType::SortReadOnly,
         }
     }
 }
@@ -533,6 +535,7 @@ impl RequestType {
             RequestType::Move => Some(cmd("MOVE")),
             RequestType::SInterCard => Some(cmd("SINTERCARD")),
             RequestType::Sort => Some(cmd("SORT")),
+            RequestType::SortReadOnly => Some(cmd("SORT_RO")),
         }
     }
 }

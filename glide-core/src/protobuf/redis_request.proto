@@ -207,6 +207,7 @@ enum RequestType {
     Move = 174;
     SInterCard = 175;
     Sort = 176;
+    SortReadOnly = 177;
 }
 
 message Command {

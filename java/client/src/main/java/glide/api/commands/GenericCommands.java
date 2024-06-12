@@ -4,7 +4,6 @@ package glide.api.commands;
 import glide.api.models.Transaction;
 import glide.api.models.commands.SortOptions;
 import glide.api.models.commands.SortStandaloneOptions;
-
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -76,5 +75,22 @@ public interface GenericCommands {
      */
     CompletableFuture<Boolean> move(String key, long dbIndex);
 
-    CompletableFuture<String[]> sort(String key, SortOptions sortOptions, SortStandaloneOptions sortStandaloneOptions);
+    CompletableFuture<String[]> sort(String key, SortStandaloneOptions sortStandaloneOptions);
+
+    CompletableFuture<String[]> sort(
+            String key, SortOptions sortOptions, SortStandaloneOptions sortStandaloneOptions);
+
+    CompletableFuture<String[]> sortReadOnly(String key, SortStandaloneOptions sortStandaloneOptions);
+
+    CompletableFuture<String[]> sortReadOnly(
+            String key, SortOptions sortOptions, SortStandaloneOptions sortStandaloneOptions);
+
+    CompletableFuture<Long> sortWithStore(
+            String key,
+            String destination,
+            SortOptions sortOptions,
+            SortStandaloneOptions sortStandaloneOptions);
+
+    CompletableFuture<Long> sortWithStore(
+            String key, String destination, SortStandaloneOptions sortStandaloneOptions);
 }

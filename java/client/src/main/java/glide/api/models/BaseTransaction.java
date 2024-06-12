@@ -4073,8 +4073,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
-    public T sort(
-        @NonNull String key) {
+    public T sort(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
         protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
         return getThis();

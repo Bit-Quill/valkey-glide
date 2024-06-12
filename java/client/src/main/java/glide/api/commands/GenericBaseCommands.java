@@ -5,8 +5,6 @@ import glide.api.models.Script;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SortOptions;
-import glide.api.models.commands.SortStandaloneOptions;
-
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -547,5 +545,14 @@ public interface GenericBaseCommands {
     CompletableFuture<Long> touch(String[] keys);
 
     CompletableFuture<String[]> sort(String key);
+
     CompletableFuture<String[]> sort(String key, SortOptions sortOptions);
+
+    CompletableFuture<String[]> sortReadOnly(String key);
+
+    CompletableFuture<String[]> sortReadOnly(String key, SortOptions sortOptions);
+
+    CompletableFuture<Long> sortWithStore(String key, String destination);
+
+    CompletableFuture<Long> sortWithStore(String key, String destination, SortOptions sortOptions);
 }

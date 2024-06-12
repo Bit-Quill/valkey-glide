@@ -1,16 +1,16 @@
+/** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @SuperBuilder
 public final class SortOptions {
     public static final String LIMIT_COMMAND_STRING = "LIMIT";
     public static final String ALPHA_COMMAND_STRING = "ALPHA";
+    public static final String STORE_COMMAND_STRING = "STORE";
     private final Limit limit;
     private final Order order;
     private final boolean alpha;
@@ -33,7 +33,11 @@ public final class SortOptions {
         List<String> optionArgs = new ArrayList<>();
 
         if (limit != null) {
-            optionArgs.addAll(List.of(LIMIT_COMMAND_STRING, Long.toString(this.limit.offset), Long.toString(this.limit.count)));
+            optionArgs.addAll(
+                    List.of(
+                            LIMIT_COMMAND_STRING,
+                            Long.toString(this.limit.offset),
+                            Long.toString(this.limit.count)));
         }
 
         if (order != null) {

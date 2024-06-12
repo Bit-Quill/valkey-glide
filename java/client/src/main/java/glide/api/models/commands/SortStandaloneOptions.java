@@ -1,12 +1,9 @@
+/** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands;
 
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.SuperBuilder;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
 public class SortStandaloneOptions {
@@ -23,7 +20,7 @@ public class SortStandaloneOptions {
         }
 
         if (getPatterns != null) {
-            for (int i = 0; i < getPatterns.length; i ++) {
+            for (int i = 0; i < getPatterns.length; i++) {
                 optionArgs.addAll(List.of(GET_COMMAND_STRING, getPatterns[i]));
             }
         }
@@ -31,5 +28,3 @@ public class SortStandaloneOptions {
         return optionArgs.toArray(new String[0]);
     }
 }
-
-
