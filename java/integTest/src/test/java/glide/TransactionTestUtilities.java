@@ -227,8 +227,8 @@ public class TransactionTestUtilities {
                     .set(stringKey8, "wxyz")
                     .lcs(stringKey6, stringKey7)
                     .lcs(stringKey6, stringKey8)
-                    .lcsLEN(stringKey6, stringKey7)
-                    .lcsLEN(stringKey6, stringKey8);
+                    .lcsLen(stringKey6, stringKey7)
+                    .lcsLen(stringKey6, stringKey8);
         }
 
         var expectedResults =

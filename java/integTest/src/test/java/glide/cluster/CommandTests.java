@@ -751,7 +751,7 @@ public class CommandTests {
                         "xread", null, clusterClient.xread(Map.of("abc", "stream1", "zxy", "stream2"))),
                 Arguments.of("copy", "6.2.0", clusterClient.copy("abc", "def", true)),
                 Arguments.of("lcs", "7.0.0", clusterClient.lcs("abc", "def")),
-                Arguments.of("lcsLEN", "7.0.0", clusterClient.lcsLEN("abc", "def")));
+                Arguments.of("lcsLEN", "7.0.0", clusterClient.lcsLen("abc", "def")));
     }
 
     @SneakyThrows

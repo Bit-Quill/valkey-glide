@@ -352,14 +352,13 @@ public interface StringBaseCommands {
      * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
      * @param key1 The key that stores the first string.
      * @param key2 The key that stores the second string.
-     * @param len Indicates if the
      * @return The length of the longest common subsequence between the 2 strings.
      * @example
      *     <pre>{@code
-     * client.set("testKey1", "abcd");
-     * client.set("testKey2", "axcd");
-     * assertEquals(3L, client.lcs("testKey1", "testKey2", new LCSOptions(true).get());
+     * // testKey1 = abcd, testKey2 = axcd
+     * String result = client.lcs("testKey1", "testKey2").get();
+     * assert result.equals("acd");
      * }</pre>
      */
-    CompletableFuture<Long> lcsLEN(String key1, String key2);
+    CompletableFuture<Long> lcsLen(String key1, String key2);
 }

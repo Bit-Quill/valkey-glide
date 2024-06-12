@@ -5176,7 +5176,7 @@ public class SharedCommandTests {
         String nonStringKey = "{key}-4" + UUID.randomUUID();
 
         // keys does not exist or is empty
-        assertEquals(0, client.lcsLEN(key1, key2).get());
+        assertEquals(0, client.lcsLen(key1, key2).get());
 
         // setting string values
         client.set(key1, "abcd");
@@ -5184,8 +5184,8 @@ public class SharedCommandTests {
         client.set(key3, "wxyz");
 
         // getting the lcs
-        assertEquals(0, client.lcsLEN(key1, key3).get());
-        assertEquals(3, client.lcsLEN(key1, key2).get());
+        assertEquals(0, client.lcsLen(key1, key3).get());
+        assertEquals(3, client.lcsLen(key1, key2).get());
 
         // non set keys are used
         client.sadd(nonStringKey, new String[] {"setmember"}).get();

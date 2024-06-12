@@ -973,7 +973,7 @@ public class TransactionTests {
         transaction.lcs("key1", "key2");
         results.add(Pair.of(LCS, buildArgs("key1", "key2")));
 
-        transaction.lcsLEN("key1", "key2");
+        transaction.lcsLen("key1", "key2");
         results.add(Pair.of(LCS, buildArgs("key1", "key2", "LEN")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();

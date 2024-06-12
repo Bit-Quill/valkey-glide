@@ -4303,7 +4303,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key2 The key that stores the second string.
      * @return Command Response - The length of the longest common subsequence between the 2 strings.
      */
-    public T lcsLEN(@NonNull String key1, @NonNull String key2) {
+    public T lcsLen(@NonNull String key1, @NonNull String key2) {
         ArgsArray args = buildArgs(key1, key2, LEN_REDIS_API);
         protobufTransaction.addCommands(buildCommand(LCS, args));
         return getThis();

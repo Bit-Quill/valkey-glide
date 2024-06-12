@@ -5986,7 +5986,7 @@ public class RedisClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Long> response = service.lcsLEN(key1, key2);
+        CompletableFuture<Long> response = service.lcsLen(key1, key2);
         Long payload = response.get();
 
         // verify

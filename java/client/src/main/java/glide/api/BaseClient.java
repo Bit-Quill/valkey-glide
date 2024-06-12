@@ -1795,7 +1795,7 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> lcsLEN(@NonNull String key1, @NonNull String key2) {
+    public CompletableFuture<Long> lcsLen(@NonNull String key1, @NonNull String key2) {
         String[] arguments = new String[] {key1, key2, LEN_REDIS_API};
         return commandManager.submitNewCommand(LCS, arguments, this::handleLongResponse);
     }
