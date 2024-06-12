@@ -103,8 +103,7 @@ public interface ScriptingAndFunctionsClusterCommands {
 
     /**
      * Kills a function that is currently executing.<br>
-     * <code>FUNCTION KILL</code> terminates read-only functions only.<br>
-     * The command will be routed to all primary nodes.
+     * <code>FUNCTION KILL</code> terminates read-only functions only.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-kill/">redis.io</a> for details.

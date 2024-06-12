@@ -474,14 +474,12 @@ public class CommandTests {
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("unkillable"));
 
+                assertEquals(OK, promise.get());
+
                 exception =
                         assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
-
-                exception = assertThrows(ExecutionException.class, promise::get);
-                assertInstanceOf(RequestException.class, exception.getCause());
-                assertTrue(exception.getMessage().contains("Script killed by user"));
             }
         } finally {
             // If function wasn't killed, and it didn't time out - it blocks the server and cause rest
@@ -489,7 +487,7 @@ public class CommandTests {
             try {
                 regularClient.functionKill().get();
                 // should throw `notbusy` error, because the function should be killed before
-                error += "Function should be killed before.";
+                error += "Function should finish prior to the test end.";
             } catch (Exception ignored) {
             }
         }
