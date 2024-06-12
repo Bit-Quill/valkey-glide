@@ -3,11 +3,16 @@ package glide.cluster;
 
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestUtilities.assertDeepEquals;
+import static glide.TestUtilities.commonClusterClientConfig;
+import static glide.TestUtilities.createLuaLibWithLongRunningFunction;
 import static glide.api.BaseClient.OK;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleSingleNodeRoute.RANDOM;
+import static glide.api.models.configuration.RequestRoutingConfiguration.SlotType.PRIMARY;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -19,11 +24,14 @@ import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.SingleNodeRoute;
 import glide.api.models.configuration.RequestRoutingConfiguration.SlotIdRoute;
+import glide.api.models.configuration.RequestRoutingConfiguration.SlotKeyRoute;
 import glide.api.models.configuration.RequestRoutingConfiguration.SlotType;
+import glide.api.models.exceptions.RequestException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -175,5 +183,85 @@ public class ClusterTransactionTests {
         assertEquals(3L, result[0]);
         assertArrayEquals(new Object[] {0L, 1.0}, (Object[]) result[1]);
         assertArrayEquals(new Object[] {2L, 1.0}, (Object[]) result[2]);
+    }
+
+    @Test
+    @SneakyThrows
+    public void functionStats_and_functionKill_with_key_based_route() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+
+        String libName = "functionStats_and_functionKill_with_key_based_route_cluster_transaction";
+        String funcName = "deadlock_with_key_based_route_cluster_transaction";
+        String key = libName;
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15, true);
+        SingleNodeRoute route = new SlotKeyRoute(key, PRIMARY);
+        String error = "";
+        ClusterTransaction transaction = new ClusterTransaction().functionKill();
+
+        try {
+            // nothing to kill
+            var exception =
+                    assertThrows(
+                            ExecutionException.class, () -> clusterClient.exec(transaction, route).get());
+            assertInstanceOf(RequestException.class, exception.getCause());
+            assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+            // load the lib
+            assertEquals(libName, clusterClient.functionLoadReplace(code, route).get());
+
+            try (var testClient =
+                    RedisClusterClient.CreateClient(commonClusterClientConfig().requestTimeout(7000).build())
+                            .get()) {
+                // call the function without await
+                // TODO use FCALL
+                var promise = testClient.customCommand(new String[] {"FCALL", funcName, "1", key});
+
+                int timeout = 5200; // ms
+                while (timeout > 0) {
+                    var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}, route).get();
+                    var response = stats.getSingleValue();
+                    if (((Map<String, Object>) response).get("running_script") != null) {
+                        break;
+                    }
+                    Thread.sleep(100);
+                    timeout -= 100;
+                }
+                if (timeout == 0) {
+                    error += "Can't find a running function.";
+                }
+
+                // redis kills a function with 5 sec delay
+                assertArrayEquals(new Object[] {OK}, clusterClient.exec(transaction, route).get());
+
+                exception =
+                        assertThrows(
+                                ExecutionException.class, () -> clusterClient.exec(transaction, route).get());
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
+
+                exception = assertThrows(ExecutionException.class, promise::get);
+                assertInstanceOf(RequestException.class, exception.getCause());
+                assertTrue(exception.getMessage().contains("Script killed by user"));
+            }
+        } finally {
+            // If function wasn't killed, and it didn't time out - it blocks the server and cause rest
+            // test to fail.
+            try {
+                clusterClient.functionKill(route).get();
+                // should throw `notbusy` error, because the function should be killed before
+                error += "Function should be killed before.";
+            } catch (Exception ignored) {
+            }
+        }
+
+        // TODO replace with FUNCTION DELETE
+        assertEquals(
+                OK,
+                clusterClient
+                        .customCommand(new String[] {"FUNCTION", "DELETE", libName}, route)
+                        .get()
+                        .getSingleValue());
+
+        assertTrue(error.isEmpty(), "Something went wrong during the test");
     }
 }

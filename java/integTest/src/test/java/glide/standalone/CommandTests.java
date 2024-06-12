@@ -435,7 +435,7 @@ public class CommandTests {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
         String libName = "functionStats_and_functionKill_write_function";
-        String funcName = "deadlock";
+        String funcName = "deadlock_write_function";
         String code = createLuaLibWithLongRunningFunction(libName, funcName, 6, false);
         String error = "";
 

@@ -809,8 +809,8 @@ public class CommandTests {
     public void functionStats_and_functionKill_without_route() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
-        String libName = "functionStats_and_functionKill";
-        String funcName = "deadlock";
+        String libName = "functionStats_and_functionKill_without_route";
+        String funcName = "deadlock_without_route";
         String code = createLuaLibWithLongRunningFunction(libName, funcName, 15, true);
         String error = "";
 

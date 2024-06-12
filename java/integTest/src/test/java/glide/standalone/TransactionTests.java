@@ -15,13 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import glide.TestConfiguration;
 import glide.TransactionTestUtilities.TransactionBuilder;
 import glide.api.RedisClient;
 import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
-import glide.api.models.configuration.NodeAddress;
-import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.exceptions.RequestException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -44,13 +41,7 @@ public class TransactionTests {
     @BeforeAll
     @SneakyThrows
     public static void init() {
-        client =
-                RedisClient.CreateClient(
-                                RedisClientConfiguration.builder()
-                                        .address(
-                                                NodeAddress.builder().port(TestConfiguration.STANDALONE_PORTS[0]).build())
-                                        .build())
-                        .get();
+        client = RedisClient.CreateClient(commonClientConfig().requestTimeout(7000).build()).get();
     }
 
     @AfterAll
@@ -227,8 +218,8 @@ public class TransactionTests {
     public void functionKill() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
-        String libName = "functionStats_and_functionKill";
-        String funcName = "deadlock";
+        String libName = "functionStats_and_functionKill_transaction";
+        String funcName = "deadlock_transaction";
         String code = createLuaLibWithLongRunningFunction(libName, funcName, 15, true);
         String error = "";
         Transaction transaction = new Transaction().functionKill();
@@ -276,7 +267,7 @@ public class TransactionTests {
             // If function wasn't killed, and it didn't time out - it blocks the server and cause rest
             // test to fail.
             try {
-                client.exec(transaction).get();
+                client.functionKill().get();
                 // should throw `notbusy` error, because the function should be killed before
                 error += "Function should be killed before.";
             } catch (Exception ignored) {
