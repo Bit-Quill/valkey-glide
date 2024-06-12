@@ -1063,7 +1063,7 @@ public class CommandTests {
         String libName = "functionStats_and_functionKill_write_function";
         String funcName = "deadlock_write_function_with_key_based_route";
         String key = libName;
-        String code = createLuaLibWithLongRunningFunction(libName, funcName, 15, false);
+        String code = createLuaLibWithLongRunningFunction(libName, funcName, 6, false);
         Route route = new SlotKeyRoute(key, PRIMARY);
         String error = "";
 
@@ -1104,7 +1104,7 @@ public class CommandTests {
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("unkillable"));
 
-                assertEquals(OK, promise.get().getSingleValue());
+                assertEquals("Timed out 6 sec", promise.get().getSingleValue());
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());

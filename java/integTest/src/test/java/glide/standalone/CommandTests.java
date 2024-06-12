@@ -474,7 +474,7 @@ public class CommandTests {
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("unkillable"));
 
-                assertEquals(OK, promise.get());
+                assertEquals("Timed out 6 sec", promise.get());
 
                 exception =
                         assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
