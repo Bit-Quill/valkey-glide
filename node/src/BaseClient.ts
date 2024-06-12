@@ -2286,9 +2286,7 @@ export class BaseClient {
      * console.log(numEntries); // Output: 2 - "my_stream" contains 2 entries.
      * ```
      */
-    public xlen(
-        key: string,
-    ): Promise<number> {
+    public xlen(key: string): Promise<number> {
         return this.createWritePromise(createXLen(key));
     }
 
