@@ -58,12 +58,13 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-// @Timeout(10) // seconds
+@Timeout(10) // seconds
 public class CommandTests {
 
     private static RedisClusterClient clusterClient = null;
@@ -808,12 +809,10 @@ public class CommandTests {
     public void functionStats_and_functionKill_without_route() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
-        clusterClient.set("============= no route == start", " ").get();
-        clusterClient.customCommand(new String[] {"CLUSTER", "NODES"}, ALL_NODES).get();
-
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
         String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
+        String error = "";
 
         try {
             // nothing to kill
@@ -830,8 +829,6 @@ public class CommandTests {
                             .get()) {
                 // call the function without await
                 // TODO use FCALL
-                var before = System.currentTimeMillis();
-                clusterClient.set("============= no route == before FCALL", " ").get();
                 // Using a random primary node route, otherwise FCALL can go to a replica.
                 // FKILL and FSTATS go to primary nodes if no route given, test fails in such case.
                 Route route = new SlotKeyRoute(UUID.randomUUID().toString(), PRIMARY);
@@ -843,7 +840,6 @@ public class CommandTests {
                     boolean found = false;
                     for (var response : stats.getMultiValue().values()) {
                         if (((Map<String, Object>) response).get("running_script") != null) {
-                            System.err.println("Found running function!");
                             found = true;
                             break;
                         }
@@ -855,43 +851,28 @@ public class CommandTests {
                     timeout -= 100;
                 }
                 if (timeout == 0) {
-                    System.err.println("Timed out!");
+                    error += "Can't find a running function.";
                 }
 
-                clusterClient.set("============= no route == before KILL", " ");
-                try {
-                    assertEquals(OK, clusterClient.functionKill().get());
-                    System.err.println("KILL OK");
-                } catch (Exception ignored) {
-                    System.err.println("KILL FAILED: " + ignored.getMessage());
-                }
-                Thread.sleep(1404);
-                clusterClient.set("============= no route == after KILL", " ").get();
+                assertEquals(OK, clusterClient.functionKill().get());
+                Thread.sleep(404);
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill().get());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
 
-                clusterClient.set("============= no route == after second KILL", " ").get();
-
-                System.out.println(
-                        "Elapsed time before calling promise.get(): "
-                                + (System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
-                System.out.println(
-                        "Elapsed time after calling promise.get(): "
-                                + (System.currentTimeMillis() - before) / 1000);
-                System.err.println("Script kill error = " + exception.getMessage());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().contains("Script killed by user"));
             }
         } finally {
+            // If function wasn't killed, and it didn't time out - it blocks the server and cause rest
+            // test to fail.
             try {
-                clusterClient.set("============= no route == before last KILL", " ").get();
                 clusterClient.functionKill().get();
-                System.err.println("LAST KILL");
-                clusterClient.set("============= no route == after last KILL", " ").get();
+                // should throw `notbusy` error, because the function should be killed before
+                error += "Function should be killed before.";
             } catch (Exception ignored) {
             }
         }
@@ -903,6 +884,8 @@ public class CommandTests {
                         .customCommand(new String[] {"FUNCTION", "DELETE", libName})
                         .get()
                         .getSingleValue());
+
+        assertTrue(error.isEmpty(), "Something went wrong during the test");
     }
 
     @ParameterizedTest(name = "single node route = {0}")
@@ -910,15 +893,13 @@ public class CommandTests {
     @SneakyThrows
     public void functionStats_and_functionKill_with_route(boolean singleNodeRoute) {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
-        // Thread.sleep(3333); // TODO DBG
-
-        clusterClient.set("============= " + singleNodeRoute + " == start", " ").get();
 
         String libName = "functionStats_and_functionKill_with_route_" + singleNodeRoute;
         String funcName = "deadlock_with_route_" + singleNodeRoute;
         String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
         Route route =
                 singleNodeRoute ? new SlotKeyRoute(UUID.randomUUID().toString(), PRIMARY) : ALL_PRIMARIES;
+        String error = "";
 
         try {
             // nothing to kill
@@ -935,8 +916,6 @@ public class CommandTests {
                             .get()) {
                 // call the function without await
                 // TODO use FCALL
-                var before = System.currentTimeMillis();
-                clusterClient.set("============= " + singleNodeRoute + " == before FCALL", " ").get();
                 var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"}, route);
 
                 int timeout = 5200; // ms
@@ -945,14 +924,12 @@ public class CommandTests {
                     if (singleNodeRoute) {
                         var response = stats.getSingleValue();
                         if (((Map<String, Object>) response).get("running_script") != null) {
-                            System.err.println("Found running function!");
                             break;
                         }
                     } else {
                         boolean found = false;
                         for (var response : stats.getMultiValue().values()) {
                             if (((Map<String, Object>) response).get("running_script") != null) {
-                                System.err.println("Found running function!");
                                 found = true;
                                 break;
                             }
@@ -965,39 +942,29 @@ public class CommandTests {
                     timeout -= 100;
                 }
                 if (timeout == 0) {
-                    System.err.println("Timed out!");
+                    error += "Can't find a running function.";
                 }
 
                 // redis kills a function with 5 sec delay
-                clusterClient.set("============= " + singleNodeRoute + " == before KILL", " ");
-                try {
-                    assertEquals(OK, clusterClient.functionKill(route).get());
-                    System.err.println("KILL OK");
-                } catch (Exception ignored) {
-                    System.err.println("KILL FAILED: " + ignored.getMessage());
-                }
+                assertEquals(OK, clusterClient.functionKill(route).get());
                 Thread.sleep(404);
-                clusterClient.set("============= " + singleNodeRoute + " == after KILL", " ").get();
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
 
-                clusterClient.set("============= " + singleNodeRoute + " == after second KILL", " ").get();
-
-                System.err.println((System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
-                System.err.println("Script kill error = " + exception.getMessage());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().contains("Script killed by user"));
             }
         } finally {
+            // If function wasn't killed, and it didn't time out - it blocks the server and cause rest
+            // test to fail.
             try {
-                clusterClient.set("============= " + singleNodeRoute + " == before last KILL", " ").get();
                 clusterClient.functionKill(route).get();
-                System.err.println("LAST KILL");
-                clusterClient.set("============= " + singleNodeRoute + " == after last KILL", " ").get();
+                // should throw `notbusy` error, because the function should be killed before
+                error += "Function should be killed before.";
             } catch (Exception ignored) {
             }
         }
@@ -1009,21 +976,21 @@ public class CommandTests {
                         .customCommand(new String[] {"FUNCTION", "DELETE", libName}, route)
                         .get()
                         .getSingleValue());
+
+        assertTrue(error.isEmpty(), "Something went wrong during the test");
     }
 
     @Test
     @SneakyThrows
     public void functionStats_and_functionKill_with_key_based_route() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
-        // Thread.sleep(3333); // TODO DBG
-
-        clusterClient.set("============= with_key_based_route == start", " ").get();
 
         String libName = "functionStats_and_functionKill_with_key_based_route";
         String funcName = "deadlock_with_key_based_route";
         String key = libName;
         String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
         Route route = new SlotKeyRoute(key, PRIMARY);
+        String error = "";
 
         try {
             // nothing to kill
@@ -1040,8 +1007,6 @@ public class CommandTests {
                             .get()) {
                 // call the function without await
                 // TODO use FCALL
-                var before = System.currentTimeMillis();
-                clusterClient.set("============= with_key_based_route == before FCALL", " ").get();
                 var promise = testClient.customCommand(new String[] {"FCALL", funcName, "1", key});
 
                 int timeout = 5200; // ms
@@ -1049,47 +1014,35 @@ public class CommandTests {
                     var stats = clusterClient.customCommand(new String[] {"FUNCTION", "STATS"}, route).get();
                     var response = stats.getSingleValue();
                     if (((Map<String, Object>) response).get("running_script") != null) {
-                        System.err.println("Found running function!");
                         break;
                     }
                     Thread.sleep(100);
                     timeout -= 100;
                 }
                 if (timeout == 0) {
-                    System.err.println("Timed out!");
+                    error += "Can't find a running function.";
                 }
 
                 // redis kills a function with 5 sec delay
-                clusterClient.set("============= with_key_based_route == before KILL", " ");
-                try {
-                    assertEquals(OK, clusterClient.functionKill(route).get());
-                    System.err.println("KILL OK");
-                } catch (Exception ignored) {
-                    System.err.println("KILL FAILED");
-                    throw ignored;
-                }
-                Thread.sleep(1404);
-                clusterClient.set("============= with_key_based_route == after KILL", " ").get();
+                assertEquals(OK, clusterClient.functionKill(route).get());
+                Thread.sleep(404);
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
 
-                clusterClient.set("============= with_key_based_route == after second KILL", " ").get();
-
-                System.err.println((System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
-                System.err.println("Script kill error = " + exception.getMessage());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().contains("Script killed by user"));
             }
         } finally {
+            // If function wasn't killed, and it didn't time out - it blocks the server and cause rest
+            // test to fail.
             try {
-                clusterClient.set("============= with_key_based_route == before last KILL", " ").get();
                 clusterClient.functionKill(route).get();
-                System.err.println("LAST KILL");
-                clusterClient.set("============= with_key_based_route == after last KILL", " ").get();
+                // should throw `notbusy` error, because the function should be killed before
+                error += "Function should be killed before.";
             } catch (Exception ignored) {
             }
         }
@@ -1101,5 +1054,7 @@ public class CommandTests {
                         .customCommand(new String[] {"FUNCTION", "DELETE", libName}, route)
                         .get()
                         .getSingleValue());
+
+        assertTrue(error.isEmpty(), "Something went wrong during the test");
     }
 }

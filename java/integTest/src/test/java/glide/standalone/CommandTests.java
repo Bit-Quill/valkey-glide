@@ -36,8 +36,9 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-// @Timeout(10) // seconds
+@Timeout(10) // seconds
 public class CommandTests {
 
     private static final String INITIAL_VALUE = "VALUE";
@@ -364,11 +365,10 @@ public class CommandTests {
     public void functionStats_and_functionKill() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
-        regularClient.set("============= standalone == start", " ").get();
-
         String libName = "functionStats_and_functionKill";
         String funcName = "deadlock";
         String code = createLuaLibWithLongRunningFunction(libName, funcName, 15);
+        String error = "";
 
         try {
             // nothing to kill
@@ -384,54 +384,41 @@ public class CommandTests {
                     RedisClient.CreateClient(commonClientConfig().requestTimeout(7000).build()).get()) {
                 // call the function without await
                 // TODO use FCALL
-                var before = System.currentTimeMillis();
-                regularClient.set("============= standalone == before FCALL", " ").get();
                 var promise = testClient.customCommand(new String[] {"FCALL", funcName, "0"});
 
                 int timeout = 5200; // ms
                 while (timeout > 0) {
                     var response = regularClient.customCommand(new String[] {"FUNCTION", "STATS"}).get();
                     if (((Map<String, Object>) response).get("running_script") != null) {
-                        System.err.println("Found running function!");
                         break;
                     }
                     Thread.sleep(100);
                     timeout -= 100;
                 }
                 if (timeout == 0) {
-                    System.err.println("Timed out!");
+                    error += "Can't find a running function.";
                 }
 
                 // redis kills a function with 5 sec delay
-                regularClient.set("============= standalone == before KILL", " ");
-                try {
-                    assertEquals(OK, regularClient.functionKill().get());
-                    System.err.println("KILL OK");
-                } catch (Exception ignored) {
-                    System.err.println("KILL FAILED");
-                }
+                assertEquals(OK, regularClient.functionKill().get());
                 Thread.sleep(404);
-                regularClient.set("============= standalone == after KILL", " ").get();
 
                 exception =
                         assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().toLowerCase().contains("notbusy"));
 
-                regularClient.set("============= standalone == after second KILL", " ").get();
-
-                System.out.println((System.currentTimeMillis() - before) / 1000);
                 exception = assertThrows(ExecutionException.class, promise::get);
-                System.err.println("Script kill error = " + exception.getMessage());
                 assertInstanceOf(RequestException.class, exception.getCause());
                 assertTrue(exception.getMessage().contains("Script killed by user"));
             }
         } finally {
+            // If function wasn't killed, and it didn't time out - it blocks the server and cause rest
+            // test to fail.
             try {
-                regularClient.set("============= standalone == before last KILL", " ").get();
                 regularClient.functionKill().get();
-                System.err.println("LAST KILL");
-                regularClient.set("============= standalone == after last KILL", " ").get();
+                // should throw `notbusy` error, because the function should be killed before
+                error += "Function should be killed before.";
             } catch (Exception ignored) {
             }
         }
@@ -439,5 +426,7 @@ public class CommandTests {
         // TODO replace with FUNCTION DELETE
         assertEquals(
                 OK, regularClient.customCommand(new String[] {"FUNCTION", "DELETE", libName}).get());
+
+        assertTrue(error.isEmpty(), "Something went wrong during the test");
     }
 }
