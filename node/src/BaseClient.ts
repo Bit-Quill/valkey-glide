@@ -100,6 +100,7 @@ import {
     createZScore,
     createSUnionStore,
     createXLen,
+    createObjectIdletime,
 } from "./Commands";
 import {
     ClosingError,
@@ -2548,6 +2549,24 @@ export class BaseClient {
      */
     public object_freq(key: string): Promise<number | null> {
         return this.createWritePromise(createObjectFreq(key));
+    }
+
+    /**
+     * Returns the time in seconds since the last access to the value stored at `key`.
+     *
+     * See https://valkey.io/commands/object-idletime/ for more details.
+     *
+     * @param key - The key of the object to get the idle time of.
+     * @returns If `key` exists, returns the idle time in seconds. Otherwise, returns `null`.
+     *
+     * @example
+     * ```typescript
+     * const result = await client.objectIdletime("my_hash");
+     * console.log(result); // Output: 13 - "my_hash" was last accessed 13 seconds ago.
+     * ```
+     */
+    public objectIdletime(key: string): Promise<number | null> {
+        return this.createWritePromise(createObjectIdletime(key));
     }
 
     /**

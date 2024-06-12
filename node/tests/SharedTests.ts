@@ -3211,6 +3211,51 @@ export function runBaseTests<Context>(config: {
         },
         config.timeout,
     );
+
+    it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
+        "object idletime test_%p",
+        async (protocol) => {
+            await runTest(async (client: BaseClient) => {
+                const key = uuidv4();
+                const nonExistingKey = uuidv4();
+                const maxmemoryPolicyKey = "maxmemory-policy";
+                const config = await client.configGet([maxmemoryPolicyKey]);
+                const maxmemoryPolicy = String(config[maxmemoryPolicyKey]);
+
+                try {
+                    expect(
+                        await client.configSet({
+                            // OBJECT IDLETIME requires a non-LFU maxmemory-policy
+                            [maxmemoryPolicyKey]: "allkeys-random",
+                        }),
+                    ).toEqual("OK");
+                    expect(await client.objectIdletime(nonExistingKey)).toEqual(
+                        null,
+                    );
+                    expect(await client.set(key, "foobar")).toEqual("OK");
+
+                    await wait(2);
+
+                    expect(
+                        await client.objectIdletime(key),
+                    ).toBeGreaterThanOrEqual(0);
+                } finally {
+                    expect(
+                        await client.configSet({
+                            [maxmemoryPolicyKey]: maxmemoryPolicy,
+                        }),
+                    ).toEqual("OK");
+                }
+            }, protocol);
+        },
+        config.timeout,
+    );
+
+    function wait(numSeconds: number) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, numSeconds);
+        });
+    }
 }
 
 export function runCommonTests<Context>(config: {

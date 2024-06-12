@@ -105,6 +105,7 @@ import {
     createZScore,
     createSUnionStore,
     createXLen,
+    createObjectIdletime,
 } from "./Commands";
 import { redis_request } from "./ProtobufMessage";
 
@@ -1474,6 +1475,19 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public object_freq(key: string): T {
         return this.addAndReturn(createObjectFreq(key));
+    }
+
+    /**
+     * Returns the time in seconds since the last access to the value stored at `key`.
+     *
+     * See https://valkey.io/commands/object-idletime/ for more details.
+     *
+     * @param key - The key of the object to get the idle time of.
+     *
+     * Command Response - If `key` exists, returns the idle time in seconds. Otherwise, returns `null`.
+     */
+    public objectIdletime(key: string): T {
+        return this.addAndReturn(createObjectIdletime(key));
     }
 }
 
