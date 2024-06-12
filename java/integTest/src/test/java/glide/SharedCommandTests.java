@@ -1014,7 +1014,7 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
-    public void lpos_with_options(BaseClient client) {
+    public void lpos(BaseClient client) {
         String key = "{ListKey}-1-" + UUID.randomUUID();
         String[] valueArray = new String[] {"a", "a", "b", "c", "a", "b"};
         assertEquals(6L, client.rpush(key, valueArray).get());
@@ -1023,10 +1023,7 @@ public class SharedCommandTests {
         assertEquals(0L, client.lpos(key, "a").get());
         assertEquals(5L, client.lpos(key, "b", LPosOptions.builder().rank(2L).build()).get());
 
-        // element not in the list
-        assertArrayEquals(new Long[] {}, client.lposCount(key, "doesn't_exist", 0L).get());
-
-        // no match
+        // element doesn't exist
         assertNull(client.lpos(key, "e").get());
 
         // reverse traversal
@@ -1052,6 +1049,18 @@ public class SharedCommandTests {
                         ExecutionException.class,
                         () -> client.lpos(key, "a", LPosOptions.builder().maxLength(-1L).build()).get());
         assertTrue(lposMaxlenException.getCause() instanceof RequestException);
+
+        // non-existent key
+        assertNull(client.lpos("non-existent_key", "a").get());
+
+        // wrong key data type
+        String wrong_data_type = "key" + UUID.randomUUID();
+        assertEquals(2L, client.sadd(wrong_data_type, new String[]{"a", "b"}).get());
+        ExecutionException lposWrongKeyDataTypeException =
+            assertThrows(
+                ExecutionException.class,
+                () -> client.lpos(wrong_data_type, "a").get());
+        assertTrue(lposWrongKeyDataTypeException.getCause() instanceof RequestException);
     }
 
     @SneakyThrows
@@ -1085,6 +1094,18 @@ public class SharedCommandTests {
         assertArrayEquals(
                 new Long[] {4L, 1L, 0L},
                 client.lposCount(key, "a", 0L, LPosOptions.builder().rank(-1L).build()).get());
+
+        // non-existent key
+        assertArrayEquals(new Long[]{},client.lposCount("non-existent_key", "a", 1L).get());
+
+        // wrong key data type
+        String wrong_data_type = "key" + UUID.randomUUID();
+        assertEquals(2L, client.sadd(wrong_data_type, new String[]{"a", "b"}).get());
+        ExecutionException lposWrongKeyDataTypeException =
+            assertThrows(
+                ExecutionException.class,
+                () -> client.lposCount(wrong_data_type, "a", 1L).get());
+        assertTrue(lposWrongKeyDataTypeException.getCause() instanceof RequestException);
     }
 
     @SneakyThrows
