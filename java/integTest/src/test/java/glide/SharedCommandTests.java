@@ -1055,11 +1055,9 @@ public class SharedCommandTests {
 
         // wrong key data type
         String wrong_data_type = "key" + UUID.randomUUID();
-        assertEquals(2L, client.sadd(wrong_data_type, new String[]{"a", "b"}).get());
+        assertEquals(2L, client.sadd(wrong_data_type, new String[] {"a", "b"}).get());
         ExecutionException lposWrongKeyDataTypeException =
-            assertThrows(
-                ExecutionException.class,
-                () -> client.lpos(wrong_data_type, "a").get());
+                assertThrows(ExecutionException.class, () -> client.lpos(wrong_data_type, "a").get());
         assertTrue(lposWrongKeyDataTypeException.getCause() instanceof RequestException);
     }
 
@@ -1096,15 +1094,14 @@ public class SharedCommandTests {
                 client.lposCount(key, "a", 0L, LPosOptions.builder().rank(-1L).build()).get());
 
         // non-existent key
-        assertArrayEquals(new Long[]{},client.lposCount("non-existent_key", "a", 1L).get());
+        assertArrayEquals(new Long[] {}, client.lposCount("non-existent_key", "a", 1L).get());
 
         // wrong key data type
         String wrong_data_type = "key" + UUID.randomUUID();
-        assertEquals(2L, client.sadd(wrong_data_type, new String[]{"a", "b"}).get());
+        assertEquals(2L, client.sadd(wrong_data_type, new String[] {"a", "b"}).get());
         ExecutionException lposWrongKeyDataTypeException =
-            assertThrows(
-                ExecutionException.class,
-                () -> client.lposCount(wrong_data_type, "a", 1L).get());
+                assertThrows(
+                        ExecutionException.class, () -> client.lposCount(wrong_data_type, "a", 1L).get());
         assertTrue(lposWrongKeyDataTypeException.getCause() instanceof RequestException);
     }
 
