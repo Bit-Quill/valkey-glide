@@ -866,6 +866,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns the index of the first occurrence of <code>element</code> inside the list specified by
      * <code>key</code>. If no match is found, <code>null</code> is returned.
      *
+     * @since Redis 6.0.6 and above.
      * @see <a href="https://redis.io/docs/latest/commands/lpos/">redis.io</a> for details.
      * @param key The name of the list.
      * @param element The value to search for within the list.
@@ -882,6 +883,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns the index of an occurrence of <code>element</code> within a list based on the given by
      * <code>key</code>. If no match is found, <code>null</code> is returned.
      *
+     * @since Redis 6.0.6 and above.
      * @see <a href="https://redis.io/docs/latest/commands/lpos/">redis.io</a> for details.
      * @param key The name of the list.
      * @param element The value to search for within the list.
@@ -899,6 +901,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Returns an <code>array</code> of indices of matching elements within a list.
      *
+     * @since Redis 6.0.6 and above.
      * @see <a href="https://redis.io/docs/latest/commands/lpos/">redis.io</a> for details.
      * @param key The name of the list.
      * @param element The value to search for within the list.
@@ -915,6 +918,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns an <code>array</code> of indices of matching elements within a list based on the given
      * <code>options</code>. If no match is found, an empty <code>array</code>is returned.
      *
+     * @since Redis 6.0.6 and above.
      * @see <a href="https://redis.io/docs/latest/commands/lpos/">redis.io</a> for details.
      * @param key The name of the list.
      * @param element The value to search for within the list.
