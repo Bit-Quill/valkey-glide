@@ -3,9 +3,9 @@ package glide.api.models.commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.experimental.SuperBuilder;
+import lombok.Builder;
 
-@SuperBuilder
+@Builder
 public class SortStandaloneOptions {
     public static final String BY_COMMAND_STRING = "BY";
     public static final String GET_COMMAND_STRING = "GET";

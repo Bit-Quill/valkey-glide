@@ -3,10 +3,10 @@ package glide.api.models.commands;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
-@SuperBuilder
+@Builder
 public final class SortOptions {
     public static final String LIMIT_COMMAND_STRING = "LIMIT";
     public static final String ALPHA_COMMAND_STRING = "ALPHA";
