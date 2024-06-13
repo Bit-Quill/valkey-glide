@@ -1,12 +1,16 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models;
 
+import static glide.api.models.commands.SortOptions.STORE_COMMAND_STRING;
 import static redis_request.RedisRequestOuterClass.RequestType.Move;
 import static redis_request.RedisRequestOuterClass.RequestType.Select;
 import static redis_request.RedisRequestOuterClass.RequestType.Sort;
+import static redis_request.RedisRequestOuterClass.RequestType.SortReadOnly;
 
+import glide.api.models.commands.SortOptions;
 import glide.api.models.commands.SortStandaloneOptions;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
 import redis_request.RedisRequestOuterClass.Command.ArgsArray;
 
@@ -68,9 +72,68 @@ public class Transaction extends BaseTransaction<Transaction> {
         return this;
     }
 
-    public Transaction sort(String key, SortStandaloneOptions sortStandaloneOptions) {
+    public Transaction sort(
+            @NonNull String key, @NonNull SortStandaloneOptions sortStandaloneOptions) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortStandaloneOptions.toArgs(), key));
         protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
+        return this;
+    }
+
+    public Transaction sort(
+            @NonNull String key,
+            @NonNull SortOptions sortOptions,
+            @NonNull SortStandaloneOptions sortStandaloneOptions) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        ArrayUtils.addFirst(
+                                ArrayUtils.addAll(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key));
+        protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
+        return this;
+    }
+
+    public Transaction sortReadOnly(
+            @NonNull String key, @NonNull SortStandaloneOptions sortStandaloneOptions) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortStandaloneOptions.toArgs(), key));
+        protobufTransaction.addCommands(buildCommand(SortReadOnly, commandArgs));
+        return this;
+    }
+
+    public Transaction sortReadOnly(
+            @NonNull String key,
+            @NonNull SortOptions sortOptions,
+            @NonNull SortStandaloneOptions sortStandaloneOptions) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        ArrayUtils.addFirst(
+                                ArrayUtils.addAll(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key));
+        protobufTransaction.addCommands(buildCommand(SortReadOnly, commandArgs));
+        return this;
+    }
+
+    public Transaction sortWithStore(
+            @NonNull String key,
+            @NonNull String destination,
+            @NonNull SortStandaloneOptions sortStandaloneOptions) {
+        String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
+        ArgsArray arguments =
+                buildArgs(
+                        ArrayUtils.addFirst(
+                                ArrayUtils.addAll(storeArguments, sortStandaloneOptions.toArgs()), key));
+        protobufTransaction.addCommands(buildCommand(Sort, arguments));
+        return this;
+    }
+
+    public Transaction sortWithStore(
+            @NonNull String key,
+            @NonNull String destination,
+            @NonNull SortOptions sortOptions,
+            @NonNull SortStandaloneOptions sortStandaloneOptions) {
+        String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
+        String[] optionsArguments =
+                ArrayUtils.addAll(sortOptions.toArgs(), sortStandaloneOptions.toArgs());
+        ArgsArray arguments =
+                buildArgs(ArrayUtils.addFirst(ArrayUtils.addAll(storeArguments, optionsArguments), key));
+        protobufTransaction.addCommands(buildCommand(Sort, arguments));
         return this;
     }
 }

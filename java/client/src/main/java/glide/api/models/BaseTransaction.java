@@ -10,6 +10,7 @@ import static glide.api.commands.SortedSetBaseCommands.LIMIT_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.models.commands.RangeOptions.createZRangeArgs;
+import static glide.api.models.commands.SortOptions.STORE_COMMAND_STRING;
 import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArgs;
 import static glide.api.models.commands.function.FunctionLoadOptions.REPLACE;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
@@ -124,6 +125,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Set;
 import static redis_request.RedisRequestOuterClass.RequestType.SetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.SetRange;
 import static redis_request.RedisRequestOuterClass.RequestType.Sort;
+import static redis_request.RedisRequestOuterClass.RequestType.SortReadOnly;
 import static redis_request.RedisRequestOuterClass.RequestType.Strlen;
 import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
@@ -185,6 +187,7 @@ import glide.api.models.commands.ScoreFilter;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
+import glide.api.models.commands.SortOptions;
 import glide.api.models.commands.WeightAggregateOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
@@ -4075,6 +4078,40 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     public T sort(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
+        protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
+        return getThis();
+    }
+
+    public T sort(@NonNull String key, @NonNull SortOptions sortOptions) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortOptions.toArgs(), key));
+        protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
+        return getThis();
+    }
+
+    public T sortReadOnly(@NonNull String key) {
+        ArgsArray commandArgs = buildArgs(key);
+        protobufTransaction.addCommands(buildCommand(SortReadOnly, commandArgs));
+        return getThis();
+    }
+
+    public T sortReadOnly(@NonNull String key, @NonNull SortOptions sortOptions) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortOptions.toArgs(), key));
+        protobufTransaction.addCommands(buildCommand(SortReadOnly, commandArgs));
+        return getThis();
+    }
+
+    public T sortWithStore(@NonNull String key, @NonNull String destination) {
+        ArgsArray commandArgs = buildArgs(new String[] {key, STORE_COMMAND_STRING, destination});
+        protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
+        return getThis();
+    }
+
+    public T sortWithStore(
+            @NonNull String key, @NonNull String destination, @NonNull SortOptions sortOptions) {
+        String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
+        ArgsArray commandArgs =
+                buildArgs(
+                        ArrayUtils.addFirst(ArrayUtils.addAll(storeArguments, sortOptions.toArgs()), key));
         protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
         return getThis();
     }

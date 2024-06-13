@@ -4,6 +4,10 @@ package glide.api;
 import static glide.api.BaseClient.OK;
 import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
 import static glide.api.models.commands.FlushMode.SYNC;
+import static glide.api.models.commands.SortOptions.ALPHA_COMMAND_STRING;
+import static glide.api.models.commands.SortOptions.LIMIT_COMMAND_STRING;
+import static glide.api.models.commands.SortOptions.Order.DESC;
+import static glide.api.models.commands.SortOptions.STORE_COMMAND_STRING;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_NODES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_PRIMARIES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleSingleNodeRoute.RANDOM;
@@ -28,11 +32,15 @@ import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
 import static redis_request.RedisRequestOuterClass.RequestType.Lolwut;
 import static redis_request.RedisRequestOuterClass.RequestType.Ping;
+import static redis_request.RedisRequestOuterClass.RequestType.Sort;
+import static redis_request.RedisRequestOuterClass.RequestType.SortReadOnly;
 import static redis_request.RedisRequestOuterClass.RequestType.Time;
 
 import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
+import glide.api.models.commands.SortOptions;
+import glide.api.models.commands.SortOptions.Limit;
 import glide.api.models.commands.function.FunctionLoadOptions;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import glide.api.models.configuration.RequestRoutingConfiguration.SingleNodeRoute;
@@ -1168,5 +1176,196 @@ public class RedisClusterClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void sort_returns_success() {
+        // setup
+        String[] result = new String[] {"1", "2", "3"};
+        String key = "key";
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(result);
+
+        // match on protobuf request
+        when(commandManager.<String[]>submitNewCommand(eq(Sort), eq(new String[] {key}), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String[]> response = service.sort(key);
+        String[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(result, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void sort_with_options_returns_success() {
+        // setup
+        String[] result = new String[] {"1", "2", "3"};
+        String key = "key";
+        Long limitOffset = 0L;
+        Long limitCount = 2L;
+        String[] args =
+                new String[] {
+                    key,
+                    LIMIT_COMMAND_STRING,
+                    limitOffset.toString(),
+                    limitCount.toString(),
+                    DESC.toString(),
+                    ALPHA_COMMAND_STRING
+                };
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(result);
+
+        // match on protobuf request
+        when(commandManager.<String[]>submitNewCommand(eq(Sort), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String[]> response =
+                service.sort(
+                        key,
+                        SortOptions.builder()
+                                .alpha(true)
+                                .limit(new Limit(limitOffset, limitCount))
+                                .order(DESC)
+                                .build());
+        String[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(result, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void sortReadOnly_returns_success() {
+        // setup
+        String[] result = new String[] {"1", "2", "3"};
+        String key = "key";
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(result);
+
+        // match on protobuf request
+        when(commandManager.<String[]>submitNewCommand(eq(SortReadOnly), eq(new String[] {key}), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String[]> response = service.sortReadOnly(key);
+        String[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(result, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void sortReadOnly_with_options_returns_success() {
+        // setup
+        String[] result = new String[] {"1", "2", "3"};
+        String key = "key";
+        Long limitOffset = 0L;
+        Long limitCount = 2L;
+        String[] args =
+                new String[] {
+                    key,
+                    LIMIT_COMMAND_STRING,
+                    limitOffset.toString(),
+                    limitCount.toString(),
+                    DESC.toString(),
+                    ALPHA_COMMAND_STRING
+                };
+        CompletableFuture<String[]> testResponse = new CompletableFuture<>();
+        testResponse.complete(result);
+
+        // match on protobuf request
+        when(commandManager.<String[]>submitNewCommand(eq(SortReadOnly), eq(args), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<String[]> response =
+                service.sortReadOnly(
+                        key,
+                        SortOptions.builder()
+                                .alpha(true)
+                                .limit(new Limit(limitOffset, limitCount))
+                                .order(DESC)
+                                .build());
+        String[] payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(result, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void sortWithStore_returns_success() {
+        // setup
+        Long result = 5L;
+        String key = "key";
+        String destKey = "destKey";
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(result);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(
+                        eq(Sort), eq(new String[] {key, STORE_COMMAND_STRING, destKey}), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response = service.sortWithStore(key, destKey);
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(result, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void sortWithStore_with_options_returns_success() {
+        // setup
+        Long result = 5L;
+        String key = "key";
+        String destKey = "destKey";
+        Long limitOffset = 0L;
+        Long limitCount = 2L;
+        String[] args =
+                new String[] {
+                    key,
+                    STORE_COMMAND_STRING,
+                    destKey,
+                    LIMIT_COMMAND_STRING,
+                    limitOffset.toString(),
+                    limitCount.toString(),
+                    DESC.toString(),
+                    ALPHA_COMMAND_STRING
+                };
+        CompletableFuture<Long> testResponse = new CompletableFuture<>();
+        testResponse.complete(result);
+
+        // match on protobuf request
+        when(commandManager.<Long>submitNewCommand(eq(Sort), eq(args), any())).thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Long> response =
+                service.sortWithStore(
+                        key,
+                        destKey,
+                        SortOptions.builder()
+                                .alpha(true)
+                                .limit(new Limit(limitOffset, limitCount))
+                                .order(DESC)
+                                .build());
+        Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(result, payload);
     }
 }
