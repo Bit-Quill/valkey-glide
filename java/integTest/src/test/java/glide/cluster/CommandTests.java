@@ -660,11 +660,21 @@ public class CommandTests {
 
         String key = UUID.randomUUID().toString();
         SingleNodeRoute route = new SlotKeyRoute(key, PRIMARY);
+
+        // add a key, measure DB size, flush DB and measure again - with all arg combinations
         assertEquals(OK, clusterClient.set(key, "foo").get());
         assertEquals(1L, clusterClient.dbsize(route).get());
+        assertEquals(OK, clusterClient.flushdb(ASYNC).get());
+        assertEquals(0L, clusterClient.dbsize().get());
 
-        // flush DB with route and check
+        assertEquals(OK, clusterClient.set(key, "foo").get());
+        assertEquals(1L, clusterClient.dbsize(route).get());
         assertEquals(OK, clusterClient.flushdb(route).get());
+        assertEquals(0L, clusterClient.dbsize(route).get());
+
+        assertEquals(OK, clusterClient.set(key, "foo").get());
+        assertEquals(1L, clusterClient.dbsize(route).get());
+        assertEquals(OK, clusterClient.flushdb(SYNC, route).get());
         assertEquals(0L, clusterClient.dbsize(route).get());
     }
 
