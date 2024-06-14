@@ -2,6 +2,7 @@
 package glide.api.commands;
 
 import glide.api.models.commands.FlushMode;
+import glide.api.models.configuration.ReadFrom;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -129,7 +130,12 @@ public interface ScriptingAndFunctionsCommands {
     CompletableFuture<String> functionDelete(String libName);
 
     /**
-     * Invokes a previously loaded function.
+     * Invokes a previously loaded function.<br>
+     * This command is routed to primary nodes only.<br>
+     * Always routed to a primary node, to route to a replica please refer to {@link #fcallReadOnly}.
+     * <br>
+     * TODO https://github.com/amazon-contributing/redis-rs/pull/150#issuecomment-2158875720 and
+     * https://github.com/aws/glide-for-redis/pull/1528/files#diff-3d2fda4dc5a83776d549c973097be5039ca22a9afc729c2ca460924a8e65d0f5R381
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
@@ -142,4 +148,20 @@ public interface ScriptingAndFunctionsCommands {
      * }</pre>
      */
     CompletableFuture<Object> fcall(String function);
+
+    /**
+     * Invokes a previously loaded function in read-only mode.<br>
+     * This command is routed depending on the client's {@link ReadFrom} strategy.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/fcall_ro/">redis.io</a> for details.
+     * @param function The function name.
+     * @return The invoked function's return value.
+     * @example
+     *     <pre>{@code
+     * Object response = client.fcallReadOnly("Deep_Thought").get();
+     * assert response == 42L;
+     * }</pre>
+     */
+    CompletableFuture<Object> fcallReadOnly(String function);
 }

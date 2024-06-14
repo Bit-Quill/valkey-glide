@@ -756,6 +756,10 @@ public class CommandTests {
                         "7.0.0",
                         clusterClient.fcall("func", new String[] {"abc", "zxy", "lkn"}, new String[0])),
                 Arguments.of(
+                        "fcallReadOnly",
+                        "7.0.0",
+                        clusterClient.fcallReadOnly("func", new String[] {"abc", "zxy", "lkn"}, new String[0])),
+                Arguments.of(
                         "xread", null, clusterClient.xread(Map.of("abc", "stream1", "zxy", "stream2"))),
                 Arguments.of("copy", "6.2.0", clusterClient.copy("abc", "def", true)),
                 Arguments.of("msetnx", null, clusterClient.msetnx(Map.of("abc", "def", "ghi", "jkl"))));
@@ -835,6 +839,14 @@ public class CommandTests {
         assertEquals(libName, clusterClient.functionLoad(code, false, route).get());
 
         var fcallResult = clusterClient.fcall(funcName, new String[] {"one", "two"}, route).get();
+        if (route instanceof SingleNodeRoute) {
+            assertEquals("one", fcallResult.getSingleValue());
+        } else {
+            for (var nodeResponse : fcallResult.getMultiValue().values()) {
+                assertEquals("one", nodeResponse);
+            }
+        }
+        fcallResult = clusterClient.fcallReadOnly(funcName, new String[] {"one", "two"}, route).get();
         if (route instanceof SingleNodeRoute) {
             assertEquals("one", fcallResult.getSingleValue());
         } else {
@@ -947,6 +959,15 @@ public class CommandTests {
                 assertEquals(2L, nodeResponse);
             }
         }
+        fcallResult =
+                clusterClient.fcallReadOnly(newFuncName, new String[] {"one", "two"}, route).get();
+        if (route instanceof SingleNodeRoute) {
+            assertEquals(2L, fcallResult.getSingleValue());
+        } else {
+            for (var nodeResponse : fcallResult.getMultiValue().values()) {
+                assertEquals(2L, nodeResponse);
+            }
+        }
 
         assertEquals(OK, clusterClient.functionFlush(route).get());
     }
@@ -968,6 +989,7 @@ public class CommandTests {
         assertEquals(libName, clusterClient.functionLoad(code, false).get());
 
         assertEquals("one", clusterClient.fcall(funcName, new String[] {"one", "two"}).get());
+        assertEquals("one", clusterClient.fcallReadOnly(funcName, new String[] {"one", "two"}).get());
 
         var flist = clusterClient.functionList(false).get();
         var expectedDescription =
@@ -1028,6 +1050,7 @@ public class CommandTests {
                 flist, libName, expectedDescription, expectedFlags, Optional.of(newCode));
 
         assertEquals(2L, clusterClient.fcall(newFuncName, new String[] {"one", "two"}).get());
+        assertEquals(2L, clusterClient.fcallReadOnly(newFuncName, new String[] {"one", "two"}).get());
 
         assertEquals(OK, clusterClient.functionFlush(ASYNC).get());
     }
@@ -1052,15 +1075,23 @@ public class CommandTests {
         var functionResult =
                 clusterClient.fcall(funcName, new String[] {key + 1, key + 2}, new String[0]).get();
         assertArrayEquals(new Object[] {key + 1, key + 2}, (Object[]) functionResult);
+        functionResult =
+                clusterClient.fcallReadOnly(funcName, new String[] {key + 1, key + 2}, new String[0]).get();
+        assertArrayEquals(new Object[] {key + 1, key + 2}, (Object[]) functionResult);
 
         var transaction =
-                new ClusterTransaction().fcall(funcName, new String[] {key + 1, key + 2}, new String[0]);
+                new ClusterTransaction()
+                        .fcall(funcName, new String[] {key + 1, key + 2}, new String[0])
+                        .fcallReadOnly(funcName, new String[] {key + 1, key + 2}, new String[0]);
 
         // check response from a routed transaction request
         assertDeepEquals(
-                new Object[][] {{key + 1, key + 2}}, clusterClient.exec(transaction, route).get());
+                new Object[][] {{key + 1, key + 2}, {key + 1, key + 2}},
+                clusterClient.exec(transaction, route).get());
         // if no route given, GLIDE should detect it automatically
-        assertDeepEquals(new Object[][] {{key + 1, key + 2}}, clusterClient.exec(transaction).get());
+        assertDeepEquals(
+                new Object[][] {{key + 1, key + 2}, {key + 1, key + 2}},
+                clusterClient.exec(transaction).get());
 
         assertEquals(OK, clusterClient.functionDelete(libName, route).get());
     }
@@ -1086,6 +1117,9 @@ public class CommandTests {
         assertInstanceOf(RequestException.class, executionException.getCause());
         assertTrue(
                 executionException.getMessage().contains("You can't write against a read only replica."));
+
+        // but fcall_ro should work
+        assertEquals(42L, clusterClient.fcallReadOnly(funcName, route).get().getSingleValue());
 
         // create the same function, but with RO flag
         code = generateLuaLibCode(libName, Map.of(funcName, "return 42"), true);

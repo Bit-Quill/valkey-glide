@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
+import glide.api.models.configuration.ReadFrom;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -13,12 +14,17 @@ import java.util.concurrent.CompletableFuture;
 public interface ScriptingAndFunctionsBaseCommands {
 
     /**
-     * Invokes a previously loaded function.
+     * Invokes a previously loaded function.<br>
+     * This command is routed to primary nodes only.<br>
+     * Always routed to a primary node, to route to a replica please refer to {@link #fcallReadOnly}.
+     * <br>
+     * TODO https://github.com/amazon-contributing/redis-rs/pull/150#issuecomment-2158875720 and
+     * https://github.com/aws/glide-for-redis/pull/1528/files#diff-3d2fda4dc5a83776d549c973097be5039ca22a9afc729c2ca460924a8e65d0f5R381
      *
      * @apiNote When in cluster mode
      *     <ul>
      *       <li>all <code>keys</code> must map to the same hash slot.
-     *       <li>if no <code>keys</code> are given, command will be routed to a random node.
+     *       <li>if no <code>keys</code> are given, command will be routed to a random primary node.
      *     </ul>
      *
      * @since Redis 7.0 and above.
@@ -27,7 +33,7 @@ public interface ScriptingAndFunctionsBaseCommands {
      * @param keys An <code>array</code> of keys accessed by the function. To ensure the correct
      *     execution of functions, both in standalone and clustered deployments, all names of keys
      *     that a function accesses must be explicitly provided as <code>keys</code>.
-     * @param arguments An <code>array</code> of <code>function</code> arguments. <code>Arguments
+     * @param arguments An <code>array</code> of <code>function</code> arguments. <code>arguments
      *     </code> should not represent names of keys.
      * @return The invoked function's return value.
      * @example
@@ -38,4 +44,32 @@ public interface ScriptingAndFunctionsBaseCommands {
      * }</pre>
      */
     CompletableFuture<Object> fcall(String function, String[] keys, String[] arguments);
+
+    /**
+     * Invokes a previously loaded function in read-only mode.<br>
+     * This command is routed depending on the client's {@link ReadFrom} strategy.
+     *
+     * @apiNote When in cluster mode
+     *     <ul>
+     *       <li>all <code>keys</code> must map to the same hash slot.
+     *       <li>if no <code>keys</code> are given, command will be routed to a random node.
+     *     </ul>
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/fcall_ro/">redis.io</a> for details.
+     * @param function The function name.
+     * @param keys An <code>array</code> of keys accessed by the function. To ensure the correct
+     *     execution of functions, both in standalone and clustered deployments, all names of keys
+     *     that a function accesses must be explicitly provided as <code>keys</code>.
+     * @param arguments An <code>array</code> of <code>function</code> arguments. <code>arguments
+     *     </code> should not represent names of keys.
+     * @return The invoked function's return value.
+     * @example
+     *     <pre>{@code
+     * String[] args = new String[] { "Answer", "to", "the", "Ultimate", "Question", "of", "Life,", "the", "Universe,", "and", "Everything"};
+     * Object response = client.fcallReadOnly("Deep_Thought", new String[0], args).get();
+     * assert response == 42L;
+     * }</pre>
+     */
+    CompletableFuture<Object> fcallReadOnly(String function, String[] keys, String[] arguments);
 }

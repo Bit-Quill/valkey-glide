@@ -406,6 +406,9 @@ public class CommandTests {
         var functionResult =
                 regularClient.fcall(funcName, new String[0], new String[] {"one", "two"}).get();
         assertEquals("one", functionResult);
+        functionResult =
+                regularClient.fcallReadOnly(funcName, new String[0], new String[] {"one", "two"}).get();
+        assertEquals("one", functionResult);
 
         var flist = regularClient.functionList(false).get();
         var expectedDescription =
@@ -466,6 +469,9 @@ public class CommandTests {
 
         functionResult =
                 regularClient.fcall(newFuncName, new String[0], new String[] {"one", "two"}).get();
+        assertEquals(2L, functionResult);
+        functionResult =
+                regularClient.fcallReadOnly(newFuncName, new String[0], new String[] {"one", "two"}).get();
         assertEquals(2L, functionResult);
 
         assertEquals(OK, regularClient.functionFlush(ASYNC).get());
