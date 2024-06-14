@@ -57,6 +57,7 @@ async def transaction_test(
     key17 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # sort
     key18 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # sort
     key19 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # bitmap
+    key20 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # srandmember
 
     value = datetime.now(timezone.utc).strftime("%m/%d/%Y, %H:%M:%S")
     value2 = get_random_string(5)
@@ -399,6 +400,12 @@ async def transaction_test(
         alpha=True,
     )
     args.append(4)
+    transaction.sadd(key20, ["one"])
+    args.append(1)
+    transaction.srandmember(key20)
+    args.append("one")
+    transaction.srandmember_count(key20, 1)
+    args.append(["one"])
 
     min_version = "7.0.0"
     if not await check_if_server_version_lt(redis_client, min_version):
