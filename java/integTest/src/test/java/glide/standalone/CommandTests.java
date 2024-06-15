@@ -460,7 +460,7 @@ public class CommandTests {
 
         flist = regularClient.functionList(libName, false).get();
         expectedDescription.put(newFuncName, null);
-        expectedFlags.put(newFuncName, Set.of());
+        expectedFlags.put(newFuncName, Set.of("no-writes"));
         checkFunctionListResponse(flist, libName, expectedDescription, expectedFlags, Optional.empty());
 
         flist = regularClient.functionList(libName, true).get();
