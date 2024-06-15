@@ -4133,7 +4133,7 @@ class CoreCommands(Protocol):
             await self._execute_command(RequestType.ObjectRefCount, [key]),
         )
 
-    async def flushall(self, flush_mode: Optional[FlushMode] = None) -> str:
+    async def flushall(self, flush_mode: Optional[FlushMode] = None) -> TOK:
         """
         Delete all the keys of all the existing databases, not just the currently selected one. This command never fails.
 
@@ -4147,13 +4147,13 @@ class CoreCommands(Protocol):
 
         Examples:
              >>> await client.flushall(FlushMode.ASYNC)
-            'OK'  # This command never fails.
+            OK  # This command never fails.
         """
         args = []
         if flush_mode is not None:
             args.append(flush_mode.value)
 
         return cast(
-            str,
+            TOK,
             await self._execute_command(RequestType.FlushAll, args),
         )
