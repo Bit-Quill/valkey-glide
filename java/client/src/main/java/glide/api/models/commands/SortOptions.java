@@ -59,13 +59,13 @@ public final class SortOptions {
     @RequiredArgsConstructor
     public static final class Limit {
         /** The starting position of the range, zero based. */
-        private final Long offset;
+        private final long offset;
 
         /**
          * The maximum number of elements to include in the range. A negative count returns all elements
          * from the offset.
          */
-        private final Long count;
+        private final long count;
     }
 
     /**
