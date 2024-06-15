@@ -303,19 +303,24 @@ public abstract class BaseClient
 
     /**
      * Extracts the value from a <code>GLIDE core</code> response message and either throws an
-     * exception or returns the value as an object of type <code>T</code>. If <code>isNullable</code>,
-     * than also returns <code>null</code>.
+     * exception or returns the value as an object of type <code>T</code>.
      *
      * @param response Redis protobuf message.
      * @param classType Parameter <code>T</code> class type.
-     * @param isNullable Accepts null values in the protobuf message.
+     * @param flags A set of parameters which describes how to handle the response. Could be empty or
+     *     any combination of
+     *     <ul>
+     *       <li>{@link ResponseFlags#ENCODING_UTF8} to return string data as a <code>byte[]</code>
+     *       <li>{@link ResponseFlags#IS_NULLABLE} to accept <code>null</code> values.
+     *     </ul>
+     *
      * @return Response as an object of type <code>T</code> or <code>null</code>.
      * @param <T> The return value type.
      * @throws RedisException On a type mismatch.
      */
     @SuppressWarnings("unchecked")
     protected <T> T handleRedisResponse(
-            Class<T> classType, EnumSet<ResponseFlags> flags, Response response) throws RedisException {
+            Class<T> classType, Set<ResponseFlags> flags, Response response) throws RedisException {
         boolean encodingUtf8 = flags.contains(ResponseFlags.ENCODING_UTF8);
         boolean isNullable = flags.contains(ResponseFlags.IS_NULLABLE);
         Object value =
@@ -349,6 +354,10 @@ public abstract class BaseClient
     protected String handleStringOrNullResponse(Response response) throws RedisException {
         return handleRedisResponse(
                 String.class, EnumSet.of(ResponseFlags.IS_NULLABLE, ResponseFlags.ENCODING_UTF8), response);
+    }
+
+    protected byte[] handleBytesResponse(Response response) throws RedisException {
+        return handleRedisResponse(byte[].class, java.util.Set.of(), response);
     }
 
     protected byte[] handleBytesOrNullResponse(Response response) throws RedisException {
@@ -394,6 +403,14 @@ public abstract class BaseClient
     @SuppressWarnings("unchecked") // raw Map cast to Map<String, V>
     protected <V> Map<String, V> handleMapResponse(Response response) throws RedisException {
         return handleRedisResponse(Map.class, EnumSet.of(ResponseFlags.ENCODING_UTF8), response);
+    }
+
+    /** Get a map and convert {@link Map} keys from <code>byte[]</code> to {@link String}. */
+    @SuppressWarnings("unchecked") // raw Map cast to Map<String, V>
+    protected <V> Map<String, V> handleBinaryMapResponse(Response response) throws RedisException {
+        Map<byte[], V> data = handleRedisResponse(Map.class, java.util.Set.of(), response);
+        return data.entrySet().stream()
+                .collect(Collectors.toMap(e -> new String(e.getKey()), Map.Entry::getValue));
     }
 
     /**

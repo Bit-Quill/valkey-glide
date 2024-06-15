@@ -3,6 +3,7 @@ package glide.api.commands;
 
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.FlushMode;
+import glide.api.models.commands.function.FunctionRestorePolicy;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -257,6 +258,8 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-delete/">redis.io</a> for details.
      * @param libName The library name to delete.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
      * @return <code>OK</code>.
      * @example
      *     <pre>{@code
@@ -265,6 +268,111 @@ public interface ScriptingAndFunctionsClusterCommands {
      * }</pre>
      */
     CompletableFuture<String> functionDelete(String libName, Route route);
+
+    /**
+     * Returns the serialized payload of all loaded libraries.<br>
+     * The command will be routed to all primary nodes.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/function-dump/">redis.io</a> for details.
+     * @return The serialized payload.
+     * @example
+     *     <pre>{@code
+     * ClusterValue<byte[]> data = client.functionDump().get();
+     * // data stores serialized dump from all primary nodes
+     * // it could be saved to restore loaded functions on any Redis instance
+     * }</pre>
+     */
+    CompletableFuture<ClusterValue<byte[]>> functionDump();
+
+    /**
+     * Returns the serialized payload of all loaded libraries.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/function-dump/">redis.io</a> for details.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return The serialized payload.
+     * @example
+     *     <pre>{@code
+     * byte[] data = client.functionDump(RANDOM).get().getSingleValue();
+     * // now data could be saved to restore loaded functions on any Redis instance
+     * }</pre>
+     */
+    CompletableFuture<ClusterValue<byte[]>> functionDump(Route route);
+
+    /**
+     * Restores libraries from the serialized payload.<br>
+     * The command will be routed to all primary nodes.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/function-restore/">redis.io</a> for
+     *     details.
+     * @param payload The serialized data from {@link #functionDump()}.
+     * @return <code>OK</code>.
+     * @example
+     *     <pre>{@code
+     * String response = client.functionRestore(data).get();
+     * assert response.equals("OK");
+     * }</pre>
+     */
+    CompletableFuture<String> functionRestore(byte[] payload);
+
+    /**
+     * Restores libraries from the serialized payload.<br>
+     * The command will be routed to all primary nodes.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/function-restore/">redis.io</a> for
+     *     details.
+     * @param payload The serialized data from {@link #functionDump()}.
+     * @param policy A policy for handling existing libraries.
+     * @return <code>OK</code>.
+     * @example
+     *     <pre>{@code
+     * String response = client.functionRestore(data, FLUSH).get();
+     * assert response.equals("OK");
+     * }</pre>
+     */
+    CompletableFuture<String> functionRestore(byte[] payload, FunctionRestorePolicy policy);
+
+    /**
+     * Restores libraries from the serialized payload.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/function-restore/">redis.io</a> for
+     *     details.
+     * @param payload The serialized data from {@link #functionDump()}.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return <code>OK</code>.
+     * @example
+     *     <pre>{@code
+     * String response = client.functionRestore(data, ALL_PRIMARIES).get();
+     * assert response.equals("OK");
+     * }</pre>
+     */
+    CompletableFuture<String> functionRestore(byte[] payload, Route route);
+
+    /**
+     * Restores libraries from the serialized payload.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://redis.io/docs/latest/commands/function-restore/">redis.io</a> for
+     *     details.
+     * @param payload The serialized data from {@link #functionDump()}.
+     * @param policy A policy for handling existing libraries.
+     * @param route Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by <code>route</code>.
+     * @return <code>OK</code>.
+     * @example
+     *     <pre>{@code
+     * String response = client.functionRestore(data, FLUSH, ALL_PRIMARIES).get();
+     * assert response.equals("OK");
+     * }</pre>
+     */
+    CompletableFuture<String> functionRestore(
+            byte[] payload, FunctionRestorePolicy policy, Route route);
 
     /**
      * Invokes a previously loaded function.<br>

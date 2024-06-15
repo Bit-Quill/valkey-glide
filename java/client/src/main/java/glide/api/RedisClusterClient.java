@@ -21,10 +21,12 @@ import static redis_request.RedisRequestOuterClass.RequestType.Echo;
 import static redis_request.RedisRequestOuterClass.RequestType.FCall;
 import static redis_request.RedisRequestOuterClass.RequestType.FlushAll;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionDelete;
+import static redis_request.RedisRequestOuterClass.RequestType.FunctionDump;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionFlush;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionKill;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionList;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionLoad;
+import static redis_request.RedisRequestOuterClass.RequestType.FunctionRestore;
 import static redis_request.RedisRequestOuterClass.RequestType.FunctionStats;
 import static redis_request.RedisRequestOuterClass.RequestType.Info;
 import static redis_request.RedisRequestOuterClass.RequestType.LastSave;
@@ -40,6 +42,7 @@ import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
+import glide.api.models.commands.function.FunctionRestorePolicy;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import glide.api.models.configuration.RequestRoutingConfiguration.SingleNodeRoute;
@@ -47,6 +50,7 @@ import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -545,6 +549,57 @@ public class RedisClusterClient extends BaseClient
     public CompletableFuture<String> functionDelete(@NonNull String libName, @NonNull Route route) {
         return commandManager.submitNewCommand(
                 FunctionDelete, new String[] {libName}, route, this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<ClusterValue<byte[]>> functionDump() {
+        return commandManager.submitNewCommand(
+                FunctionDump,
+                List.of(),
+                response -> ClusterValue.ofMultiValue(handleBinaryMapResponse(response)));
+    }
+
+    @Override
+    public CompletableFuture<ClusterValue<byte[]>> functionDump(@NonNull Route route) {
+        return commandManager.submitNewCommand(
+                FunctionDump,
+                List.of(),
+                route,
+                response ->
+                        route instanceof SingleNodeRoute
+                                ? ClusterValue.ofSingleValue(handleBytesResponse(response))
+                                : ClusterValue.ofMultiValue(handleBinaryMapResponse(response)));
+    }
+
+    @Override
+    public CompletableFuture<String> functionRestore(byte @NonNull [] payload) {
+        return commandManager.submitNewCommand(
+                FunctionRestore, List.of(payload), this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> functionRestore(
+            byte @NonNull [] payload, @NonNull FunctionRestorePolicy policy) {
+        return commandManager.submitNewCommand(
+                FunctionRestore,
+                List.of(payload, policy.toString().getBytes()),
+                this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> functionRestore(byte @NonNull [] payload, @NonNull Route route) {
+        return commandManager.submitNewCommand(
+                FunctionRestore, List.of(payload), route, this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> functionRestore(
+            byte @NonNull [] payload, @NonNull FunctionRestorePolicy policy, @NonNull Route route) {
+        return commandManager.submitNewCommand(
+                FunctionRestore,
+                List.of(payload, policy.toString().getBytes()),
+                route,
+                this::handleStringResponse);
     }
 
     @Override

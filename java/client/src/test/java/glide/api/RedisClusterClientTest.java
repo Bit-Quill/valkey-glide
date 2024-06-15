@@ -50,10 +50,10 @@ import glide.api.models.configuration.RequestRoutingConfiguration.SingleNodeRout
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import glide.managers.RedisExceptionCheckedFunction;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,7 +151,7 @@ public class RedisClusterClientTest {
 
         @Override
         protected <T> T handleRedisResponse(
-                Class<T> classType, EnumSet<ResponseFlags> flags, Response response) {
+                Class<T> classType, Set<ResponseFlags> flags, Response response) {
             @SuppressWarnings("unchecked")
             T returnValue = (T) object;
             return returnValue;
