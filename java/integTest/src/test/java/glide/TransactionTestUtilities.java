@@ -743,7 +743,7 @@ public class TransactionTestUtilities {
         final String funcName = "myfunc1T";
 
         // function $funcName returns first argument
-        final String code = generateLuaLibCode(libName, Map.of(funcName, "return args[1]"), false);
+        final String code = generateLuaLibCode(libName, Map.of(funcName, "return args[1]"), true);
 
         var expectedFuncData =
                 new HashMap<String, Object>() {
