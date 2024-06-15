@@ -1726,7 +1726,7 @@ public abstract class BaseClient
             @NonNull String key, @NonNull String destination, @NonNull SortOptions sortOptions) {
         String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
         String[] arguments =
-                ArrayUtils.addFirst(ArrayUtils.addAll(storeArguments, sortOptions.toArgs()), key);
+                ArrayUtils.addFirst(concatenateArrays(storeArguments, sortOptions.toArgs()), key);
         return commandManager.submitNewCommand(Sort, arguments, this::handleLongResponse);
     }
 }

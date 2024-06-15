@@ -225,7 +225,7 @@ public class RedisClient extends BaseClient
             @NonNull SortStandaloneOptions sortStandaloneOptions) {
         String[] arguments =
                 ArrayUtils.addFirst(
-                        ArrayUtils.addAll(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
+                    concatenateArrays(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
         return commandManager.submitNewCommand(
                 Sort, arguments, response -> castArray(handleArrayResponse(response), String.class));
     }
@@ -247,7 +247,7 @@ public class RedisClient extends BaseClient
             @NonNull SortStandaloneOptions sortStandaloneOptions) {
         String[] arguments =
                 ArrayUtils.addFirst(
-                        ArrayUtils.addAll(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
+                    concatenateArrays(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
         return commandManager.submitNewCommand(
                 SortReadOnly,
                 arguments,
@@ -261,7 +261,7 @@ public class RedisClient extends BaseClient
             @NonNull SortStandaloneOptions sortStandaloneOptions) {
         String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
         String[] arguments =
-                ArrayUtils.addFirst(ArrayUtils.addAll(storeArguments, sortStandaloneOptions.toArgs()), key);
+                ArrayUtils.addFirst(concatenateArrays(storeArguments, sortStandaloneOptions.toArgs()), key);
         return commandManager.submitNewCommand(Sort, arguments, this::handleLongResponse);
     }
 
@@ -273,7 +273,7 @@ public class RedisClient extends BaseClient
             @NonNull SortStandaloneOptions sortStandaloneOptions) {
         String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
         String[] optionsArguments =
-                ArrayUtils.addAll(sortOptions.toArgs(), sortStandaloneOptions.toArgs());
+                concatenateArrays(sortOptions.toArgs(), sortStandaloneOptions.toArgs());
         String[] arguments =
                 ArrayUtils.addFirst(ArrayUtils.addAll(storeArguments, optionsArguments), key);
         return commandManager.submitNewCommand(Sort, arguments, this::handleLongResponse);

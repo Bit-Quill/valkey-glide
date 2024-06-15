@@ -74,10 +74,8 @@ public final class SortOptions {
      */
     @RequiredArgsConstructor
     public enum OrderBy {
-        ASC("ASC"),
-        DESC("DESC");
-
-        private final String redisApi;
+        ASC,
+        DESC
     }
 
     /**
@@ -104,7 +102,7 @@ public final class SortOptions {
         }
 
         if (orderBy != null) {
-            optionArgs.add(this.orderBy.redisApi);
+            optionArgs.add(this.orderBy.toString());
         }
 
         if (alpha) {
