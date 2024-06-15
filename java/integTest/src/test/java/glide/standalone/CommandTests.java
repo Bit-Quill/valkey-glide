@@ -400,7 +400,7 @@ public class CommandTests {
         String libName = "mylib1c";
         String funcName = "myfunc1c";
         // function $funcName returns first argument
-        String code = generateLuaLibCode(libName, Map.of(funcName, "return args[1]"), false);
+        String code = generateLuaLibCode(libName, Map.of(funcName, "return args[1]"), true);
         assertEquals(libName, regularClient.functionLoad(code, false).get());
 
         var functionResult =
@@ -420,7 +420,7 @@ public class CommandTests {
         var expectedFlags =
                 new HashMap<String, Set<String>>() {
                     {
-                        put(funcName, Set.of());
+                        put(funcName, Set.of("no-writes"));
                     }
                 };
         checkFunctionListResponse(flist, libName, expectedDescription, expectedFlags, Optional.empty());
@@ -443,7 +443,7 @@ public class CommandTests {
         // function $newFuncName returns argument array len
         String newCode =
                 generateLuaLibCode(
-                        libName, Map.of(funcName, "return args[1]", newFuncName, "return #args"), false);
+                        libName, Map.of(funcName, "return args[1]", newFuncName, "return #args"), true);
         assertEquals(libName, regularClient.functionLoad(newCode, true).get());
 
         // load new lib and delete it - first lib remains loaded

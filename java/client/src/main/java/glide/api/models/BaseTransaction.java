@@ -3812,7 +3812,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Invokes a previously loaded function in read-only mode.
+     * Invokes a previously loaded read-only function.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
@@ -3826,7 +3826,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * Invokes a previously loaded function in read-only mode.
+     * Invokes a previously loaded read-only function.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall_ro/">redis.io</a> for details.

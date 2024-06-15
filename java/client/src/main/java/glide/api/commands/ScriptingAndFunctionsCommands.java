@@ -132,10 +132,7 @@ public interface ScriptingAndFunctionsCommands {
     /**
      * Invokes a previously loaded function.<br>
      * This command is routed to primary nodes only.<br>
-     * Always routed to a primary node, to route to a replica please refer to {@link #fcallReadOnly}.
-     * <br>
-     * TODO https://github.com/amazon-contributing/redis-rs/pull/150#issuecomment-2158875720 and
-     * https://github.com/aws/glide-for-redis/pull/1528/files#diff-3d2fda4dc5a83776d549c973097be5039ca22a9afc729c2ca460924a8e65d0f5R381
+     * To route to a replica please refer to {@link #fcallReadOnly}.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
@@ -150,7 +147,7 @@ public interface ScriptingAndFunctionsCommands {
     CompletableFuture<Object> fcall(String function);
 
     /**
-     * Invokes a previously loaded function in read-only mode.<br>
+     * Invokes a previously loaded read-only function.<br>
      * This command is routed depending on the client's {@link ReadFrom} strategy.
      *
      * @since Redis 7.0 and above.

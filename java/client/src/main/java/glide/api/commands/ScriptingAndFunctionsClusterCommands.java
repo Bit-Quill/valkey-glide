@@ -267,10 +267,10 @@ public interface ScriptingAndFunctionsClusterCommands {
      */
     CompletableFuture<String> functionDelete(String libName, Route route);
 
-    // TODO update FCALL docs
     /**
      * Invokes a previously loaded function.<br>
-     * The command will be routed to a random node.
+     * The command will be routed to a primary random node.<br>
+     * To route to a replica please refer to {@link #fcallReadOnly(String)}.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
@@ -305,7 +305,8 @@ public interface ScriptingAndFunctionsClusterCommands {
 
     /**
      * Invokes a previously loaded function.<br>
-     * The command will be routed to a random node.
+     * The command will be routed to a random primary node.<br>
+     * To route to a replica please refer to {@link #fcallReadOnly(String, String[])}.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall/">redis.io</a> for details.
@@ -343,9 +344,8 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<ClusterValue<Object>> fcall(String function, String[] arguments, Route route);
 
     /**
-     * Invokes a previously loaded function in read-only mode.<br>
-     * The command will be routed to a random node depending on the client's {@link ReadFrom}
-     * strategy.
+     * Invokes a previously loaded read-only function.<br>
+     * The command is routed to a random node depending on the client's {@link ReadFrom} strategy.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall_ro/">redis.io</a> for details.
@@ -360,7 +360,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<Object> fcallReadOnly(String function);
 
     /**
-     * Invokes a previously loaded function in read-only mode.
+     * Invokes a previously loaded read-only function.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall_ro/">redis.io</a> for details.
@@ -380,8 +380,7 @@ public interface ScriptingAndFunctionsClusterCommands {
 
     /**
      * Invokes a previously loaded function.<br>
-     * The command will be routed to a random node depending on the client's {@link ReadFrom}
-     * strategy.
+     * The command is routed to a random node depending on the client's {@link ReadFrom} strategy.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall_ro/">redis.io</a> for details.
@@ -399,7 +398,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<Object> fcallReadOnly(String function, String[] arguments);
 
     /**
-     * Invokes a previously loaded function in read-only mode.
+     * Invokes a previously loaded read-only function.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/fcall_ro/">redis.io</a> for details.
