@@ -544,15 +544,136 @@ public interface GenericBaseCommands {
      */
     CompletableFuture<Long> touch(String[] keys);
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
+     * The <code>sort</code> command can be used to sort elements based on different criteria and
+     * apply transformations on sorted elements. To store the result into a new key, see <code>
+     * sort_store</code>.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @return A list of sorted elements.
+     * @example
+     *     <pre>{@code
+     * client.lpush("mylist", new String[] {"3", "1", "2"}).get();
+     * assertArrayEquals(new String[] {"1", "2", "3"}, client.sort("mylist").get()); // List is sorted in ascending order
+     * }</pre>
+     */
     CompletableFuture<String[]> sort(String key);
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
+     * The <code>sort</code> command can be used to sort elements based on different criteria and
+     * apply transformations on sorted elements. To store the result into a new key, see <code>
+     * sort_store</code>.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @param sortOptions The {@link SortOptions}.
+     * @return A list of sorted elements.
+     * @example
+     *     <pre>{@code
+     * client.lpush("mylist", new String[] {"3", "1", "2", "a"}).get();
+     * String[] payload = client.sort(
+     *      "mylist",
+     *      SortOptions.builder()
+     *          .alpha(true)
+     *          .orderBy(DESC)
+     *          .limit(new SortOptions.Limit(0L, 3L))
+     *          .build())
+     *      .get();
+     * assertArrayEquals(new String[] {"a", "3", "2"}, payload); // List is sorted in descending order lexicographically starting
+     * }</pre>
+     */
     CompletableFuture<String[]> sort(String key, SortOptions sortOptions);
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
+     * This command is routed depending on the client's <code>ReadFrom</code> strategy. The <code>
+     * sortReadOnly</code> command can be used to sort elements based on different criteria and apply
+     * transformations on sorted elements.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @return A list of sorted elements.
+     * @example
+     *     <pre>{@code
+     * client.lpush("mylist", new String[] {"3", "1", "2"}).get();
+     * assertArrayEquals(new String[] {"1", "2", "3"}, client.sortReadOnly("mylist").get()); // List is sorted in ascending order
+     * }</pre>
+     */
     CompletableFuture<String[]> sortReadOnly(String key);
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
+     * This command is routed depending on the client's <code>ReadFrom</code> strategy. The <code>
+     * sortReadOnly</code> command can be used to sort elements based on different criteria and apply
+     * transformations on sorted elements.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @param sortOptions The {@link SortOptions}.
+     * @return A list of sorted elements.
+     * @example
+     *     <pre>{@code
+     * client.lpush("mylist", new String[] {"3", "1", "2", "a"}).get();
+     * String[] payload = client.sortReadOnly(
+     *      "mylist",
+     *      SortOptions.builder()
+     *          .alpha(true)
+     *          .orderBy(DESC)
+     *          .limit(new SortOptions.Limit(0L, 3L))
+     *          .build())
+     *      .get();
+     * assertArrayEquals(new String[] {"a", "3", "2"}, payload); // List is sorted in descending order lexicographically starting
+     * }</pre>
+     */
     CompletableFuture<String[]> sortReadOnly(String key, SortOptions sortOptions);
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
+     * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
+     * different criteria, apply transformations on sorted elements, and store the result in a new
+     * key. To get the sort result without storing it into a key, see <code>sort</code>.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @param destination The key where the sorted result will be stored.
+     * @return The number of elements in the sorted key stored at <code>destination</code>.
+     * @example
+     *     <pre>{@code
+     * client.lpush("mylist", new String[] {"3", "1", "2"}).get();
+     * assert client.sortWithStore("mylist", "destination").get() == 3;
+     * assertArrayEquals(
+     *    new String[] {"1", "2", "3"},
+     *    client.lrange("destination", 0, -1).get()); // Sorted list is stored in `destination`
+     * }</pre>
+     */
     CompletableFuture<Long> sortWithStore(String key, String destination);
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
+     * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
+     * different criteria, apply transformations on sorted elements, and store the result in a new
+     * key. To get the sort result without storing it into a key, see <code>sort</code>.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @param destination The key where the sorted result will be stored.
+     * @param sortOptions The {@link SortOptions}.
+     * @return The number of elements in the sorted key stored at <code>destination</code>.
+     * @example
+     *     <pre>{@code
+     * client.lpush("mylist", new String[] {"3", "1", "2", "a"}).get();
+     * Long payload = client
+     *      .sortWithStore(
+     *          "mylist",
+     *          "destination",
+     *          SortOptions.builder()
+     *              .alpha(true)
+     *              .orderBy(DESC)
+     *              .limit(new SortOptions.Limit(0L, 3L))
+     *              .build())
+     *      .get();
+     * assertEquals(3, payload);
+     * assertArrayEquals(
+     *      new String[] {"a", "3", "2"},
+     *      client.lrange("destination", 0, -1).get()); // Sorted list is stored in "destination"
+     * }</pre>
+     */
     CompletableFuture<Long> sortWithStore(String key, String destination, SortOptions sortOptions);
 }

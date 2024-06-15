@@ -6,7 +6,7 @@ import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
 import static glide.api.models.commands.FlushMode.SYNC;
 import static glide.api.models.commands.SortOptions.ALPHA_COMMAND_STRING;
 import static glide.api.models.commands.SortOptions.LIMIT_COMMAND_STRING;
-import static glide.api.models.commands.SortOptions.Order.DESC;
+import static glide.api.models.commands.SortOptions.OrderBy.DESC;
 import static glide.api.models.commands.SortOptions.STORE_COMMAND_STRING;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_NODES;
 import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_PRIMARIES;
@@ -1231,7 +1231,7 @@ public class RedisClusterClientTest {
                         SortOptions.builder()
                                 .alpha(true)
                                 .limit(new Limit(limitOffset, limitCount))
-                                .order(DESC)
+                                .orderBy(DESC)
                                 .build());
         String[] payload = response.get();
 
@@ -1293,7 +1293,7 @@ public class RedisClusterClientTest {
                         SortOptions.builder()
                                 .alpha(true)
                                 .limit(new Limit(limitOffset, limitCount))
-                                .order(DESC)
+                                .orderBy(DESC)
                                 .build());
         String[] payload = response.get();
 
@@ -1360,7 +1360,7 @@ public class RedisClusterClientTest {
                         SortOptions.builder()
                                 .alpha(true)
                                 .limit(new Limit(limitOffset, limitCount))
-                                .order(DESC)
+                                .orderBy(DESC)
                                 .build());
         Long payload = response.get();
 

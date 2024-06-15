@@ -19,7 +19,7 @@ import static glide.api.models.commands.ScoreFilter.MIN;
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static glide.api.models.commands.SortOptions.ALPHA_COMMAND_STRING;
 import static glide.api.models.commands.SortOptions.LIMIT_COMMAND_STRING;
-import static glide.api.models.commands.SortOptions.Order.ASC;
+import static glide.api.models.commands.SortOptions.OrderBy.ASC;
 import static glide.api.models.commands.SortOptions.STORE_COMMAND_STRING;
 import static glide.api.models.commands.WeightAggregateOptions.AGGREGATE_REDIS_API;
 import static glide.api.models.commands.WeightAggregateOptions.WEIGHTS_REDIS_API;
@@ -939,7 +939,11 @@ public class TransactionTests {
         results.add(Pair.of(Sort, buildArgs("key1")));
         transaction.sort(
                 "key1",
-                SortOptions.builder().order(ASC).alpha(true).limit(new SortOptions.Limit(0L, 1L)).build());
+                SortOptions.builder()
+                        .orderBy(ASC)
+                        .alpha(true)
+                        .limit(new SortOptions.Limit(0L, 1L))
+                        .build());
         results.add(
                 Pair.of(
                         Sort,
@@ -949,7 +953,11 @@ public class TransactionTests {
         results.add(Pair.of(SortReadOnly, buildArgs("key1")));
         transaction.sortReadOnly(
                 "key1",
-                SortOptions.builder().order(ASC).alpha(true).limit(new SortOptions.Limit(0L, 1L)).build());
+                SortOptions.builder()
+                        .orderBy(ASC)
+                        .alpha(true)
+                        .limit(new SortOptions.Limit(0L, 1L))
+                        .build());
         results.add(
                 Pair.of(
                         SortReadOnly,
@@ -960,7 +968,11 @@ public class TransactionTests {
         transaction.sortWithStore(
                 "key1",
                 "key2",
-                SortOptions.builder().order(ASC).alpha(true).limit(new SortOptions.Limit(0L, 1L)).build());
+                SortOptions.builder()
+                        .orderBy(ASC)
+                        .alpha(true)
+                        .limit(new SortOptions.Limit(0L, 1L))
+                        .build());
         results.add(
                 Pair.of(
                         Sort,

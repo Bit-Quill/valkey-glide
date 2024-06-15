@@ -13,8 +13,8 @@ import static glide.api.models.commands.InfoOptions.Section.MEMORY;
 import static glide.api.models.commands.InfoOptions.Section.SERVER;
 import static glide.api.models.commands.InfoOptions.Section.STATS;
 import static glide.api.models.commands.SortOptions.Limit;
-import static glide.api.models.commands.SortOptions.Order.ASC;
-import static glide.api.models.commands.SortOptions.Order.DESC;
+import static glide.api.models.commands.SortOptions.OrderBy.ASC;
+import static glide.api.models.commands.SortOptions.OrderBy.DESC;
 import static glide.cluster.CommandTests.DEFAULT_INFO_SECTIONS;
 import static glide.cluster.CommandTests.EVERYTHING_INFO_SECTIONS;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -441,7 +441,7 @@ public class CommandTests {
                 regularClient
                         .sort(
                                 listKey,
-                                SortOptions.builder().limit(new Limit(0L, 2L)).order(DESC).build(),
+                                SortOptions.builder().limit(new Limit(0L, 2L)).orderBy(DESC).build(),
                                 SortStandaloneOptions.builder().getPatterns(new String[] {namePattern}).build())
                         .get());
         assertArrayEquals(
@@ -449,7 +449,7 @@ public class CommandTests {
                 regularClient
                         .sort(
                                 listKey,
-                                SortOptions.builder().limit(new Limit(0L, 2L)).order(DESC).build(),
+                                SortOptions.builder().limit(new Limit(0L, 2L)).orderBy(DESC).build(),
                                 SortStandaloneOptions.builder()
                                         .byPattern(agePattern)
                                         .getPatterns(new String[] {namePattern, agePattern})
@@ -502,7 +502,7 @@ public class CommandTests {
                     regularClient
                             .sortReadOnly(
                                     listKey,
-                                    SortOptions.builder().limit(new Limit(0L, 2L)).order(DESC).build(),
+                                    SortOptions.builder().limit(new Limit(0L, 2L)).orderBy(DESC).build(),
                                     SortStandaloneOptions.builder().getPatterns(new String[] {namePattern}).build())
                             .get());
             assertArrayEquals(
@@ -510,7 +510,7 @@ public class CommandTests {
                     regularClient
                             .sortReadOnly(
                                     listKey,
-                                    SortOptions.builder().limit(new Limit(0L, 2L)).order(DESC).build(),
+                                    SortOptions.builder().limit(new Limit(0L, 2L)).orderBy(DESC).build(),
                                     SortStandaloneOptions.builder()
                                             .byPattern(agePattern)
                                             .getPatterns(new String[] {namePattern, agePattern})
@@ -567,7 +567,7 @@ public class CommandTests {
                         .sortWithStore(
                                 listKey,
                                 storeKey,
-                                SortOptions.builder().limit(new Limit(0L, -1L)).order(ASC).build(),
+                                SortOptions.builder().limit(new Limit(0L, -1L)).orderBy(ASC).build(),
                                 SortStandaloneOptions.builder()
                                         .byPattern(agePattern)
                                         .getPatterns(new String[] {namePattern})

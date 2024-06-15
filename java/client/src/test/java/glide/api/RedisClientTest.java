@@ -17,7 +17,7 @@ import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS
 import static glide.api.models.commands.SetOptions.RETURN_OLD_VALUE;
 import static glide.api.models.commands.SortOptions.ALPHA_COMMAND_STRING;
 import static glide.api.models.commands.SortOptions.LIMIT_COMMAND_STRING;
-import static glide.api.models.commands.SortOptions.Order.DESC;
+import static glide.api.models.commands.SortOptions.OrderBy.DESC;
 import static glide.api.models.commands.SortOptions.STORE_COMMAND_STRING;
 import static glide.api.models.commands.SortStandaloneOptions.BY_COMMAND_STRING;
 import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldOverflow.BitOverflowControl.SAT;
@@ -5662,7 +5662,7 @@ public class RedisClientTest {
                         SortOptions.builder()
                                 .alpha(true)
                                 .limit(new SortOptions.Limit(limitOffset, limitCount))
-                                .order(DESC)
+                                .orderBy(DESC)
                                 .build(),
                         SortStandaloneOptions.builder()
                                 .getPatterns(new String[] {getPattern})
@@ -5744,7 +5744,7 @@ public class RedisClientTest {
                         SortOptions.builder()
                                 .alpha(true)
                                 .limit(new SortOptions.Limit(limitOffset, limitCount))
-                                .order(DESC)
+                                .orderBy(DESC)
                                 .build(),
                         SortStandaloneOptions.builder()
                                 .getPatterns(new String[] {getPattern})
@@ -5838,7 +5838,7 @@ public class RedisClientTest {
                         SortOptions.builder()
                                 .alpha(true)
                                 .limit(new SortOptions.Limit(limitOffset, limitCount))
-                                .order(DESC)
+                                .orderBy(DESC)
                                 .build(),
                         SortStandaloneOptions.builder()
                                 .getPatterns(new String[] {getPattern})

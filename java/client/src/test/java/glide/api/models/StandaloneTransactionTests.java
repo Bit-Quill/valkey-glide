@@ -5,7 +5,7 @@ import static glide.api.models.TransactionTests.buildArgs;
 import static glide.api.models.commands.SortOptions.ALPHA_COMMAND_STRING;
 import static glide.api.models.commands.SortOptions.LIMIT_COMMAND_STRING;
 import static glide.api.models.commands.SortOptions.Limit;
-import static glide.api.models.commands.SortOptions.Order.DESC;
+import static glide.api.models.commands.SortOptions.OrderBy.DESC;
 import static glide.api.models.commands.SortOptions.STORE_COMMAND_STRING;
 import static glide.api.models.commands.SortStandaloneOptions.BY_COMMAND_STRING;
 import static glide.api.models.commands.SortStandaloneOptions.GET_COMMAND_STRING;
@@ -54,7 +54,7 @@ public class StandaloneTransactionTests {
                                 "getPattern2")));
         transaction.sort(
                 "key1",
-                SortOptions.builder().order(DESC).alpha(true).limit(new Limit(0L, 1L)).build(),
+                SortOptions.builder().orderBy(DESC).alpha(true).limit(new Limit(0L, 1L)).build(),
                 SortStandaloneOptions.builder()
                         .byPattern("byPattern")
                         .getPatterns(new String[] {"getPattern1", "getPattern2"})
@@ -94,7 +94,7 @@ public class StandaloneTransactionTests {
                                 "getPattern2")));
         transaction.sortReadOnly(
                 "key1",
-                SortOptions.builder().order(DESC).alpha(true).limit(new Limit(0L, 1L)).build(),
+                SortOptions.builder().orderBy(DESC).alpha(true).limit(new Limit(0L, 1L)).build(),
                 SortStandaloneOptions.builder()
                         .byPattern("byPattern")
                         .getPatterns(new String[] {"getPattern1", "getPattern2"})
@@ -138,7 +138,7 @@ public class StandaloneTransactionTests {
         transaction.sortWithStore(
                 "key1",
                 "key2",
-                SortOptions.builder().order(DESC).alpha(true).limit(new Limit(0L, 1L)).build(),
+                SortOptions.builder().orderBy(DESC).alpha(true).limit(new Limit(0L, 1L)).build(),
                 SortStandaloneOptions.builder()
                         .byPattern("byPattern")
                         .getPatterns(new String[] {"getPattern1", "getPattern2"})

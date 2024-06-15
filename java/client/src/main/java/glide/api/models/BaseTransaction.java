@@ -4076,36 +4076,97 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
+     * The <code>sort</code> command can be used to sort elements based on different criteria and
+     * apply transformations on sorted elements. To store the result into a new key, see <code>
+     * sort_store</code>.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @return Command Response - A list of sorted elements.
+     */
     public T sort(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
         protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
         return getThis();
     }
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
+     * The <code>sort</code> command can be used to sort elements based on different criteria and
+     * apply transformations on sorted elements. To store the result into a new key, see <code>
+     * sort_store</code>.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @param sortOptions The {@link SortOptions}.
+     * @return Command Response - A list of sorted elements.
+     */
     public T sort(@NonNull String key, @NonNull SortOptions sortOptions) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortOptions.toArgs(), key));
         protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
         return getThis();
     }
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
+     * This command is routed depending on the client's <code>ReadFrom</code> strategy. The <code>
+     * sortReadOnly</code> command can be used to sort elements based on different criteria and apply
+     * transformations on sorted elements.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @return Command Response - A list of sorted elements.
+     */
     public T sortReadOnly(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
         protobufTransaction.addCommands(buildCommand(SortReadOnly, commandArgs));
         return getThis();
     }
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
+     * This command is routed depending on the client's <code>ReadFrom</code> strategy. The <code>
+     * sortReadOnly</code> command can be used to sort elements based on different criteria and apply
+     * transformations on sorted elements.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @param sortOptions The {@link SortOptions}.
+     * @return Command Response - A list of sorted elements.
+     */
     public T sortReadOnly(@NonNull String key, @NonNull SortOptions sortOptions) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortOptions.toArgs(), key));
         protobufTransaction.addCommands(buildCommand(SortReadOnly, commandArgs));
         return getThis();
     }
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
+     * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
+     * different criteria, apply transformations on sorted elements, and store the result in a new
+     * key. To get the sort result without storing it into a key, see <code>sort</code>.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @param destination The key where the sorted result will be stored.
+     * @return Command Response - The number of elements in the sorted key stored at <code>destination
+     *     </code>.
+     */
     public T sortWithStore(@NonNull String key, @NonNull String destination) {
         ArgsArray commandArgs = buildArgs(new String[] {key, STORE_COMMAND_STRING, destination});
         protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
         return getThis();
     }
 
+    /**
+     * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
+     * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
+     * different criteria, apply transformations on sorted elements, and store the result in a new
+     * key. To get the sort result without storing it into a key, see <code>sort</code>.
+     *
+     * @param key The key of the list, set, or sorted set to be sorted.
+     * @param destination The key where the sorted result will be stored.
+     * @param sortOptions The {@link SortOptions}.
+     * @return Command Response - The number of elements in the sorted key stored at <code>destination
+     *     </code>.
+     */
     public T sortWithStore(
             @NonNull String key, @NonNull String destination, @NonNull SortOptions sortOptions) {
         String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
