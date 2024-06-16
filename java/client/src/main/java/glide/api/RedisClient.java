@@ -225,7 +225,7 @@ public class RedisClient extends BaseClient
             @NonNull SortStandaloneOptions sortStandaloneOptions) {
         String[] arguments =
                 ArrayUtils.addFirst(
-                    concatenateArrays(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
+                        concatenateArrays(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
         return commandManager.submitNewCommand(
                 Sort, arguments, response -> castArray(handleArrayResponse(response), String.class));
     }
@@ -247,7 +247,7 @@ public class RedisClient extends BaseClient
             @NonNull SortStandaloneOptions sortStandaloneOptions) {
         String[] arguments =
                 ArrayUtils.addFirst(
-                    concatenateArrays(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
+                        concatenateArrays(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
         return commandManager.submitNewCommand(
                 SortReadOnly,
                 arguments,
