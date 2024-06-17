@@ -222,6 +222,8 @@ enum RequestType {
     GeoSearch = 182;
     Watch = 183;
     UnWatch = 184;
+    XGroupCreateConsumer = 185;
+    XGroupDelConsumer = 186;
 }
 
 message Command {
