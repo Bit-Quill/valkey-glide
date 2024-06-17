@@ -148,6 +148,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import static redis_request.RedisRequestOuterClass.RequestType.Touch;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.XAck;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
 import static redis_request.RedisRequestOuterClass.RequestType.XGroupCreate;
@@ -3099,6 +3100,20 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull StreamReadGroupOptions options) {
         protobufTransaction.addCommands(
                 buildCommand(XReadGroup, buildArgs(options.toArgs(group, consumer, keysAndIds))));
+        return getThis();
+    }
+
+    /**
+      * TODO
+     *
+     * @param key
+     * @param groupname
+     * @param ids
+     * @return
+     */
+    public T xack(@NonNull String key, @NonNull String groupname, @NonNull String[] ids) {
+        String[] args = concatenateArrays(new String[]{key, groupname}, ids);
+        protobufTransaction.addCommands(buildCommand(XAck, buildArgs(args)));
         return getThis();
     }
 

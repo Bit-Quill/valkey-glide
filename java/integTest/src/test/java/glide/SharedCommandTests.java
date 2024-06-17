@@ -3889,6 +3889,55 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
+    public void xack(BaseClient client) {
+        String key = "race:italy";
+        String stringKey = UUID.randomUUID().toString();
+        String groupName = "italy_riders";
+        String streamId1 = "0-1";
+        String streamId2 = "0-2";
+        String streamId3 = "0-3";
+        String[] streamIds = new String[] {streamId1, streamId2, streamId3};
+
+        // No messages are acknowledged as nothing is in the stream
+        assertEquals(0, client.xack(key, groupName, streamIds).get());
+
+        // TODO: fails when running the XREADGROUP command
+        if (client instanceof RedisClient) {
+            assertEquals(
+                OK, client.xgroupCreate(key, groupName, "$", StreamGroupOptions.builder().makeStream()
+                    .build()).get());
+            assertNotNull(((RedisClient) client).customCommand(new String[] {"XREADGROUP", "GROUP", groupName, "Alice", "COUNT", "1", "STREAMS", key, ">"}).get());
+            assertEquals(1, client.xack(key, groupName, streamIds).get());
+            // 0 is returned when calling XACK again as the message is removed from the Pending Entries List (PEL)
+            assertEquals(0, client.xack(key, groupName, streamIds).get());
+//            assertEquals(
+//                OK, client.xgroupCreate(key, groupName, "$", StreamGroupOptions.builder().makeStream()
+//                    .build()).get());
+//            streamIds[0] = client.xadd(key, Map.of("rider", "Castilla")).get();
+//
+//            ((RedisClient) client).customCommand(new String[] {"XREADGROUP", "GROUP", groupName, "Alice", "COUNT", "1", "STREAMS", key, ">"}).get();
+//            assertEquals(1, client.xack(key, groupName, streamIds).get());
+        }
+
+
+        // Exceptions
+        // Exception is thrown due to key holding a value with the wrong type
+        client.set(stringKey, "test").get();
+        Exception executionException =
+            assertThrows(
+                ExecutionException.class, () -> client.xack(stringKey, groupName, streamIds).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        // Exception is thrown due to empty stream ids
+        executionException =
+            assertThrows(
+                ExecutionException.class, () -> client.xack(key, groupName, new String[0]).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
     public void zrandmember(BaseClient client) {
         String key1 = UUID.randomUUID().toString();
         String key2 = UUID.randomUUID().toString();

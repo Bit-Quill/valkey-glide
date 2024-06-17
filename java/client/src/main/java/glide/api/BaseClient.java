@@ -119,6 +119,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.TTL;
 import static redis_request.RedisRequestOuterClass.RequestType.Touch;
 import static redis_request.RedisRequestOuterClass.RequestType.Type;
 import static redis_request.RedisRequestOuterClass.RequestType.Unlink;
+import static redis_request.RedisRequestOuterClass.RequestType.XAck;
 import static redis_request.RedisRequestOuterClass.RequestType.Watch;
 import static redis_request.RedisRequestOuterClass.RequestType.XAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.XDel;
@@ -1445,6 +1446,12 @@ public abstract class BaseClient
             @NonNull StreamReadGroupOptions options) {
         String[] arguments = options.toArgs(group, consumer, keysAndIds);
         return commandManager.submitNewCommand(XReadGroup, arguments, this::handleXReadResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> xack(@NonNull String key, @NonNull String groupname, @NonNull String[] ids) {
+        String[] args = concatenateArrays(new String[]{key, groupname}, ids);
+        return commandManager.submitNewCommand(XAck, args, this::handleLongResponse);
     }
 
     @Override

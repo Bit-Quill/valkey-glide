@@ -493,4 +493,14 @@ public interface StreamBaseCommands {
             String group,
             String consumer,
             StreamReadGroupOptions options);
+
+    /**
+     * TODO
+     *
+     * @param key
+     * @param groupname
+     * @param ids
+     * @return
+     */
+    CompletableFuture<Long> xack(String key, String groupname, String[] ids);
 }

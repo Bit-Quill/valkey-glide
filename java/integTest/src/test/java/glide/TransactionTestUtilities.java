@@ -758,7 +758,11 @@ public class TransactionTestUtilities {
                 .xgroupDelConsumer(streamKey1, groupName1, consumer1)
                 .xgroupDestroy(streamKey1, groupName1)
                 .xgroupDestroy(streamKey1, groupName2)
-                .xdel(streamKey1, new String[] {"0-3", "0-5"});
+                .xdel(streamKey1, new String[] {"0-3", "0-5"})
+                .xgroupCreate(streamKey1, groupName1, "$", StreamGroupOptions.builder().makeStream().build())
+                .xadd(streamKey1, Map.of("rider", "Castilla"), StreamAddOptions.builder().id("1-0").build())
+                .customCommand(new String[] {"XREADGROUP", "GROUP", groupName1, "Alice", "COUNT", "1", "STREAMS", streamKey1, ">"})
+                .xack(streamKey1, groupName1, new String[] {"1-0"});;
 
         return new Object[] {
             "0-1", // xadd(streamKey1, Map.of("field1", "value1"), ... .id("0-1").build());
@@ -796,6 +800,13 @@ public class TransactionTestUtilities {
             true, // xgroupDestroy(streamKey1, groupName1)
             true, // xgroupDestroy(streamKey1, groupName2)
             1L, // .xdel(streamKey1, new String[] {"0-1", "0-5"});
+            OK,
+            "1-0",
+            // TODO: fix expected
+            Map.of(
+                streamKey1,
+                Map.of("1-0", new String[][] {{"rider", "bob"}})),
+            1L,
         };
     }
 
