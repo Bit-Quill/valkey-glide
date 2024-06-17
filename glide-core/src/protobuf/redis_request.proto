@@ -218,6 +218,8 @@ enum RequestType {
     MSetNX = 179;
     LPos = 180;
     LCS = 181;
+    Dump = 182;
+    Restore = 183;
 }
 
 message Command {

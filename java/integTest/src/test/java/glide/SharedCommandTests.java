@@ -43,6 +43,7 @@ import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.RangeByLex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
+import glide.api.models.commands.RestoreOptions;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
@@ -5311,5 +5312,80 @@ public class SharedCommandTests {
         ExecutionException executionException =
                 assertThrows(ExecutionException.class, () -> client.lcs(nonStringKey, key1).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void test_dump_restore(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String newKey = UUID.randomUUID().toString();
+        String tempKey = UUID.randomUUID().toString();
+        String nonExistingKey = UUID.randomUUID().toString();
+        String value = "oranges";
+
+        assertEquals(OK, client.set(key, value).get());
+
+        // Dump existed key
+        byte[] result = client.dump(key.getBytes()).get();
+        assertNotNull(result.toString());
+
+        // Dump non-existing key
+        assertNull(client.dump(nonExistingKey.getBytes()).get());
+
+        // Restore to a new key
+        assertEquals(OK, client.restore(newKey.getBytes(), 0L, result).get());
+
+        // Restore to an existed key - Error: "Target key name already exists"
+        Exception executionException =
+            assertThrows(ExecutionException.class,
+                () -> client.restore(newKey.getBytes(), 0L, result).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        // Restore with checksum error - Error: "payload version or checksum are wrong"
+        executionException =
+            assertThrows(ExecutionException.class,
+                () -> client.restore(tempKey.getBytes(), 0L, value.getBytes()).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void test_dump_restore_withOptions(BaseClient client) {
+        String key = UUID.randomUUID().toString();
+        String newKey = UUID.randomUUID().toString();
+        String tempKey = UUID.randomUUID().toString();
+        String value = "oranges";
+
+        assertEquals(OK, client.set(key, value).get());
+
+        // Dump existed key
+        byte[] data = client.dump(key.getBytes()).get();
+        assertNotNull(data.toString());
+
+        // Restore without option
+        String result = client.restore(newKey.getBytes(), 0L, data).get();
+        assertEquals(OK, result);
+
+        // Restore with REPLACE option
+        result = client.restore(newKey.getBytes(), 0L, data,
+            RestoreOptions.builder().hasReplace(true).build()).get();
+        assertEquals(OK, result);
+
+        // Restore with REPLACE and ABSTTL options
+        result = client.restore(newKey.getBytes(), 1000L, data,
+            RestoreOptions.builder().hasReplace(true).hasAbsttl(true).build()).get();
+        assertEquals(OK, result);
+
+        // Restore with REPLACE and IDLETIME options
+        result = client.restore(newKey.getBytes(), 0L, data,
+            RestoreOptions.builder().hasReplace(true).seconds(10).build()).get();
+        assertEquals(OK, result);
+
+        // Restore with REPLACE and FREQ options
+        result = client.restore(newKey.getBytes(), 0L, data,
+            RestoreOptions.builder().hasReplace(true).frequency(10).build()).get();
+        assertEquals(OK, result);
     }
 }

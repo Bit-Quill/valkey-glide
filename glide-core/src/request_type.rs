@@ -188,6 +188,8 @@ pub enum RequestType {
     MSetNX = 179,
     LPos = 180,
     LCS = 181,
+    Dump = 182,
+    Restore = 183,
 }
 
 fn get_two_word_command(first: &str, second: &str) -> Cmd {
@@ -379,6 +381,8 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::MSetNX => RequestType::MSetNX,
             ProtobufRequestType::LPos => RequestType::LPos,
             ProtobufRequestType::LCS => RequestType::LCS,
+            ProtobufRequestType::Dump => RequestType::Dump,
+            ProtobufRequestType::Restore => RequestType::Restore,
         }
     }
 }
@@ -566,6 +570,8 @@ impl RequestType {
             RequestType::MSetNX => Some(cmd("MSETNX")),
             RequestType::LPos => Some(cmd("LPOS")),
             RequestType::LCS => Some(cmd("LCS")),
+            RequestType::Dump => Some(cmd("DUMP")),
+            RequestType::Restore => Some(cmd("RESTORE")),
         }
     }
 }
