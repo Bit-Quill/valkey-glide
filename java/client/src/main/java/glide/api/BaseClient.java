@@ -90,12 +90,12 @@ import static redis_request.RedisRequestOuterClass.RequestType.Persist;
 import static redis_request.RedisRequestOuterClass.RequestType.PfAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.PfCount;
 import static redis_request.RedisRequestOuterClass.RequestType.PfMerge;
-import static redis_request.RedisRequestOuterClass.RequestType.Restore;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
 import static redis_request.RedisRequestOuterClass.RequestType.RPushX;
 import static redis_request.RedisRequestOuterClass.RequestType.Rename;
 import static redis_request.RedisRequestOuterClass.RequestType.RenameNX;
+import static redis_request.RedisRequestOuterClass.RequestType.Restore;
 import static redis_request.RedisRequestOuterClass.RequestType.SAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.SCard;
 import static redis_request.RedisRequestOuterClass.RequestType.SDiff;
@@ -1874,20 +1874,14 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<String> restore(
-            byte[] key,
-            long ttl,
-            byte[] value) {
+    public CompletableFuture<String> restore(byte[] key, long ttl, byte[] value) {
         List<byte[]> arguments = List.of(key, Long.toString(ttl).getBytes(), value);
         return commandManager.submitNewCommand(Restore, arguments, this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<String> restore(
-            byte[] key,
-            long ttl,
-            byte[] value,
-            @NonNull RestoreOptions restoreOptions) {
+            byte[] key, long ttl, byte[] value, @NonNull RestoreOptions restoreOptions) {
         List<byte[]> arguments = restoreOptions.toArgs(key, ttl, value);
         return commandManager.submitNewCommand(Restore, arguments, this::handleStringResponse);
     }

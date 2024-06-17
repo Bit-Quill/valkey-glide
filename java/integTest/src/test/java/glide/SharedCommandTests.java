@@ -5338,14 +5338,15 @@ public class SharedCommandTests {
 
         // Restore to an existed key - Error: "Target key name already exists"
         Exception executionException =
-            assertThrows(ExecutionException.class,
-                () -> client.restore(newKey.getBytes(), 0L, result).get());
+                assertThrows(
+                        ExecutionException.class, () -> client.restore(newKey.getBytes(), 0L, result).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         // Restore with checksum error - Error: "payload version or checksum are wrong"
         executionException =
-            assertThrows(ExecutionException.class,
-                () -> client.restore(tempKey.getBytes(), 0L, value.getBytes()).get());
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.restore(tempKey.getBytes(), 0L, value.getBytes()).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 
@@ -5369,23 +5370,43 @@ public class SharedCommandTests {
         assertEquals(OK, result);
 
         // Restore with REPLACE option
-        result = client.restore(newKey.getBytes(), 0L, data,
-            RestoreOptions.builder().hasReplace(true).build()).get();
+        result =
+                client
+                        .restore(newKey.getBytes(), 0L, data, RestoreOptions.builder().hasReplace(true).build())
+                        .get();
         assertEquals(OK, result);
 
         // Restore with REPLACE and ABSTTL options
-        result = client.restore(newKey.getBytes(), 1000L, data,
-            RestoreOptions.builder().hasReplace(true).hasAbsttl(true).build()).get();
+        result =
+                client
+                        .restore(
+                                newKey.getBytes(),
+                                1000L,
+                                data,
+                                RestoreOptions.builder().hasReplace(true).hasAbsttl(true).build())
+                        .get();
         assertEquals(OK, result);
 
         // Restore with REPLACE and IDLETIME options
-        result = client.restore(newKey.getBytes(), 0L, data,
-            RestoreOptions.builder().hasReplace(true).seconds(10).build()).get();
+        result =
+                client
+                        .restore(
+                                newKey.getBytes(),
+                                0L,
+                                data,
+                                RestoreOptions.builder().hasReplace(true).seconds(10).build())
+                        .get();
         assertEquals(OK, result);
 
         // Restore with REPLACE and FREQ options
-        result = client.restore(newKey.getBytes(), 0L, data,
-            RestoreOptions.builder().hasReplace(true).frequency(10).build()).get();
+        result =
+                client
+                        .restore(
+                                newKey.getBytes(),
+                                0L,
+                                data,
+                                RestoreOptions.builder().hasReplace(true).frequency(10).build())
+                        .get();
         assertEquals(OK, result);
     }
 }

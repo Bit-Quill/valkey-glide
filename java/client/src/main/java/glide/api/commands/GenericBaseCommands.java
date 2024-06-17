@@ -593,7 +593,8 @@ public interface GenericBaseCommands {
     CompletableFuture<Boolean> copy(String source, String destination, boolean replace);
 
     /**
-     * Serialize the value stored at <code>key</code> in a Redis-specific format and return it to the user.
+     * Serialize the value stored at <code>key</code> in a Redis-specific format and return it to the
+     * user.
      *
      * @see <a href="https://valkey.io/commands/dump/">valkey.io</a> for details.
      * @param key The key of the set.
@@ -616,12 +617,11 @@ public interface GenericBaseCommands {
      *
      * @see <a href="httpshttps://valkey.io/commands/restore/">valkey.io</a> for details.
      * @param key The key of the set.
-     * @param ttl The expiry time (in milliseconds).
-     *     If 0, it means creation without any expiry.
+     * @param ttl The expiry time (in milliseconds). If 0, it means creation without any expiry.
      * @param value The serialized value.
-     * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value</code>.
-     *     Return a "Target key name is busy" error when <code>key</code> already exists unless
-     *     use the <code>REPLACE</code> modifier. If RDB version and data checksum don't match,
+     * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value
+     *      </code>. Return a "Target key name is busy" error when <code>key</code> already exists
+     *     unless use the <code>REPLACE</code> modifier. If RDB version and data checksum don't match,
      *     an error is returned.
      * @example
      *     <pre>{@code
@@ -637,13 +637,12 @@ public interface GenericBaseCommands {
      *
      * @see <a href="httpshttps://valkey.io/commands/restore/">valkey.io</a> for details.
      * @param key The key of the set.
-     * @param ttl The expiry time (in milliseconds).
-     *     If 0, it means creation without any expiry.
+     * @param ttl The expiry time (in milliseconds). If 0, it means creation without any expiry.
      * @param value The serialized value.
      * @param restoreOptions The {@link RestoreOptions}.
-     * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value</code>.
-     *     Return a "Target key name is busy" error when <code>key</code> already exists unless
-     *     use the <code>REPLACE</code> modifier. If RDB version and data checksum don't match,
+     * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value
+     *      </code>. Return a "Target key name is busy" error when <code>key</code> already exists
+     *     unless use the <code>REPLACE</code> modifier. If RDB version and data checksum don't match,
      *     an error is returned.
      * @example
      *     <pre>{@code
@@ -662,5 +661,6 @@ public interface GenericBaseCommands {
      * assert value1.equals("OK");
      * }</pre>
      */
-    CompletableFuture<String> restore(byte[] key, long ttl, byte[] value, RestoreOptions restoreOptions);
+    CompletableFuture<String> restore(
+            byte[] key, long ttl, byte[] value, RestoreOptions restoreOptions);
 }

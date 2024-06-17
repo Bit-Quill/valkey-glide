@@ -1,9 +1,9 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands;
-import java.util.ArrayList;
-import java.util.List;
 
 import glide.api.commands.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
 
 /**
@@ -17,8 +17,7 @@ public final class RestoreOptions {
     public static final String REPLACE_REDIS_API = "REPLACE";
 
     /**
-     * <code>ABSTTL</code> subcommand string to represent absolute timestamp
-     *  (in milliseconds) for TTL
+     * <code>ABSTTL</code> subcommand string to represent absolute timestamp (in milliseconds) for TTL
      */
     public static final String ABSTTL_REDIS_API = "ABSTTL";
 
@@ -41,7 +40,8 @@ public final class RestoreOptions {
     private final long frequency;
 
     /**
-     * Creates the argument to be used in {@link GenericBaseCommands#restore(byte[], long, byte[], RestoreOptions)}
+     * Creates the argument to be used in {@link GenericBaseCommands#restore(byte[], long, byte[],
+     * RestoreOptions)}
      *
      * @return a byte array that holds the sub commands and their arguments.
      */
