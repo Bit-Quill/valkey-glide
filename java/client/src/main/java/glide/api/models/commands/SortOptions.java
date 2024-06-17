@@ -3,23 +3,23 @@ package glide.api.models.commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 /**
- * Optional arguments to {@link glide.api.commands.GenericBaseCommands#sort(String, SortOptions)},
- * {@link glide.api.commands.GenericBaseCommands#sortReadOnly(String, SortOptions)}, {@link
- * glide.api.commands.GenericBaseCommands#sortWithStore(String, String, SortOptions)}, {@link
- * glide.api.commands.GenericCommands#sort(String, SortOptions, SortStandaloneOptions)}, {@link
- * glide.api.commands.GenericCommands#sortReadOnly(String, SortOptions, SortStandaloneOptions)}, and
- * {@link glide.api.commands.GenericCommands#sortWithStore(String, String, SortOptions,
- * SortStandaloneOptions)}
+ * Optional arguments to {@link glide.api.commands.GenericBaseCommands#sort(String,
+ * SortBaseOptions)}, {@link glide.api.commands.GenericBaseCommands#sortReadOnly(String,
+ * SortBaseOptions)}, {@link glide.api.commands.GenericBaseCommands#sortWithStore(String, String,
+ * SortBaseOptions)}, {@link glide.api.commands.GenericCommands#sort(String,
+ * SortStandaloneOptions)}, {@link glide.api.commands.GenericCommands#sortReadOnly(String,
+ * SortStandaloneOptions)}, and {@link glide.api.commands.GenericCommands#sortWithStore(String,
+ * String, SortStandaloneOptions)}
  *
  * @see <a href="https://redis.io/commands/sort/">redis.io</a> and <a
  *     href="https://redis.io/docs/latest/commands/sort_ro/">redis.io</a>
  */
-@Builder
-public final class SortOptions {
+@SuperBuilder
+public abstract class SortOptions {
     /**
      * <code>LIMIT</code> subcommand string to include in the <code>SORT</code> and <code>SORT_RO
      * </code> commands.
@@ -80,13 +80,12 @@ public final class SortOptions {
 
     /**
      * Creates the arguments to be used in {@link glide.api.commands.GenericBaseCommands#sort(String,
-     * SortOptions)}, * {@link glide.api.commands.GenericBaseCommands#sortReadOnly(String,
-     * SortOptions)}, {@link * glide.api.commands.GenericBaseCommands#sortWithStore(String, String,
-     * SortOptions)}, {@link * glide.api.commands.GenericCommands#sort(String, SortOptions,
-     * SortStandaloneOptions)}, {@link * glide.api.commands.GenericCommands#sortReadOnly(String,
-     * SortOptions, SortStandaloneOptions)}, and {@link
-     * glide.api.commands.GenericCommands#sortWithStore(String, String, SortOptions,
-     * SortStandaloneOptions)}.
+     * SortBaseOptions)}, {@link glide.api.commands.GenericBaseCommands#sortReadOnly(String,
+     * SortBaseOptions)}, {@link glide.api.commands.GenericBaseCommands#sortWithStore(String, String,
+     * SortBaseOptions)}, {@link glide.api.commands.GenericCommands#sort(String,
+     * SortStandaloneOptions)}, {@link glide.api.commands.GenericCommands#sortReadOnly(String,
+     * SortStandaloneOptions)}, and {@link glide.api.commands.GenericCommands#sortWithStore(String,
+     * String, SortStandaloneOptions)}.
      *
      * @return a String array that holds the sub commands and their arguments.
      */

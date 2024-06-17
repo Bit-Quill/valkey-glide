@@ -4,7 +4,7 @@ package glide.api.commands;
 import glide.api.models.Script;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.ScriptOptions;
-import glide.api.models.commands.SortOptions;
+import glide.api.models.commands.SortBaseOptions;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -567,14 +567,14 @@ public interface GenericBaseCommands {
      * sort_store</code>.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
-     * @param sortOptions The {@link SortOptions}.
+     * @param sortBaseOptions The {@link SortBaseOptions}.
      * @return A list of sorted elements.
      * @example
      *     <pre>{@code
      * client.lpush("mylist", new String[] {"3", "1", "2", "a"}).get();
      * String[] payload = client.sort(
      *      "mylist",
-     *      SortOptions.builder()
+     *      SortBaseOptions.builder()
      *          .alpha(true)
      *          .orderBy(DESC)
      *          .limit(new SortOptions.Limit(0L, 3L))
@@ -583,7 +583,7 @@ public interface GenericBaseCommands {
      * assertArrayEquals(new String[] {"a", "3", "2"}, payload); // List is sorted in descending order lexicographically starting
      * }</pre>
      */
-    CompletableFuture<String[]> sort(String key, SortOptions sortOptions);
+    CompletableFuture<String[]> sort(String key, SortBaseOptions sortBaseOptions);
 
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
@@ -608,14 +608,14 @@ public interface GenericBaseCommands {
      * transformations on sorted elements.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
-     * @param sortOptions The {@link SortOptions}.
+     * @param sortBaseOptions The {@link SortBaseOptions}.
      * @return A list of sorted elements.
      * @example
      *     <pre>{@code
      * client.lpush("mylist", new String[] {"3", "1", "2", "a"}).get();
      * String[] payload = client.sortReadOnly(
      *      "mylist",
-     *      SortOptions.builder()
+     *      SortBaseOptions.builder()
      *          .alpha(true)
      *          .orderBy(DESC)
      *          .limit(new SortOptions.Limit(0L, 3L))
@@ -624,7 +624,7 @@ public interface GenericBaseCommands {
      * assertArrayEquals(new String[] {"a", "3", "2"}, payload); // List is sorted in descending order lexicographically starting
      * }</pre>
      */
-    CompletableFuture<String[]> sortReadOnly(String key, SortOptions sortOptions);
+    CompletableFuture<String[]> sortReadOnly(String key, SortBaseOptions sortBaseOptions);
 
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
@@ -654,7 +654,7 @@ public interface GenericBaseCommands {
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param destination The key where the sorted result will be stored.
-     * @param sortOptions The {@link SortOptions}.
+     * @param sortBaseOptions The {@link SortBaseOptions}.
      * @return The number of elements in the sorted key stored at <code>destination</code>.
      * @example
      *     <pre>{@code
@@ -663,7 +663,7 @@ public interface GenericBaseCommands {
      *      .sortWithStore(
      *          "mylist",
      *          "destination",
-     *          SortOptions.builder()
+     *          SortBaseOptions.builder()
      *              .alpha(true)
      *              .orderBy(DESC)
      *              .limit(new SortOptions.Limit(0L, 3L))
@@ -675,5 +675,6 @@ public interface GenericBaseCommands {
      *      client.lrange("destination", 0, -1).get()); // Sorted list is stored in "destination"
      * }</pre>
      */
-    CompletableFuture<Long> sortWithStore(String key, String destination, SortOptions sortOptions);
+    CompletableFuture<Long> sortWithStore(
+            String key, String destination, SortBaseOptions sortBaseOptions);
 }

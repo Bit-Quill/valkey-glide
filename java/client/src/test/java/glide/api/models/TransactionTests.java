@@ -190,6 +190,7 @@ import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
+import glide.api.models.commands.SortBaseOptions;
 import glide.api.models.commands.SortOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
@@ -939,7 +940,7 @@ public class TransactionTests {
         results.add(Pair.of(Sort, buildArgs("key1")));
         transaction.sort(
                 "key1",
-                SortOptions.builder()
+                SortBaseOptions.builder()
                         .orderBy(ASC)
                         .alpha(true)
                         .limit(new SortOptions.Limit(0L, 1L))
@@ -953,7 +954,7 @@ public class TransactionTests {
         results.add(Pair.of(SortReadOnly, buildArgs("key1")));
         transaction.sortReadOnly(
                 "key1",
-                SortOptions.builder()
+                SortBaseOptions.builder()
                         .orderBy(ASC)
                         .alpha(true)
                         .limit(new SortOptions.Limit(0L, 1L))
@@ -968,7 +969,7 @@ public class TransactionTests {
         transaction.sortWithStore(
                 "key1",
                 "key2",
-                SortOptions.builder()
+                SortBaseOptions.builder()
                         .orderBy(ASC)
                         .alpha(true)
                         .limit(new SortOptions.Limit(0L, 1L))

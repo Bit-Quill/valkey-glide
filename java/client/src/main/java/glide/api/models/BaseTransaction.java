@@ -187,7 +187,7 @@ import glide.api.models.commands.ScoreFilter;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
-import glide.api.models.commands.SortOptions;
+import glide.api.models.commands.SortBaseOptions;
 import glide.api.models.commands.WeightAggregateOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
@@ -4098,11 +4098,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * sort_store</code>.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
-     * @param sortOptions The {@link SortOptions}.
+     * @param sortBaseOptions The {@link SortBaseOptions}.
      * @return Command Response - A list of sorted elements.
      */
-    public T sort(@NonNull String key, @NonNull SortOptions sortOptions) {
-        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortOptions.toArgs(), key));
+    public T sort(@NonNull String key, @NonNull SortBaseOptions sortBaseOptions) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortBaseOptions.toArgs(), key));
         protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
         return getThis();
     }
@@ -4129,11 +4129,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * transformations on sorted elements.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
-     * @param sortOptions The {@link SortOptions}.
+     * @param sortBaseOptions The {@link SortBaseOptions}.
      * @return Command Response - A list of sorted elements.
      */
-    public T sortReadOnly(@NonNull String key, @NonNull SortOptions sortOptions) {
-        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortOptions.toArgs(), key));
+    public T sortReadOnly(@NonNull String key, @NonNull SortBaseOptions sortBaseOptions) {
+        ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortBaseOptions.toArgs(), key));
         protobufTransaction.addCommands(buildCommand(SortReadOnly, commandArgs));
         return getThis();
     }
@@ -4163,16 +4163,16 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param destination The key where the sorted result will be stored.
-     * @param sortOptions The {@link SortOptions}.
+     * @param sortBaseOptions The {@link SortBaseOptions}.
      * @return Command Response - The number of elements in the sorted key stored at <code>destination
      *     </code>.
      */
     public T sortWithStore(
-            @NonNull String key, @NonNull String destination, @NonNull SortOptions sortOptions) {
+            @NonNull String key, @NonNull String destination, @NonNull SortBaseOptions sortBaseOptions) {
         String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
         ArgsArray commandArgs =
                 buildArgs(
-                        ArrayUtils.addFirst(ArrayUtils.addAll(storeArguments, sortOptions.toArgs()), key));
+                        ArrayUtils.addFirst(ArrayUtils.addAll(storeArguments, sortBaseOptions.toArgs()), key));
         protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
         return getThis();
     }

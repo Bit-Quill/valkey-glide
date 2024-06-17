@@ -5659,12 +5659,10 @@ public class RedisClientTest {
         CompletableFuture<String[]> response =
                 service.sort(
                         key,
-                        SortOptions.builder()
+                        SortStandaloneOptions.builder()
                                 .alpha(true)
                                 .limit(new SortOptions.Limit(limitOffset, limitCount))
                                 .orderBy(DESC)
-                                .build(),
-                        SortStandaloneOptions.builder()
                                 .getPatterns(new String[] {getPattern})
                                 .byPattern(byPattern)
                                 .build());
@@ -5741,12 +5739,10 @@ public class RedisClientTest {
         CompletableFuture<String[]> response =
                 service.sortReadOnly(
                         key,
-                        SortOptions.builder()
+                        SortStandaloneOptions.builder()
                                 .alpha(true)
                                 .limit(new SortOptions.Limit(limitOffset, limitCount))
                                 .orderBy(DESC)
-                                .build(),
-                        SortStandaloneOptions.builder()
                                 .getPatterns(new String[] {getPattern})
                                 .byPattern(byPattern)
                                 .build());
@@ -5835,12 +5831,10 @@ public class RedisClientTest {
                 service.sortWithStore(
                         key,
                         destKey,
-                        SortOptions.builder()
+                        SortStandaloneOptions.builder()
                                 .alpha(true)
                                 .limit(new SortOptions.Limit(limitOffset, limitCount))
                                 .orderBy(DESC)
-                                .build(),
-                        SortStandaloneOptions.builder()
                                 .getPatterns(new String[] {getPattern})
                                 .byPattern(byPattern)
                                 .build());

@@ -17,7 +17,6 @@ import glide.TransactionTestUtilities.TransactionBuilder;
 import glide.api.RedisClient;
 import glide.api.models.Transaction;
 import glide.api.models.commands.InfoOptions;
-import glide.api.models.commands.SortOptions;
 import glide.api.models.commands.SortStandaloneOptions;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
@@ -253,8 +252,8 @@ public class TransactionTests {
                                 .build())
                 .sort(
                         genericKey1,
-                        SortOptions.builder().orderBy(DESC).build(),
                         SortStandaloneOptions.builder()
+                                .orderBy(DESC)
                                 .byPattern("user:*->age")
                                 .getPatterns(new String[] {"user:*->name"})
                                 .build())
@@ -269,8 +268,8 @@ public class TransactionTests {
                 .sortWithStore(
                         genericKey1,
                         genericKey2,
-                        SortOptions.builder().orderBy(DESC).build(),
                         SortStandaloneOptions.builder()
+                                .orderBy(DESC)
                                 .byPattern("user:*->age")
                                 .getPatterns(new String[] {"user:*->name"})
                                 .build())
@@ -282,10 +281,10 @@ public class TransactionTests {
                     2L, // hset("user:2", Map.of("name", "Bob", "age", "25"))
                     2L, // lpush(genericKey1, new String[] {"2", "1"})
                     ascendingListByAge, // sort(genericKey1, SortStandaloneOptions)
-                    descendingListByAge, // sort(genericKey1, SortOptions, SortStandaloneOptions)
+                    descendingListByAge, // sort(genericKey1, SortStandaloneOptions)
                     2L, // sortWithStore(genericKey1, genericKey2, SortStandaloneOptions)
                     ascendingListByAge, // lrange(genericKey4, 0, -1)
-                    2L, // sortWithStore(genericKey1, genericKey2, SortOptions, SortStandaloneOptions)
+                    2L, // sortWithStore(genericKey1, genericKey2, SortStandaloneOptions)
                     descendingListByAge, // lrange(genericKey2, 0, -1)
                 };
 
@@ -301,8 +300,8 @@ public class TransactionTests {
                                     .build())
                     .sortReadOnly(
                             genericKey1,
-                            SortOptions.builder().orderBy(DESC).build(),
                             SortStandaloneOptions.builder()
+                                    .orderBy(DESC)
                                     .byPattern("user:*->age")
                                     .getPatterns(new String[] {"user:*->name"})
                                     .build());
@@ -310,7 +309,7 @@ public class TransactionTests {
             expectedResults =
                     new Object[] {
                         ascendingListByAge, // sortReadOnly(genericKey1, SortStandaloneOptions)
-                        descendingListByAge, // sortReadOnly(genericKey1, SortOptions, SortStandaloneOptions)
+                        descendingListByAge, // sortReadOnly(genericKey1, SortStandaloneOptions)
                     };
 
             assertArrayEquals(expectedResults, client.exec(transaction2).get());

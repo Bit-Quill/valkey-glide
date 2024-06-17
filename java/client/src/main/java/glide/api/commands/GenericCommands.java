@@ -2,7 +2,6 @@
 package glide.api.commands;
 
 import glide.api.models.Transaction;
-import glide.api.models.commands.SortOptions;
 import glide.api.models.commands.SortStandaloneOptions;
 import java.util.concurrent.CompletableFuture;
 
@@ -103,35 +102,6 @@ public interface GenericCommands {
 
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
-     * The <code>sort</code> command can be used to sort elements based on different criteria and
-     * apply transformations on sorted elements. To store the result into a new key, see <code>
-     * sort_store</code>.
-     *
-     * @param key The key of the list, set, or sorted set to be sorted.
-     * @param sortOptions The {@link SortOptions}.
-     * @param sortStandaloneOptions The {@link SortStandaloneOptions}.
-     * @return A list of sorted elements.
-     * @example
-     *     <pre>{@code
-     * client.hset("user:1", Map.of("name", "Alice", "age", "30")).get();
-     * client.hset("user:2", Map.of("name", "Bob", "age", "25")).get();
-     * client.lpush("user_ids", new String[] {"2", "1"}).get();
-     * String [] payload = client.sort(
-     *      "user_ids",
-     *      SortOptions.builder().orderBy(DESC).build(),
-     *      SortStandaloneOptions
-     *          .builder()
-     *              .byPattern("user:*->age")
-     *                  .getPatterns(new String[] {"user:*->name"})
-     *                      .build()).get();
-     * assertArrayEquals(new String[] {"Alice", "Bob"}, payload); // Returns a list of the names sorted by age in descending order
-     * }</pre>
-     */
-    CompletableFuture<String[]> sort(
-            String key, SortOptions sortOptions, SortStandaloneOptions sortStandaloneOptions);
-
-    /**
-     * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
      * This command is routed depending on the client's <code>ReadFrom</code> strategy. The <code>
      * sortReadOnly</code> command can be used to sort elements based on different criteria and apply
      * transformations on sorted elements.
@@ -155,73 +125,6 @@ public interface GenericCommands {
      * }</pre>
      */
     CompletableFuture<String[]> sortReadOnly(String key, SortStandaloneOptions sortStandaloneOptions);
-
-    /**
-     * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
-     * This command is routed depending on the client's <code>ReadFrom</code> strategy. The <code>
-     * sortReadOnly</code> command can be used to sort elements based on different criteria and apply
-     * transformations on sorted elements.
-     *
-     * @param key The key of the list, set, or sorted set to be sorted.
-     * @param sortOptions The {@link SortOptions}.
-     * @param sortStandaloneOptions The {@link SortStandaloneOptions}.
-     * @return A list of sorted elements.
-     * @example
-     *     <pre>{@code
-     * client.hset("user:1", Map.of("name", "Alice", "age", "30")).get();
-     * client.hset("user:2", Map.of("name", "Bob", "age", "25")).get();
-     * client.lpush("user_ids", new String[] {"2", "1"}).get();
-     * String [] payload = client.sortReadOnly(
-     *      "user_ids",
-     *      SortOptions.builder().orderBy(DESC).build(),
-     *      SortStandaloneOptions
-     *          .builder()
-     *              .byPattern("user:*->age")
-     *                  .getPatterns(new String[] {"user:*->name"})
-     *                      .build()).get();
-     * assertArrayEquals(new String[] {"Alice", "Bob"}, payload); // Returns a list of the names sorted by age in descending order
-     * }</pre>
-     */
-    CompletableFuture<String[]> sortReadOnly(
-            String key, SortOptions sortOptions, SortStandaloneOptions sortStandaloneOptions);
-
-    /**
-     * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
-     * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
-     * different criteria, apply transformations on sorted elements, and store the result in a new
-     * key. To get the sort result without storing it into a key, see <code>sort</code>.
-     *
-     * @param key The key of the list, set, or sorted set to be sorted.
-     * @param sortOptions The {@link SortOptions}.
-     * @param sortStandaloneOptions The {@link SortStandaloneOptions}.
-     * @param destination The key where the sorted result will be stored.
-     * @return The number of elements in the sorted key stored at <code>destination</code>.
-     * @example
-     *     <pre>{@code
-     * client.hset("user:1", Map.of("name", "Alice", "age", "30")).get();
-     * client.hset("user:2", Map.of("name", "Bob", "age", "25")).get();
-     * client.lpush("user_ids", new String[] {"2", "1"}).get();
-     * Long payload = client
-     *      .sortWithStore(
-     *          "user_ids",
-     *          "destination",
-     *          SortOptions.builder().orderBy(DESC).build(),
-     *          SortStandaloneOptions.builder()
-     *              .byPattern("user:*->age")
-     *              .getPatterns(new String[] {"user:*->name"})
-     *              .build())
-     *          .get();
-     * assertEquals(2, payload);
-     * assertArrayEquals(
-     *      new String[] {"Alice", "Bob"},
-     *      client.lrange("destination", 0, -1).get()); // The list of the names sorted by age in descending order is stored in `destination`
-     * }</pre>
-     */
-    CompletableFuture<Long> sortWithStore(
-            String key,
-            String destination,
-            SortOptions sortOptions,
-            SortStandaloneOptions sortStandaloneOptions);
 
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in

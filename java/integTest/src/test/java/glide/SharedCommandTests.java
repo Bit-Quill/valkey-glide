@@ -45,6 +45,7 @@ import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
+import glide.api.models.commands.SortBaseOptions;
 import glide.api.models.commands.SortOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
@@ -4922,15 +4923,16 @@ public class SharedCommandTests {
         assertArrayEquals(
                 new String[0],
                 client
-                        .sort(key1, SortOptions.builder().limit(new SortOptions.Limit(0L, 0L)).build())
+                        .sort(key1, SortBaseOptions.builder().limit(new SortOptions.Limit(0L, 0L)).build())
                         .get());
         assertArrayEquals(key1AscendingList, client.sort(key1).get());
         assertArrayEquals(
-                key1DescendingList, client.sort(key1, SortOptions.builder().orderBy(DESC).build()).get());
+                key1DescendingList,
+                client.sort(key1, SortBaseOptions.builder().orderBy(DESC).build()).get());
         assertArrayEquals(
                 Arrays.copyOfRange(key1AscendingList, 0, 2),
                 client
-                        .sort(key1, SortOptions.builder().limit(new SortOptions.Limit(0L, 2L)).build())
+                        .sort(key1, SortBaseOptions.builder().limit(new SortOptions.Limit(0L, 2L)).build())
                         .get());
         assertEquals(7, client.lpush(key2, key2LpushArgs).get());
         assertArrayEquals(
@@ -4938,7 +4940,7 @@ public class SharedCommandTests {
                 client
                         .sort(
                                 key2,
-                                SortOptions.builder()
+                                SortBaseOptions.builder()
                                         .alpha(true)
                                         .orderBy(DESC)
                                         .limit(new SortOptions.Limit(0L, 4L))
@@ -4951,19 +4953,19 @@ public class SharedCommandTests {
             assertArrayEquals(key1AscendingList, client.sortReadOnly(key1).get());
             assertArrayEquals(
                     key1DescendingList,
-                    client.sortReadOnly(key1, SortOptions.builder().orderBy(DESC).build()).get());
+                    client.sortReadOnly(key1, SortBaseOptions.builder().orderBy(DESC).build()).get());
             assertArrayEquals(
                     Arrays.copyOfRange(key1AscendingList, 0, 2),
                     client
                             .sortReadOnly(
-                                    key1, SortOptions.builder().limit(new SortOptions.Limit(0L, 2L)).build())
+                                    key1, SortBaseOptions.builder().limit(new SortOptions.Limit(0L, 2L)).build())
                             .get());
             assertArrayEquals(
                     key2DescendingListSubset,
                     client
                             .sortReadOnly(
                                     key2,
-                                    SortOptions.builder()
+                                    SortBaseOptions.builder()
                                             .alpha(true)
                                             .orderBy(DESC)
                                             .limit(new SortOptions.Limit(0L, 4L))
@@ -4979,7 +4981,7 @@ public class SharedCommandTests {
                         .sortWithStore(
                                 key2,
                                 key3,
-                                SortOptions.builder()
+                                SortBaseOptions.builder()
                                         .alpha(true)
                                         .orderBy(DESC)
                                         .limit(new SortOptions.Limit(0L, 4L))

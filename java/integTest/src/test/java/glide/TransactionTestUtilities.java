@@ -19,7 +19,7 @@ import glide.api.models.commands.RangeOptions.LexBoundary;
 import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.SetOptions;
-import glide.api.models.commands.SortOptions;
+import glide.api.models.commands.SortBaseOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.bitmap.BitFieldOptions.BitFieldGet;
@@ -126,10 +126,10 @@ public class TransactionTestUtilities {
                 .ttl(genericKey2)
                 .lpush(genericKey3, new String[] {"3", "1", "2"})
                 .sort(genericKey3)
-                .sort(genericKey3, SortOptions.builder().orderBy(DESC).build())
+                .sort(genericKey3, SortBaseOptions.builder().orderBy(DESC).build())
                 .sortWithStore(genericKey3, genericKey4)
                 .lrange(genericKey4, 0, -1)
-                .sortWithStore(genericKey3, genericKey4, SortOptions.builder().orderBy(DESC).build())
+                .sortWithStore(genericKey3, genericKey4, SortBaseOptions.builder().orderBy(DESC).build())
                 .lrange(genericKey4, 0, -1);
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
@@ -142,7 +142,7 @@ public class TransactionTestUtilities {
                     .expiretime(genericKey1)
                     .pexpiretime(genericKey1)
                     .sortReadOnly(genericKey3)
-                    .sortReadOnly(genericKey3, SortOptions.builder().orderBy(DESC).build());
+                    .sortReadOnly(genericKey3, SortBaseOptions.builder().orderBy(DESC).build());
         }
 
         var expectedResults =
@@ -169,11 +169,11 @@ public class TransactionTestUtilities {
                     -2L, // ttl(genericKey2)
                     3L, // lpush(genericKey3, new String[] {"3", "1", "2"})
                     ascendingList, // sort(genericKey3)
-                    descendingList, // sort(genericKey3, SortOptions.builder().orderBy(DESC).build())
+                    descendingList, // sort(genericKey3, SortBaseOptions.builder().orderBy(DESC).build())
                     3L, // sortWithStore(genericKey3, genericKey4)
                     ascendingList, // lrange(genericKey4, 0, -1)
                     3L, // sortWithStore(genericKey3, genericKey4,
-                    // SortOptions.builder().orderBy(DESC).build())
+                    // SortBaseOptions.builder().orderBy(DESC).build())
                     descendingList, // lrange(genericKey4, 0, -1)
                 };
 
@@ -190,7 +190,7 @@ public class TransactionTestUtilities {
                         -2L, // pexpiretime(genericKey1)
                         ascendingList, // sortReadOnly(genericKey3)
                         descendingList, // sortReadOnly(genericKey3,
-                        // SortOptions.builder().orderBy(DESC).build())
+                        // SortBaseOptions.builder().orderBy(DESC).build())
                     });
         }
         return expectedResults;

@@ -15,7 +15,6 @@ import static redis_request.RedisRequestOuterClass.RequestType.Select;
 import static redis_request.RedisRequestOuterClass.RequestType.Sort;
 import static redis_request.RedisRequestOuterClass.RequestType.SortReadOnly;
 
-import glide.api.models.commands.SortOptions;
 import glide.api.models.commands.SortStandaloneOptions;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,8 +53,10 @@ public class StandaloneTransactionTests {
                                 "getPattern2")));
         transaction.sort(
                 "key1",
-                SortOptions.builder().orderBy(DESC).alpha(true).limit(new Limit(0L, 1L)).build(),
                 SortStandaloneOptions.builder()
+                        .orderBy(DESC)
+                        .alpha(true)
+                        .limit(new Limit(0L, 1L))
                         .byPattern("byPattern")
                         .getPatterns(new String[] {"getPattern1", "getPattern2"})
                         .build());
@@ -94,8 +95,10 @@ public class StandaloneTransactionTests {
                                 "getPattern2")));
         transaction.sortReadOnly(
                 "key1",
-                SortOptions.builder().orderBy(DESC).alpha(true).limit(new Limit(0L, 1L)).build(),
                 SortStandaloneOptions.builder()
+                        .orderBy(DESC)
+                        .alpha(true)
+                        .limit(new Limit(0L, 1L))
                         .byPattern("byPattern")
                         .getPatterns(new String[] {"getPattern1", "getPattern2"})
                         .build());
@@ -138,8 +141,10 @@ public class StandaloneTransactionTests {
         transaction.sortWithStore(
                 "key1",
                 "key2",
-                SortOptions.builder().orderBy(DESC).alpha(true).limit(new Limit(0L, 1L)).build(),
                 SortStandaloneOptions.builder()
+                        .orderBy(DESC)
+                        .alpha(true)
+                        .limit(new Limit(0L, 1L))
                         .byPattern("byPattern")
                         .getPatterns(new String[] {"getPattern1", "getPattern2"})
                         .build());

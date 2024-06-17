@@ -33,7 +33,6 @@ import glide.api.commands.ServerManagementCommands;
 import glide.api.models.Transaction;
 import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
-import glide.api.models.commands.SortOptions;
 import glide.api.models.commands.SortStandaloneOptions;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.managers.CommandManager;
@@ -219,35 +218,9 @@ public class RedisClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<String[]> sort(
-            @NonNull String key,
-            @NonNull SortOptions sortOptions,
-            @NonNull SortStandaloneOptions sortStandaloneOptions) {
-        String[] arguments =
-                ArrayUtils.addFirst(
-                        concatenateArrays(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
-        return commandManager.submitNewCommand(
-                Sort, arguments, response -> castArray(handleArrayResponse(response), String.class));
-    }
-
-    @Override
     public CompletableFuture<String[]> sortReadOnly(
             @NonNull String key, @NonNull SortStandaloneOptions sortStandaloneOptions) {
         String[] arguments = ArrayUtils.addFirst(sortStandaloneOptions.toArgs(), key);
-        return commandManager.submitNewCommand(
-                SortReadOnly,
-                arguments,
-                response -> castArray(handleArrayResponse(response), String.class));
-    }
-
-    @Override
-    public CompletableFuture<String[]> sortReadOnly(
-            @NonNull String key,
-            @NonNull SortOptions sortOptions,
-            @NonNull SortStandaloneOptions sortStandaloneOptions) {
-        String[] arguments =
-                ArrayUtils.addFirst(
-                        concatenateArrays(sortOptions.toArgs(), sortStandaloneOptions.toArgs()), key);
         return commandManager.submitNewCommand(
                 SortReadOnly,
                 arguments,
@@ -262,20 +235,6 @@ public class RedisClient extends BaseClient
         String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
         String[] arguments =
                 ArrayUtils.addFirst(concatenateArrays(storeArguments, sortStandaloneOptions.toArgs()), key);
-        return commandManager.submitNewCommand(Sort, arguments, this::handleLongResponse);
-    }
-
-    @Override
-    public CompletableFuture<Long> sortWithStore(
-            @NonNull String key,
-            @NonNull String destination,
-            @NonNull SortOptions sortOptions,
-            @NonNull SortStandaloneOptions sortStandaloneOptions) {
-        String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
-        String[] optionsArguments =
-                concatenateArrays(sortOptions.toArgs(), sortStandaloneOptions.toArgs());
-        String[] arguments =
-                ArrayUtils.addFirst(ArrayUtils.addAll(storeArguments, optionsArguments), key);
         return commandManager.submitNewCommand(Sort, arguments, this::handleLongResponse);
     }
 }

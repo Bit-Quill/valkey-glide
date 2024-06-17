@@ -39,7 +39,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Time;
 import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
-import glide.api.models.commands.SortOptions;
+import glide.api.models.commands.SortBaseOptions;
 import glide.api.models.commands.SortOptions.Limit;
 import glide.api.models.commands.function.FunctionLoadOptions;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
@@ -1228,7 +1228,7 @@ public class RedisClusterClientTest {
         CompletableFuture<String[]> response =
                 service.sort(
                         key,
-                        SortOptions.builder()
+                        SortBaseOptions.builder()
                                 .alpha(true)
                                 .limit(new Limit(limitOffset, limitCount))
                                 .orderBy(DESC)
@@ -1290,7 +1290,7 @@ public class RedisClusterClientTest {
         CompletableFuture<String[]> response =
                 service.sortReadOnly(
                         key,
-                        SortOptions.builder()
+                        SortBaseOptions.builder()
                                 .alpha(true)
                                 .limit(new Limit(limitOffset, limitCount))
                                 .orderBy(DESC)
@@ -1357,7 +1357,7 @@ public class RedisClusterClientTest {
                 service.sortWithStore(
                         key,
                         destKey,
-                        SortOptions.builder()
+                        SortBaseOptions.builder()
                                 .alpha(true)
                                 .limit(new Limit(limitOffset, limitCount))
                                 .orderBy(DESC)

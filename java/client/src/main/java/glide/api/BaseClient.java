@@ -167,7 +167,7 @@ import glide.api.models.commands.RangeOptions.ScoredRangeQuery;
 import glide.api.models.commands.ScoreFilter;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
-import glide.api.models.commands.SortOptions;
+import glide.api.models.commands.SortBaseOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.ZAddOptions;
@@ -1691,8 +1691,9 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<String[]> sort(@NonNull String key, @NonNull SortOptions sortOptions) {
-        String[] arguments = ArrayUtils.addFirst(sortOptions.toArgs(), key);
+    public CompletableFuture<String[]> sort(
+            @NonNull String key, @NonNull SortBaseOptions sortBaseOptions) {
+        String[] arguments = ArrayUtils.addFirst(sortBaseOptions.toArgs(), key);
         return commandManager.submitNewCommand(
                 Sort, arguments, response -> castArray(handleArrayResponse(response), String.class));
     }
@@ -1707,8 +1708,8 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<String[]> sortReadOnly(
-            @NonNull String key, @NonNull SortOptions sortOptions) {
-        String[] arguments = ArrayUtils.addFirst(sortOptions.toArgs(), key);
+            @NonNull String key, @NonNull SortBaseOptions sortBaseOptions) {
+        String[] arguments = ArrayUtils.addFirst(sortBaseOptions.toArgs(), key);
         return commandManager.submitNewCommand(
                 SortReadOnly,
                 arguments,
@@ -1723,10 +1724,10 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Long> sortWithStore(
-            @NonNull String key, @NonNull String destination, @NonNull SortOptions sortOptions) {
+            @NonNull String key, @NonNull String destination, @NonNull SortBaseOptions sortBaseOptions) {
         String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
         String[] arguments =
-                ArrayUtils.addFirst(concatenateArrays(storeArguments, sortOptions.toArgs()), key);
+                ArrayUtils.addFirst(concatenateArrays(storeArguments, sortBaseOptions.toArgs()), key);
         return commandManager.submitNewCommand(Sort, arguments, this::handleLongResponse);
     }
 }
