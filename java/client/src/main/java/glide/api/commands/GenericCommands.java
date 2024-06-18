@@ -79,7 +79,7 @@ public interface GenericCommands {
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
      * The <code>sort</code> command can be used to sort elements based on different criteria and
      * apply transformations on sorted elements.<br>
-     * To store the result into a new key, see {@link GenericCommands#sortWithStore(String, String,
+     * To store the result into a new key, see {@link GenericCommands#sortStore(String, String,
      * SortStandaloneOptions)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
@@ -147,7 +147,7 @@ public interface GenericCommands {
      * client.hset("user:2", Map.of("name", "Bob", "age", "25")).get();
      * client.lpush("user_ids", new String[] {"2", "1"}).get();
      * Long payload = client
-     *      .sortWithStore(
+     *      .sortStore(
      *          "user_ids",
      *          "destination",
      *          SortStandaloneOptions.builder()
@@ -161,6 +161,6 @@ public interface GenericCommands {
      *      client.lrange("destination", 0, -1).get()); // The list of the names sorted by age is stored in `destination`
      * }</pre>
      */
-    CompletableFuture<Long> sortWithStore(
+    CompletableFuture<Long> sortStore(
             String key, String destination, SortStandaloneOptions sortStandaloneOptions);
 }

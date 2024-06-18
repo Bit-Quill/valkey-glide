@@ -118,7 +118,7 @@ public class StandaloneTransactionTests {
                                 "getPattern1",
                                 GET_COMMAND_STRING,
                                 "getPattern2")));
-        transaction.sortWithStore(
+        transaction.sortStore(
                 "key1",
                 "key2",
                 SortStandaloneOptions.builder()
@@ -138,7 +138,7 @@ public class StandaloneTransactionTests {
                                 "getPattern1",
                                 GET_COMMAND_STRING,
                                 "getPattern2")));
-        transaction.sortWithStore(
+        transaction.sortStore(
                 "key1",
                 "key2",
                 SortStandaloneOptions.builder()

@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 /**
  * Optional arguments to {@link GenericCommands#sort(String, SortStandaloneOptions)}, {@link
  * GenericCommands#sortReadOnly(String, SortStandaloneOptions)}, and {@link
- * GenericCommands#sortWithStore(String, String, SortStandaloneOptions)}
+ * GenericCommands#sortStore(String, String, SortStandaloneOptions)}
  *
  * @see <a href="https://redis.io/commands/sort/">redis.io</a> and <a
  *     href="https://redis.io/docs/latest/commands/sort_ro/">redis.io</a>

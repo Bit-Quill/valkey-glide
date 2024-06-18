@@ -964,9 +964,9 @@ public class TransactionTests {
                         SortReadOnly,
                         buildArgs(
                                 "key1", LIMIT_COMMAND_STRING, "0", "1", ASC.toString(), ALPHA_COMMAND_STRING)));
-        transaction.sortWithStore("key1", "key2");
+        transaction.sortStore("key1", "key2");
         results.add(Pair.of(Sort, buildArgs("key1", STORE_COMMAND_STRING, "key2")));
-        transaction.sortWithStore(
+        transaction.sortStore(
                 "key1",
                 "key2",
                 SortBaseOptions.builder()

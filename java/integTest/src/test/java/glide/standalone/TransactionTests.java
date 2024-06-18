@@ -257,7 +257,7 @@ public class TransactionTests {
                                 .byPattern("user:*->age")
                                 .getPatterns(new String[] {"user:*->name"})
                                 .build())
-                .sortWithStore(
+                .sortStore(
                         genericKey1,
                         genericKey2,
                         SortStandaloneOptions.builder()
@@ -265,7 +265,7 @@ public class TransactionTests {
                                 .getPatterns(new String[] {"user:*->name"})
                                 .build())
                 .lrange(genericKey2, 0, -1)
-                .sortWithStore(
+                .sortStore(
                         genericKey1,
                         genericKey2,
                         SortStandaloneOptions.builder()
@@ -282,9 +282,9 @@ public class TransactionTests {
                     2L, // lpush(genericKey1, new String[] {"2", "1"})
                     ascendingListByAge, // sort(genericKey1, SortStandaloneOptions)
                     descendingListByAge, // sort(genericKey1, SortStandaloneOptions)
-                    2L, // sortWithStore(genericKey1, genericKey2, SortStandaloneOptions)
+                    2L, // sortStore(genericKey1, genericKey2, SortStandaloneOptions)
                     ascendingListByAge, // lrange(genericKey4, 0, -1)
-                    2L, // sortWithStore(genericKey1, genericKey2, SortStandaloneOptions)
+                    2L, // sortStore(genericKey1, genericKey2, SortStandaloneOptions)
                     descendingListByAge, // lrange(genericKey2, 0, -1)
                 };
 

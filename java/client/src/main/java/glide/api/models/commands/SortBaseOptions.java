@@ -7,7 +7,7 @@ import lombok.experimental.SuperBuilder;
 /**
  * Optional arguments to {@link GenericBaseCommands#sort(String, SortBaseOptions)}, {@link
  * GenericBaseCommands#sortReadOnly(String, SortBaseOptions)}, and {@link
- * GenericBaseCommands#sortWithStore(String, String, SortBaseOptions)}
+ * GenericBaseCommands#sortStore(String, String, SortBaseOptions)}
  */
 @SuperBuilder
 public class SortBaseOptions extends SortOptions {}

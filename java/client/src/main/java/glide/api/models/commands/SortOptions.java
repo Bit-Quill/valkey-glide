@@ -11,9 +11,9 @@ import lombok.experimental.SuperBuilder;
 /**
  * Optional arguments to {@link GenericBaseCommands#sort(String, SortBaseOptions)}, {@link
  * GenericBaseCommands#sortReadOnly(String, SortBaseOptions)}, {@link
- * GenericBaseCommands#sortWithStore(String, String, SortBaseOptions)}, {@link
+ * GenericBaseCommands#sortStore(String, String, SortBaseOptions)}, {@link
  * GenericCommands#sort(String, SortStandaloneOptions)}, {@link GenericCommands#sortReadOnly(String,
- * SortStandaloneOptions)}, and {@link GenericCommands#sortWithStore(String, String,
+ * SortStandaloneOptions)}, and {@link GenericCommands#sortStore(String, String,
  * SortStandaloneOptions)}
  *
  * @see <a href="https://redis.io/commands/sort/">redis.io</a> and <a

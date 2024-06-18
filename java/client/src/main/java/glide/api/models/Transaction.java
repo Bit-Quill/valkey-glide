@@ -117,7 +117,7 @@ public class Transaction extends BaseTransaction<Transaction> {
      * @return Command Response - The number of elements in the sorted key stored at <code>destination
      *     </code>.
      */
-    public Transaction sortWithStore(
+    public Transaction sortStore(
             @NonNull String key,
             @NonNull String destination,
             @NonNull SortStandaloneOptions sortStandaloneOptions) {

@@ -1304,7 +1304,7 @@ public class RedisClusterClientTest {
 
     @SneakyThrows
     @Test
-    public void sortWithStore_returns_success() {
+    public void sortStore_returns_success() {
         // setup
         Long result = 5L;
         String key = "key";
@@ -1318,7 +1318,7 @@ public class RedisClusterClientTest {
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Long> response = service.sortWithStore(key, destKey);
+        CompletableFuture<Long> response = service.sortStore(key, destKey);
         Long payload = response.get();
 
         // verify
@@ -1328,7 +1328,7 @@ public class RedisClusterClientTest {
 
     @SneakyThrows
     @Test
-    public void sortWithStore_with_options_returns_success() {
+    public void sortStore_with_options_returns_success() {
         // setup
         Long result = 5L;
         String key = "key";
@@ -1354,7 +1354,7 @@ public class RedisClusterClientTest {
 
         // exercise
         CompletableFuture<Long> response =
-                service.sortWithStore(
+                service.sortStore(
                         key,
                         destKey,
                         SortBaseOptions.builder()

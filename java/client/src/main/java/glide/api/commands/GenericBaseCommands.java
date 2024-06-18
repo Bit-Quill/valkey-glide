@@ -549,8 +549,7 @@ public interface GenericBaseCommands {
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
      * The <code>sort</code> command can be used to sort elements based on different criteria and
      * apply transformations on sorted elements.<br>
-     * To store the result into a new key, see {@link GenericBaseCommands#sortWithStore(String,
-     * String)}.
+     * To store the result into a new key, see {@link GenericBaseCommands#sortStore(String, String)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @return A list of sorted elements.
@@ -566,8 +565,8 @@ public interface GenericBaseCommands {
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
      * The <code>sort</code> command can be used to sort elements based on different criteria and
      * apply transformations on sorted elements.<br>
-     * To store the result into a new key, see {@link GenericBaseCommands#sortWithStore(String,
-     * String, SortBaseOptions)}.
+     * To store the result into a new key, see {@link GenericBaseCommands#sortStore(String, String,
+     * SortBaseOptions)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param sortBaseOptions The {@link SortBaseOptions}.
@@ -649,13 +648,13 @@ public interface GenericBaseCommands {
      * @example
      *     <pre>{@code
      * client.lpush("mylist", new String[] {"3", "1", "2"}).get();
-     * assert client.sortWithStore("mylist", "destination").get() == 3;
+     * assert client.sortStore("mylist", "destination").get() == 3;
      * assertArrayEquals(
      *    new String[] {"1", "2", "3"},
      *    client.lrange("destination", 0, -1).get()); // Sorted list is stored in `destination`
      * }</pre>
      */
-    CompletableFuture<Long> sortWithStore(String key, String destination);
+    CompletableFuture<Long> sortStore(String key, String destination);
 
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
@@ -676,7 +675,7 @@ public interface GenericBaseCommands {
      *     <pre>{@code
      * client.lpush("mylist", new String[] {"3", "1", "2", "a"}).get();
      * Long payload = client
-     *      .sortWithStore(
+     *      .sortStore(
      *          "mylist",
      *          "destination",
      *          SortBaseOptions.builder()
@@ -691,6 +690,6 @@ public interface GenericBaseCommands {
      *      client.lrange("destination", 0, -1).get()); // Sorted list is stored in "destination"
      * }</pre>
      */
-    CompletableFuture<Long> sortWithStore(
+    CompletableFuture<Long> sortStore(
             String key, String destination, SortBaseOptions sortBaseOptions);
 }

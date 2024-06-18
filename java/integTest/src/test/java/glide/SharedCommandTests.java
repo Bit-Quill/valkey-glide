@@ -4973,12 +4973,12 @@ public class SharedCommandTests {
                             .get());
         }
         // SORT with STORE
-        assertEquals(4, client.sortWithStore(key1, key3).get());
+        assertEquals(4, client.sortStore(key1, key3).get());
         assertArrayEquals(key1AscendingList, client.lrange(key3, 0, -1).get());
         assertEquals(
                 4,
                 client
-                        .sortWithStore(
+                        .sortStore(
                                 key2,
                                 key3,
                                 SortBaseOptions.builder()

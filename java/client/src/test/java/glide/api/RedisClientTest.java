@@ -5755,7 +5755,7 @@ public class RedisClientTest {
 
     @SneakyThrows
     @Test
-    public void sortWithStore_with_standalone_options_returns_success() {
+    public void sortStore__standalone_options_returns_success() {
         // setup
         Long result = 5L;
         String key = "key";
@@ -5780,7 +5780,7 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<Long> response =
-                service.sortWithStore(
+                service.sortStore(
                         key,
                         destKey,
                         SortStandaloneOptions.builder()
@@ -5796,7 +5796,7 @@ public class RedisClientTest {
 
     @SneakyThrows
     @Test
-    public void sortWithStore_with_standalone_and_sort_options_returns_success() {
+    public void sortStore_with_standalone_and_sort_options_returns_success() {
         // setup
         Long result = 5L;
         String key = "key";
@@ -5828,7 +5828,7 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<Long> response =
-                service.sortWithStore(
+                service.sortStore(
                         key,
                         destKey,
                         SortStandaloneOptions.builder()

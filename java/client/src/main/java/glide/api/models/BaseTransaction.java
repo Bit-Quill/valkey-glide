@@ -4149,7 +4149,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return Command Response - The number of elements in the sorted key stored at <code>destination
      *     </code>.
      */
-    public T sortWithStore(@NonNull String key, @NonNull String destination) {
+    public T sortStore(@NonNull String key, @NonNull String destination) {
         ArgsArray commandArgs = buildArgs(new String[] {key, STORE_COMMAND_STRING, destination});
         protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
         return getThis();
@@ -4167,7 +4167,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return Command Response - The number of elements in the sorted key stored at <code>destination
      *     </code>.
      */
-    public T sortWithStore(
+    public T sortStore(
             @NonNull String key, @NonNull String destination, @NonNull SortBaseOptions sortBaseOptions) {
         String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
         ArgsArray commandArgs =

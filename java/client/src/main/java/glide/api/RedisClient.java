@@ -228,7 +228,7 @@ public class RedisClient extends BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> sortWithStore(
+    public CompletableFuture<Long> sortStore(
             @NonNull String key,
             @NonNull String destination,
             @NonNull SortStandaloneOptions sortStandaloneOptions) {

@@ -1717,13 +1717,13 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Long> sortWithStore(@NonNull String key, @NonNull String destination) {
+    public CompletableFuture<Long> sortStore(@NonNull String key, @NonNull String destination) {
         return commandManager.submitNewCommand(
                 Sort, new String[] {key, STORE_COMMAND_STRING, destination}, this::handleLongResponse);
     }
 
     @Override
-    public CompletableFuture<Long> sortWithStore(
+    public CompletableFuture<Long> sortStore(
             @NonNull String key, @NonNull String destination, @NonNull SortBaseOptions sortBaseOptions) {
         String[] storeArguments = new String[] {STORE_COMMAND_STRING, destination};
         String[] arguments =

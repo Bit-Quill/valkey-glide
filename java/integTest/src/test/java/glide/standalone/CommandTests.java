@@ -579,7 +579,7 @@ public class CommandTests {
         assertEquals(
                 5,
                 regularClient
-                        .sortWithStore(
+                        .sortStore(
                                 listKey,
                                 storeKey,
                                 SortStandaloneOptions.builder()
@@ -593,7 +593,7 @@ public class CommandTests {
         assertEquals(
                 5,
                 regularClient
-                        .sortWithStore(
+                        .sortStore(
                                 listKey,
                                 storeKey,
                                 SortStandaloneOptions.builder()

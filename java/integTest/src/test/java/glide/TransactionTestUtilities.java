@@ -127,9 +127,9 @@ public class TransactionTestUtilities {
                 .lpush(genericKey3, new String[] {"3", "1", "2"})
                 .sort(genericKey3)
                 .sort(genericKey3, SortBaseOptions.builder().orderBy(DESC).build())
-                .sortWithStore(genericKey3, genericKey4)
+                .sortStore(genericKey3, genericKey4)
                 .lrange(genericKey4, 0, -1)
-                .sortWithStore(genericKey3, genericKey4, SortBaseOptions.builder().orderBy(DESC).build())
+                .sortStore(genericKey3, genericKey4, SortBaseOptions.builder().orderBy(DESC).build())
                 .lrange(genericKey4, 0, -1);
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0")) {
@@ -170,9 +170,9 @@ public class TransactionTestUtilities {
                     3L, // lpush(genericKey3, new String[] {"3", "1", "2"})
                     ascendingList, // sort(genericKey3)
                     descendingList, // sort(genericKey3, SortBaseOptions.builder().orderBy(DESC).build())
-                    3L, // sortWithStore(genericKey3, genericKey4)
+                    3L, // sortStore(genericKey3, genericKey4)
                     ascendingList, // lrange(genericKey4, 0, -1)
-                    3L, // sortWithStore(genericKey3, genericKey4, DESC))
+                    3L, // sortStore(genericKey3, genericKey4, DESC))
                     descendingList, // lrange(genericKey4, 0, -1)
                 };
 
