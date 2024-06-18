@@ -3036,14 +3036,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key The key of the stream.
      * @param group The consumer group name.
      * @param consumer The newly created consumer.
-     * @return the number of pending messages the <code>consumer</code> had before it was deleted.
-     * @example
-     *     <pre>{@code
-     * // Deletes the consumer "myconsumer" in consumer group "mygroup"
-     * Long pendingMsgCount = client.xgroupDestroy("mystream", "mygroup", "myconsumer").get();
-     * System.out.println("Consumer 'myconsumer' had " +
-     *     + pendingMsgCount + " pending messages unclaimed.");
-     * }</pre>
+     * @return Command Response - The number of pending messages the <code>consumer</code> had before
+     *     it was deleted.
      */
     public T xgroupDelConsumer(@NonNull String key, @NonNull String group, @NonNull String consumer) {
         protobufTransaction.addCommands(

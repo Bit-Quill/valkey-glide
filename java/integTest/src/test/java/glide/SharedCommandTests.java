@@ -3521,11 +3521,6 @@ public class SharedCommandTests {
         // Deletes a consumer that is not created yet returns 0
         assertEquals(0L, client.xgroupDelConsumer(key, groupName, "not_a_consumer").get());
 
-        // String streamid_1 = client.xadd(key, Map.of("field1", "value1")).get();
-        // assertNotNull(streamid_1);
-        // String streamid_2 = client.xadd(key, Map.of("field2", "value2")).get();
-        // assertNotNull(streamid_2);
-
         // TODO use XREADGROUP to mark pending messages for the consumer so that we get non-zero return
         assertEquals(0L, client.xgroupDelConsumer(key, groupName, consumerName).get());
 

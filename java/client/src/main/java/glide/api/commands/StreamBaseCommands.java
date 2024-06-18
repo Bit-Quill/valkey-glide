@@ -397,7 +397,7 @@ public interface StreamBaseCommands {
      * @param key The key of the stream.
      * @param group The consumer group name.
      * @param consumer The newly created consumer.
-     * @return the number of pending messages the <code>consumer</code> had before it was deleted.
+     * @return The number of pending messages the <code>consumer</code> had before it was deleted.
      * @example
      *     <pre>{@code
      * // Deletes the consumer "myconsumer" in consumer group "mygroup"
