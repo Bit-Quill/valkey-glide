@@ -1,15 +1,15 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands;
 
+import glide.api.commands.GenericCommands;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Optional arguments to {@link glide.api.commands.GenericCommands#sort(String,
- * SortStandaloneOptions)}, {@link glide.api.commands.GenericCommands#sortReadOnly(String,
- * SortStandaloneOptions)}, and {@link glide.api.commands.GenericCommands#sortWithStore(String,
- * String, SortStandaloneOptions)}
+ * Optional arguments to {@link GenericCommands#sort(String, SortStandaloneOptions)}, {@link
+ * GenericCommands#sortReadOnly(String, SortStandaloneOptions)}, and {@link
+ * GenericCommands#sortWithStore(String, String, SortStandaloneOptions)}
  *
  * @see <a href="https://redis.io/commands/sort/">redis.io</a> and <a
  *     href="https://redis.io/docs/latest/commands/sort_ro/">redis.io</a>
@@ -53,10 +53,7 @@ public class SortStandaloneOptions extends SortOptions {
     private final String[] getPatterns;
 
     /**
-     * Creates the arguments to be used in {@link glide.api.commands.GenericCommands#sort(String,
-     * SortStandaloneOptions)}, {@link glide.api.commands.GenericCommands#sortReadOnly(String,
-     * SortStandaloneOptions)}, and {@link glide.api.commands.GenericCommands#sortWithStore(String,
-     * String, SortStandaloneOptions)}.
+     * Creates the arguments to be used in <code>SORT</code> and <code>SORT_RO</code> commands.
      *
      * @return a String array that holds the sub commands and their arguments.
      */

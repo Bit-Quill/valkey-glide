@@ -5,6 +5,7 @@ import glide.api.models.Script;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SortBaseOptions;
+import glide.api.models.configuration.ReadFrom;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -547,8 +548,9 @@ public interface GenericBaseCommands {
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
      * The <code>sort</code> command can be used to sort elements based on different criteria and
-     * apply transformations on sorted elements. To store the result into a new key, see <code>
-     * sort_store</code>.
+     * apply transformations on sorted elements.<br>
+     * To store the result into a new key, see {@link GenericBaseCommands#sortWithStore(String,
+     * String)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @return A list of sorted elements.
@@ -563,8 +565,9 @@ public interface GenericBaseCommands {
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
      * The <code>sort</code> command can be used to sort elements based on different criteria and
-     * apply transformations on sorted elements. To store the result into a new key, see <code>
-     * sort_store</code>.
+     * apply transformations on sorted elements.<br>
+     * To store the result into a new key, see {@link GenericBaseCommands#sortWithStore(String,
+     * String, SortBaseOptions)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param sortBaseOptions The {@link SortBaseOptions}.
@@ -587,10 +590,12 @@ public interface GenericBaseCommands {
 
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
-     * This command is routed depending on the client's <code>ReadFrom</code> strategy. The <code>
-     * sortReadOnly</code> command can be used to sort elements based on different criteria and apply
-     * transformations on sorted elements.
+     * <br>
+     * The <code>sortReadOnly</code> command can be used to sort elements based on different criteria
+     * and apply transformations on sorted elements.<br>
+     * This command is routed depending on the client's {@link ReadFrom} strategy.
      *
+     * @since Redis 7.0 and above.
      * @param key The key of the list, set, or sorted set to be sorted.
      * @return A list of sorted elements.
      * @example
@@ -603,10 +608,12 @@ public interface GenericBaseCommands {
 
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
-     * This command is routed depending on the client's <code>ReadFrom</code> strategy. The <code>
-     * sortReadOnly</code> command can be used to sort elements based on different criteria and apply
-     * transformations on sorted elements.
+     * <br>
+     * The <code>sortReadOnly</code> command can be used to sort elements based on different criteria
+     * and apply transformations on sorted elements.<br>
+     * This command is routed depending on the client's {@link ReadFrom} strategy.
      *
+     * @since Redis 7.0 and above.
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param sortBaseOptions The {@link SortBaseOptions}.
      * @return A list of sorted elements.
@@ -630,8 +637,12 @@ public interface GenericBaseCommands {
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
      * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
      * different criteria, apply transformations on sorted elements, and store the result in a new
-     * key. To get the sort result without storing it into a key, see <code>sort</code>.
+     * key.<br>
+     * To get the sort result without storing it into a key, see {@link
+     * GenericBaseCommands#sort(String)} and {@link GenericBaseCommands#sortReadOnly(String)}.
      *
+     * @apiNote When in cluster mode, <code>key</code> and <code>destination</code> must map to the
+     *     same hash slot.
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param destination The key where the sorted result will be stored.
      * @return The number of elements in the sorted key stored at <code>destination</code>.
@@ -650,8 +661,13 @@ public interface GenericBaseCommands {
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
      * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
      * different criteria, apply transformations on sorted elements, and store the result in a new
-     * key. To get the sort result without storing it into a key, see <code>sort</code>.
+     * key.<br>
+     * To get the sort result without storing it into a key, see {@link
+     * GenericBaseCommands#sort(String, SortBaseOptions)} and {@link
+     * GenericBaseCommands#sortReadOnly(String, SortBaseOptions)}.
      *
+     * @apiNote When in cluster mode, <code>key</code> and <code>destination</code> must map to the
+     *     same hash slot.
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param destination The key where the sorted result will be stored.
      * @param sortBaseOptions The {@link SortBaseOptions}.

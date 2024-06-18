@@ -1,19 +1,20 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands;
 
+import glide.api.commands.GenericBaseCommands;
+import glide.api.commands.GenericCommands;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Optional arguments to {@link glide.api.commands.GenericBaseCommands#sort(String,
- * SortBaseOptions)}, {@link glide.api.commands.GenericBaseCommands#sortReadOnly(String,
- * SortBaseOptions)}, {@link glide.api.commands.GenericBaseCommands#sortWithStore(String, String,
- * SortBaseOptions)}, {@link glide.api.commands.GenericCommands#sort(String,
- * SortStandaloneOptions)}, {@link glide.api.commands.GenericCommands#sortReadOnly(String,
- * SortStandaloneOptions)}, and {@link glide.api.commands.GenericCommands#sortWithStore(String,
- * String, SortStandaloneOptions)}
+ * Optional arguments to {@link GenericBaseCommands#sort(String, SortBaseOptions)}, {@link
+ * GenericBaseCommands#sortReadOnly(String, SortBaseOptions)}, {@link
+ * GenericBaseCommands#sortWithStore(String, String, SortBaseOptions)}, {@link
+ * GenericCommands#sort(String, SortStandaloneOptions)}, {@link GenericCommands#sortReadOnly(String,
+ * SortStandaloneOptions)}, and {@link GenericCommands#sortWithStore(String, String,
+ * SortStandaloneOptions)}
  *
  * @see <a href="https://redis.io/commands/sort/">redis.io</a> and <a
  *     href="https://redis.io/docs/latest/commands/sort_ro/">redis.io</a>
@@ -45,9 +46,9 @@ public abstract class SortOptions {
     private final OrderBy orderBy;
 
     /**
-     * When `True`, sorts elements lexicographically. When `False` (default), sorts elements
-     * numerically. Use this when the list, set, or sorted set contains string values that cannot be
-     * converted into double precision floating point numbers.
+     * When <code>true</code>, sorts elements lexicographically. When <code>false</code> (default),
+     * sorts elements numerically. Use this when the list, set, or sorted set contains string values
+     * that cannot be converted into double precision floating point numbers.
      */
     private final boolean alpha;
 
@@ -79,13 +80,7 @@ public abstract class SortOptions {
     }
 
     /**
-     * Creates the arguments to be used in {@link glide.api.commands.GenericBaseCommands#sort(String,
-     * SortBaseOptions)}, {@link glide.api.commands.GenericBaseCommands#sortReadOnly(String,
-     * SortBaseOptions)}, {@link glide.api.commands.GenericBaseCommands#sortWithStore(String, String,
-     * SortBaseOptions)}, {@link glide.api.commands.GenericCommands#sort(String,
-     * SortStandaloneOptions)}, {@link glide.api.commands.GenericCommands#sortReadOnly(String,
-     * SortStandaloneOptions)}, and {@link glide.api.commands.GenericCommands#sortWithStore(String,
-     * String, SortStandaloneOptions)}.
+     * Creates the arguments to be used in <code>SORT</code> and <code>SORT_RO</code> commands.
      *
      * @return a String array that holds the sub commands and their arguments.
      */
