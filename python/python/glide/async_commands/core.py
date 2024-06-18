@@ -72,7 +72,7 @@ class ExpiryType(Enum):
 
 
 class ExpiryTypeGetEx(Enum):
-    """SET option: The type of the expiry.
+    """GetEx option: The type of the expiry.
     - EX - Set the specified expire time, in seconds. Equivalent to `EX` in the Redis API.
     - PX - Set the specified expire time, in milliseconds. Equivalent to `PX` in the Redis API.
     - UNIX_SEC - Set the specified Unix time at which the key will expire, in seconds. Equivalent to `EXAT` in the Redis API.
