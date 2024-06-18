@@ -172,8 +172,7 @@ public class TransactionTestUtilities {
                     descendingList, // sort(genericKey3, SortBaseOptions.builder().orderBy(DESC).build())
                     3L, // sortWithStore(genericKey3, genericKey4)
                     ascendingList, // lrange(genericKey4, 0, -1)
-                    3L, // sortWithStore(genericKey3, genericKey4,
-                    // SortBaseOptions.builder().orderBy(DESC).build())
+                    3L, // sortWithStore(genericKey3, genericKey4, DESC))
                     descendingList, // lrange(genericKey4, 0, -1)
                 };
 
@@ -189,8 +188,7 @@ public class TransactionTestUtilities {
                         -2L, // expiretime(genericKey1)
                         -2L, // pexpiretime(genericKey1)
                         ascendingList, // sortReadOnly(genericKey3)
-                        descendingList, // sortReadOnly(genericKey3,
-                        // SortBaseOptions.builder().orderBy(DESC).build())
+                        descendingList, // sortReadOnly(genericKey3, DESC)
                     });
         }
         return expectedResults;
