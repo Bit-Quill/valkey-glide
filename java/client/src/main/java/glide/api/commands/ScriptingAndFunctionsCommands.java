@@ -134,7 +134,7 @@ public interface ScriptingAndFunctionsCommands {
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-dump/">redis.io</a> for details.
-     * @return The serialized payload.
+     * @return The serialized payload of all loaded libraries.
      * @example
      *     <pre>{@code
      * byte[] data = client.functionDump().get();
@@ -144,7 +144,7 @@ public interface ScriptingAndFunctionsCommands {
     CompletableFuture<byte[]> functionDump();
 
     /**
-     * Restores libraries from the serialized payload.
+     * Restores libraries from the serialized payload returned by {@link #functionDump()}.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-restore/">redis.io</a> for

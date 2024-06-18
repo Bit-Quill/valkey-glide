@@ -275,12 +275,12 @@ public interface ScriptingAndFunctionsClusterCommands {
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-dump/">redis.io</a> for details.
-     * @return The serialized payload.
+     * @return The serialized payload of all loaded libraries.
      * @example
      *     <pre>{@code
      * ClusterValue<byte[]> data = client.functionDump().get();
-     * // data stores serialized dump from all primary nodes
-     * // it could be saved to restore loaded functions on any Redis instance
+     * // data contains the serialized dump from all primary nodes
+     * // now data could be saved to restore loaded functions on any Redis instance
      * }</pre>
      */
     CompletableFuture<ClusterValue<byte[]>> functionDump();
@@ -292,7 +292,7 @@ public interface ScriptingAndFunctionsClusterCommands {
      * @see <a href="https://redis.io/docs/latest/commands/function-dump/">redis.io</a> for details.
      * @param route Specifies the routing configuration for the command. The client will route the
      *     command to the nodes defined by <code>route</code>.
-     * @return The serialized payload.
+     * @return The serialized payload of all loaded libraries.
      * @example
      *     <pre>{@code
      * byte[] data = client.functionDump(RANDOM).get().getSingleValue();
@@ -302,7 +302,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<ClusterValue<byte[]>> functionDump(Route route);
 
     /**
-     * Restores libraries from the serialized payload.<br>
+     * Restores libraries from the serialized payload returned by {@link #functionDump()}.<br>
      * The command will be routed to all primary nodes.
      *
      * @since Redis 7.0 and above.
@@ -319,7 +319,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<String> functionRestore(byte[] payload);
 
     /**
-     * Restores libraries from the serialized payload.<br>
+     * Restores libraries from the serialized payload returned by {@link #functionDump()}.<br>
      * The command will be routed to all primary nodes.
      *
      * @since Redis 7.0 and above.
@@ -337,7 +337,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<String> functionRestore(byte[] payload, FunctionRestorePolicy policy);
 
     /**
-     * Restores libraries from the serialized payload.
+     * Restores libraries from the serialized payload returned by {@link #functionDump(Route)}.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-restore/">redis.io</a> for
@@ -355,7 +355,7 @@ public interface ScriptingAndFunctionsClusterCommands {
     CompletableFuture<String> functionRestore(byte[] payload, Route route);
 
     /**
-     * Restores libraries from the serialized payload.
+     * Restores libraries from the serialized payload returned by {@link #functionDump(Route)}.
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-restore/">redis.io</a> for

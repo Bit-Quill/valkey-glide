@@ -310,7 +310,8 @@ public abstract class BaseClient
      * @param flags A set of parameters which describes how to handle the response. Could be empty or
      *     any combination of
      *     <ul>
-     *       <li>{@link ResponseFlags#ENCODING_UTF8} to return string data as a <code>byte[]</code>
+     *       <li>{@link ResponseFlags#ENCODING_UTF8} to return the data as a <code>String</code>; if
+     *           unset, a <code>byte[]</code> is returned.
      *       <li>{@link ResponseFlags#IS_NULLABLE} to accept <code>null</code> values.
      *     </ul>
      *
