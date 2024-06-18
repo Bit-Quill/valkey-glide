@@ -5320,8 +5320,8 @@ public class SharedCommandTests {
     @MethodSource("getClients")
     public void test_dump_restore(BaseClient client) {
         String key = UUID.randomUUID().toString();
-        String newKey = UUID.randomUUID().toString();
-        String tempKey = UUID.randomUUID().toString();
+        String newKey1 = UUID.randomUUID().toString();
+        String newKey2 = UUID.randomUUID().toString();
         String nonExistingKey = UUID.randomUUID().toString();
         String value = "oranges";
 
@@ -5335,19 +5335,19 @@ public class SharedCommandTests {
         assertNull(client.dump(nonExistingKey.getBytes()).get());
 
         // Restore to a new key
-        assertEquals(OK, client.restore(newKey.getBytes(), 0L, result).get());
+        assertEquals(OK, client.restore(newKey1.getBytes(), 0L, result).get());
 
         // Restore to an existed key - Error: "Target key name already exists"
         Exception executionException =
                 assertThrows(
-                        ExecutionException.class, () -> client.restore(newKey.getBytes(), 0L, result).get());
+                        ExecutionException.class, () -> client.restore(newKey1.getBytes(), 0L, result).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         // Restore with checksum error - Error: "payload version or checksum are wrong"
         executionException =
                 assertThrows(
                         ExecutionException.class,
-                        () -> client.restore(tempKey.getBytes(), 0L, value.getBytes()).get());
+                        () -> client.restore(newKey2.getBytes(), 0L, value.getBytes()).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 
@@ -5356,6 +5356,7 @@ public class SharedCommandTests {
     @MethodSource("getClients")
     public void test_dump_restore_withOptions(BaseClient client) {
         String key = UUID.randomUUID().toString();
+        String key2 = UUID.randomUUID().toString();
         String newKey = UUID.randomUUID().toString();
         String tempKey = UUID.randomUUID().toString();
         String value = "oranges";
@@ -5375,6 +5376,14 @@ public class SharedCommandTests {
                 client
                         .restore(newKey.getBytes(), 0L, data, RestoreOptions.builder().hasReplace(true).build())
                         .get();
+        assertEquals(OK, result);
+
+        // Restore with REPLACE and existed key holding different value
+        assertEquals(1, client.sadd(key2, new String[] {"a"}).get());
+        result =
+            client
+                .restore(key2.getBytes(), 0L, data, RestoreOptions.builder().hasReplace(true).build())
+                .get();
         assertEquals(OK, result);
 
         // Restore with REPLACE, ABSTTL, and positive TTL
