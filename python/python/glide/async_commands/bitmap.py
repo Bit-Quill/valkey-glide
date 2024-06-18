@@ -166,7 +166,7 @@ class BitOffsetMultiplier(BitFieldOffset):
 
 
 class BitFieldSubCommands(ABC):
-    """Abstract Base Class representing subcommands for the `BITFIELD` command."""
+    """Abstract Base Class representing subcommands for the `BITFIELD` or `BITFIELD_RO` commands."""
 
     @abstractmethod
     def to_args(self) -> List[str]:
@@ -178,7 +178,6 @@ class BitFieldSubCommands(ABC):
 
 class BitFieldReadOnlySubCommands(BitFieldSubCommands, ABC):
     """Abstract Base Class representing subcommands for the `BITFIELD` or `BITFIELD_RO` commands."""
-
     pass
 
 
@@ -188,12 +187,11 @@ class BitFieldGet(BitFieldReadOnlySubCommands):
 
     def __init__(self, encoding: BitEncoding, offset: BitFieldOffset):
         """
-        Represents the "GET" subcommand for getting the value in the binary representation of the string stored in `key`
-        based on the given `BitEncoding` and `BitOffset`.
+        Represents the "GET" subcommand for getting a value in the binary representation of the string stored in `key`.
 
         Args:
             encoding (BitEncoding): The bit encoding for the subcommand.
-            offset (int): The offset in the array of bits from which to get the value.
+            offset (BitFieldOffset): The offset in the array of bits from which to get the value.
         """
         self._encoding = encoding
         self._offset = offset
@@ -208,12 +206,11 @@ class BitFieldSet(BitFieldSubCommands):
 
     def __init__(self, encoding: BitEncoding, offset: BitFieldOffset, value: int):
         """
-        Represents the "SET" subcommand for setting the bits in the binary representation of the string stored in `key`
-        based on the given `BitEncoding` and `BitOffset`.
+        Represents the "SET" subcommand for setting bits in the binary representation of the string stored in `key`.
 
         Args:
             encoding (BitEncoding): The bit encoding for the subcommand.
-            offset (int): The offset in the array of bits where the value will be set.
+            offset (BitOffset): The offset in the array of bits where the value will be set.
             value (int): The value to set the bits in the binary value to.
         """
         self._encoding = encoding
@@ -235,12 +232,12 @@ class BitFieldIncrby(BitFieldSubCommands):
 
     def __init__(self, encoding: BitEncoding, offset: BitFieldOffset, increment: int):
         """
-        Represents the "INCRBY" subcommand for increasing or decreasing the bits in the binary representation of the
-        string stored in `key` based on the given `BitEncoding` and `BitOffset`.
+        Represents the "INCRBY" subcommand for increasing or decreasing bits in the binary representation of the
+        string stored in `key`.
 
         Args:
             encoding (BitEncoding): The bit encoding for the subcommand.
-            offset (int): The offset in the array of bits where the value will be incremented.
+            offset (BitOffset): The offset in the array of bits where the value will be incremented.
             increment (int): The value to increment the bits in the binary value by.
         """
         self._encoding = encoding
