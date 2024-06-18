@@ -422,6 +422,7 @@ public interface StreamBaseCommands {
      * @param consumer The newly created consumer.
      * @return A <code>{@literal Map<String, Map<String[][]>>}</code> with stream
      *      keys, to <code>Map</code> of stream-ids, to an array of pairings with format <code>[[field, entry], [field, entry], ...]<code>.
+     *      Returns null if the consumer group does not exist. Returns a Map with a value of null if the stream is empty.
      * @example
      *     <pre>{@code
      * // create a new stream at "mystream", with stream id "1-0"
@@ -461,6 +462,7 @@ public interface StreamBaseCommands {
      * @param options Options detailing how to read the stream {@link StreamReadGroupOptions}.
      * @return A <code>{@literal Map<String, Map<String[][]>>}</code> with stream
      *      keys, to <code>Map</code> of stream-ids, to an array of pairings with format <code>[[field, entry], [field, entry], ...]<code>.
+     *      Returns null if the consumer group does not exist. Returns a Map with a value of null if the stream is empty.
      * @example
      *     <pre>{@code
      * // create a new stream at "mystream", with stream id "1-0"

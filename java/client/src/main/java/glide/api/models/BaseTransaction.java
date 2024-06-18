@@ -3062,6 +3062,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param consumer The newly created consumer.
      * @return Command Response - A <code>{@literal Map<String, Map<String[][]>>}</code> with stream
      *      keys, to <code>Map</code> of stream-ids, to an array of pairings with format <code>[[field, entry], [field, entry], ...]<code>.
+     *      Returns null if the consumer group does not exist. Returns a Map with a value of null if the stream is empty.
      */
     public T xreadgroup(Map<String, String> keysAndIds, String group, String consumer) {
         return xreadgroup(keysAndIds, group, consumer, StreamReadGroupOptions.builder().build());
@@ -3081,6 +3082,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param options Options detailing how to read the stream {@link StreamReadGroupOptions}.
      * @return Command Response - A <code>{@literal Map<String, Map<String[][]>>}</code> with stream
      *      keys, to <code>Map</code> of stream-ids, to an array of pairings with format <code>[[field, entry], [field, entry], ...]<code>.
+     *      Returns null if the consumer group does not exist. Returns a Map with a value of null if the stream is empty.
      */
     public T xreadgroup(
             Map<String, String> keysAndIds,
