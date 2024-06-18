@@ -396,7 +396,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T getex(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
-        protobufTransaction.addCommands(buildCommand(GetDel, commandArgs));
+        protobufTransaction.addCommands(buildCommand(GetEx, commandArgs));
         return getThis();
     }
 
@@ -412,7 +412,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T getex(@NonNull String key, @NonNull GetExOptions options) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addAll(new String[] {key}, options.toArgs()));
-        protobufTransaction.addCommands(buildCommand(GetDel, commandArgs));
+        protobufTransaction.addCommands(buildCommand(GetEx, commandArgs));
         return getThis();
     }
 
