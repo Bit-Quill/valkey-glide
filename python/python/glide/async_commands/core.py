@@ -4367,18 +4367,18 @@ class CoreCommands(Protocol):
         expiry: Optional[ExpiryGetEx] = None,
     ) -> Optional[str]:
         """
-        Get the value of `key` and optionally set its expiration. GETEX is similar to GET, but is a write command with `ExpiryGetEx` options.
+        Get the value of `key` and optionally set its expiration. `GETEX` is similar to `GET`, but is a write command with `ExpiryGetEx` options.
         See https://valkey.io/commands/getex for more details.
 
         Args:
             key (str): The key to get.
             expiry (Optional[ExpirySet], optional): set expiriation to the given key.
-                Equivalent to [`EX` | `PX` | `EXAT` | `PXAT` | `KEEPTTL`] in the Redis API. Defaults to None.
+                Equivalent to [`EX` | `PX` | `EXAT` | `PXAT` | `PERSIST`] in the Redis API.
 
         Returns:
             Optional[str]:
                 If `key` exists, return the value stored at `key`
-                If 'key` does not exist, return 'None'
+                If `key` does not exist, return `None`
 
         Examples:
             >>> await client.set("key", "value")

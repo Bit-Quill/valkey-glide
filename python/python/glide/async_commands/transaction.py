@@ -2985,7 +2985,7 @@ class BaseTransaction:
         Args:
             key (str): The key to get.
             expiry (Optional[ExpirySet], optional): set expiriation to the given key.
-                Equivalent to [`EX` | `PX` | `EXAT` | `PXAT` | `KEEPTTL`] in the Redis API. Defaults to None.
+                Equivalent to [`EX` | `PX` | `EXAT` | `PXAT` | `PERSIST`] in the Redis API.
 
         Command Response:
             Optional[str]:

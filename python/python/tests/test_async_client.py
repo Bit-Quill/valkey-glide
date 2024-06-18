@@ -4559,27 +4559,26 @@ class TestCommands:
         assert await redis_client.set(key1, value) == OK
         assert await redis_client.getex(non_existing_key) is None
         assert await redis_client.getex(key1) == value
+        assert await redis_client.ttl(key1) == -1
 
         # setting expiration timer
         assert (
             await redis_client.getex(key1, ExpiryGetEx(ExpiryTypeGetEx.MILLSEC, 50))
             == value
         )
-        time.sleep(0.1)
-        assert await redis_client.get(key1) is None
+        assert await redis_client.ttl(key1) != -1
 
         # setting and clearing expiration timer
         assert await redis_client.set(key1, value) == OK
         assert (
-            await redis_client.getex(key1, ExpiryGetEx(ExpiryTypeGetEx.MILLSEC, 100))
+            await redis_client.getex(key1, ExpiryGetEx(ExpiryTypeGetEx.SEC, 10))
             == value
         )
         assert (
             await redis_client.getex(key1, ExpiryGetEx(ExpiryTypeGetEx.PERSIST, None))
             == value
         )
-        time.sleep(0.1)
-        assert await redis_client.get(key1) == value
+        assert await redis_client.ttl(key1) == -1
 
 
 class TestMultiKeyCommandCrossSlot:
