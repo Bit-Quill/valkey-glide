@@ -1868,20 +1868,23 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<byte[]> dump(byte[] key) {
+    public CompletableFuture<byte[]> dump(@NonNull byte[] key) {
         List<byte[]> arguments = List.of(key);
         return commandManager.submitNewCommand(Dump, arguments, this::handleBytesOrNullResponse);
     }
 
     @Override
-    public CompletableFuture<String> restore(byte[] key, long ttl, byte[] value) {
+    public CompletableFuture<String> restore(@NonNull byte[] key, long ttl, @NonNull byte[] value) {
         List<byte[]> arguments = List.of(key, Long.toString(ttl).getBytes(), value);
         return commandManager.submitNewCommand(Restore, arguments, this::handleStringResponse);
     }
 
     @Override
     public CompletableFuture<String> restore(
-            byte[] key, long ttl, byte[] value, @NonNull RestoreOptions restoreOptions) {
+            @NonNull byte[] key,
+            long ttl,
+            @NonNull byte[] value,
+            @NonNull RestoreOptions restoreOptions) {
         List<byte[]> arguments = restoreOptions.toArgs(key, ttl, value);
         return commandManager.submitNewCommand(Restore, arguments, this::handleStringResponse);
     }

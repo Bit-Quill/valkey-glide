@@ -83,6 +83,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -5376,7 +5377,7 @@ public class SharedCommandTests {
                         .get();
         assertEquals(OK, result);
 
-        // Restore with REPLACE and ABSTTL options
+        // Restore with REPLACE, ABSTTL, and positive TTL
         result =
                 client
                         .restore(
@@ -5387,25 +5388,61 @@ public class SharedCommandTests {
                         .get();
         assertEquals(OK, result);
 
-        // Restore with REPLACE and IDLETIME options
+        // Restore with REPLACE, ABSTTL, and negative TTL
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .restore(
+                                                newKey.getBytes(),
+                                                -10L,
+                                                data,
+                                                RestoreOptions.builder().hasReplace(true).hasAbsttl(true).build())
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        // Restore with REPLACE, IDLETIME, and positive seconds
         result =
                 client
                         .restore(
                                 newKey.getBytes(),
                                 0L,
                                 data,
-                                RestoreOptions.builder().hasReplace(true).seconds(10).build())
+                                RestoreOptions.builder().hasReplace(true).seconds(Optional.of(10L)).build())
                         .get();
         assertEquals(OK, result);
 
-        // Restore with REPLACE and FREQ options
+        // Restore with REPLACE, IDLETIME, and negative seconds
         result =
                 client
                         .restore(
                                 newKey.getBytes(),
                                 0L,
                                 data,
-                                RestoreOptions.builder().hasReplace(true).frequency(10).build())
+                                RestoreOptions.builder().hasReplace(true).seconds(Optional.of(-10L)).build())
+                        .get();
+        assertEquals(OK, result);
+
+        // Restore with REPLACE, FREQ, and positive frequency
+        result =
+                client
+                        .restore(
+                                newKey.getBytes(),
+                                0L,
+                                data,
+                                RestoreOptions.builder().hasReplace(true).frequency(Optional.of(10L)).build())
+                        .get();
+        assertEquals(OK, result);
+
+        // Restore with REPLACE, FREQ, and negative frequency
+        result =
+                client
+                        .restore(
+                                newKey.getBytes(),
+                                0L,
+                                data,
+                                RestoreOptions.builder().hasReplace(true).frequency(Optional.of(-10L)).build())
                         .get();
         assertEquals(OK, result);
     }

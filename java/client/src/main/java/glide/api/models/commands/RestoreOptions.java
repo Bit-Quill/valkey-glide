@@ -4,6 +4,7 @@ package glide.api.models.commands;
 import glide.api.commands.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.*;
 
 /**
@@ -27,17 +28,17 @@ public final class RestoreOptions {
     /** <code>FREQ</code> subcommand string to set Object Frequency */
     public static final String FREQ_REDIS_API = "FREQ";
 
-    /** When `True`, it represents <code>REPLACE</code> keyword has been used */
+    /** When `true`, it represents <code>REPLACE</code> keyword has been used */
     private final boolean hasReplace;
 
-    /** When `True`, it represents <code>ABSTTL</code> keyword has been used */
+    /** When `true`, it represents <code>ABSTTL</code> keyword has been used */
     private final boolean hasAbsttl;
 
-    /** It represents the absolute timestamp for TTL */
-    private final long seconds;
+    /** It represents the idletime of object */
+    private final Optional<Long> seconds;
 
     /** It represents the frequency of object */
-    private final long frequency;
+    private final Optional<Long> frequency;
 
     /**
      * Creates the argument to be used in {@link GenericBaseCommands#restore(byte[], long, byte[],
@@ -55,16 +56,29 @@ public final class RestoreOptions {
         if (hasReplace) {
             resultList.add(REPLACE_REDIS_API.getBytes());
         }
+
         if (hasAbsttl) {
             resultList.add(ABSTTL_REDIS_API.getBytes());
         }
-        if (seconds > 0) {
-            resultList.add(IDLETIME_REDIS_API.getBytes());
-            resultList.add(Long.toString(seconds).getBytes());
+
+        if (seconds != null) {
+            seconds.ifPresent(
+                    sec -> {
+                        if (sec > 0) {
+                            resultList.add(IDLETIME_REDIS_API.getBytes());
+                            resultList.add(Long.toString(sec).getBytes());
+                        }
+                    });
         }
-        if (frequency > 0) {
-            resultList.add(FREQ_REDIS_API.getBytes());
-            resultList.add(Long.toString(frequency).getBytes());
+
+        if (frequency != null) {
+            frequency.ifPresent(
+                    freq -> {
+                        if (freq > 0) {
+                            resultList.add(FREQ_REDIS_API.getBytes());
+                            resultList.add(Long.toString(freq).getBytes());
+                        }
+                    });
         }
 
         return resultList;

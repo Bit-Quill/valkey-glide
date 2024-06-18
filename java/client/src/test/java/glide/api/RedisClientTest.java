@@ -269,6 +269,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -6238,7 +6239,7 @@ public class RedisClientTest {
 
     @SneakyThrows
     @Test
-    public void restore_noOptions_returns_success() {
+    public void restore_returns_success() {
         // setup
         byte[] key = "testKey".getBytes();
         long ttl = 0L;
@@ -6269,20 +6270,23 @@ public class RedisClientTest {
         byte[] key = "testKey".getBytes();
         long ttl = 0L;
         byte[] value = "value".getBytes();
-        long seconds = 10L;
-        long frequency = 5L;
+        Optional<Long> seconds = Optional.of(10L);
+        Optional<Long> frequency = Optional.of(5L);
 
-        List<byte[]> arguments =
-                List.of(
-                        key,
-                        Long.toString(ttl).getBytes(),
-                        value,
-                        "REPLACE".getBytes(),
-                        "ABSTTL".getBytes(),
-                        "IDLETIME".getBytes(),
-                        Long.toString(seconds).getBytes(),
-                        "FREQ".getBytes(),
-                        Long.toString(frequency).getBytes());
+        List<byte[]> arguments = new ArrayList<>();
+        arguments.add(key);
+        arguments.add(Long.toString(ttl).getBytes());
+        arguments.add(value);
+        arguments.add("REPLACE".getBytes());
+        arguments.add("ABSTTL".getBytes());
+        arguments.add("IDLETIME".getBytes());
+
+        // Add seconds if present
+        seconds.ifPresent(sec -> arguments.add(Long.toString(sec).getBytes()));
+
+        // Add FREQ and frequency if present
+        arguments.add("FREQ".getBytes());
+        frequency.ifPresent(freq -> arguments.add(Long.toString(freq).getBytes()));
 
         CompletableFuture<String> testResponse = new CompletableFuture<>();
         testResponse.complete(OK);
@@ -6301,8 +6305,8 @@ public class RedisClientTest {
                         RestoreOptions.builder()
                                 .hasReplace(true)
                                 .hasAbsttl(true)
-                                .seconds(10)
-                                .frequency(5)
+                                .seconds(Optional.of(10L))
+                                .frequency(Optional.of(5L))
                                 .build());
 
         // verify

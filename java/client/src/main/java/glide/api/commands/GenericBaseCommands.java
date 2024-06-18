@@ -603,7 +603,6 @@ public interface GenericBaseCommands {
      * @example
      *     <pre>{@code
      * byte[] value1 = client.dump("myKey").get();
-     * assert value1.equals("value1");
      *
      * byte[] value2 = client.dump("nonExistingKey").get();
      * assert value2.equals(null);
@@ -613,16 +612,14 @@ public interface GenericBaseCommands {
 
     /**
      * Create a <code>key</code> associated with a <code>value</code> that is obtained by
-     * deserializing the provided serialized <code>value</code> (obtained via DUMP).
+     * deserializing the provided serialized <code>value</code> (obtained via {@link #dump}).
      *
-     * @see <a href="httpshttps://valkey.io/commands/restore/">valkey.io</a> for details.
+     * @see <a href="https://valkey.io/commands/restore/">valkey.io</a> for details.
      * @param key The key of the set.
-     * @param ttl The expiry time (in milliseconds). If 0, it means creation without any expiry.
+     * @param ttl The expiry time (in milliseconds). If `0`, it means creation without any expiry.
      * @param value The serialized value.
      * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value
-     *      </code>. Return a "Target key name is busy" error when <code>key</code> already exists
-     *     unless use the <code>REPLACE</code> modifier. If RDB version and data checksum don't match,
-     *     an error is returned.
+     *      </code>.
      * @example
      *     <pre>{@code
      * String value1 = client.restore("newKey", 0, "value").get();
@@ -635,29 +632,19 @@ public interface GenericBaseCommands {
      * Create a <code>key</code> associated with a <code>value</code> that is obtained by
      * deserializing the provided serialized <code>value</code> (obtained via DUMP).
      *
-     * @see <a href="httpshttps://valkey.io/commands/restore/">valkey.io</a> for details.
+     * @see <a href="https://valkey.io/commands/restore/">valkey.io</a> for details.
      * @param key The key of the set.
      * @param ttl The expiry time (in milliseconds). If 0, it means creation without any expiry.
      * @param value The serialized value.
-     * @param restoreOptions The {@link RestoreOptions}.
+     * @param restoreOptions The restore option that contains keys and arguments for the restore.
      * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value
      *      </code>. Return a "Target key name is busy" error when <code>key</code> already exists
      *     unless use the <code>REPLACE</code> modifier. If RDB version and data checksum don't match,
      *     an error is returned.
      * @example
      *     <pre>{@code
-     * String value1 = client
-     *        .restore(
-     *            "newKey",
-     *            0,
-     *            "value",
-     *            RestoreOptions.builder()
-     *                .hasReplace(true)
-     *                .hasAbsttl(true)
-     *                .seconds(10)
-     *                .frequency(5)
-     *                .build())
-     *            .get();
+     * String value1 = client.restore("newKey", 0, "value", RestoreOptions.builder().hasReplace(true).hasAbsttl(true)
+     *                              .seconds(10).frequency(5).build()).get();
      * assert value1.equals("OK");
      * }</pre>
      */
