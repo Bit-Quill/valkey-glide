@@ -38,7 +38,6 @@ import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamRange.IdBound;
-import glide.api.models.commands.stream.StreamReadGroupOptions;
 import glide.api.models.commands.stream.StreamReadOptions;
 import glide.api.models.commands.stream.StreamTrimOptions.MinId;
 import java.util.HashMap;
@@ -747,9 +746,9 @@ public class TransactionTestUtilities {
                 .xgroupCreate(
                         streamKey1, groupName2, "0-0", StreamGroupOptions.builder().makeStream().build())
                 .xgroupCreateConsumer(streamKey1, groupName1, consumer1)
-//                .xreadgroup(Map.of(streamKey1, "0-2"), groupName1, consumer1)
-//                .xreadgroup(Map.of(streamKey1, "0-2"), groupName1, consumer1,
-//                    StreamReadGroupOptions.builder().count(2L).build())
+                //                .xreadgroup(Map.of(streamKey1, "0-2"), groupName1, consumer1)
+                //                .xreadgroup(Map.of(streamKey1, "0-2"), groupName1, consumer1,
+                //                    StreamReadGroupOptions.builder().count(2L).build())
                 .xgroupDelConsumer(streamKey1, groupName1, consumer1)
                 .xgroupDestroy(streamKey1, groupName1)
                 .xgroupDestroy(streamKey1, groupName2)
@@ -760,12 +759,12 @@ public class TransactionTestUtilities {
             "0-2", // xadd(streamKey1, Map.of("field2", "value2"), ... .id("0-2").build());
             "0-3", // xadd(streamKey1, Map.of("field3", "value3"), ... .id("0-3").build());
             3L, // xlen(streamKey1)
-//            Map.of(
-//                    streamKey1,
-//                    Map.of("0-3", new String[][] {{"field3", "value3"}})), // xread(Map.of(key9, "0-2"));
-//            Map.of(
-//                streamKey1,
-//                Map.of("0-3", new String[][] {{"field3", "value3"}})), // xread(Map.of(key9, "0-2"), options);
+            Map.of(
+                    streamKey1,
+                    Map.of("0-3", new String[][] {{"field3", "value3"}})), // xread(Map.of(key9, "0-2"));
+            Map.of(
+                    streamKey1, Map.of("0-3", new String[][] {{"field3", "value3"}})), // xread(Map.of(key9,
+            // "0-2"), options);
             Map.of("0-1", new String[][] {{"field1", "value1"}}), // .xrange(streamKey1, "0-1", "0-1")
             Map.of("0-1", new String[][] {{"field1", "value1"}}), // .xrange(streamKey1, "0-1", "0-1", 1l)
             Map.of("0-1", new String[][] {{"field1", "value1"}}), // .xrevrange(streamKey1, "0-1", "0-1")
@@ -775,12 +774,21 @@ public class TransactionTestUtilities {
             OK, // xgroupCreate(streamKey1, groupName1, "0-0")
             OK, // xgroupCreate(streamKey1, groupName1, "0-0", options)
             true, // xgroupCreateConsumer(streamKey1, groupName1, consumer1)
-            Map.of(
-                streamKey1,
-                Map.of("0-3", new String[][] {{"field3", "value3"}})), // xreadgroup(Map.of(key9, "0-2"), groupName1, consumer1);
-            Map.of(
-                streamKey1,
-                Map.of("0-3", new String[][] {{"field3", "value3"}})), // xreadgroup(Map.of(key9, "0-2"), groupName1, consumer1, options);
+            //            Map.of(
+            //                    streamKey1,
+            //                    Map.of(
+            //                            "0-3",
+            //                            new String[][] {
+            //                                {"field3", "value3"}
+            //                            })), // xreadgroup(Map.of(key9, "0-2"), groupName1, consumer1);
+            //            Map.of(
+            //                    streamKey1,
+            //                    Map.of(
+            //                            "0-3",
+            //                            new String[][] {
+            //                                {"field3", "value3"}
+            //                            })), // xreadgroup(Map.of(key9, "0-2"), groupName1, consumer1,
+            // options);
             0L, // xgroupDelConsumer(streamKey1, groupName1, consumer1)
             true, // xgroupDestroy(streamKey1, groupName1)
             true, // xgroupDestroy(streamKey1, groupName2)

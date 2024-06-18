@@ -3676,14 +3676,35 @@ public class SharedCommandTests {
             String timeoutGroupName = "group" + UUID.randomUUID();
             String timeoutConsumerName = "consumer" + UUID.randomUUID();
 
+            // Create a group read with the test client
+            // add a single stream entry and consumer
+            // the first call to ">" will return an update consumer group
+            // the second call to ">" will block waiting for new entries
+            // using anything other than ">" won't block, but will return the empty consumer result
+            // see: https://github.com/redis/redis/issues/6587
             assertEquals(
-                OK,
-                client
-                    .xgroupCreate(
-                        timeoutKey, timeoutGroupName, zeroStreamId, StreamGroupOptions.builder().makeStream().build())
-                    .get());
-            assertTrue(client.xgroupCreateConsumer(timeoutKey, timeoutGroupName, timeoutConsumerName).get());
+                    OK,
+                    testClient
+                            .xgroupCreate(
+                                    timeoutKey,
+                                    timeoutGroupName,
+                                    zeroStreamId,
+                                    StreamGroupOptions.builder().makeStream().build())
+                            .get());
+            assertTrue(
+                    testClient.xgroupCreateConsumer(timeoutKey, timeoutGroupName, timeoutConsumerName).get());
+            String streamid_1 = testClient.xadd(timeoutKey, Map.of("field1", "value1")).get();
+            assertNotNull(streamid_1);
 
+            // read the entire stream for the consumer and mark messages as pending
+            var result_1 =
+                    testClient
+                            .xreadgroup(Map.of(timeoutKey, ">"), timeoutGroupName, timeoutConsumerName)
+                            .get();
+            // returns an null result on the key
+            assertNull(result_1.get(key));
+
+            // subsequent calls to read ">" will block:
             // ensure that command doesn't time out even if timeout > request timeout
             long oneSecondInMS = 1000L;
             assertNull(
