@@ -1,6 +1,23 @@
 # Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
 
-from glide.async_commands.bitmap import BitmapIndexType, BitwiseOperation, OffsetOptions
+from glide.async_commands.bitmap import (
+    BitEncoding,
+    BitFieldGet,
+    BitFieldIncrby,
+    BitFieldOffset,
+    BitFieldOverflow,
+    BitFieldReadOnlySubCommands,
+    BitFieldSet,
+    BitFieldSubCommands,
+    BitmapIndexType,
+    BitOffset,
+    BitOffsetMultiplier,
+    BitOverflowControl,
+    BitwiseOperation,
+    OffsetOptions,
+    SignedEncoding,
+    UnsignedEncoding,
+)
 from glide.async_commands.command_args import Limit, ListDirection, OrderBy
 from glide.async_commands.core import (
     ConditionalChange,

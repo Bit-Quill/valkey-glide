@@ -6,7 +6,17 @@ from typing import List, Union, cast
 
 import pytest
 from glide import RequestError
-from glide.async_commands.bitmap import BitmapIndexType, BitwiseOperation, OffsetOptions
+from glide.async_commands.bitmap import (
+    BitFieldGet,
+    BitFieldSet,
+    BitmapIndexType,
+    BitOffset,
+    BitOffsetMultiplier,
+    BitwiseOperation,
+    OffsetOptions,
+    SignedEncoding,
+    UnsignedEncoding,
+)
 from glide.async_commands.command_args import Limit, ListDirection, OrderBy
 from glide.async_commands.core import (
     FlushMode,
@@ -396,7 +406,25 @@ async def transaction_test(
     transaction.get(key19)
     args.append("`bc`ab")
 
+    transaction.set(key20, "foobar")
+    args.append(OK)
+    transaction.bitcount(key20)
+    args.append(26)
+    transaction.bitcount(key20, OffsetOptions(1, 1))
+    args.append(6)
+
+    transaction.bitfield_read_only(
+        key20, [BitFieldGet(SignedEncoding(5), BitOffset(3))]
+    )
+    args.append([6])
+    transaction.bitfield(
+        key20, [BitFieldSet(UnsignedEncoding(10), BitOffsetMultiplier(3), 4)]
+    )
+    args.append([609])
+
     if not await check_if_server_version_lt(redis_client, "7.0.0"):
+        transaction.set(key20, "foobar")
+        args.append(OK)
         transaction.bitcount(key20, OffsetOptions(5, 30, BitmapIndexType.BIT))
         args.append(17)
         transaction.bitpos_interval(key20, 1, 44, 50, BitmapIndexType.BIT)

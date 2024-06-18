@@ -3,7 +3,14 @@
 import threading
 from typing import List, Mapping, Optional, Tuple, TypeVar, Union
 
-from glide.async_commands.bitmap import BitmapIndexType, BitwiseOperation, OffsetOptions
+from glide.async_commands.bitmap import (
+    BitFieldReadOnlySubCommands,
+    BitFieldSubCommands,
+    BitmapIndexType,
+    BitwiseOperation,
+    OffsetOptions,
+    _create_bitfield_args,
+)
 from glide.async_commands.command_args import Limit, ListDirection, OrderBy
 from glide.async_commands.core import (
     ConditionalChange,
@@ -3194,6 +3201,56 @@ class BaseTransaction:
         return self.append_command(
             RequestType.BitOp, [operation.value, destination] + keys
         )
+
+    def bitfield(
+        self: TTransaction, key: str, subcommands: List[BitFieldSubCommands]
+    ) -> TTransaction:
+        """
+        Reads or modifies the array of bits representing the string that is held at `key` based on the specified
+        `subcommands`.
+
+        See https://valkey.io/commands/bitfield for more details.
+
+        Args:
+            key (str): The key of the string.
+            subcommands (List[BitFieldSubCommands]): The subcommands to be performed on the binary value of the string
+                at `key`, which could be any of the following:
+                    - `BitFieldGet`
+                    - `BitFieldSet`
+                    - `BitFieldIncrby`
+                    - `BitFieldOverflow`
+
+        Command response:
+            List[Optional[int]]: An array of results from the executed subcommands:
+                - `BitFieldGet` returns the value in `Offset` or `OffsetMultiplier`.
+                - `BitFieldSet` returns the old value in `Offset` or `OffsetMultiplier`.
+                - `BitFieldIncrby` returns the new value in `Offset` or `OffsetMultiplier`.
+                - `BitFieldOverflow` determines the behavior of the "SET" and "INCRBY" subcommands when an overflow or
+                  underflow occurs. "OVERFLOW" does not return a value and does not contribute a value to the list
+                  response.
+        """
+        args = [key] + _create_bitfield_args(subcommands)
+        return self.append_command(RequestType.BitField, args)
+
+    def bitfield_read_only(
+        self: TTransaction, key: str, subcommands: List[BitFieldReadOnlySubCommands]
+    ) -> TTransaction:
+        """
+        Reads the array of bits representing the string that is held at `key` based on the specified `subcommands`.
+
+        See https://valkey.io/commands/bitfield_ro for more details.
+
+        Args:
+            key (str): The key of the string.
+            subcommands (List[BitFieldSubCommands]): The "GET" subcommands to be performed.
+
+        Command response:
+            List[int]: An array of results from the "GET" subcommands.
+
+        Since: Redis version 6.0.0.
+        """
+        args = [key] + _create_bitfield_args(subcommands)
+        return self.append_command(RequestType.BitFieldReadOnly, args)
 
     def object_encoding(self: TTransaction, key: str) -> TTransaction:
         """
