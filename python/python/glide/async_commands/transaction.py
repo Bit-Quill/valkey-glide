@@ -8,6 +8,7 @@ from glide.async_commands.command_args import Limit, ListDirection, OrderBy
 from glide.async_commands.core import (
     ConditionalChange,
     ExpireOptions,
+    ExpiryGetEx,
     ExpirySet,
     GeospatialData,
     GeoUnit,
@@ -2973,6 +2974,27 @@ class BaseTransaction:
                 Otherwise, returns None.
         """
         return self.append_command(RequestType.ObjectRefCount, [key])
+
+    def getex(
+        self: TTransaction, key: str, expiry: Optional[ExpiryGetEx] = None
+    ) -> TTransaction:
+        """
+        Get the value of `key` and optionally set its expiration. GETEX is similar to GET, but is a write command with `ExpiryGetEx` options.
+        See https://valkey.io/commands/getex for more details.
+        Args:
+            key (str): The key to get.
+            expiry (Optional[ExpirySet], optional): set expiriation to the given key.
+                Equivalent to [`EX` | `PX` | `EXAT` | `PXAT` | `KEEPTTL`] in the Redis API. Defaults to None.
+        Command Response:
+            Optional[str]:
+                If `key` exists, return the value stored at `key`
+                If 'key` does not exist, return 'None'
+        Since: Redis version 6.2.0.
+        """
+        args = [key]
+        if expiry is not None:
+            args.extend(expiry.get_cmd_args())
+        return self.append_command(RequestType.GetEx, args)
 
 
 class Transaction(BaseTransaction):

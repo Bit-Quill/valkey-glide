@@ -31,6 +31,8 @@
 * Node: Added OBJECT REFCOUNT command ([#1568](https://github.com/aws/glide-for-redis/pull/1568))
 * Python: Added SETBIT command ([#1571](https://github.com/aws/glide-for-redis/pull/1571))
 * Python: Added GETBIT command ([#1575](https://github.com/aws/glide-for-redis/pull/1575))
+* Python: Added GETEX command ([#0000](https://github.com/aws/glide-for-redis/pull/TODOLINK))
+*
 * Python: Added BITCOUNT command ([#1592](https://github.com/aws/glide-for-redis/pull/1592))
 
 ### Breaking Changes
