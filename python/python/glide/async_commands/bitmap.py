@@ -301,3 +301,13 @@ def _create_bitfield_args(subcommands: List[BitFieldSubCommands]) -> List[str]:
         args.extend(subcommand.to_args())
 
     return args
+
+
+def _create_bitfield_read_only_args(
+    subcommands: List[BitFieldReadOnlySubCommands],
+) -> List[str]:
+    args = []
+    for subcommand in subcommands:
+        args.extend(subcommand.to_args())
+
+    return args

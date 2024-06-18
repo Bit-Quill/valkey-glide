@@ -23,6 +23,7 @@ from glide.async_commands.bitmap import (
     BitwiseOperation,
     OffsetOptions,
     _create_bitfield_args,
+    _create_bitfield_read_only_args,
 )
 from glide.async_commands.command_args import Limit, ListDirection, OrderBy
 from glide.async_commands.sorted_set import (
@@ -4690,7 +4691,7 @@ class CoreCommands(Protocol):
 
         Since: Redis version 6.0.0.
         """
-        args = [key] + _create_bitfield_args(subcommands)
+        args = [key] + _create_bitfield_read_only_args(subcommands)
         return cast(
             List[int],
             await self._execute_command(RequestType.BitFieldReadOnly, args),
