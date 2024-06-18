@@ -10,36 +10,34 @@ import java.util.stream.Collectors;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Optional arguments for {@link StreamBaseCommands#xread(Map, StreamReadOptions)}
+ * Optional arguments for {@link StreamBaseCommands#xreadgroup(Map, String, String,
+ * StreamReadGroupOptions)}
  *
- * @see <a href="https://redis.io/commands/xread/">redis.io</a>
+ * @see <a href="https://valkey.io/commands/xreadgroup/">redis.io</a>
  */
 @SuperBuilder
-public class StreamReadOptions {
+public final class StreamReadGroupOptions extends StreamReadOptions {
 
-    public static final String READ_COUNT_REDIS_API = "COUNT";
-    public static final String READ_BLOCK_REDIS_API = "BLOCK";
-    public static final String READ_STREAMS_REDIS_API = "STREAMS";
+    public static final String READ_GROUP_REDIS_API = "GROUP";
+    public static final String READ_NOACK_REDIS_API = "NOACK";
 
     /**
-     * If set, the request will be blocked for the set amount of milliseconds or until the server has
-     * the required number of entries. Equivalent to <code>BLOCK</code> in the Redis API.
+     * If set, messages are not added to the Pending Entries List (PEL). This is equivalent to
+     * acknowledging the message when it is read.
      */
-    protected Long block;
+    private Boolean noack;
 
     /**
-     * The maximal number of elements requested. Equivalent to <code>COUNT</code> in the Redis API.
-     */
-    protected Long count;
-
-    /**
-     * Converts options and the key-to-id input for {@link StreamBaseCommands#xread(Map,
-     * StreamReadOptions)} into a String[].
+     * Converts options and the key-to-id input for {@link StreamBaseCommands#xreadgroup(Map, String,
+     * String, StreamReadGroupOptions)} into a String[].
      *
      * @return String[]
      */
-    public String[] toArgs(Map<String, String> streams) {
+    public String[] toArgs(String group, String consumer, Map<String, String> streams) {
         List<String> optionArgs = new ArrayList<>();
+        optionArgs.add(READ_GROUP_REDIS_API);
+        optionArgs.add(group);
+        optionArgs.add(consumer);
 
         if (this.count != null) {
             optionArgs.add(READ_COUNT_REDIS_API);
@@ -49,6 +47,10 @@ public class StreamReadOptions {
         if (this.block != null) {
             optionArgs.add(READ_BLOCK_REDIS_API);
             optionArgs.add(block.toString());
+        }
+
+        if (this.noack != null && this.noack) {
+            optionArgs.add(READ_NOACK_REDIS_API);
         }
 
         optionArgs.add(READ_STREAMS_REDIS_API);
