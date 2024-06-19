@@ -109,7 +109,7 @@ public interface StringBaseCommands {
      * assert value.equals("value");
      * }</pre>
      */
-    CompletableFuture<String> getex(String key, @NonNull GetExOptions options);
+    CompletableFuture<String> getex(String key, GetExOptions options);
 
     /**
      * Sets the given <code>key</code> with the given value.
