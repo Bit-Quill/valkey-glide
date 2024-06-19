@@ -130,8 +130,8 @@ class BitOffset(BitFieldOffset):
         Represents an offset in an array of bits for the `BITFIELD` or `BITFIELD_RO` commands. Must be greater than or
         equal to 0.
 
-        For example, if we have the binary 01101001 with offset of 1 for an unsigned encoding of size 4, then the value
-        is 13 from 0(1101)001.
+        For example, if we have the binary `01101001` with offset of 1 for an unsigned encoding of size 4, then the value
+        is 13 from `0(1101)001`.
 
         Args:
             offset (int): The bit index offset in the array of bits.
@@ -153,7 +153,7 @@ class BitOffsetMultiplier(BitFieldOffset):
         to 0.
 
         For example, if we have the binary 01101001 with offset multiplier of 1 for an unsigned encoding of size 4, then
-        the value is 9 from 0110(1001).
+        the value is 9 from `0110(1001)`.
 
         Args:
             offset (int): The offset in the array of bits, which will be multiplied by the encoding value to get the
@@ -176,13 +176,7 @@ class BitFieldSubCommands(ABC):
         pass
 
 
-class BitFieldReadOnlySubCommands(BitFieldSubCommands, ABC):
-    """Abstract Base Class representing subcommands for the `BITFIELD` or `BITFIELD_RO` commands."""
-
-    pass
-
-
-class BitFieldGet(BitFieldReadOnlySubCommands):
+class BitFieldGet(BitFieldSubCommands):
     # "GET" subcommand string for use in the `BITFIELD` or `BITFIELD_RO` commands.
     GET_COMMAND_STRING = "GET"
 
@@ -227,7 +221,7 @@ class BitFieldSet(BitFieldSubCommands):
         ]
 
 
-class BitFieldIncrby(BitFieldSubCommands):
+class BitFieldIncrBy(BitFieldSubCommands):
     # "INCRBY" subcommand string for use in the `BITFIELD` command.
     INCRBY_COMMAND_STRING = "INCRBY"
 
@@ -302,7 +296,7 @@ def _create_bitfield_args(subcommands: List[BitFieldSubCommands]) -> List[str]:
 
 
 def _create_bitfield_read_only_args(
-    subcommands: List[BitFieldReadOnlySubCommands],
+    subcommands: List[BitFieldGet],
 ) -> List[str]:
     args = []
     for subcommand in subcommands:

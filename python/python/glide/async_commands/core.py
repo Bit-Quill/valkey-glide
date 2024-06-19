@@ -17,7 +17,7 @@ from typing import (
 )
 
 from glide.async_commands.bitmap import (
-    BitFieldReadOnlySubCommands,
+    BitFieldGet,
     BitFieldSubCommands,
     BitmapIndexType,
     BitwiseOperation,
@@ -4670,7 +4670,7 @@ class CoreCommands(Protocol):
         )
 
     async def bitfield_read_only(
-        self, key: str, subcommands: List[BitFieldReadOnlySubCommands]
+        self, key: str, subcommands: List[BitFieldGet]
     ) -> List[int]:
         """
         Reads the array of bits representing the string that is held at `key` based on the specified `subcommands`.
@@ -4679,7 +4679,7 @@ class CoreCommands(Protocol):
 
         Args:
             key (str): The key of the string.
-            subcommands (List[BitFieldSubCommands]): The "GET" subcommands to be performed.
+            subcommands (List[BitFieldGet]): The "GET" subcommands to be performed.
 
         Returns:
             List[int]: An array of results from the "GET" subcommands.

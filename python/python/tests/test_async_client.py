@@ -13,7 +13,7 @@ import pytest
 from glide import ClosingError, RequestError, Script
 from glide.async_commands.bitmap import (
     BitFieldGet,
-    BitFieldIncrby,
+    BitFieldIncrBy,
     BitFieldOverflow,
     BitFieldSet,
     BitmapIndexType,
@@ -5113,16 +5113,16 @@ class TestCommands:
             [
                 # binary value becomes:
                 # 0(11)00011 01101111 01101111 01100010 01000001 01110010 00000000 00000000 00010100
-                BitFieldIncrby(u2, offset1, 1),
+                BitFieldIncrBy(u2, offset1, 1),
                 # binary value becomes:
                 # 01100(101) 01101111 01101111 01100010 01000001 01110010 00000000 00000000 00010100
-                BitFieldIncrby(i3, offset5, 2),
+                BitFieldIncrBy(i3, offset5, 2),
                 # binary value becomes:
                 # 01100101 01101111 01101111 0110(0001 111)00001 01110010 00000000 00000000 00010100
-                BitFieldIncrby(u7, offset_multiplier4, -3),
+                BitFieldIncrBy(u7, offset_multiplier4, -3),
                 # binary value becomes:
                 # 01100101 01101111 01101111 01100001 11100001 01110010 00000000 00000000 (00011110)
-                BitFieldIncrby(i8, offset_multiplier8, 10),
+                BitFieldIncrBy(i8, offset_multiplier8, 10),
             ],
         ) == [3, -3, 15, 30]
 
@@ -5193,6 +5193,10 @@ class TestCommands:
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
     async def test_bitfield_read_only(self, redis_client: TRedisClient):
+        min_version = "6.2.0"
+        if await check_if_server_version_lt(redis_client, min_version):
+            return pytest.mark.skip(reason=f"Redis version required >= {min_version}")
+
         key = get_random_string(10)
         non_existing_key = get_random_string(10)
         set_key = get_random_string(10)

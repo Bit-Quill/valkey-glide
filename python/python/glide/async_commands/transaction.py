@@ -4,7 +4,7 @@ import threading
 from typing import List, Mapping, Optional, Tuple, TypeVar, Union
 
 from glide.async_commands.bitmap import (
-    BitFieldReadOnlySubCommands,
+    BitFieldGet,
     BitFieldSubCommands,
     BitmapIndexType,
     BitwiseOperation,
@@ -3234,7 +3234,7 @@ class BaseTransaction:
         return self.append_command(RequestType.BitField, args)
 
     def bitfield_read_only(
-        self: TTransaction, key: str, subcommands: List[BitFieldReadOnlySubCommands]
+        self: TTransaction, key: str, subcommands: List[BitFieldGet]
     ) -> TTransaction:
         """
         Reads the array of bits representing the string that is held at `key` based on the specified `subcommands`.
@@ -3243,7 +3243,7 @@ class BaseTransaction:
 
         Args:
             key (str): The key of the string.
-            subcommands (List[BitFieldSubCommands]): The "GET" subcommands to be performed.
+            subcommands (List[BitFieldGet]): The "GET" subcommands to be performed.
 
         Command response:
             List[int]: An array of results from the "GET" subcommands.
