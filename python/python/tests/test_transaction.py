@@ -390,15 +390,6 @@ async def transaction_test(
     transaction.getbit(key19, 1)
     args.append(0)
 
-    transaction.set(key20, "foobar")
-    args.append(OK)
-    transaction.bitcount(key20)
-    args.append(26)
-    transaction.bitcount(key20, OffsetOptions(1, 1))
-    args.append(6)
-    transaction.bitpos(key20, 1)
-    args.append(1)
-
     transaction.set(key19, "abcdef")
     args.append(OK)
     transaction.bitop(BitwiseOperation.AND, key19, [key19, key20])
@@ -412,6 +403,8 @@ async def transaction_test(
     args.append(26)
     transaction.bitcount(key20, OffsetOptions(1, 1))
     args.append(6)
+    transaction.bitpos(key20, 1)
+    args.append(1)
     transaction.bitfield_read_only(
         key20, [BitFieldGet(SignedEncoding(5), BitOffset(3))]
     )

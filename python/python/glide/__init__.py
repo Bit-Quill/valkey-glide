@@ -139,7 +139,6 @@ __all__ = [
     "LexBoundary",
     "Limit",
     "ListDirection",
-    "OffsetOptions",
     "RangeByIndex",
     "RangeByLex",
     "RangeByScore",
