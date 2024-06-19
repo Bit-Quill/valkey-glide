@@ -83,7 +83,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -5411,47 +5410,47 @@ public class SharedCommandTests {
                                         .get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
-        // Restore with REPLACE, IDLETIME, and positive seconds
+        // Restore with REPLACE and positive idletime
         result =
                 client
                         .restore(
                                 newKey.getBytes(),
                                 0L,
                                 data,
-                                RestoreOptions.builder().hasReplace(true).seconds(Optional.of(10L)).build())
+                                RestoreOptions.builder().hasReplace(true).idletime(10L).build())
                         .get();
         assertEquals(OK, result);
 
-        // Restore with REPLACE, IDLETIME, and negative seconds
+        // Restore with REPLACE and negative idletime
         result =
                 client
                         .restore(
                                 newKey.getBytes(),
                                 0L,
                                 data,
-                                RestoreOptions.builder().hasReplace(true).seconds(Optional.of(-10L)).build())
+                                RestoreOptions.builder().hasReplace(true).idletime(-10L).build())
                         .get();
         assertEquals(OK, result);
 
-        // Restore with REPLACE, FREQ, and positive frequency
+        // Restore with REPLACE and positive frequency
         result =
                 client
                         .restore(
                                 newKey.getBytes(),
                                 0L,
                                 data,
-                                RestoreOptions.builder().hasReplace(true).frequency(Optional.of(10L)).build())
+                                RestoreOptions.builder().hasReplace(true).frequency(10L).build())
                         .get();
         assertEquals(OK, result);
 
-        // Restore with REPLACE, FREQ, and negative frequency
+        // Restore with REPLACE and negative frequency
         result =
                 client
                         .restore(
                                 newKey.getBytes(),
                                 0L,
                                 data,
-                                RestoreOptions.builder().hasReplace(true).frequency(Optional.of(-10L)).build())
+                                RestoreOptions.builder().hasReplace(true).frequency(-10L).build())
                         .get();
         assertEquals(OK, result);
     }

@@ -602,10 +602,10 @@ public interface GenericBaseCommands {
      *     If <code>key</code> does not exist, <code>null</code> will be returned.
      * @example
      *     <pre>{@code
-     * byte[] value1 = client.dump("myKey").get();
+     * byte[] result = client.dump("myKey").get();
      *
-     * byte[] value2 = client.dump("nonExistingKey").get();
-     * assert value2.equals(null);
+     * byte[] response = client.dump("nonExistingKey").get();
+     * assert response.equals(null);
      * }</pre>
      */
     CompletableFuture<byte[]> dump(byte[] key);
@@ -622,8 +622,8 @@ public interface GenericBaseCommands {
      *      </code>.
      * @example
      *     <pre>{@code
-     * String value1 = client.restore("newKey", 0, "value").get();
-     * assert value1.equals("OK");
+     * String result = client.restore("newKey", 0, "value").get();
+     * assert result.equals("OK");
      * }</pre>
      */
     CompletableFuture<String> restore(byte[] key, long ttl, byte[] value);
@@ -638,14 +638,12 @@ public interface GenericBaseCommands {
      * @param value The serialized value.
      * @param restoreOptions The restore option that contains keys and arguments for the restore.
      * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value
-     *      </code>. Return a "Target key name is busy" error when <code>key</code> already exists
-     *     unless use the <code>REPLACE</code> modifier. If RDB version and data checksum don't match,
-     *     an error is returned.
+     *      </code>.
      * @example
      *     <pre>{@code
-     * String value1 = client.restore("newKey", 0, "value", RestoreOptions.builder().hasReplace(true).hasAbsttl(true)
+     * String result = client.restore("newKey", 0, "value", RestoreOptions.builder().hasReplace(true).hasAbsttl(true)
      *                              .seconds(10).frequency(5).build()).get();
-     * assert value1.equals("OK");
+     * assert result.equals("OK");
      * }</pre>
      */
     CompletableFuture<String> restore(

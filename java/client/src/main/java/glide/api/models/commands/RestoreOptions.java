@@ -12,6 +12,7 @@ import lombok.*;
  *
  * @see <a href="https://valkey.io/commands/restore/">valkey.io</a>
  */
+@Getter
 @Builder
 public final class RestoreOptions {
     /** <code>REPLACE</code> subcommand string to replace existing key */
@@ -35,7 +36,7 @@ public final class RestoreOptions {
     private final boolean hasAbsttl;
 
     /** It represents the idletime of object */
-    private final Optional<Long> seconds;
+    private final Optional<Long> idletime;
 
     /** It represents the frequency of object */
     private final Optional<Long> frequency;
@@ -61,26 +62,35 @@ public final class RestoreOptions {
             resultList.add(ABSTTL_REDIS_API.getBytes());
         }
 
-        if (seconds != null) {
-            seconds.ifPresent(
+        if (idletime != null) {
+            idletime.ifPresent(
                     sec -> {
-                        if (sec > 0) {
-                            resultList.add(IDLETIME_REDIS_API.getBytes());
-                            resultList.add(Long.toString(sec).getBytes());
-                        }
+                        resultList.add(IDLETIME_REDIS_API.getBytes());
+                        resultList.add(Long.toString(sec).getBytes());
                     });
         }
 
         if (frequency != null) {
             frequency.ifPresent(
                     freq -> {
-                        if (freq > 0) {
-                            resultList.add(FREQ_REDIS_API.getBytes());
-                            resultList.add(Long.toString(freq).getBytes());
-                        }
+                        resultList.add(FREQ_REDIS_API.getBytes());
+                        resultList.add(Long.toString(freq).getBytes());
                     });
         }
 
         return resultList;
+    }
+
+    // Custom setter methods for long values
+    public static class RestoreOptionsBuilder {
+        public RestoreOptionsBuilder idletime(long idletime) {
+            this.idletime = idletime > 0 ? Optional.of(idletime) : Optional.empty();
+            return this;
+        }
+
+        public RestoreOptionsBuilder frequency(long frequency) {
+            this.frequency = frequency > 0 ? Optional.of(frequency) : Optional.empty();
+            return this;
+        }
     }
 }

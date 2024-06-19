@@ -6270,7 +6270,7 @@ public class RedisClientTest {
         byte[] key = "testKey".getBytes();
         long ttl = 0L;
         byte[] value = "value".getBytes();
-        Optional<Long> seconds = Optional.of(10L);
+        Optional<Long> idletime = Optional.of(10L);
         Optional<Long> frequency = Optional.of(5L);
 
         List<byte[]> arguments = new ArrayList<>();
@@ -6281,8 +6281,8 @@ public class RedisClientTest {
         arguments.add("ABSTTL".getBytes());
         arguments.add("IDLETIME".getBytes());
 
-        // Add seconds if present
-        seconds.ifPresent(sec -> arguments.add(Long.toString(sec).getBytes()));
+        // Add idletime if present
+        idletime.ifPresent(sec -> arguments.add(Long.toString(sec).getBytes()));
 
         // Add FREQ and frequency if present
         arguments.add("FREQ".getBytes());
@@ -6305,8 +6305,8 @@ public class RedisClientTest {
                         RestoreOptions.builder()
                                 .hasReplace(true)
                                 .hasAbsttl(true)
-                                .seconds(Optional.of(10L))
-                                .frequency(Optional.of(5L))
+                                .idletime(10L)
+                                .frequency(5L)
                                 .build());
 
         // verify
