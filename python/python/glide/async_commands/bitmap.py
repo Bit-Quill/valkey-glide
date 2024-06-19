@@ -178,6 +178,7 @@ class BitFieldSubCommands(ABC):
 
 class BitFieldReadOnlySubCommands(BitFieldSubCommands, ABC):
     """Abstract Base Class representing subcommands for the `BITFIELD` or `BITFIELD_RO` commands."""
+
     pass
 
 
