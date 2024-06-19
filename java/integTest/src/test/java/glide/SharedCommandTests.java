@@ -3626,7 +3626,7 @@ public class SharedCommandTests {
         Map<String, String> timestamp_1_1_map = new LinkedHashMap<>();
         timestamp_1_1_map.put(field1, field1 + "1");
         String timestamp_1_1 =
-            client.xadd(key, timestamp_1_1_map, StreamAddOptions.builder().id("1-1").build()).get();
+                client.xadd(key, timestamp_1_1_map, StreamAddOptions.builder().id("1-1").build()).get();
         assertNotNull(timestamp_1_1);
 
         String groupName = "group" + UUID.randomUUID();
@@ -3635,43 +3635,43 @@ public class SharedCommandTests {
 
         // create group and consumer for the group
         assertEquals(
-            OK,
-            client
-                .xgroupCreate(
-                    key, groupName, zeroStreamId, StreamGroupOptions.builder().makeStream().build())
-                .get());
+                OK,
+                client
+                        .xgroupCreate(
+                                key, groupName, zeroStreamId, StreamGroupOptions.builder().makeStream().build())
+                        .get());
         assertTrue(client.xgroupCreateConsumer(key, groupName, consumerName).get());
 
         // Key exists, but it is not a stream
         assertEquals(OK, client.set(nonStreamKey, "bar").get());
         ExecutionException executionException =
-            assertThrows(
-                ExecutionException.class,
-                () ->
-                    client
-                        .xreadgroup(
-                            Map.of(nonStreamKey, timestamp_1_1, key, timestamp_1_1),
-                            groupName,
-                            consumerName)
-                        .get());
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .xreadgroup(
+                                                Map.of(nonStreamKey, timestamp_1_1, key, timestamp_1_1),
+                                                groupName,
+                                                consumerName)
+                                        .get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         executionException =
-            assertThrows(
-                ExecutionException.class,
-                () ->
-                    client
-                        .xreadgroup(
-                            Map.of(key, timestamp_1_1, nonStreamKey, timestamp_1_1),
-                            groupName,
-                            consumerName)
-                        .get());
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .xreadgroup(
+                                                Map.of(key, timestamp_1_1, nonStreamKey, timestamp_1_1),
+                                                groupName,
+                                                consumerName)
+                                        .get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         try (var testClient =
-                 client instanceof RedisClient
-                     ? RedisClient.CreateClient(commonClientConfig().build()).get()
-                     : RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get()) {
+                client instanceof RedisClient
+                        ? RedisClient.CreateClient(commonClientConfig().build()).get()
+                        : RedisClusterClient.CreateClient(commonClusterClientConfig().build()).get()) {
             String timeoutKey = "{key}:2" + UUID.randomUUID();
             String timeoutGroupName = "group" + UUID.randomUUID();
             String timeoutConsumerName = "consumer" + UUID.randomUUID();
@@ -3708,26 +3708,26 @@ public class SharedCommandTests {
             // ensure that command doesn't time out even if timeout > request timeout
             long oneSecondInMS = 1000L;
             assertNull(
-                testClient
-                    .xreadgroup(
-                        Map.of(timeoutKey, zeroStreamId),
-                        timeoutGroupName,
-                        timeoutConsumerName,
-                        StreamReadGroupOptions.builder().block(oneSecondInMS).build())
-                    .get());
+                    testClient
+                            .xreadgroup(
+                                    Map.of(timeoutKey, ">"),
+                                    timeoutGroupName,
+                                    timeoutConsumerName,
+                                    StreamReadGroupOptions.builder().block(oneSecondInMS).build())
+                            .get());
 
             // with 0 timeout (no timeout) should never time out,
             // but we wrap the test with timeout to avoid test failing or stuck forever
             assertThrows(
-                TimeoutException.class, // <- future timeout, not command timeout
-                () ->
-                    testClient
-                        .xreadgroup(
-                            Map.of(timeoutKey, zeroStreamId),
-                            timeoutGroupName,
-                            timeoutConsumerName,
-                            StreamReadGroupOptions.builder().block(0L).build())
-                        .get(3, TimeUnit.SECONDS));
+                    TimeoutException.class, // <- future timeout, not command timeout
+                    () ->
+                            testClient
+                                    .xreadgroup(
+                                            Map.of(timeoutKey, ">"),
+                                            timeoutGroupName,
+                                            timeoutConsumerName,
+                                            StreamReadGroupOptions.builder().block(0L).build())
+                                    .get(3, TimeUnit.SECONDS));
         }
     }
 
