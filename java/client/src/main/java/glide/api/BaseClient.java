@@ -1899,6 +1899,6 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Set<String>> sunion(@NonNull String[] keys) {
-        return commandManager.submitNewCommand(SUnion, keys, response -> handleSetResponse(response));
+        return commandManager.submitNewCommand(SUnion, keys, this::handleSetResponse);
     }
 }
