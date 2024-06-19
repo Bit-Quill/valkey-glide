@@ -4367,7 +4367,7 @@ class CoreCommands(Protocol):
         expiry: Optional[ExpiryGetEx] = None,
     ) -> Optional[str]:
         """
-        Get the value of `key` and optionally set its expiration. `GETEX` is similar to `GET`, but is a write command with `ExpiryGetEx` options.
+        Get the value of `key` and optionally set its expiration. `GETEX` is similar to `GET`.
         See https://valkey.io/commands/getex for more details.
 
         Args:
