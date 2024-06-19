@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
+import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
@@ -344,4 +345,8 @@ public interface StringBaseCommands {
      * }</pre>
      */
     CompletableFuture<Long> lcsLen(String key1, String key2);
+
+    CompletableFuture<Map<String, Object>> lcsIdx(String key1, String key2);
+
+    CompletableFuture<Map<String, Object>> lcsIdx(String key1, String key2, LcsOptions lcsOptions);
 }

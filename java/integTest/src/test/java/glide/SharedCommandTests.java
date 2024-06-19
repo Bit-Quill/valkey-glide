@@ -5422,4 +5422,32 @@ public class SharedCommandTests {
                 assertThrows(ExecutionException.class, () -> client.lcs(nonStringKey, key1).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void lcsIdx(BaseClient client) {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7.0.0");
+        // setup
+        String key1 = "{key}-1" + UUID.randomUUID();
+        String key2 = "{key}-2" + UUID.randomUUID();
+        String key3 = "{key}-3" + UUID.randomUUID();
+        String nonStringKey = "{key}-4" + UUID.randomUUID();
+
+        client.set(key3, "wxyz");
+        // keys does not exist or is empty
+        assertEquals(0, client.lcsLen(key1, key2).get());
+
+        // setting string values
+        client.set(key1, "abcdefghijk");
+        client.set(key2, "defjkjuighijk");
+        Object expectedMatchesObject =
+                new Object[] {
+                    new Object[] {new Long[] {6L, 10L}, new Long[] {8L, 12L}},
+                    new Object[] {new Long[] {3L, 5L}, new Long[] {0L, 2L}}
+                };
+
+        assertDeepEquals(expectedMatchesObject, client.lcsIdx(key1, key2).get().get("matches"));
+        assertEquals(8L, client.lcsIdx(key1, key2).get().get("len"));
+    }
 }
