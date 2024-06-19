@@ -5443,6 +5443,9 @@ public class SharedCommandTests {
         // Key has an empty set
         assertEquals(Set.of(), client.sunion(new String[] {key3}).get());
 
+        // Empty key with non-empty key returns non-empty key set
+        assertEquals(Set.of(memberList1), client.sunion(new String[] {key1, key3}).get());
+
         // Exceptions
         // Empty keys
         ExecutionException executionException =
