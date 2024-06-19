@@ -616,7 +616,7 @@ public interface GenericBaseCommands {
      *
      * @see <a href="https://valkey.io/commands/restore/">valkey.io</a> for details.
      * @param key The key of the set.
-     * @param ttl The expiry time (in milliseconds). If `0`, it means creation without any expiry.
+     * @param ttl The expiry time (in milliseconds). If `0`, the key won't expire.
      * @param value The serialized value.
      * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value
      *      </code>.
@@ -630,11 +630,11 @@ public interface GenericBaseCommands {
 
     /**
      * Create a <code>key</code> associated with a <code>value</code> that is obtained by
-     * deserializing the provided serialized <code>value</code> (obtained via DUMP).
+     * deserializing the provided serialized <code>value</code> (obtained via {@link #dump}).
      *
      * @see <a href="https://valkey.io/commands/restore/">valkey.io</a> for details.
      * @param key The key of the set.
-     * @param ttl The expiry time (in milliseconds). If 0, it means creation without any expiry.
+     * @param ttl The expiry time (in milliseconds). If `0`, they key won't expire.
      * @param value The serialized value.
      * @param restoreOptions The restore option that contains keys and arguments for the restore.
      * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value
