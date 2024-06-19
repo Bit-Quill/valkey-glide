@@ -211,6 +211,7 @@ import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
 import glide.api.models.commands.stream.StreamRange;
 import glide.api.models.commands.stream.StreamTrimOptions;
+import glide.api.models.configuration.ReadFrom;
 import java.util.Arrays;
 import java.util.Map;
 import lombok.Getter;
@@ -4079,11 +4080,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
      * The <code>sort</code> command can be used to sort elements based on different criteria and
-     * apply transformations on sorted elements. To store the result into a new key, see <code>
-     * sort_store</code>.
+     * apply transformations on sorted elements.<br>
+     * To store the result into a new key, see {@link #sortStore(String, String)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
-     * @return Command Response - A list of sorted elements.
+     * @return Command Response - A <code>Array</code> of sorted elements.
      */
     public T sort(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
@@ -4094,12 +4095,12 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
      * The <code>sort</code> command can be used to sort elements based on different criteria and
-     * apply transformations on sorted elements. To store the result into a new key, see <code>
-     * sort_store</code>.
+     * apply transformations on sorted elements.<br>
+     * To store the result into a new key, see {@link #sortStore(String, String, SortBaseOptions)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param sortBaseOptions The {@link SortBaseOptions}.
-     * @return Command Response - A list of sorted elements.
+     * @return Command Response - A <code>Array</code> of sorted elements.
      */
     public T sort(@NonNull String key, @NonNull SortBaseOptions sortBaseOptions) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortBaseOptions.toArgs(), key));
@@ -4109,12 +4110,14 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
-     * This command is routed depending on the client's <code>ReadFrom</code> strategy. The <code>
-     * sortReadOnly</code> command can be used to sort elements based on different criteria and apply
-     * transformations on sorted elements.
+     * <br>
+     * The <code>sortReadOnly</code> command can be used to sort elements based on different criteria
+     * and apply transformations on sorted elements.<br>
+     * This command is routed depending on the client's {@link ReadFrom} strategy.
      *
+     * @since Redis 7.0 and above.
      * @param key The key of the list, set, or sorted set to be sorted.
-     * @return Command Response - A list of sorted elements.
+     * @return Command Response - A <code>Array</code> of sorted elements.
      */
     public T sortReadOnly(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
@@ -4124,13 +4127,15 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /**
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
-     * This command is routed depending on the client's <code>ReadFrom</code> strategy. The <code>
-     * sortReadOnly</code> command can be used to sort elements based on different criteria and apply
-     * transformations on sorted elements.
+     * <br>
+     * The <code>sortReadOnly</code> command can be used to sort elements based on different criteria
+     * and apply transformations on sorted elements.<br>
+     * This command is routed depending on the client's {@link ReadFrom} strategy.
      *
+     * @since Redis 7.0 and above.
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param sortBaseOptions The {@link SortBaseOptions}.
-     * @return Command Response - A list of sorted elements.
+     * @return Command Response - A <code>Array</code> of sorted elements.
      */
     public T sortReadOnly(@NonNull String key, @NonNull SortBaseOptions sortBaseOptions) {
         ArgsArray commandArgs = buildArgs(ArrayUtils.addFirst(sortBaseOptions.toArgs(), key));
@@ -4142,7 +4147,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
      * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
      * different criteria, apply transformations on sorted elements, and store the result in a new
-     * key. To get the sort result without storing it into a key, see <code>sort</code>.
+     * key.<br>
+     * To get the sort result without storing it into a key, see {@link #sort(String)} and {@link
+     * #sortReadOnly(String)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param destination The key where the sorted result will be stored.
@@ -4159,7 +4166,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and stores the result in
      * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
      * different criteria, apply transformations on sorted elements, and store the result in a new
-     * key. To get the sort result without storing it into a key, see <code>sort</code>.
+     * key.<br>
+     * To get the sort result without storing it into a key, see {@link #sort(String,
+     * SortBaseOptions)} and {@link #sortReadOnly(String, SortBaseOptions)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param destination The key where the sorted result will be stored.

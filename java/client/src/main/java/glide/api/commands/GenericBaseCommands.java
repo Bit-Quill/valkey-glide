@@ -549,7 +549,7 @@ public interface GenericBaseCommands {
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
      * The <code>sort</code> command can be used to sort elements based on different criteria and
      * apply transformations on sorted elements.<br>
-     * To store the result into a new key, see {@link GenericBaseCommands#sortStore(String, String)}.
+     * To store the result into a new key, see {@link #sortStore(String, String)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @return A list of sorted elements.
@@ -565,12 +565,11 @@ public interface GenericBaseCommands {
      * Sorts the elements in the list, set, or sorted set at <code>key</code> and returns the result.
      * The <code>sort</code> command can be used to sort elements based on different criteria and
      * apply transformations on sorted elements.<br>
-     * To store the result into a new key, see {@link GenericBaseCommands#sortStore(String, String,
-     * SortBaseOptions)}.
+     * To store the result into a new key, see {@link #sortStore(String, String, SortBaseOptions)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param sortBaseOptions The {@link SortBaseOptions}.
-     * @return A list of sorted elements.
+     * @return A <code>Array</code> of sorted elements.
      * @example
      *     <pre>{@code
      * client.lpush("mylist", new String[] {"3", "1", "2", "a"}).get();
@@ -596,7 +595,7 @@ public interface GenericBaseCommands {
      *
      * @since Redis 7.0 and above.
      * @param key The key of the list, set, or sorted set to be sorted.
-     * @return A list of sorted elements.
+     * @return A <code>Array</code> of sorted elements.
      * @example
      *     <pre>{@code
      * client.lpush("mylist", new String[] {"3", "1", "2"}).get();
@@ -615,7 +614,7 @@ public interface GenericBaseCommands {
      * @since Redis 7.0 and above.
      * @param key The key of the list, set, or sorted set to be sorted.
      * @param sortBaseOptions The {@link SortBaseOptions}.
-     * @return A list of sorted elements.
+     * @return A <code>Array</code> of sorted elements.
      * @example
      *     <pre>{@code
      * client.lpush("mylist", new String[] {"3", "1", "2", "a"}).get();
@@ -637,8 +636,8 @@ public interface GenericBaseCommands {
      * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
      * different criteria, apply transformations on sorted elements, and store the result in a new
      * key.<br>
-     * To get the sort result without storing it into a key, see {@link
-     * GenericBaseCommands#sort(String)} and {@link GenericBaseCommands#sortReadOnly(String)}.
+     * To get the sort result without storing it into a key, see {@link #sort(String)} and {@link
+     * #sortReadOnly(String)}.
      *
      * @apiNote When in cluster mode, <code>key</code> and <code>destination</code> must map to the
      *     same hash slot.
@@ -661,9 +660,8 @@ public interface GenericBaseCommands {
      * <code>destination</code>. The <code>sort</code> command can be used to sort elements based on
      * different criteria, apply transformations on sorted elements, and store the result in a new
      * key.<br>
-     * To get the sort result without storing it into a key, see {@link
-     * GenericBaseCommands#sort(String, SortBaseOptions)} and {@link
-     * GenericBaseCommands#sortReadOnly(String, SortBaseOptions)}.
+     * To get the sort result without storing it into a key, see {@link #sort(String,
+     * SortBaseOptions)} and {@link #sortReadOnly(String, SortBaseOptions)}.
      *
      * @apiNote When in cluster mode, <code>key</code> and <code>destination</code> must map to the
      *     same hash slot.
