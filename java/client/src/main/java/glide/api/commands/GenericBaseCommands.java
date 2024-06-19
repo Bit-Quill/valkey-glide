@@ -552,7 +552,7 @@ public interface GenericBaseCommands {
      * To store the result into a new key, see {@link #sortStore(String, String)}.
      *
      * @param key The key of the list, set, or sorted set to be sorted.
-     * @return A list of sorted elements.
+     * @return An <code>Array</code> of sorted elements.
      * @example
      *     <pre>{@code
      * client.lpush("mylist", new String[] {"3", "1", "2"}).get();
