@@ -160,7 +160,7 @@ public interface ScriptingAndFunctionsCommands {
     CompletableFuture<String> functionRestore(byte[] payload);
 
     /**
-     * Restores libraries from the serialized payload.
+     * Restores libraries from the serialized payload returned by {@link #functionDump()}..
      *
      * @since Redis 7.0 and above.
      * @see <a href="https://redis.io/docs/latest/commands/function-restore/">redis.io</a> for
