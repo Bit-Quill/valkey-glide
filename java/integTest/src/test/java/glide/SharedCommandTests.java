@@ -3481,7 +3481,7 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
-    public void xgroupCreateConsumer_xreadgroup_xgroupDelConsumer(BaseClient client) {
+    public void xgroupCreateConsumer_xgroupDelConsumer_xreadgroup_xack(BaseClient client) {
         String key = UUID.randomUUID().toString();
         String stringKey = UUID.randomUUID().toString();
         String groupName = "group" + UUID.randomUUID();
@@ -3530,21 +3530,28 @@ public class SharedCommandTests {
         // delete one of the streams
         assertEquals(1L, client.xdel(key, new String[] {streamid_1}).get());
 
-        // now xreadgroup yeilds one empty stream and one non-empty stream
+        // now xreadgroup returns one empty stream and one non-empty stream
         var result_2 = client.xreadgroup(Map.of(key, "0"), groupName, consumerName).get();
         assertEquals(2, result_2.get(key).size());
-        assertNull(result_2.get(key).get(streamid_1));
+        assertNull(result_2.get(key).get(streamid_2));
         assertArrayEquals(new String[][] {{"field2", "value2"}}, result_2.get(key).get(streamid_2));
 
+        // add another stream
         String streamid_3 = client.xadd(key, Map.of("field3", "value3")).get();
         assertNotNull(streamid_3);
 
+        // acknowledge receiving streamid_1
+        assertEquals(1L, client.xack(key, groupName, new String[] {streamid_1}).get());
+
         // Delete the consumer group and expect 2 pending messages
-        assertEquals(2L, client.xgroupDelConsumer(key, groupName, consumerName).get());
+        assertEquals(1L, client.xgroupDelConsumer(key, groupName, consumerName).get());
 
         // Consume the last message with the previously deleted consumer (creates the consumer anew)
         var result_3 = client.xreadgroup(Map.of(key, ">"), groupName, consumerName).get();
         assertEquals(1, result_3.get(key).size());
+
+        // acknowledge receiving streamid_2 and streamid_3 - although streamid_2 was deleted
+        assertEquals(1L, client.xack(key, groupName, new String[] {streamid_2, streamid_3}).get());
 
         // Delete the consumer group and expect the pending message
         assertEquals(1L, client.xgroupDelConsumer(key, groupName, consumerName).get());
@@ -3889,7 +3896,7 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
-    public void xack(BaseClient client) {
+    public void xack_return_failures(BaseClient client) {
         String key = "race:italy";
         String stringKey = UUID.randomUUID().toString();
         String groupName = "italy_riders";
@@ -3901,8 +3908,6 @@ public class SharedCommandTests {
         // No messages are acknowledged as nothing is in the stream
         assertEquals(0, client.xack(key, groupName, streamIds).get());
 
-        // TODO: fails when running the XREADGROUP command
-        if (client instanceof RedisClient) {
             assertEquals(
                 OK, client.xgroupCreate(key, groupName, "$", StreamGroupOptions.builder().makeStream()
                     .build()).get());
