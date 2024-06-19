@@ -1,6 +1,7 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
+import java.util.Arrays;
 import java.util.List;
 import org.mockito.ArgumentMatcher;
 
@@ -31,10 +32,15 @@ public class ByteArrayArgumentMatcher implements ArgumentMatcher<List<byte[]>> {
      */
     @Override
     public boolean matches(List<byte[]> t) {
-        int length = t.size();
+        // Check if the sizes of both lists are equal
+        if (t.size() != arguments.size()) {
+            return false;
+        }
 
-        for (int index = 0; index < length; index++) {
-            if (!(new String(t.get(index)).equals(new String(arguments.get(index))))) return false;
+        for (int index = 0; index < t.size(); index++) {
+            if (!Arrays.equals(arguments.get(index), t.get(index))) {
+                return false;
+            }
         }
         return true;
     }

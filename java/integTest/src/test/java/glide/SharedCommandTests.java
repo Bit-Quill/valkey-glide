@@ -5381,9 +5381,9 @@ public class SharedCommandTests {
         // Restore with REPLACE and existed key holding different value
         assertEquals(1, client.sadd(key2, new String[] {"a"}).get());
         result =
-            client
-                .restore(key2.getBytes(), 0L, data, RestoreOptions.builder().hasReplace(true).build())
-                .get();
+                client
+                        .restore(key2.getBytes(), 0L, data, RestoreOptions.builder().hasReplace(true).build())
+                        .get();
         assertEquals(OK, result);
 
         // Restore with REPLACE, ABSTTL, and positive TTL
