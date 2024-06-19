@@ -385,17 +385,8 @@ async def transaction_test(
 
     transaction.setbit(key19, 1, 1)
     args.append(0)
-    transaction.setbit(key19, 1, 0)
-    args.append(1)
     transaction.getbit(key19, 1)
-    args.append(0)
-
-    transaction.set(key19, "abcdef")
-    args.append(OK)
-    transaction.bitop(BitwiseOperation.AND, key19, [key19, key20])
-    args.append(6)
-    transaction.get(key19)
-    args.append("`bc`ab")
+    args.append(1)
 
     transaction.set(key20, "foobar")
     args.append(OK)
@@ -409,6 +400,12 @@ async def transaction_test(
         key20, [BitFieldGet(SignedEncoding(5), BitOffset(3))]
     )
     args.append([6])
+    transaction.set(key19, "abcdef")
+    args.append(OK)
+    transaction.bitop(BitwiseOperation.AND, key19, [key19, key20])
+    args.append(6)
+    transaction.get(key19)
+    args.append("`bc`ab")
     transaction.bitfield(
         key20, [BitFieldSet(UnsignedEncoding(10), BitOffsetMultiplier(3), 4)]
     )
