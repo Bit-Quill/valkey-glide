@@ -13,6 +13,7 @@ import static glide.utils.ArrayTransformUtils.concatenateArrays;
 
 import glide.api.models.BaseTransaction;
 import glide.api.models.commands.ExpireOptions;
+import glide.api.models.commands.GetExOptions;
 import glide.api.models.commands.LPosOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions.InfLexBound;
@@ -210,6 +211,8 @@ public class TransactionTestUtilities {
         transaction
                 .set(stringKey1, value1)
                 .get(stringKey1)
+                .getex(stringKey1)
+                .getex(stringKey1, GetExOptions.Seconds(20L))
                 .getdel(stringKey1)
                 .set(stringKey2, value2, SetOptions.builder().returnOldValue(true).build())
                 .strlen(stringKey2)
@@ -244,6 +247,8 @@ public class TransactionTestUtilities {
                 new Object[] {
                     OK, // set(stringKey1, value1)
                     value1, // get(stringKey1)
+                    value1, // getex(stringKey1)
+                    value1, // getex(stringKey1,GetExOptions.Seconds(20L))
                     value1, // getdel(stringKey1)
                     null, // set(stringKey2, value2, returnOldValue(true))
                     (long) value1.length(), // strlen(key2)
