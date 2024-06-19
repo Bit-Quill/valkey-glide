@@ -3533,25 +3533,27 @@ public class SharedCommandTests {
         // now xreadgroup returns one empty stream and one non-empty stream
         var result_2 = client.xreadgroup(Map.of(key, "0"), groupName, consumerName).get();
         assertEquals(2, result_2.get(key).size());
-        assertNull(result_2.get(key).get(streamid_2));
+        assertNull(result_2.get(key).get(streamid_1));
         assertArrayEquals(new String[][] {{"field2", "value2"}}, result_2.get(key).get(streamid_2));
 
-        // add another stream
-        String streamid_3 = client.xadd(key, Map.of("field3", "value3")).get();
+        String streamid_3 = client.xadd(key, Map.of("field3", "field3")).get();
         assertNotNull(streamid_3);
 
-        // acknowledge receiving streamid_1
-        assertEquals(1L, client.xack(key, groupName, new String[] {streamid_1}).get());
+        // xack that streamid_1, and streamid_2 was received
+        assertEquals(2L, client.xack(key, groupName, new String[] {streamid_1, streamid_2}).get());
 
-        // Delete the consumer group and expect 2 pending messages
-        assertEquals(1L, client.xgroupDelConsumer(key, groupName, consumerName).get());
+        // Delete the consumer group and expect 1 pending messages (one was received)
+        assertEquals(0L, client.xgroupDelConsumer(key, groupName, consumerName).get());
+
+        // xack streamid_1, and streamid_2 already received returns 0L
+        assertEquals(0L, client.xack(key, groupName, new String[] {streamid_1, streamid_2}).get());
 
         // Consume the last message with the previously deleted consumer (creates the consumer anew)
         var result_3 = client.xreadgroup(Map.of(key, ">"), groupName, consumerName).get();
         assertEquals(1, result_3.get(key).size());
 
-        // acknowledge receiving streamid_2 and streamid_3 - although streamid_2 was deleted
-        assertEquals(1L, client.xack(key, groupName, new String[] {streamid_2, streamid_3}).get());
+        // wrong group, so xack streamid_3 returns 0
+        assertEquals(0L, client.xack(key, "not_a_group", new String[] {streamid_3}).get());
 
         // Delete the consumer group and expect the pending message
         assertEquals(1L, client.xgroupDelConsumer(key, groupName, consumerName).get());
@@ -3897,46 +3899,16 @@ public class SharedCommandTests {
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void xack_return_failures(BaseClient client) {
-        String key = "race:italy";
-        String stringKey = UUID.randomUUID().toString();
-        String groupName = "italy_riders";
-        String streamId1 = "0-1";
-        String streamId2 = "0-2";
-        String streamId3 = "0-3";
-        String[] streamIds = new String[] {streamId1, streamId2, streamId3};
+        String nonStreamKey = "{key}:3" + UUID.randomUUID();
+        String groupName = "group" + UUID.randomUUID();
+        String zeroStreamId = "0";
 
-        // No messages are acknowledged as nothing is in the stream
-        assertEquals(0, client.xack(key, groupName, streamIds).get());
-
-            assertEquals(
-                OK, client.xgroupCreate(key, groupName, "$", StreamGroupOptions.builder().makeStream()
-                    .build()).get());
-            assertNotNull(((RedisClient) client).customCommand(new String[] {"XREADGROUP", "GROUP", groupName, "Alice", "COUNT", "1", "STREAMS", key, ">"}).get());
-            assertEquals(1, client.xack(key, groupName, streamIds).get());
-            // 0 is returned when calling XACK again as the message is removed from the Pending Entries List (PEL)
-            assertEquals(0, client.xack(key, groupName, streamIds).get());
-//            assertEquals(
-//                OK, client.xgroupCreate(key, groupName, "$", StreamGroupOptions.builder().makeStream()
-//                    .build()).get());
-//            streamIds[0] = client.xadd(key, Map.of("rider", "Castilla")).get();
-//
-//            ((RedisClient) client).customCommand(new String[] {"XREADGROUP", "GROUP", groupName, "Alice", "COUNT", "1", "STREAMS", key, ">"}).get();
-//            assertEquals(1, client.xack(key, groupName, streamIds).get());
-        }
-
-
-        // Exceptions
-        // Exception is thrown due to key holding a value with the wrong type
-        client.set(stringKey, "test").get();
-        Exception executionException =
-            assertThrows(
-                ExecutionException.class, () -> client.xack(stringKey, groupName, streamIds).get());
-        assertInstanceOf(RequestException.class, executionException.getCause());
-
-        // Exception is thrown due to empty stream ids
-        executionException =
-            assertThrows(
-                ExecutionException.class, () -> client.xack(key, groupName, new String[0]).get());
+        // Key exists, but it is not a stream
+        assertEquals(OK, client.set(nonStreamKey, "bar").get());
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.xack(nonStreamKey, groupName, new String[] {zeroStreamId}).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 

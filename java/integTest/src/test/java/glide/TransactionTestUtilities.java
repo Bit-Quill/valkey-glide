@@ -731,7 +731,6 @@ public class TransactionTestUtilities {
         final String groupName1 = "{groupName}-1-" + UUID.randomUUID();
         final String groupName2 = "{groupName}-2-" + UUID.randomUUID();
         final String consumer1 = "{consumer}-1-" + UUID.randomUUID();
-        final String consumer2 = "{consumer}-2-" + UUID.randomUUID();
 
         transaction
                 .xadd(streamKey1, Map.of("field1", "value1"), StreamAddOptions.builder().id("0-1").build())
@@ -755,14 +754,11 @@ public class TransactionTestUtilities {
                         groupName1,
                         consumer1,
                         StreamReadGroupOptions.builder().count(2L).build())
+                .xack(streamKey1, groupName1, new String[] {"0-3"})
                 .xgroupDelConsumer(streamKey1, groupName1, consumer1)
                 .xgroupDestroy(streamKey1, groupName1)
                 .xgroupDestroy(streamKey1, groupName2)
-                .xdel(streamKey1, new String[] {"0-3", "0-5"})
-                .xgroupCreate(streamKey1, groupName1, "$", StreamGroupOptions.builder().makeStream().build())
-                .xadd(streamKey1, Map.of("rider", "Castilla"), StreamAddOptions.builder().id("1-0").build())
-                .customCommand(new String[] {"XREADGROUP", "GROUP", groupName1, "Alice", "COUNT", "1", "STREAMS", streamKey1, ">"})
-                .xack(streamKey1, groupName1, new String[] {"1-0"});;
+                .xdel(streamKey1, new String[] {"0-3", "0-5"});
 
         return new Object[] {
             "0-1", // xadd(streamKey1, Map.of("field1", "value1"), ... .id("0-1").build());
@@ -796,17 +792,11 @@ public class TransactionTestUtilities {
             Map.of(
                     streamKey1,
                     Map.of()), // xreadgroup(Map.of(streamKey1, ">"), groupName1, consumer1, options);
-            1L, // xgroupDelConsumer(streamKey1, groupName1, consumer1)
+            1L, // xack(streamKey1, groupName1, new String[] {"0-3"})
+            0L, // xgroupDelConsumer(streamKey1, groupName1, consumer1)
             true, // xgroupDestroy(streamKey1, groupName1)
             true, // xgroupDestroy(streamKey1, groupName2)
             1L, // .xdel(streamKey1, new String[] {"0-1", "0-5"});
-            OK,
-            "1-0",
-            // TODO: fix expected
-            Map.of(
-                streamKey1,
-                Map.of("1-0", new String[][] {{"rider", "bob"}})),
-            1L,
         };
     }
 

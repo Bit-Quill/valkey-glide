@@ -495,12 +495,20 @@ public interface StreamBaseCommands {
             StreamReadGroupOptions options);
 
     /**
-     * TODO
+     * Returns the number of messages that were successfully acknowledged by the consumer group member of a stream.
+     * This command should be called on a pending message so that such message does not get processed again.
      *
-     * @param key
-     * @param groupname
-     * @param ids
-     * @return
+     * @param key The key of the stream.
+     * @param group The consumer group name.
+     * @param ids Stream entry ID to acknowledge and purge messages.
+     * @return The number of messages that were successfully acknowledged.
+     * @example
+     *     <pre>{@code
+     * String streamId = client.xadd("mystream", Map.of("myfield", "mydata")).get();
+     * // read and process messages from streamId
+     * assert 1L == client.xack("mystream", "mygroup", new String[] {streamId}).get();
+     * // messages purged from stream
+     * </pre>
      */
-    CompletableFuture<Long> xack(String key, String groupname, String[] ids);
+    CompletableFuture<Long> xack(String key, String group, String[] ids);
 }

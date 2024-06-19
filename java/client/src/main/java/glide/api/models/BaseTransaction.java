@@ -3104,15 +3104,17 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-      * TODO
+     * Returns the number of messages that were successfully acknowledged by the consumer group member
+     * of a stream. This command should be called on a pending message so that such message does not
+     * get processed again.
      *
-     * @param key
-     * @param groupname
-     * @param ids
-     * @return
+     * @param key The key of the stream.
+     * @param group The consumer group name.
+     * @param ids Stream entry ID to acknowledge and purge messages.
+     * @return Command Response - The number of messages that were successfully acknowledged.
      */
-    public T xack(@NonNull String key, @NonNull String groupname, @NonNull String[] ids) {
-        String[] args = concatenateArrays(new String[]{key, groupname}, ids);
+    public T xack(@NonNull String key, @NonNull String group, @NonNull String[] ids) {
+        String[] args = concatenateArrays(new String[] {key, group}, ids);
         protobufTransaction.addCommands(buildCommand(XAck, buildArgs(args)));
         return getThis();
     }
