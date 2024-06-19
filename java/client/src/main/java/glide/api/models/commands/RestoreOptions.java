@@ -4,7 +4,6 @@ package glide.api.models.commands;
 import glide.api.commands.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.*;
 
 /**
@@ -30,16 +29,16 @@ public final class RestoreOptions {
     public static final String FREQ_REDIS_API = "FREQ";
 
     /** When `true`, it represents <code>REPLACE</code> keyword has been used */
-    private final boolean hasReplace;
+    @Builder.Default private boolean hasReplace = false;
 
     /** When `true`, it represents <code>ABSTTL</code> keyword has been used */
-    private final boolean hasAbsttl;
+    @Builder.Default private boolean hasAbsttl = false;
 
     /** It represents the idletime of object */
-    private final Optional<Long> idletime;
+    @Builder.Default private Long idletime = null;
 
     /** It represents the frequency of object */
-    private final Optional<Long> frequency;
+    @Builder.Default private Long frequency = null;
 
     /**
      * Creates the argument to be used in {@link GenericBaseCommands#restore(byte[], long, byte[],
@@ -63,34 +62,26 @@ public final class RestoreOptions {
         }
 
         if (idletime != null) {
-            idletime.ifPresent(
-                    sec -> {
-                        resultList.add(IDLETIME_REDIS_API.getBytes());
-                        resultList.add(Long.toString(sec).getBytes());
-                    });
+            resultList.add(IDLETIME_REDIS_API.getBytes());
+            resultList.add(Long.toString(idletime).getBytes());
         }
 
         if (frequency != null) {
-            frequency.ifPresent(
-                    freq -> {
-                        resultList.add(FREQ_REDIS_API.getBytes());
-                        resultList.add(Long.toString(freq).getBytes());
-                    });
+            resultList.add(FREQ_REDIS_API.getBytes());
+            resultList.add(Long.toString(frequency).getBytes());
         }
 
         return resultList;
     }
 
-    // Custom setter methods for long values
+    /** Custom setter methods for replace and absttl */
     public static class RestoreOptionsBuilder {
-        public RestoreOptionsBuilder idletime(long idletime) {
-            this.idletime = idletime > 0 ? Optional.of(idletime) : Optional.empty();
-            return this;
+        public RestoreOptionsBuilder replace() {
+            return hasReplace(true);
         }
 
-        public RestoreOptionsBuilder frequency(long frequency) {
-            this.frequency = frequency > 0 ? Optional.of(frequency) : Optional.empty();
-            return this;
+        public RestoreOptionsBuilder absttl() {
+            return hasAbsttl(true);
         }
     }
 }

@@ -5373,26 +5373,21 @@ public class SharedCommandTests {
         // Restore with REPLACE option
         result =
                 client
-                        .restore(newKey.getBytes(), 0L, data, RestoreOptions.builder().hasReplace(true).build())
+                        .restore(newKey.getBytes(), 0L, data, RestoreOptions.builder().replace().build())
                         .get();
         assertEquals(OK, result);
 
         // Restore with REPLACE and existed key holding different value
         assertEquals(1, client.sadd(key2, new String[] {"a"}).get());
         result =
-                client
-                        .restore(key2.getBytes(), 0L, data, RestoreOptions.builder().hasReplace(true).build())
-                        .get();
+                client.restore(key2.getBytes(), 0L, data, RestoreOptions.builder().replace().build()).get();
         assertEquals(OK, result);
 
         // Restore with REPLACE, ABSTTL, and positive TTL
         result =
                 client
                         .restore(
-                                newKey.getBytes(),
-                                1000L,
-                                data,
-                                RestoreOptions.builder().hasReplace(true).hasAbsttl(true).build())
+                                newKey.getBytes(), 1000L, data, RestoreOptions.builder().replace().absttl().build())
                         .get();
         assertEquals(OK, result);
 
@@ -5406,7 +5401,7 @@ public class SharedCommandTests {
                                                 newKey.getBytes(),
                                                 -10L,
                                                 data,
-                                                RestoreOptions.builder().hasReplace(true).hasAbsttl(true).build())
+                                                RestoreOptions.builder().replace().absttl().build())
                                         .get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
@@ -5417,20 +5412,23 @@ public class SharedCommandTests {
                                 newKey.getBytes(),
                                 0L,
                                 data,
-                                RestoreOptions.builder().hasReplace(true).idletime(10L).build())
+                                RestoreOptions.builder().replace().idletime(10L).build())
                         .get();
         assertEquals(OK, result);
 
         // Restore with REPLACE and negative idletime
-        result =
-                client
-                        .restore(
-                                newKey.getBytes(),
-                                0L,
-                                data,
-                                RestoreOptions.builder().hasReplace(true).idletime(-10L).build())
-                        .get();
-        assertEquals(OK, result);
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .restore(
+                                                newKey.getBytes(),
+                                                0L,
+                                                data,
+                                                RestoreOptions.builder().replace().idletime(-10L).build())
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
 
         // Restore with REPLACE and positive frequency
         result =
@@ -5439,19 +5437,22 @@ public class SharedCommandTests {
                                 newKey.getBytes(),
                                 0L,
                                 data,
-                                RestoreOptions.builder().hasReplace(true).frequency(10L).build())
+                                RestoreOptions.builder().replace().frequency(10L).build())
                         .get();
         assertEquals(OK, result);
 
         // Restore with REPLACE and negative frequency
-        result =
-                client
-                        .restore(
-                                newKey.getBytes(),
-                                0L,
-                                data,
-                                RestoreOptions.builder().hasReplace(true).frequency(-10L).build())
-                        .get();
-        assertEquals(OK, result);
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .restore(
+                                                newKey.getBytes(),
+                                                0L,
+                                                data,
+                                                RestoreOptions.builder().replace().frequency(-10L).build())
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
     }
 }

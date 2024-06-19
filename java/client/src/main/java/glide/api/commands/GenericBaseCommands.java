@@ -616,7 +616,8 @@ public interface GenericBaseCommands {
      *
      * @see <a href="https://valkey.io/commands/restore/">valkey.io</a> for details.
      * @param key The key of the set.
-     * @param ttl The expiry time (in milliseconds). If `0`, the key won't expire.
+     * @param ttl The expiry time (in milliseconds). If <code>0</code>, the <code>key</code> will
+     *     persist.
      * @param value The serialized value.
      * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value
      *      </code>.
@@ -634,15 +635,17 @@ public interface GenericBaseCommands {
      *
      * @see <a href="https://valkey.io/commands/restore/">valkey.io</a> for details.
      * @param key The key of the set.
-     * @param ttl The expiry time (in milliseconds). If `0`, they key won't expire.
+     * @param ttl The expiry time (in milliseconds). If <code>0</code>, the <code>key</code> will
+     *     persist.
      * @param value The serialized value.
-     * @param restoreOptions The restore option that contains keys and arguments for the restore.
+     * @param restoreOptions The restore options. See {@link RestoreOptions}.
      * @return Return <code>OK</code> if successfully create a <code>key</code> with a <code>value
      *      </code>.
      * @example
      *     <pre>{@code
-     * String result = client.restore("newKey", 0, "value", RestoreOptions.builder().hasReplace(true).hasAbsttl(true)
-     *                              .seconds(10).frequency(5).build()).get();
+     * RestoreOptions options = RestoreOptions.builder().replace().absttl().idletime(10).frequency(10).build()).get();
+     * // Set restore options with replace and absolute TTL modifiers, object idletime and frequency to 10.
+     * String result = client.restore("newKey", 0, "value", options);
      * assert result.equals("OK");
      * }</pre>
      */

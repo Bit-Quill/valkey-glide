@@ -6302,12 +6302,7 @@ public class RedisClientTest {
                         key,
                         ttl,
                         value,
-                        RestoreOptions.builder()
-                                .hasReplace(true)
-                                .hasAbsttl(true)
-                                .idletime(10L)
-                                .frequency(5L)
-                                .build());
+                        RestoreOptions.builder().replace().absttl().idletime(10L).frequency(5L).build());
 
         // verify
         assertEquals(testResponse, response);
