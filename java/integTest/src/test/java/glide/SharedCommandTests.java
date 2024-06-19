@@ -3519,7 +3519,13 @@ public class SharedCommandTests {
 
         // read the entire stream for the consumer and mark messages as pending
         var result_1 = client.xreadgroup(Map.of(key, ">"), groupName, consumerName).get();
-        assertEquals(2, result_1.get(key).size());
+        assertDeepEquals(
+                Map.of(
+                        key,
+                        Map.of(
+                                streamid_1, new String[][] {{"field1", "value1"}},
+                                streamid_2, new String[][] {{"field2", "value2"}})),
+                result_1);
 
         // delete one of the streams
         assertEquals(1L, client.xdel(key, new String[] {streamid_1}).get());
@@ -3642,7 +3648,7 @@ public class SharedCommandTests {
                         .get());
         assertTrue(client.xgroupCreateConsumer(key, groupName, consumerName).get());
 
-        // Key exists, but it is not a stream
+        // First key exists, but it is not a stream
         assertEquals(OK, client.set(nonStreamKey, "bar").get());
         ExecutionException executionException =
                 assertThrows(
@@ -3656,6 +3662,7 @@ public class SharedCommandTests {
                                         .get());
         assertInstanceOf(RequestException.class, executionException.getCause());
 
+        // Second key exists, but it is not a stream
         executionException =
                 assertThrows(
                         ExecutionException.class,

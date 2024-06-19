@@ -25,7 +25,16 @@ public final class StreamReadGroupOptions extends StreamReadOptions {
      * If set, messages are not added to the Pending Entries List (PEL). This is equivalent to
      * acknowledging the message when it is read.
      */
-    private Boolean noack;
+    private boolean noack;
+
+    public abstract static class StreamReadGroupOptionsBuilder<
+                    C extends StreamReadGroupOptions, B extends StreamReadGroupOptionsBuilder<C, B>>
+            extends StreamReadOptions.StreamReadOptionsBuilder<C, B> {
+        public B noack() {
+            this.noack = true;
+            return self();
+        }
+    }
 
     /**
      * Converts options and the key-to-id input for {@link StreamBaseCommands#xreadgroup(Map, String,
@@ -49,7 +58,7 @@ public final class StreamReadGroupOptions extends StreamReadOptions {
             optionArgs.add(block.toString());
         }
 
-        if (this.noack != null && this.noack) {
+        if (this.noack) {
             optionArgs.add(READ_NOACK_REDIS_API);
         }
 

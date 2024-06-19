@@ -81,10 +81,6 @@ public class ClusterTransactionTests {
         Object[] expectedResult = builder.apply(transaction);
 
         Object[] results = clusterClient.exec(transaction).get();
-        if (testName.equals("Stream Commands")) {
-            System.out.println(expectedResult[14] + " <=> " + results[14]);
-            System.out.println(expectedResult[15] + " <=> " + results[15]);
-        }
         assertDeepEquals(expectedResult, results);
     }
 

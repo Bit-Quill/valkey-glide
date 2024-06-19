@@ -800,7 +800,7 @@ public class TransactionTests {
                 Map.of("key", "id"),
                 "group",
                 "consumer",
-                StreamReadGroupOptions.builder().block(1L).count(2L).noack(true).build());
+                StreamReadGroupOptions.builder().block(1L).count(2L).noack().build());
         results.add(
                 Pair.of(
                         XReadGroup,

@@ -4603,7 +4603,7 @@ public class RedisClientTest {
                         Map.of(keyOne, streamIdOne),
                         groupName,
                         consumerName,
-                        StreamReadGroupOptions.builder().block(block).count(count).noack(true).build());
+                        StreamReadGroupOptions.builder().block(block).count(count).noack().build());
         Map<String, Map<String, String[][]>> payload = response.get();
 
         // verify

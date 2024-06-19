@@ -69,7 +69,7 @@ public interface StreamBaseCommands {
      * @param keysAndIds A <code>Map</code> of keys and entry ids to read from. The <code>
      *     Map</code> is composed of a stream's key and the id of the entry after which the stream
      *     will be read.
-     * @return A <code>{@literal Map<String, Map<String[][]>>}</code> with stream
+     * @return A <code>{@literal Map<String, Map<String, String[][]>>}</code> with stream
      *      keys, to <code>Map</code> of stream-ids, to an array of pairings with format <code>[[field, entry], [field, entry], ...]<code>.
      * @example
      *     <pre>{@code
@@ -96,7 +96,7 @@ public interface StreamBaseCommands {
      *     Map</code> is composed of a stream's key and the id of the entry after which the stream
      *     will be read.
      * @param options Options detailing how to read the stream {@link StreamReadOptions}.
-     * @return A <code>{@literal Map<String, Map<String[][]>>}</code> with stream
+     * @return A <code>{@literal Map<String, Map<String, String[][]>>}</code> with stream
      *     keys, to <code>Map</code> of stream-ids, to an array of pairings with format <code>[[field, entry], [field, entry], ...]<code>.
      * @example
      *     <pre>{@code
@@ -420,7 +420,7 @@ public interface StreamBaseCommands {
      *     will be read. Use the special id of <code>{@literal ">"}</code> to receive only new messages.
      * @param group The consumer group name.
      * @param consumer The newly created consumer.
-     * @return A <code>{@literal Map<String, Map<String[][]>>}</code> with stream
+     * @return A <code>{@literal Map<String, Map<String, String[][]>>}</code> with stream
      *      keys, to <code>Map</code> of stream-ids, to an array of pairings with format <code>[[field, entry], [field, entry], ...]<code>.
      *      Returns null if the consumer group does not exist. Returns a Map with a value of null if the stream is empty.
      * @example
@@ -429,7 +429,7 @@ public interface StreamBaseCommands {
      * Map<String, String> xreadKeys = Map.of("myfield", "mydata");
      * String streamId = client.xadd("mystream", Map.of("myfield", "mydata"), StreamAddOptions.builder().id("1-0").build()).get();
      * assert client.xgroupCreate("mystream", "mygroup").get().equals("OK"); // create the consumer group "mygroup"
-     * Map<String, Map<String, String[][]>> streamReadResponse = client.xreadgroup("mygroup", "myconsumer", Map.of("mystream", ">")).get();
+     * Map<String, Map<String, String[][]>> streamReadResponse = client.xreadgroup(Map.of("mystream", ">"), "mygroup", "myconsumer").get();
      * // Returns "mystream": "1-0": {{"myfield", "mydata"}}
      * for (var keyEntry : streamReadResponse.entrySet()) {
      *     System.out.printf("Key: %s", keyEntry.getKey());
@@ -440,7 +440,7 @@ public interface StreamBaseCommands {
      *     }
      * }
      * assert client.xdel("mystream", "1-0").get() == 1L;
-     * client.xreadgroup("mygroup", "myconsumer", Map.of("mystream", "0")).get();
+     * client.xreadgroup(Map.of("mystream", "0"), "mygroup", "myconsumer").get();
      * // Returns "mystream": "1-0": null
      * assert streamReadResponse.get("mystream").get("1-0") == null;
      * </pre>
@@ -460,7 +460,7 @@ public interface StreamBaseCommands {
      * @param group The consumer group name.
      * @param consumer The newly created consumer.
      * @param options Options detailing how to read the stream {@link StreamReadGroupOptions}.
-     * @return A <code>{@literal Map<String, Map<String[][]>>}</code> with stream
+     * @return A <code>{@literal Map<String, Map<String, String[][]>>}</code> with stream
      *      keys, to <code>Map</code> of stream-ids, to an array of pairings with format <code>[[field, entry], [field, entry], ...]<code>.
      *      Returns null if the consumer group does not exist. Returns a Map with a value of null if the stream is empty.
      * @example
@@ -469,8 +469,8 @@ public interface StreamBaseCommands {
      * Map<String, String> xreadKeys = Map.of("myfield", "mydata");
      * String streamId = client.xadd("mystream", Map.of("myfield", "mydata"), StreamAddOptions.builder().id("1-0").build()).get();
      * assert client.xgroupCreate("mystream", "mygroup").get().equals("OK"); // create the consumer group "mygroup"
-     * StreamReadGroupOptions op = StreamReadGroupOptions.builder().count(1).build(); // retrieves only a single message at a time
-     * Map<String, Map<String, String[][]>> streamReadResponse = client.xreadgroup("mygroup", "myconsumer", Map.of("mystream", ">"), op).get();
+     * StreamReadGroupOptions options = StreamReadGroupOptions.builder().count(1).build(); // retrieves only a single message at a time
+     * Map<String, Map<String, String[][]>> streamReadResponse = client.xreadgroup(Map.of("mystream", ">"), "mygroup", "myconsumer", options).get();
      * // Returns "mystream": "1-0": {{"myfield", "mydata"}}
      * for (var keyEntry : streamReadResponse.entrySet()) {
      *     System.out.printf("Key: %s", keyEntry.getKey());
@@ -481,7 +481,9 @@ public interface StreamBaseCommands {
      *     }
      * }
      * assert client.xdel("mystream", "1-0").get() == 1L;
-     * streamReadResponse = client.xreadgroup("mygroup", "myconsumer", Map.of("mystream", "0"), op).get();
+     * // read the first 10 items and acknowledge (ACK) them:
+     * StreamReadGroupOptions options = StreamReadGroupOptions.builder().count(10L).noack().build();
+     * streamReadResponse = client.xreadgroup(Map.of("mystream", "0"), "mygroup", "myconsumer", options).get();
      * // Returns "mystream": "1-0": null
      * assert streamReadResponse.get("mystream").get("1-0") == null;
      * </pre>

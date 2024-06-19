@@ -1441,7 +1441,7 @@ public abstract class BaseClient
             @NonNull Map<String, String> keysAndIds,
             @NonNull String group,
             @NonNull String consumer,
-            StreamReadGroupOptions options) {
+            @NonNull StreamReadGroupOptions options) {
         String[] arguments = options.toArgs(group, consumer, keysAndIds);
         return commandManager.submitNewCommand(XReadGroup, arguments, this::handleXReadResponse);
     }
