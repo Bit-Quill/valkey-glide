@@ -4638,7 +4638,6 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Gets the union of all the given sets.
      *
-     * @apiNote When in cluster mode, all <code>keys</code> must map to the same hash slot.
      * @see <a href="https://valkey.io/commands/sunion">valkey.io</a> for details.
      * @param keys The keys of the sets.
      * @return Command Response - A set of members which are present in at least one of the given
