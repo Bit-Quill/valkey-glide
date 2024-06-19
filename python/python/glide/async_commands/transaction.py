@@ -3218,14 +3218,14 @@ class BaseTransaction:
                 at `key`, which could be any of the following:
                     - `BitFieldGet`
                     - `BitFieldSet`
-                    - `BitFieldIncrby`
+                    - `BitFieldIncrBy`
                     - `BitFieldOverflow`
 
         Command response:
             List[Optional[int]]: An array of results from the executed subcommands:
                 - `BitFieldGet` returns the value in `Offset` or `OffsetMultiplier`.
                 - `BitFieldSet` returns the old value in `Offset` or `OffsetMultiplier`.
-                - `BitFieldIncrby` returns the new value in `Offset` or `OffsetMultiplier`.
+                - `BitFieldIncrBy` returns the new value in `Offset` or `OffsetMultiplier`.
                 - `BitFieldOverflow` determines the behavior of the "SET" and "INCRBY" subcommands when an overflow or
                   underflow occurs. "OVERFLOW" does not return a value and does not contribute a value to the list
                   response.
