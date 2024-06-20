@@ -67,6 +67,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.GeoAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoDist;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoHash;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoPos;
+import static redis_request.RedisRequestOuterClass.RequestType.GeoSearch;
 import static redis_request.RedisRequestOuterClass.RequestType.Get;
 import static redis_request.RedisRequestOuterClass.RequestType.GetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.GetDel;
@@ -238,6 +239,10 @@ import glide.api.models.commands.bitmap.BitFieldOptions.OffsetMultiplier;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoAddOptions;
+import glide.api.models.commands.geospatial.GeoSearchOptions;
+import glide.api.models.commands.geospatial.GeoSearchOrigin;
+import glide.api.models.commands.geospatial.GeoSearchResultOptions;
+import glide.api.models.commands.geospatial.GeoSearchShape;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
@@ -5125,6 +5130,185 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                         String.valueOf(minMatchLen),
                         WITHMATCHLEN_COMMAND_STRING);
         protobufTransaction.addCommands(buildCommand(LCS, args));
+        return getThis();
+    }
+
+    /**
+     * Returns the members of a sorted set populated with geospatial information using {@link
+     * #geoadd(String, Map)}, which are within the borders of the area specified by a given shape.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link GeoSearchOrigin.MemberOrigin} to use the position of the given existing member
+     *           in the sorted set.
+     *       <li>{@link GeoSearchOrigin.CoordOrigin} to use the given longitude and latitude
+     *           coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @return Command Response - An <code>array</code> of matched member names.
+     */
+    public T geosearch(
+            @NonNull String key,
+            @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
+            @NonNull GeoSearchShape searchBy) {
+        ArgsArray args =
+                buildArgs(concatenateArrays(new String[] {key}, searchFrom.toArgs(), searchBy.toArgs()));
+        protobufTransaction.addCommands(buildCommand(GeoSearch, args));
+        return getThis();
+    }
+
+    /**
+     * Returns the members of a sorted set populated with geospatial information using {@link
+     * #geoadd(String, Map)}, which are within the borders of the area specified by a given shape.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link GeoSearchOrigin.MemberOrigin} to use the position of the given existing member
+     *           in the sorted set.
+     *       <li>{@link GeoSearchOrigin.CoordOrigin} to use the given longitude and latitude
+     *           coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @param resultOptions Optional inputs for sorting/limiting the results. See - {@link
+     *     GeoSearchResultOptions}
+     * @return Command Response - An <code>array</code> of matched member names.
+     */
+    public T geosearch(
+            @NonNull String key,
+            @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
+            @NonNull GeoSearchShape searchBy,
+            @NonNull GeoSearchResultOptions resultOptions) {
+        ArgsArray args =
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {key},
+                                searchFrom.toArgs(),
+                                searchBy.toArgs(),
+                                resultOptions.toArgs()));
+        protobufTransaction.addCommands(buildCommand(GeoSearch, args));
+        return getThis();
+    }
+
+    /**
+     * Returns the members of a sorted set populated with geospatial information using {@link
+     * #geoadd(String, Map)}, which are within the borders of the area specified by a given shape.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link GeoSearchOrigin.MemberOrigin} to use the position of the given existing member
+     *           in the sorted set.
+     *       <li>{@link GeoSearchOrigin.CoordOrigin} to use the given longitude and latitude
+     *           coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @param options The optional inputs to request additional information.
+     * @return Command Response - An array of arrays where each sub-array represents a single item in
+     *     the following order:
+     *     <ul>
+     *       <li>The member (location) name.
+     *       <li>The distance from the center as a <code>Double</code>, in the same unit specified for
+     *           <code>searchBy</code>.
+     *       <li>The geohash of the location as a <code>Long</code>.
+     *       <li>The coordinates as a two item <code>array</code> of <code>Double</code>.
+     *     </ul>
+     */
+    public T geosearch(
+            @NonNull String key,
+            @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
+            @NonNull GeoSearchShape searchBy,
+            @NonNull GeoSearchOptions options) {
+        ArgsArray args =
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {key}, searchFrom.toArgs(), searchBy.toArgs(), options.toArgs()));
+        protobufTransaction.addCommands(buildCommand(GeoSearch, args));
+        return getThis();
+    }
+
+    /**
+     * Returns the members of a sorted set populated with geospatial information using {@link
+     * #geoadd(String, Map)}, which are within the borders of the area specified by a given shape.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link GeoSearchOrigin.MemberOrigin} to use the position of the given existing member
+     *           in the sorted set.
+     *       <li>{@link GeoSearchOrigin.CoordOrigin} to use the given longitude and latitude
+     *           coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @param options The optional inputs to request additional information.
+     * @param resultOptions Optional inputs for sorting/limiting the results. See - {@link
+     *     GeoSearchResultOptions}
+     * @return Command Response - An array of arrays where each sub-array represents a single item in
+     *     the following order:
+     *     <ul>
+     *       <li>The member (location) name.
+     *       <li>The distance from the center as a <code>Double</code>, in the same unit specified for
+     *           <code>searchBy</code>.
+     *       <li>The geohash of the location as a <code>Long</code>.
+     *       <li>The coordinates as a two item <code>array</code> of <code>Double</code>.
+     *     </ul>
+     */
+    public T geosearch(
+            @NonNull String key,
+            @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
+            @NonNull GeoSearchShape searchBy,
+            @NonNull GeoSearchOptions options,
+            @NonNull GeoSearchResultOptions resultOptions) {
+        ArgsArray args =
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {key},
+                                searchFrom.toArgs(),
+                                searchBy.toArgs(),
+                                options.toArgs(),
+                                resultOptions.toArgs()));
+        protobufTransaction.addCommands(buildCommand(GeoSearch, args));
         return getThis();
     }
 

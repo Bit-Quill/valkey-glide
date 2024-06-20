@@ -3,6 +3,12 @@ package glide.api.commands;
 
 import glide.api.models.GlideString;
 import glide.api.models.commands.geospatial.GeoAddOptions;
+import glide.api.models.commands.geospatial.GeoSearchOptions;
+import glide.api.models.commands.geospatial.GeoSearchOrigin.CoordOrigin;
+import glide.api.models.commands.geospatial.GeoSearchOrigin.MemberOrigin;
+import glide.api.models.commands.geospatial.GeoSearchOrigin.SearchOrigin;
+import glide.api.models.commands.geospatial.GeoSearchResultOptions;
+import glide.api.models.commands.geospatial.GeoSearchShape;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import java.util.Map;
@@ -196,4 +202,238 @@ public interface GeospatialIndicesBaseCommands {
      * }</pre>
      */
     CompletableFuture<String[]> geohash(String key, String[] members);
+
+    /**
+     * Returns the members of a sorted set populated with geospatial information using {@link
+     * #geoadd(String, Map)}, which are within the borders of the area specified by a given shape.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link MemberOrigin} to use the position of the given existing member in the sorted
+     *           set.
+     *       <li>{@link CoordOrigin} to use the given longitude and latitude coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @return An <code>array</code> of matched member names.
+     * @example
+     *     <pre>{@code
+     * Object[] expected = new String[] {"Catania", "Palermo"};
+     * Object[] result =
+     *                client
+     *                        .geosearch(
+     *                                "a1",
+     *                                new GeoSearchOrigin("Palermo"),
+     *                                new GeoSearchShape(200, GeoUnit.KILOMETERS))
+     *                        .get();
+     * assert expected.equals(result);
+     * }</pre>
+     */
+    CompletableFuture<String[]> geosearch(
+            String key, SearchOrigin searchFrom, GeoSearchShape searchBy);
+
+    /**
+     * Returns the members of a sorted set populated with geospatial information using {@link
+     * #geoadd(String, Map)}, which are within the borders of the area specified by a given shape.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link MemberOrigin} to use the position of the given existing member in the sorted
+     *           set.
+     *       <li>{@link CoordOrigin} to use the given longitude and latitude coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @param resultOptions Optional inputs for sorting/limiting the results. See - {@link
+     *     GeoSearchResultOptions}
+     * @return An <code>array</code> of matched member names.
+     * @example
+     *     <pre>{@code
+     * Object[] expected = new String[] {"Catania", "Palermo"};
+     * Object[] result =
+     *                client
+     *                        .geosearch(
+     *                                "a1",
+     *                                new GeoSearchOrigin("Palermo"),
+     *                                new GeoSearchShape(200, GeoUnit.KILOMETERS),
+     *                                SortOrder.ASC)
+     *                        .get();
+     * assert expected.equals(result);
+     * }</pre>
+     */
+    CompletableFuture<String[]> geosearch(
+            String key,
+            SearchOrigin searchFrom,
+            GeoSearchShape searchBy,
+            GeoSearchResultOptions resultOptions);
+
+    /**
+     * Returns the members of a sorted set populated with geospatial information using {@link
+     * #geoadd(String, Map)}, which are within the borders of the area specified by a given shape.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link MemberOrigin} to use the position of the given existing member in the sorted
+     *           set.
+     *       <li>{@link CoordOrigin} to use the given longitude and latitude coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @param options The optional inputs to request additional information.
+     * @return An array of arrays where each sub-array represents a single item in the following
+     *     order:
+     *     <ul>
+     *       <li>The member (location) name.
+     *       <li>The distance from the center as a <code>Double</code>, in the same unit specified for
+     *           <code>searchBy</code>.
+     *       <li>The geohash of the location as a <code>Long</code>.
+     *       <li>The coordinates as a two item <code>array</code> of <code>Double</code>.
+     *     </ul>
+     *
+     * @example
+     *     <pre>{@code
+     * Object[] expected =
+     *            new Object[] {
+     *                new Object[] {
+     *                     // name
+     *                    "Palermo",
+     *                    new Object[] {
+     *                        // distance, hash and coordinates
+     *                        0.0, 3479099956230698L, new Object[] {13.361389338970184, 38.1155563954963}
+     *                    }
+     *                },
+     *                new Object[] {
+     *                    "Catania",
+     *                    new Object[] {
+     *                        166.2742, 3479447370796909L, new Object[] {15.087267458438873, 37.50266842333162}
+     *                    }
+     *                }
+     *            };
+     * Object[] result =
+     *                client
+     *                        .geosearch(
+     *                                "a1",
+     *                                new GeoSearchOrigin("Palermo"),
+     *                                new GeoSearchShape(200, GeoUnit.KILOMETERS),
+     *                                new GeoSearchOptions.GeoSearchOptionsBuilder()
+     *                                             .withcoord()
+     *                                             .withdist()
+     *                                             .withhash()
+     *                                             .count(3)
+     *                                             .build(),
+     *                                SortOrder.ASC)
+     *                        .get();
+     * // The result contains the data in the same format as expected.
+     * }</pre>
+     */
+    CompletableFuture<Object[]> geosearch(
+            String key, SearchOrigin searchFrom, GeoSearchShape searchBy, GeoSearchOptions options);
+
+    /**
+     * Returns the members of a sorted set populated with geospatial information using {@link
+     * #geoadd(String, Map)}, which are within the borders of the area specified by a given shape.
+     *
+     * @since Redis 6.2.0 and above.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param key The key of the sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link MemberOrigin} to use the position of the given existing member in the sorted
+     *           set.
+     *       <li>{@link CoordOrigin} to use the given longitude and latitude coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @param options The optional inputs to request additional information.
+     * @param resultOptions Optional inputs for sorting/limiting the results. See - {@link
+     *     GeoSearchResultOptions}
+     * @return An array of arrays where each sub-array represents a single item in the following
+     *     order:
+     *     <ul>
+     *       <li>The member (location) name.
+     *       <li>The distance from the center as a <code>Double</code>, in the same unit specified for
+     *           <code>searchBy</code>.
+     *       <li>The geohash of the location as a <code>Long</code>.
+     *       <li>The coordinates as a two item <code>array</code> of <code>Double</code>.
+     *     </ul>
+     *
+     * @example
+     *     <pre>{@code
+     * Object[] expected =
+     *            new Object[] {
+     *                new Object[] {
+     *                     // name
+     *                    "Palermo",
+     *                    new Object[] {
+     *                        // distance, hash and coordinates
+     *                        0.0, 3479099956230698L, new Object[] {13.361389338970184, 38.1155563954963}
+     *                    }
+     *                },
+     *                new Object[] {
+     *                    "Catania",
+     *                    new Object[] {
+     *                        166.2742, 3479447370796909L, new Object[] {15.087267458438873, 37.50266842333162}
+     *                    }
+     *                }
+     *            };
+     * Object[] result =
+     *                client
+     *                        .geosearch(
+     *                                "a1",
+     *                                new GeoSearchOrigin("Palermo"),
+     *                                new GeoSearchShape(200, GeoUnit.KILOMETERS),
+     *                                new GeoSearchOptions.GeoSearchOptionsBuilder()
+     *                                             .withcoord()
+     *                                             .withdist()
+     *                                             .withhash()
+     *                                             .count(3)
+     *                                             .build(),
+     *                                SortOrder.ASC)
+     *                        .get();
+     * // The result contains the data in the same format as expected.
+     * }</pre>
+     */
+    CompletableFuture<Object[]> geosearch(
+            String key,
+            SearchOrigin searchFrom,
+            GeoSearchShape searchBy,
+            GeoSearchOptions options,
+            GeoSearchResultOptions resultOptions);
 }

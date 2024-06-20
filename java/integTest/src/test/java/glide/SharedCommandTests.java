@@ -49,6 +49,7 @@ import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.RestoreOptions;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
+import glide.api.models.commands.SortOrder;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
@@ -67,6 +68,10 @@ import glide.api.models.commands.bitmap.BitFieldOptions.UnsignedEncoding;
 import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoAddOptions;
+import glide.api.models.commands.geospatial.GeoSearchOptions;
+import glide.api.models.commands.geospatial.GeoSearchOrigin;
+import glide.api.models.commands.geospatial.GeoSearchResultOptions;
+import glide.api.models.commands.geospatial.GeoSearchShape;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
@@ -6706,5 +6711,275 @@ public class SharedCommandTests {
                         ExecutionException.class,
                         () -> client.lcsIdxWithMatchLen(nonStringKey, key1, 10L).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void geosearch(BaseClient client) {
+        // setup
+        String key1 = "{key}-1" + UUID.randomUUID();
+        String key2 = "{key}-2" + UUID.randomUUID();
+        String[] members = {"Catania", "Palermo", "edge2", "edge1"};
+        GeospatialData[] members_coordinates = {
+            new GeospatialData(15.087269, 37.502669),
+            new GeospatialData(13.361389, 38.115556),
+            new GeospatialData(17.241510, 38.788135),
+            new GeospatialData(12.758489, 38.788135)
+        };
+        Object[] expectedResult = {
+            new Object[] {
+                "Catania",
+                new Object[] {
+                    56.4413, 3479447370796909L, new Object[] {15.087267458438873, 37.50266842333162}
+                }
+            },
+            new Object[] {
+                "Palermo",
+                new Object[] {
+                    190.4424, 3479099956230698L, new Object[] {13.361389338970184, 38.1155563954963}
+                }
+            },
+            new Object[] {
+                "edge2",
+                new Object[] {
+                    279.7403, 3481342659049484L, new Object[] {17.241510450839996, 38.78813451624225}
+                }
+            },
+            new Object[] {
+                "edge1",
+                new Object[] {
+                    279.7405, 3479273021651468L, new Object[] {12.75848776102066, 38.78813451624225}
+                }
+            },
+        };
+
+        // geoadd
+        assertEquals(
+                4,
+                client
+                        .geoadd(
+                                key1,
+                                Map.of(
+                                        members[0],
+                                        members_coordinates[0],
+                                        members[1],
+                                        members_coordinates[1],
+                                        members[2],
+                                        members_coordinates[2],
+                                        members[3],
+                                        members_coordinates[3]))
+                        .get());
+
+        // Search by box, unit: km, from a geospatial data point
+        assertArrayEquals(
+                members,
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                                new GeoSearchShape(400, 400, GeoUnit.KILOMETERS),
+                                new GeoSearchResultOptions(SortOrder.ASC))
+                        .get());
+
+        assertDeepEquals(
+                expectedResult,
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                                new GeoSearchShape(400, 400, GeoUnit.KILOMETERS),
+                                new GeoSearchOptions.GeoSearchOptionsBuilder()
+                                        .withcoord()
+                                        .withdist()
+                                        .withhash()
+                                        .build(),
+                                new GeoSearchResultOptions(SortOrder.ASC))
+                        .get());
+
+        assertDeepEquals(
+                new Object[] {new Object[] {"Catania", new Object[] {56.4413, 3479447370796909L}}},
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                                new GeoSearchShape(400, 400, GeoUnit.KILOMETERS),
+                                new GeoSearchOptions.GeoSearchOptionsBuilder().withdist().withhash().build(),
+                                new GeoSearchResultOptions(SortOrder.ASC, 1))
+                        .get());
+
+        // test search by box, unit: meters, from member, with distance
+        long meters = 400 * 1000;
+        assertDeepEquals(
+                new Object[] {
+                    new Object[] {"edge2", new Object[] {236529.1799}},
+                    new Object[] {"Palermo", new Object[] {166274.1516}},
+                    new Object[] {"Catania", new Object[] {0.0}},
+                },
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.MemberOrigin("Catania"),
+                                new GeoSearchShape(meters, meters, GeoUnit.METERS),
+                                new GeoSearchOptions.GeoSearchOptionsBuilder().withdist().build(),
+                                new GeoSearchResultOptions(SortOrder.DESC))
+                        .get());
+
+        // test search by box, unit: feet, from member, with limited count 2, with hash
+        double feet = 400 * 3280.8399;
+        assertDeepEquals(
+                new Object[] {
+                    new Object[] {"Palermo", new Object[] {3479099956230698L}},
+                    new Object[] {"edge1", new Object[] {3479273021651468L}},
+                },
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.MemberOrigin("Palermo"),
+                                new GeoSearchShape(feet, feet, GeoUnit.FEET),
+                                new GeoSearchOptions.GeoSearchOptionsBuilder().withhash().build(),
+                                new GeoSearchResultOptions(SortOrder.ASC, 2))
+                        .get());
+
+        // test search by box, unit: miles, from geospatial position, with limited ANY count to 1
+        ArrayUtils.contains(
+                members,
+                client.geosearch(
+                                key1,
+                                new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                                new GeoSearchShape(250, 250, GeoUnit.MILES),
+                                new GeoSearchResultOptions(1, true))
+                        .get()[0]);
+
+        // test search by radius, units: feet, from member
+        double feet_radius = 200 * 3280.8399;
+        assertArrayEquals(
+                new String[] {"Catania", "Palermo"},
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.MemberOrigin("Catania"),
+                                new GeoSearchShape(feet_radius, GeoUnit.FEET),
+                                new GeoSearchResultOptions(SortOrder.ASC))
+                        .get());
+
+        // Test search by radius, unit: meters, from member
+        double meters_radius = 200 * 1000;
+        assertArrayEquals(
+                new String[] {"Palermo", "Catania"},
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.MemberOrigin("Catania"),
+                                new GeoSearchShape(meters_radius, GeoUnit.METERS),
+                                new GeoSearchResultOptions(SortOrder.DESC))
+                        .get());
+
+        // Test search by radius, unit: miles, from geospatial data
+        assertArrayEquals(
+                new String[] {"edge1", "edge2", "Palermo", "Catania"},
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                                new GeoSearchShape(175, GeoUnit.MILES),
+                                new GeoSearchResultOptions(SortOrder.DESC))
+                        .get());
+
+        // Test search by radius, unit: kilometers, from a geospatial data, with limited count to 2
+        assertDeepEquals(
+                new Object[] {
+                    new Object[] {
+                        "Catania",
+                        new Object[] {
+                            56.4413, 3479447370796909L, new Object[] {15.087267458438873, 37.50266842333162}
+                        }
+                    },
+                    new Object[] {
+                        "Palermo",
+                        new Object[] {
+                            190.4424, 3479099956230698L, new Object[] {13.361389338970184, 38.1155563954963}
+                        }
+                    }
+                },
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                                new GeoSearchShape(200, GeoUnit.KILOMETERS),
+                                new GeoSearchOptions.GeoSearchOptionsBuilder()
+                                        .withdist()
+                                        .withhash()
+                                        .withcoord()
+                                        .build(),
+                                new GeoSearchResultOptions(SortOrder.ASC, 2))
+                        .get());
+
+        // Test search by radius, unit: kilometers, from a geospatial data, with limited ANY count to 1
+        assertTrue(
+                ArrayUtils.contains(
+                        members,
+                        ((Object[])
+                                        client.geosearch(
+                                                        key1,
+                                                        new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                                                        new GeoSearchShape(200, GeoUnit.KILOMETERS),
+                                                        new GeoSearchOptions.GeoSearchOptionsBuilder()
+                                                                .withdist()
+                                                                .withhash()
+                                                                .withcoord()
+                                                                .build(),
+                                                        new GeoSearchResultOptions(SortOrder.ASC, 1, true))
+                                                .get()[0])
+                                [0]));
+
+        // no members within the area
+        assertArrayEquals(
+                new String[] {},
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                                new GeoSearchShape(50, 50, GeoUnit.METERS),
+                                new GeoSearchResultOptions(SortOrder.ASC))
+                        .get());
+
+        // no members within the area
+        assertArrayEquals(
+                new String[] {},
+                client
+                        .geosearch(
+                                key1,
+                                new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                                new GeoSearchShape(5, GeoUnit.METERS),
+                                new GeoSearchResultOptions(SortOrder.ASC))
+                        .get());
+
+        // member does not exist
+        ExecutionException requestException1 =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .geosearch(
+                                                key1,
+                                                new GeoSearchOrigin.MemberOrigin("non-existing-member"),
+                                                new GeoSearchShape(100, GeoUnit.METERS))
+                                        .get());
+        assertTrue(requestException1.getCause() instanceof RequestException);
+
+        // key exists but holds a non-ZSET value
+        assertEquals(OK, client.set(key2, "nonZSETvalue").get());
+        ExecutionException requestException2 =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .geosearch(
+                                                key2,
+                                                new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                                                new GeoSearchShape(100, GeoUnit.METERS))
+                                        .get());
+        assertTrue(requestException2.getCause() instanceof RequestException);
     }
 }
