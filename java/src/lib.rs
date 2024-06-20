@@ -4,10 +4,9 @@
 use glide_core::start_socket_listener;
 
 use jni::objects::{JClass, JObject, JObjectArray, JString, JThrowable};
-use jni::sys::{jint, jlong};
+use jni::sys::jlong;
 use jni::JNIEnv;
 use log::error;
-use logger_core::{init, Level};
 use redis::Value;
 use std::sync::mpsc;
 
@@ -97,9 +96,11 @@ fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<
         } => todo!(),
         Value::Push { kind, data } => {
             // TODO rework in a follow up PR - return values
-            dbg!(format!("received push, type: {kind:?} with data:\n{data:?}"));
+            dbg!(format!(
+                "received push, type: {kind:?} with data:\n{data:?}"
+            ));
             JObject::null()
-        },
+        }
     }
 }
 
