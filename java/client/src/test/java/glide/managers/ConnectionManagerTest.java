@@ -1,10 +1,10 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.managers;
 
+import static glide.api.models.configuration.BaseSubscriptionConfiguration.PubSubStandaloneChannelMode.EXACT;
+import static glide.api.models.configuration.BaseSubscriptionConfiguration.PubSubStandaloneChannelMode.PATTERN;
 import static glide.api.models.configuration.NodeAddress.DEFAULT_HOST;
 import static glide.api.models.configuration.NodeAddress.DEFAULT_PORT;
-import static glide.api.models.configuration.SubscriptionConfiguration.PubSubStandaloneChannelMode.EXACT;
-import static glide.api.models.configuration.SubscriptionConfiguration.PubSubStandaloneChannelMode.PATTERN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
