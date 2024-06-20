@@ -3536,7 +3536,7 @@ public class SharedCommandTests {
         assertNull(result_2.get(key).get(streamid_1));
         assertArrayEquals(new String[][] {{"field2", "value2"}}, result_2.get(key).get(streamid_2));
 
-        String streamid_3 = client.xadd(key, Map.of("field3", "field3")).get();
+        String streamid_3 = client.xadd(key, Map.of("field3", "value3")).get();
         assertNotNull(streamid_3);
 
         // xack that streamid_1, and streamid_2 was received
@@ -3579,18 +3579,14 @@ public class SharedCommandTests {
     public void xreadgroup_return_failures(BaseClient client) {
         String key = "{key}:1" + UUID.randomUUID();
         String nonStreamKey = "{key}:3" + UUID.randomUUID();
-        String field1 = "f1_";
-
-        // setup first entries in streams key1 and key2
-        Map<String, String> timestamp_1_1_map = new LinkedHashMap<>();
-        timestamp_1_1_map.put(field1, field1 + "1");
-        String timestamp_1_1 =
-                client.xadd(key, timestamp_1_1_map, StreamAddOptions.builder().id("1-1").build()).get();
-        assertNotNull(timestamp_1_1);
-
         String groupName = "group" + UUID.randomUUID();
         String zeroStreamId = "0";
         String consumerName = "consumer" + UUID.randomUUID();
+
+        // setup first entries in streams key1 and key2
+        String timestamp_1_1 =
+                client.xadd(key, Map.of("f1", "v1"), StreamAddOptions.builder().id("1-1").build()).get();
+        assertNotNull(timestamp_1_1);
 
         // create group and consumer for the group
         assertEquals(
@@ -3695,9 +3691,28 @@ public class SharedCommandTests {
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
     public void xack_return_failures(BaseClient client) {
+        String key = "{key}:1" + UUID.randomUUID();
         String nonStreamKey = "{key}:3" + UUID.randomUUID();
         String groupName = "group" + UUID.randomUUID();
         String zeroStreamId = "0";
+        String consumerName = "consumer" + UUID.randomUUID();
+
+        // setup first entries in streams key1 and key2
+        String timestamp_1_1 =
+            client.xadd(key, Map.of("f1", "v1"), StreamAddOptions.builder().id("1-1").build()).get();
+        assertNotNull(timestamp_1_1);
+
+        // create group and consumer for the group
+        assertEquals(
+            OK,
+            client
+                .xgroupCreate(
+                    key, groupName, zeroStreamId, StreamGroupOptions.builder().makeStream().build())
+                .get());
+        assertTrue(client.xgroupCreateConsumer(key, groupName, consumerName).get());
+
+        // Empty entity id list
+        assertNull(client.xack(key, groupName, new String[0]).get());
 
         // Key exists, but it is not a stream
         assertEquals(OK, client.set(nonStreamKey, "bar").get());

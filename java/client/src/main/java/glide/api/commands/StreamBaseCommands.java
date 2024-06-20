@@ -505,9 +505,10 @@ public interface StreamBaseCommands {
      * @example
      *     <pre>{@code
      * String entryId = client.xadd("mystream", Map.of("myfield", "mydata")).get();
-     * // read and process messages from streamId
+     * // read messages from streamId
+     * var readResult = client.xreadgroup(Map.of("mystream", entryId), "mygroup", "my0consumer").get();
+     * // acknowledge messages on stream
      * assert 1L == client.xack("mystream", "mygroup", new String[] {entryId}).get();
-     * // message purged from stream
      * </pre>
      */
     CompletableFuture<Long> xack(String key, String group, String[] ids);
