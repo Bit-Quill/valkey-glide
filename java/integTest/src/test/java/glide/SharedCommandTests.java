@@ -3699,24 +3699,27 @@ public class SharedCommandTests {
 
         // setup first entries in streams key1 and key2
         String timestamp_1_1 =
-            client.xadd(key, Map.of("f1", "v1"), StreamAddOptions.builder().id("1-1").build()).get();
+                client.xadd(key, Map.of("f1", "v1"), StreamAddOptions.builder().id("1-1").build()).get();
         assertNotNull(timestamp_1_1);
 
         // create group and consumer for the group
         assertEquals(
-            OK,
-            client
-                .xgroupCreate(
-                    key, groupName, zeroStreamId, StreamGroupOptions.builder().makeStream().build())
-                .get());
+                OK,
+                client
+                        .xgroupCreate(
+                                key, groupName, zeroStreamId, StreamGroupOptions.builder().makeStream().build())
+                        .get());
         assertTrue(client.xgroupCreateConsumer(key, groupName, consumerName).get());
 
-        // Empty entity id list
-        assertNull(client.xack(key, groupName, new String[0]).get());
+        // Empty entity id list throws a RequestException
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class, () -> client.xack(key, groupName, new String[0]).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
 
         // Key exists, but it is not a stream
         assertEquals(OK, client.set(nonStreamKey, "bar").get());
-        ExecutionException executionException =
+        executionException =
                 assertThrows(
                         ExecutionException.class,
                         () -> client.xack(nonStreamKey, groupName, new String[] {zeroStreamId}).get());
