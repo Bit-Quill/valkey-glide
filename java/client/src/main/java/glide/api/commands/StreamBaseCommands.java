@@ -504,10 +504,10 @@ public interface StreamBaseCommands {
      * @return The number of messages that were successfully acknowledged.
      * @example
      *     <pre>{@code
-     * String streamId = client.xadd("mystream", Map.of("myfield", "mydata")).get();
+     * String entryId = client.xadd("mystream", Map.of("myfield", "mydata")).get();
      * // read and process messages from streamId
-     * assert 1L == client.xack("mystream", "mygroup", new String[] {streamId}).get();
-     * // messages purged from stream
+     * assert 1L == client.xack("mystream", "mygroup", new String[] {entryId}).get();
+     * // message purged from stream
      * </pre>
      */
     CompletableFuture<Long> xack(String key, String group, String[] ids);
