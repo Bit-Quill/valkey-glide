@@ -48,6 +48,7 @@ from glide.async_commands.sorted_set import (
 from glide.constants import TOK, TResult
 from glide.protobuf.redis_request_pb2 import RequestType
 from glide.routes import Route
+from glide.async_commands.stream import StreamAddOptions, StreamTrimOptions, StreamRangeBound
 
 from ..glide import Script
 
@@ -167,134 +168,6 @@ class UpdateOptions(Enum):
 
     LESS_THAN = "LT"
     GREATER_THAN = "GT"
-
-
-class StreamTrimOptions(ABC):
-    """
-    Abstract base class for stream trim options.
-    """
-
-    @abstractmethod
-    def __init__(
-        self,
-        exact: bool,
-        threshold: Union[str, int],
-        method: str,
-        limit: Optional[int] = None,
-    ):
-        """
-        Initialize stream trim options.
-
-        Args:
-            exact (bool): If `true`, the stream will be trimmed exactly.
-                Otherwise the stream will be trimmed in a near-exact manner, which is more efficient.
-            threshold (Union[str, int]): Threshold for trimming.
-            method (str): Method for trimming (e.g., MINID, MAXLEN).
-            limit (Optional[int]): Max number of entries to be trimmed. Defaults to None.
-                Note: If `exact` is set to `True`, `limit` cannot be specified.
-        """
-        if exact and limit:
-            raise ValueError(
-                "If `exact` is set to `True`, `limit` cannot be specified."
-            )
-        self.exact = exact
-        self.threshold = threshold
-        self.method = method
-        self.limit = limit
-
-    def to_args(self) -> List[str]:
-        """
-        Convert options to arguments for Redis command.
-
-        Returns:
-            List[str]: List of arguments for Redis command.
-        """
-        option_args = [
-            self.method,
-            "=" if self.exact else "~",
-            str(self.threshold),
-        ]
-        if self.limit is not None:
-            option_args.extend(["LIMIT", str(self.limit)])
-        return option_args
-
-
-class TrimByMinId(StreamTrimOptions):
-    """
-    Stream trim option to trim by minimum ID.
-    """
-
-    def __init__(self, exact: bool, threshold: str, limit: Optional[int] = None):
-        """
-        Initialize trim option by minimum ID.
-
-        Args:
-            exact (bool): If `true`, the stream will be trimmed exactly.
-                Otherwise the stream will be trimmed in a near-exact manner, which is more efficient.
-            threshold (str): Threshold for trimming by minimum ID.
-            limit (Optional[int]): Max number of entries to be trimmed. Defaults to None.
-                Note: If `exact` is set to `True`, `limit` cannot be specified.
-        """
-        super().__init__(exact, threshold, "MINID", limit)
-
-
-class TrimByMaxLen(StreamTrimOptions):
-    """
-    Stream trim option to trim by maximum length.
-    """
-
-    def __init__(self, exact: bool, threshold: int, limit: Optional[int] = None):
-        """
-        Initialize trim option by maximum length.
-
-        Args:
-            exact (bool): If `true`, the stream will be trimmed exactly.
-                Otherwise the stream will be trimmed in a near-exact manner, which is more efficient.
-            threshold (int): Threshold for trimming by maximum length.
-            limit (Optional[int]): Max number of entries to be trimmed. Defaults to None.
-                Note: If `exact` is set to `True`, `limit` cannot be specified.
-        """
-        super().__init__(exact, threshold, "MAXLEN", limit)
-
-
-class StreamAddOptions:
-    """
-    Options for adding entries to a stream.
-    """
-
-    def __init__(
-        self,
-        id: Optional[str] = None,
-        make_stream: bool = True,
-        trim: Optional[StreamTrimOptions] = None,
-    ):
-        """
-        Initialize stream add options.
-
-        Args:
-            id (Optional[str]): ID for the new entry. If set, the new entry will be added with this ID. If not specified, '*' is used.
-            make_stream (bool, optional): If set to False, a new stream won't be created if no stream matches the given key.
-            trim (Optional[StreamTrimOptions]): If set, the add operation will also trim the older entries in the stream. See `StreamTrimOptions`.
-        """
-        self.id = id
-        self.make_stream = make_stream
-        self.trim = trim
-
-    def to_args(self) -> List[str]:
-        """
-        Convert options to arguments for Redis command.
-
-        Returns:
-            List[str]: List of arguments for Redis command.
-        """
-        option_args = []
-        if not self.make_stream:
-            option_args.append("NOMKSTREAM")
-        if self.trim:
-            option_args.extend(self.trim.to_args())
-        option_args.append(self.id if self.id else "*")
-
-        return option_args
 
 
 class ExpirySet:
@@ -2777,6 +2650,47 @@ class CoreCommands(Protocol):
         return cast(
             int,
             await self._execute_command(RequestType.XLen, [key]),
+        )
+
+    async def xrange(self, key: str, start: StreamRangeBound, end: StreamRangeBound, count: Optional[int] = None) -> Mapping[str, List[str]]:
+        """
+        Returns stream entries matching a given range of IDs.
+
+        See https://valkey.io/commands/xrange for more details.
+
+        Args:
+            key (str): The key of the stream.
+            start (StreamRangeBound): The starting stream ID bound for the range.
+                - Use `IdBound` to specify a stream ID
+                - Use `ExclusiveIdBound` to specify an exclusive bounded stream ID.
+                - Use `InfRangeBound.MIN` to start with the minimum available ID.
+            end (StreamRangeBound): The ending stream ID bound for the range.
+                - Use `IdBound` to specify a stream ID
+                - Use `ExclusiveIdBound` to specify an exclusive bounded stream ID.
+                - Use `InfRangeBound.MAX` to end with the maximum available ID.
+            count (Optional[int]): An optional argument specifying the maixmum count of stream entries to return.
+                By default, if `count` is not provided, all stream entries in the range will be returned.
+
+        Returns:
+            Mapping[str, List[str]]: A Mapping of stream IDs to stream entry data, where entry data is a list of
+                field-value pairings.
+
+        Examples:
+            >>> await client.xadd("mystream", [("field1", "value1")], StreamAddOptions(id="0-1"))
+            >>> await client.xadd("mystream", [("field2", "value2")], StreamAddOptions(id="0-2"))
+            >>> await client.xrange("mystream", InfRangeBound.MIN, InfRangeBound.MAX)
+                {
+                    "0-1": ["field1", "value1"],
+                    "0-2": ["field2", "value2"],
+                }  # Indicates the stream IDs and their associated field-value pairs for all stream entries in "mystream".
+        """
+        args = [key, start.to_arg(), end.to_arg()]
+        if count is not None:
+            args.extend(["COUNT", str(count)])
+
+        return cast(
+            Mapping[str, List[str]],
+            await self._execute_command(RequestType.XRange, args),
         )
 
     async def geoadd(

@@ -23,8 +23,6 @@ from glide.async_commands.core import (
     ExpiryTypeGetEx,
     FlushMode,
     InsertPosition,
-    StreamAddOptions,
-    TrimByMinId,
 )
 from glide.async_commands.sorted_set import (
     AggregationType,
@@ -38,6 +36,10 @@ from glide.async_commands.sorted_set import (
     RangeByIndex,
     ScoreBoundary,
     ScoreFilter,
+)
+from glide.async_commands.stream import (
+    StreamAddOptions,
+    TrimByMinId,
 )
 from glide.async_commands.transaction import (
     BaseTransaction,

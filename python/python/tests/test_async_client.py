@@ -38,9 +38,6 @@ from glide.async_commands.core import (
     InfBound,
     InfoSection,
     InsertPosition,
-    StreamAddOptions,
-    TrimByMaxLen,
-    TrimByMinId,
     UpdateOptions,
 )
 from glide.async_commands.sorted_set import (
@@ -57,6 +54,11 @@ from glide.async_commands.sorted_set import (
     RangeByScore,
     ScoreBoundary,
     ScoreFilter,
+)
+from glide.async_commands.stream import (
+    StreamAddOptions,
+    TrimByMinId,
+    TrimByMaxLen, InfRangeBound, ExclusiveIdBound,
 )
 from glide.config import (
     ClusterClientConfiguration,
@@ -4802,6 +4804,33 @@ class TestCommands:
         assert await redis_client.set(string_key, "foo") == OK
         with pytest.raises(RequestError):
             await redis_client.xdel(string_key, [stream_id3])
+
+    @pytest.mark.parametrize("cluster_mode", [True, False])
+    @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
+    async def test_xrange(self, redis_client: TRedisClient):
+        key1 = get_random_string(10)
+        key2 = get_random_string(10)
+        key3 = get_random_string(10)
+        stream_id1 = "0-1"
+        stream_id2 = "0-2"
+        stream_id3 = "0-3"
+
+        assert await redis_client.xadd(key1, [("f1", "v1")], StreamAddOptions(stream_id1)) == stream_id1
+        assert await redis_client.xadd(key1, [("f2", "v2")], StreamAddOptions(stream_id2)) == stream_id2
+        assert await redis_client.xlen(key1) == 2
+
+        # get everything from the stream
+        assert await redis_client.xrange(key1, InfRangeBound.MIN, InfRangeBound.MAX) == {stream_id1: ["f1", "v1"], stream_id2: ["f2", "v2"]}
+
+        # returns empty mapping if + before -
+        assert await redis_client.xrange(key1, InfRangeBound.MAX, InfRangeBound.MIN) == {}
+
+        assert await redis_client.xadd(key1, [("f3", "v3")], StreamAddOptions(stream_id3)) == stream_id3
+        # get the newest entry
+        assert await redis_client.xrange(key1, ExclusiveIdBound(stream_id2), ExclusiveIdBound.from_timestamp(5), 1) == {stream_id3: ["f3", "v3"]}
+
+        # xrange against an emptied stream
+        assert await redis_client.xdel(key1, [stream_id1, stream_id2, stream_id3]) == 3
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
