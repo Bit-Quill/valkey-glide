@@ -4,9 +4,11 @@ package glide.api.models.configuration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
 
 // TODO doc
-abstract class ClusterSubscriptionConfiguration
+@Getter
+public class ClusterSubscriptionConfiguration
         extends BaseSubscriptionConfiguration<ClusterSubscriptionConfiguration> {
 
     /**

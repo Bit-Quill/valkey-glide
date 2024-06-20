@@ -1,10 +1,10 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.managers;
 
-import static glide.api.models.configuration.BaseSubscriptionConfiguration.PubSubStandaloneChannelMode.EXACT;
-import static glide.api.models.configuration.BaseSubscriptionConfiguration.PubSubStandaloneChannelMode.PATTERN;
 import static glide.api.models.configuration.NodeAddress.DEFAULT_HOST;
 import static glide.api.models.configuration.NodeAddress.DEFAULT_PORT;
+import static glide.api.models.configuration.StandaloneSubscriptionConfiguration.PubSubChannelMode.EXACT;
+import static glide.api.models.configuration.StandaloneSubscriptionConfiguration.PubSubChannelMode.PATTERN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,6 +29,7 @@ import glide.api.models.configuration.ReadFrom;
 import glide.api.models.configuration.RedisClientConfiguration;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RedisCredentials;
+import glide.api.models.configuration.StandaloneSubscriptionConfiguration;
 import glide.api.models.exceptions.ClosingException;
 import glide.connectors.handlers.ChannelHandler;
 import io.netty.channel.ChannelFuture;
@@ -141,9 +142,11 @@ public class ConnectionManagerTest {
                                         .build())
                         .databaseId(DATABASE_ID)
                         .clientName(CLIENT_NAME)
-                        .addSubscription(EXACT, "channel_1")
-                        .addSubscription(EXACT, "channel_2")
-                        .addSubscription(PATTERN, "*chatRoom*")
+                        .subscriptionConfiguration(
+                                new StandaloneSubscriptionConfiguration()
+                                        .addSubscription(EXACT, "channel_1")
+                                        .addSubscription(EXACT, "channel_2")
+                                        .addSubscription(PATTERN, "*chatRoom*"))
                         .build();
         ConnectionRequest expectedProtobufConnectionRequest =
                 ConnectionRequest.newBuilder()

@@ -144,9 +144,9 @@ public class ConnectionManager {
             connectionRequestBuilder.setDatabaseId(configuration.getDatabaseId());
         }
 
-        if (configuration.getSubscriptions() != null) {
+        if (configuration.getSubscriptionConfiguration() != null) {
             var subscriptionsBuilder = PubSubSubscriptions.newBuilder();
-            for (var entry : configuration.getSubscriptions().entrySet()) {
+            for (var entry : configuration.getSubscriptionConfiguration().getSubscriptions().entrySet()) {
                 var channelsBuilder = PubSubChannelsOrPatterns.newBuilder();
                 for (var channel : entry.getValue()) {
                     channelsBuilder.addChannelsOrPatterns(ByteString.copyFromUtf8(channel));
@@ -171,9 +171,9 @@ public class ConnectionManager {
                 setupConnectionRequestBuilderBaseConfiguration(configuration);
         connectionRequestBuilder.setClusterModeEnabled(true);
 
-        if (configuration.getSubscriptions() != null) {
+        if (configuration.getSubscriptionConfiguration() != null) {
             var subscriptionsBuilder = PubSubSubscriptions.newBuilder();
-            for (var entry : configuration.getSubscriptions().entrySet()) {
+            for (var entry : configuration.getSubscriptionConfiguration().getSubscriptions().entrySet()) {
                 var channelsBuilder = PubSubChannelsOrPatterns.newBuilder();
                 for (var channel : entry.getValue()) {
                     channelsBuilder.addChannelsOrPatterns(ByteString.copyFromUtf8(channel));

@@ -28,7 +28,7 @@ public class StandaloneSubscriptionConfiguration
      * Will be applied via <code>SUBSCRIBE</code>/<code>PSUBSCRIBE</code> commands during connection
      * establishment.
      */
-    protected final Map<PubSubChannelMode, Set<String>> subscriptions = new HashMap<>();
+    protected final Map<PubSubChannelMode, Set<String>> subscriptions = new HashMap<>(3);
 
     /**
      * Add a subscription to a channel or to multiple channels if {@link PubSubChannelMode#PATTERN} is
