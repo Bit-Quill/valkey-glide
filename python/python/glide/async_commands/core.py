@@ -4761,3 +4761,48 @@ class CoreCommands(Protocol):
             List[str],
             await self._execute_command(RequestType.SRandMember, [key, str(count)]),
         )
+
+    async def copy(
+        self,
+        source: str,
+        destination: str,
+        destinationDB: Optional[int] = None,
+        replace: Optional[bool] = None,
+    ) -> int:
+        """
+        Copies the value stored at the `source` to the `destination` key on `destinationDB`. When `replace` is true,
+        removes the `destination` key first if it already exists, otherwise performs no action.
+
+        See https://valkey.io/commands/copy for more details.
+
+        Note:
+            When in cluster mode, both `source` and `destination` must map to the same hash slot.
+
+        Args:
+            source (str): The key to the source value.
+            destination (str): The key where the value should be copied to.
+            destinationDB (Optional[int]): The alternative logical database index for the destination key.
+            replace (Optional[bool]): If the destination key should be removed before copying the value to it.
+
+        Returns:
+            int: If the source was copied, then returns 1. Otherwise, returns 0.
+
+        Examples:
+            >>> await client.set("source", "sheep")
+            >>> await client.copy("source", "destination")
+                1 # Source was copied
+            >>> await client.get("destination")
+                "sheep"
+
+        Since: Redis version 6.2.0.
+        """
+        args = [source, destination]
+        if type(destinationDB) is int:
+            args.extend(["DB", str(destinationDB)])
+        if replace is True:
+            args.append("REPLACE")
+        print(args)
+        return cast(
+            int,
+            await self._execute_command(RequestType.Copy, args),
+        )

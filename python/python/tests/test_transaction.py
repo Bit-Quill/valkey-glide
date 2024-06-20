@@ -98,6 +98,10 @@ async def transaction_test(
         transaction.pexpiretime(key)
         args.append(-1)
 
+    if not await check_if_server_version_lt(redis_client, "6.2.0"):
+        transaction.copy(key, key2, replace=True)
+        args.append(1)
+
     transaction.rename(key, key2)
     args.append(OK)
 
