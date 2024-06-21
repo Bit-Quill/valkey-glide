@@ -859,8 +859,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
                 value_type: &Some(ExpectedReturnType::ArrayOfPairs),
             }),
         }),
-        b"LCS" => cmd.position(b"IDX")
-                   .map(|_| ExpectedReturnType::Map {
+        b"LCS" => cmd.position(b"IDX").map(|_| ExpectedReturnType::Map {
             key_type: &Some(ExpectedReturnType::BulkString),
             value_type: &None,
         }),
