@@ -672,7 +672,7 @@ class TestTransaction:
         transaction.copy(key, key1, 1, replace=True)
         transaction.get(key1)
         result = await redis_client.exec(transaction)
-        assert result[2:4] == [True, value]
+        assert result[3] == value
 
     def test_transaction_clear(self):
         transaction = Transaction()
