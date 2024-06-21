@@ -5281,48 +5281,58 @@ class TestCommands:
         index1 = 1
         index2 = 2
 
-        assert await redis_client.select(0) == OK
+        try:
+            assert await redis_client.select(0) == OK
 
-        # neither key exists
-        assert (
-            await redis_client.copy(source, destination, index1, replace=False) is False
-        )
+            # neither key exists
+            assert (
+                await redis_client.copy(source, destination, index1, replace=False)
+                is False
+            )
 
-        # source exists, destination does not
-        await redis_client.set(source, value1)
-        assert (
-            await redis_client.copy(source, destination, index1, replace=False) is True
-        )
-        assert await redis_client.select(1) == OK
-        assert await redis_client.get(destination) == value1
+            # source exists, destination does not
+            await redis_client.set(source, value1)
+            assert (
+                await redis_client.copy(source, destination, index1, replace=False)
+                is True
+            )
+            assert await redis_client.select(1) == OK
+            assert await redis_client.get(destination) == value1
 
-        # new value for source key
-        assert await redis_client.select(0) == OK
-        await redis_client.set(source, value2)
+            # new value for source key
+            assert await redis_client.select(0) == OK
+            await redis_client.set(source, value2)
 
-        # no REPLACE, copying to existing key on DB 0 & 1, non-existing key on DB 2
-        assert (
-            await redis_client.copy(source, destination, index1, replace=False) is False
-        )
-        assert (
-            await redis_client.copy(source, destination, index2, replace=False) is True
-        )
+            # no REPLACE, copying to existing key on DB 0 & 1, non-existing key on DB 2
+            assert (
+                await redis_client.copy(source, destination, index1, replace=False)
+                is False
+            )
+            assert (
+                await redis_client.copy(source, destination, index2, replace=False)
+                is True
+            )
 
-        # new value only gets copied to DB 2
-        assert await redis_client.select(1) == OK
-        assert await redis_client.get(destination) == value1
-        assert await redis_client.select(2) == OK
-        assert await redis_client.get(destination) == value2
+            # new value only gets copied to DB 2
+            assert await redis_client.select(1) == OK
+            assert await redis_client.get(destination) == value1
+            assert await redis_client.select(2) == OK
+            assert await redis_client.get(destination) == value2
 
-        # both exists, with REPLACE, when value isn't the same, source always get copied to destination
-        assert await redis_client.select(0) == OK
-        assert (
-            await redis_client.copy(source, destination, index1, replace=True) is True
-        )
-        assert await redis_client.select(1) == OK
-        assert await redis_client.get(destination) == value2
+            # both exists, with REPLACE, when value isn't the same, source always get copied to destination
+            assert await redis_client.select(0) == OK
+            assert (
+                await redis_client.copy(source, destination, index1, replace=True)
+                is True
+            )
+            assert await redis_client.select(1) == OK
+            assert await redis_client.get(destination) == value2
 
-        assert await redis_client.select(0) == OK
+            # invalid DB index
+            with pytest.raises(RequestError):
+                await redis_client.copy(source, destination, -1, replace=True)
+        finally:
+            assert await redis_client.select(0) == OK
 
 
 class TestMultiKeyCommandCrossSlot:

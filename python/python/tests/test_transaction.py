@@ -655,6 +655,25 @@ class TestTransaction:
         assert result[5:12] == [2, 2, 2, ["Bob", "Alice"], 2, OK, None]
         assert result[12:] == expected
 
+    @pytest.mark.parametrize("cluster_mode", [False])
+    @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
+    async def test_standalone_copy_transaction(self, redis_client: RedisClient):
+        assert await redis_client.custom_command(["FLUSHALL"]) == OK
+        keyslot = get_random_string(3)
+        key = "{{{}}}:{}".format(keyslot, get_random_string(3))  # to get the same slot
+        key1 = "{{{}}}:{}".format(keyslot, get_random_string(3))  # to get the same slot
+        value = get_random_string(5)
+        transaction = Transaction()
+        transaction.info()
+        transaction.select(1)
+        transaction.set(key, value)
+        transaction.get(key)
+        if not await check_if_server_version_lt(redis_client, "6.2.0"):
+            transaction.copy(key, key1, 1, replace=True)
+            transaction.get(key)
+            result = await redis_client.exec(transaction)
+            assert result[1:6] == [OK, OK, value, True, value]
+
     def test_transaction_clear(self):
         transaction = Transaction()
         transaction.info()

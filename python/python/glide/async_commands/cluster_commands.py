@@ -522,7 +522,7 @@ class ClusterCommands(CoreCommands):
         replace: Optional[bool] = None,
     ) -> bool:
         """
-        Copies the value stored at the `source` to the `destination` key. When `replace` is true,
+        Copies the value stored at the `source` to the `destination` key. When `replace` is True,
         removes the `destination` key first if it already exists, otherwise performs no action.
 
         See https://valkey.io/commands/copy for more details.
@@ -536,7 +536,7 @@ class ClusterCommands(CoreCommands):
             replace (Optional[bool]): If the destination key should be removed before copying the value to it.
 
         Returns:
-            bool: True if the source was copied. Otherwise, return False.
+            bool: True if the source was copied. Otherwise, returns False.
 
         Examples:
             >>> await client.set("source", "sheep")

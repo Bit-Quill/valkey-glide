@@ -468,8 +468,10 @@ class StandaloneCommands(CoreCommands):
         replace: Optional[bool] = None,
     ) -> bool:
         """
-        Copies the value stored at the `source` to the `destination` key on `destinationDB`. When `replace` is true,
-        removes the `destination` key first if it already exists, otherwise performs no action.
+        Copies the value stored at the `source` to the `destination` key. If `destinationDB`
+        is specified, the value will be copied to the database specified by `destinationDB`,
+        otherwise the current database will be used. When `replace` is True, removes the
+        `destination` key first if it already exists, otherwise performs no action.
 
         See https://valkey.io/commands/copy for more details.
 
@@ -484,7 +486,7 @@ class StandaloneCommands(CoreCommands):
 
         Examples:
             >>> await client.set("source", "sheep")
-            >>> await client.copy("source", "destination")
+            >>> await client.copy("source", "destination", 1, False)
                 True # Source was copied
             >>> await client.get("destination")
                 "sheep"
@@ -492,7 +494,7 @@ class StandaloneCommands(CoreCommands):
         Since: Redis version 6.2.0.
         """
         args = [source, destination]
-        if type(destinationDB) is int:
+        if destinationDB is not None:
             args.extend(["DB", str(destinationDB)])
         if replace is True:
             args.append("REPLACE")
