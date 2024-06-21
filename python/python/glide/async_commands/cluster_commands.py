@@ -528,7 +528,7 @@ class ClusterCommands(CoreCommands):
         See https://valkey.io/commands/copy for more details.
 
         Note:
-            When in cluster mode, both `source` and `destination` must map to the same hash slot.
+            Both `source` and `destination` must map to the same hash slot.
 
         Args:
             source (str): The key to the source value.
