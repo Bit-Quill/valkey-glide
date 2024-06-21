@@ -13,6 +13,8 @@ import static glide.api.models.commands.ExpireOptions.NEW_EXPIRY_LESS_THAN_CURRE
 import static glide.api.models.commands.FlushMode.ASYNC;
 import static glide.api.models.commands.InfoOptions.Section.EVERYTHING;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
+import static glide.api.models.commands.LcsOptions.IDX_COMMAND_STRING;
+import static glide.api.models.commands.LcsOptions.WITHMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.NEGATIVE_INFINITY;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.POSITIVE_INFINITY;
 import static glide.api.models.commands.ScoreFilter.MAX;
@@ -203,6 +205,7 @@ import com.google.protobuf.ByteString;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.LPosOptions;
+import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
@@ -1048,6 +1051,13 @@ public class TransactionTests {
 
         transaction.lcsLen("key1", "key2");
         results.add(Pair.of(LCS, buildArgs("key1", "key2", "LEN")));
+
+        transaction.lcsIdx("key1", "key2");
+        results.add(Pair.of(LCS, buildArgs("key1", "key2", IDX_COMMAND_STRING)));
+
+        transaction.lcsIdx("key1", "key2", LcsOptions.builder().withMatchLen().build());
+        results.add(
+                Pair.of(LCS, buildArgs("key1", "key2", IDX_COMMAND_STRING, WITHMATCHLEN_COMMAND_STRING)));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

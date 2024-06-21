@@ -11,7 +11,15 @@ public final class LcsOptions {
     public static final String MINMATCHLEN_COMMAND_STRING = "MINMATCHLEN";
     public static final String WITHMATCHLEN_COMMAND_STRING = "WITHMATCHLEN";
     private final Long minMatchLen;
-    private final boolean isWithMatchLen;
+    private boolean isWithMatchLen;
+
+    public static class LcsOptionsBuilder {
+
+        /** If the stream doesn't exist, this creates a new stream with a length of <code>0</code>. */
+        public LcsOptionsBuilder withMatchLen() {
+            return isWithMatchLen(true);
+        }
+    }
 
     public String[] toArgs() {
         List<String> optionArgs = new ArrayList<>();

@@ -15,6 +15,8 @@ import static glide.api.commands.StringBaseCommands.LEN_REDIS_API;
 import static glide.api.models.commands.FlushMode.ASYNC;
 import static glide.api.models.commands.FlushMode.SYNC;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.BEFORE;
+import static glide.api.models.commands.LcsOptions.IDX_COMMAND_STRING;
+import static glide.api.models.commands.LcsOptions.WITHMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.ScoreFilter.MAX;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
@@ -230,6 +232,7 @@ import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.FlushMode;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.LPosOptions;
+import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
@@ -6450,6 +6453,67 @@ public class RedisClientTest {
         // exercise
         CompletableFuture<Long> response = service.lcsLen(key1, key2);
         Long payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lcsIdx() {
+        // setup
+        String key1 = "testKey1";
+        String key2 = "testKey2";
+        String[] arguments = new String[] {key1, key2, IDX_COMMAND_STRING};
+        Map<String, Object> value =
+                Map.of(
+                        "matches",
+                        new Object[] {new Object[] {new Long[] {1L, 3L}, new Long[] {0L, 2L}}},
+                        "len",
+                        3L);
+
+        CompletableFuture<Map<String, Object>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, Object>>submitNewCommand(eq(LCS), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, Object>> response = service.lcsIdx(key1, key2);
+        Map<String, Object> payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lcsIdx_with_options() {
+        // setup
+        String key1 = "testKey1";
+        String key2 = "testKey2";
+        String[] arguments = new String[] {key1, key2, IDX_COMMAND_STRING, WITHMATCHLEN_COMMAND_STRING};
+        Map<String, Object> value =
+                Map.of(
+                        "matches",
+                        new Object[] {new Object[] {new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}},
+                        "len",
+                        3L);
+
+        CompletableFuture<Map<String, Object>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, Object>>submitNewCommand(eq(LCS), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, Object>> response =
+                service.lcsIdx(key1, key2, LcsOptions.builder().withMatchLen().build());
+        Map<String, Object> payload = response.get();
 
         // verify
         assertEquals(testResponse, response);

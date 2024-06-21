@@ -347,10 +347,6 @@ public abstract class BaseClient
         return handleRedisResponse(Object.class, EnumSet.of(ResponseFlags.IS_NULLABLE), response);
     }
 
-    //    protected Object handleObjectResponse(Response response) throws RedisException {
-    //        return handleRedisResponse(Object.class, EnumSet.noneOf(ResponseFlags.class), response);
-    //    }
-
     protected String handleStringResponse(Response response) throws RedisException {
         return handleRedisResponse(String.class, EnumSet.noneOf(ResponseFlags.class), response);
     }

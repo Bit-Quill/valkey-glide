@@ -34,6 +34,7 @@ import glide.api.models.Script;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.LPosOptions;
+import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
@@ -5448,6 +5449,19 @@ public class SharedCommandTests {
                 };
 
         assertDeepEquals(expectedMatchesObject, client.lcsIdx(key1, key2).get().get("matches"));
+        assertEquals(8L, client.lcsIdx(key1, key2).get().get("len"));
+
+        expectedMatchesObject =
+                new Object[] {
+                    new Object[] {new Long[] {6L, 10L}, new Long[] {8L, 12L}, 5L},
+                    new Object[] {new Long[] {3L, 5L}, new Long[] {0L, 2L}, 3L}
+                };
+        assertDeepEquals(
+                expectedMatchesObject,
+                client
+                        .lcsIdx(key1, key2, LcsOptions.builder().withMatchLen().build())
+                        .get()
+                        .get("matches"));
         assertEquals(8L, client.lcsIdx(key1, key2).get().get("len"));
     }
 }

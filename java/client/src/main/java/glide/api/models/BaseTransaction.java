@@ -11,6 +11,7 @@ import static glide.api.commands.SortedSetBaseCommands.LIMIT_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.commands.StringBaseCommands.LEN_REDIS_API;
+import static glide.api.models.commands.LcsOptions.IDX_COMMAND_STRING;
 import static glide.api.models.commands.RangeOptions.createZRangeArgs;
 import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArgs;
 import static glide.api.models.commands.function.FunctionListOptions.LIBRARY_NAME_REDIS_API;
@@ -192,6 +193,7 @@ import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.InfoOptions.Section;
 import glide.api.models.commands.LInsertOptions.InsertPosition;
 import glide.api.models.commands.LPosOptions;
+import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
@@ -4630,6 +4632,20 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public T lcsLen(@NonNull String key1, @NonNull String key2) {
         ArgsArray args = buildArgs(key1, key2, LEN_REDIS_API);
+        protobufTransaction.addCommands(buildCommand(LCS, args));
+        return getThis();
+    }
+
+    public T lcsIdx(@NonNull String key1, @NonNull String key2) {
+        ArgsArray args = buildArgs(key1, key2, IDX_COMMAND_STRING);
+        protobufTransaction.addCommands(buildCommand(LCS, args));
+        return getThis();
+    }
+
+    public T lcsIdx(@NonNull String key1, @NonNull String key2, @NonNull LcsOptions lcsOptions) {
+        ArgsArray args =
+                buildArgs(
+                        ArrayUtils.addAll(new String[] {key1, key2, IDX_COMMAND_STRING}, lcsOptions.toArgs()));
         protobufTransaction.addCommands(buildCommand(LCS, args));
         return getThis();
     }

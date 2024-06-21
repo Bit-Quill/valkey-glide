@@ -14,6 +14,7 @@ import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import glide.api.models.BaseTransaction;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.LPosOptions;
+import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
@@ -208,6 +209,20 @@ public class TransactionTestUtilities {
         String stringKey7 = "{StringKey}-7-" + UUID.randomUUID();
         String stringKey8 = "{StringKey}-8-" + UUID.randomUUID();
 
+        Map<String, Object> expectedLcsIdxObject =
+                Map.of(
+                        "matches",
+                        new Object[] {new Object[] {new Long[] {1L, 3L}, new Long[] {0L, 2L}}},
+                        "len",
+                        3L);
+
+        Map<String, Object> expectedLcsIdxWithMatchLenObject =
+                Map.of(
+                        "matches",
+                        new Object[] {new Object[] {new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}},
+                        "len",
+                        3L);
+
         transaction
                 .flushall()
                 .set(stringKey1, value1)
@@ -240,7 +255,9 @@ public class TransactionTestUtilities {
                     .lcs(stringKey6, stringKey7)
                     .lcs(stringKey6, stringKey8)
                     .lcsLen(stringKey6, stringKey7)
-                    .lcsLen(stringKey6, stringKey8);
+                    .lcsLen(stringKey6, stringKey8)
+                    .lcsIdx(stringKey6, stringKey7)
+                    .lcsIdx(stringKey6, stringKey7, LcsOptions.builder().withMatchLen().build());
         }
 
         var expectedResults =
@@ -281,6 +298,9 @@ public class TransactionTestUtilities {
                                 "", // lcs(stringKey6, stringKey8)
                                 3L, // lcsLEN(stringKey6, stringKey7)
                                 0L, // lcsLEN(stringKey6, stringKey8)
+                                expectedLcsIdxObject, // lcsIdx(stringKey6, stringKey7)
+                                expectedLcsIdxWithMatchLenObject, // lcsIdx(stringKey6, stringKey7,
+                                // LcsOptions.builder().withMatchLen().build())
                             });
         }
 
