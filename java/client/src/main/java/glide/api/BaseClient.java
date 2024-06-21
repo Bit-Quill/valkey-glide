@@ -1902,9 +1902,9 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Map<String, Object>> lcsIdx(
             @NonNull String key1, @NonNull String key2, @NonNull LcsOptions lcsOptions) {
-        String[] arguments = new String[] {key1, key2, IDX_COMMAND_STRING};
-        return commandManager.submitNewCommand(
-                LCS, concatenateArrays(arguments, lcsOptions.toArgs()), this::handleMapResponse);
+        String[] arguments =
+                concatenateArrays(new String[] {key1, key2, IDX_COMMAND_STRING}, lcsOptions.toArgs());
+        return commandManager.submitNewCommand(LCS, arguments, this::handleMapResponse);
     }
 
     @Override

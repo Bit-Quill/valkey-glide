@@ -210,11 +210,7 @@ public class TransactionTestUtilities {
         String stringKey8 = "{StringKey}-8-" + UUID.randomUUID();
 
         Map<String, Object> expectedLcsIdxObject =
-                Map.of(
-                        "matches",
-                        new Object[] {new Object[] {new Long[] {1L, 3L}, new Long[] {0L, 2L}}},
-                        "len",
-                        3L);
+                Map.of("matches", new Object[] {new Long[][] {{1L, 3L}, {0L, 2L}}}, "len", 3L);
 
         Map<String, Object> expectedLcsIdxWithMatchLenObject =
                 Map.of(
@@ -299,8 +295,7 @@ public class TransactionTestUtilities {
                                 3L, // lcsLEN(stringKey6, stringKey7)
                                 0L, // lcsLEN(stringKey6, stringKey8)
                                 expectedLcsIdxObject, // lcsIdx(stringKey6, stringKey7)
-                                expectedLcsIdxWithMatchLenObject, // lcsIdx(stringKey6, stringKey7,
-                                // LcsOptions.builder().withMatchLen().build())
+                                expectedLcsIdxWithMatchLenObject, // lcsIdx(stringKey6, stringKey7, withMatchLen())
                             });
         }
 

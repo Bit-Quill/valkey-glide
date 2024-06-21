@@ -340,13 +340,65 @@ public interface StringBaseCommands {
      * @example
      *     <pre>{@code
      * // testKey1 = abcd, testKey2 = axcd
-     * Long result = client.lcs("testKey1", "testKey2").get();
+     * Long result = client.lcsLen("testKey1", "testKey2").get();
      * assert result.equals(3L);
      * }</pre>
      */
     CompletableFuture<Long> lcsLen(String key1, String key2);
 
+    /**
+     * Returns the indices and length of the longest common subsequence between strings stored at
+     * <code>key1</code> and <code>
+     * key2</code>.
+     *
+     * @since Redis 7.0 and above.
+     * @apiNote When in cluster mode, <code>key1</code> and <code>key2</code> must map to the same
+     *     hash slot.
+     * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
+     * @param key1 The key that stores the first string.
+     * @param key2 The key that stores the second string.
+     * @return A <code>HashMap<String, Object</code> containing the indices of longest common
+     *     subsequence between the 2 strings. The <code>Object</code> mapped to the <code>"matches"
+     *     </code> String contains a two-dimensional Long array that stores the pair of start and end
+     *     indices of the first and second Strings that match. An empty <code>Object</code> in the
+     *     <code>HashMap</code> is returned if the keys do not exist or have no common subsequences.
+     * @example
+     *     <pre>{@code
+     * // testKey1 = "abcd", testKey2 = "bcde"
+     * Map<String, Object> result = client.lcsIdx("testKey1", "testKey2").get();
+     * Map<String, Object> expectedLcsIdxObject =Map.of("matches", new Object[] {new Long[][] {{1L, 3L}, {0L, 2L}}},
+     *      "len", 3L);
+     * // result is equal to expectedLcsIdxObject
+     * }</pre>
+     */
     CompletableFuture<Map<String, Object>> lcsIdx(String key1, String key2);
 
+    /**
+     * Returns the indices and length of the longest common subsequence between strings stored at
+     * <code>key1</code> and <code>
+     * key2</code>.
+     *
+     * @since Redis 7.0 and above.
+     * @apiNote When in cluster mode, <code>key1</code> and <code>key2</code> must map to the same
+     *     hash slot.
+     * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
+     * @param key1 The key that stores the first string.
+     * @param key2 The key that stores the second string.
+     * @param lcsOptions The {@link LcsOptions}.
+     * @return A <code>HashMap<String, Object</code> containing the indices of longest common
+     *     subsequence between the 2 strings. The <code>Object</code> mapped to the <code>"matches"
+     *     </code> String contains a two-dimensional Long array that stores the pair of start and end
+     *     indices of the first and second Strings that match. An empty <code>Object</code> in the
+     *     <code>HashMap</code> is returned if the keys do not exist or have no common subsequences.
+     * @example
+     *     <pre>{@code
+     * // testKey1 = "abcd", testKey2 = "bcde"
+     * Map<String, Object> result = client.lcsIdx("testKey1", "testKey2").get();
+     * Map<String, Object> expectedLcsIdxObject =Map.of("matches",
+     *      new Object[] {new Object[] {new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}},
+     *      "len", 3L);
+     * // result is equal to expectedLcsIdxObject
+     * }</pre>
+     */
     CompletableFuture<Map<String, Object>> lcsIdx(String key1, String key2, LcsOptions lcsOptions);
 }

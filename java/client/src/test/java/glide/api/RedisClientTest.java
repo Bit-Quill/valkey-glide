@@ -16,6 +16,7 @@ import static glide.api.models.commands.FlushMode.ASYNC;
 import static glide.api.models.commands.FlushMode.SYNC;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.BEFORE;
 import static glide.api.models.commands.LcsOptions.IDX_COMMAND_STRING;
+import static glide.api.models.commands.LcsOptions.MINMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.LcsOptions.WITHMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.ScoreFilter.MAX;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
@@ -6467,11 +6468,7 @@ public class RedisClientTest {
         String key2 = "testKey2";
         String[] arguments = new String[] {key1, key2, IDX_COMMAND_STRING};
         Map<String, Object> value =
-                Map.of(
-                        "matches",
-                        new Object[] {new Object[] {new Long[] {1L, 3L}, new Long[] {0L, 2L}}},
-                        "len",
-                        3L);
+                Map.of("matches", new Object[] {new Long[][] {{1L, 3L}, {0L, 2L}}}, "len", 3L);
 
         CompletableFuture<Map<String, Object>> testResponse = new CompletableFuture<>();
         testResponse.complete(value);
@@ -6495,7 +6492,15 @@ public class RedisClientTest {
         // setup
         String key1 = "testKey1";
         String key2 = "testKey2";
-        String[] arguments = new String[] {key1, key2, IDX_COMMAND_STRING, WITHMATCHLEN_COMMAND_STRING};
+        String[] arguments =
+                new String[] {
+                    key1,
+                    key2,
+                    IDX_COMMAND_STRING,
+                    MINMATCHLEN_COMMAND_STRING,
+                    "2",
+                    WITHMATCHLEN_COMMAND_STRING
+                };
         Map<String, Object> value =
                 Map.of(
                         "matches",
@@ -6512,7 +6517,7 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<Map<String, Object>> response =
-                service.lcsIdx(key1, key2, LcsOptions.builder().withMatchLen().build());
+                service.lcsIdx(key1, key2, LcsOptions.builder().minMatchLen(2L).withMatchLen().build());
         Map<String, Object> payload = response.get();
 
         // verify
