@@ -3317,9 +3317,6 @@ class BaseTransaction:
 
         See https://valkey.io/commands/copy for more details.
 
-        Note:
-            When in cluster mode, both `source` and `destination` must map to the same hash slot.
-
         Args:
             source (str): The key to the source value.
             destination (str): The key where the value should be copied to.
@@ -3327,7 +3324,7 @@ class BaseTransaction:
             replace (Optional[bool]): If the destination key should be removed before copying the value to it.
 
         Command response:
-            int: If the source was copied, then returns 1. Otherwise, returns 0.
+            bool: True if the source was copied. Otherwise, return False.
 
         Since: Redis version 6.2.0.
         """
