@@ -5308,7 +5308,7 @@ class TestCommands:
 
         # both exists, with REPLACE, when value isn't the same, source always get copied to destination
         assert await redis_client.select(0) == OK
-        assert await redis_client.copy(source, destination, index1, replace=True) == 0
+        assert await redis_client.copy(source, destination, index1, replace=True) == 1
         assert await redis_client.select(1) == OK
         assert await redis_client.get(destination) == value2
 
