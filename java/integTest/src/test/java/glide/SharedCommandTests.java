@@ -5456,7 +5456,7 @@ public class SharedCommandTests {
         assertDeepEquals(expectedMatchesObject, result.get("matches"));
         assertEquals(8L, result.get("len"));
 
-        // LCS with only IDX and WITHMATCHLEN
+        // LCS with IDX and WITHMATCHLEN
         expectedMatchesObject =
                 new Object[] {
                     new Object[] {new Long[] {6L, 10L}, new Long[] {8L, 12L}, 5L},
@@ -5466,17 +5466,7 @@ public class SharedCommandTests {
         assertDeepEquals(expectedMatchesObject, result.get("matches"));
         assertEquals(8L, result.get("len"));
 
-        // LCS with only IDX and WITHMATCHLEN
-        expectedMatchesObject =
-                new Object[] {
-                    new Object[] {new Long[] {6L, 10L}, new Long[] {8L, 12L}, 5L},
-                    new Object[] {new Long[] {3L, 5L}, new Long[] {0L, 2L}, 3L}
-                };
-        result = client.lcsIdx(key1, key2, LcsOptions.builder().withMatchLen().build()).get();
-        assertDeepEquals(expectedMatchesObject, result.get("matches"));
-        assertEquals(8L, result.get("len"));
-
-        // LCS with only IDX, and MINMATCHLEN
+        // LCS with IDX and MINMATCHLEN
         expectedMatchesObject =
                 new Object[] {
                     new Long[][] {{6L, 10L}, {8L, 12L}},
@@ -5485,7 +5475,17 @@ public class SharedCommandTests {
         assertDeepEquals(expectedMatchesObject, result.get("matches"));
         assertEquals(8L, result.get("len"));
 
-        // LCS with only IDX, MINMATCHLEN, and WITHMATCHLEN
+        // LCS with IDX and a negative MINMATCHLEN
+        expectedMatchesObject =
+                new Object[] {
+                    new Long[][] {{6L, 10L}, {8L, 12L}},
+                    new Long[][] {{3L, 5L}, {0L, 2L}}
+                };
+        result = client.lcsIdx(key1, key2, LcsOptions.builder().minMatchLen(-1L).build()).get();
+        assertDeepEquals(expectedMatchesObject, result.get("matches"));
+        assertEquals(8L, result.get("len"));
+
+        // LCS with IDX, MINMATCHLEN, and WITHMATCHLEN
         expectedMatchesObject =
                 new Object[] {new Object[] {new Long[] {6L, 10L}, new Long[] {8L, 12L}, 5L}};
         result =

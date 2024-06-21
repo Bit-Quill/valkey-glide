@@ -4638,21 +4638,18 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /**
      * Returns the indices and length of the longest common subsequence between strings stored at
-     * <code>key1</code> and <code>
-     * key2</code>.
+     * <code>key1</code> and <code>key2</code>.
      *
      * @since Redis 7.0 and above.
-     * @apiNote When in cluster mode, <code>key1</code> and <code>key2</code> must map to the same
-     *     hash slot.
      * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
      * @param key1 The key that stores the first string.
      * @param key2 The key that stores the second string.
-     * @return Command Response - A <code>HashMap<String, Object</code> containing the indices of
-     *     longest common subsequence between the 2 strings. The <code>Object</code> mapped to the
-     *     <code>"matches"
-     *     </code> String contains a two-dimensional Long array that stores the pair of start and end
-     *     indices of the first and second Strings that match. An empty <code>Object</code> in the
-     *     <code>HashMap</code> is returned if the keys do not exist or have no common subsequences.
+     * @return Command Response - A <code>Map&lt;String, Object&gt;</code> containing the indices of
+     *     the longest common subsequence between the 2 strings and the length of the longest common
+     *     subsequence. The <code>Object</code> mapped to the <code>"matches"</code> map key contains
+     *     a two-dimensional <code>Long</code> array that stores the pair of start and end indices of
+     *     the first and second strings that match. An empty <code>Object</code> in the <code>Map
+     *     </code> is returned if the keys do not exist or have no common subsequences.
      */
     public T lcsIdx(@NonNull String key1, @NonNull String key2) {
         ArgsArray args = buildArgs(key1, key2, IDX_COMMAND_STRING);
@@ -4662,22 +4659,19 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /**
      * Returns the indices and length of the longest common subsequence between strings stored at
-     * <code>key1</code> and <code>
-     * key2</code>.
+     * <code>key1</code> and <code>key2</code>.
      *
      * @since Redis 7.0 and above.
-     * @apiNote When in cluster mode, <code>key1</code> and <code>key2</code> must map to the same
-     *     hash slot.
      * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
      * @param key1 The key that stores the first string.
      * @param key2 The key that stores the second string.
      * @param lcsOptions The {@link LcsOptions}.
-     * @return Command Response - A <code>HashMap<String, Object</code> containing the indices of
-     *     longest common subsequence between the 2 strings. The <code>Object</code> mapped to the
-     *     <code>"matches"
-     *     </code> String contains a two-dimensional Long array that stores the pair of start and end
-     *     indices of the first and second Strings that match. An empty <code>Object</code> in the
-     *     <code>HashMap</code> is returned if the keys do not exist or have no common subsequences.
+     * @return Command Response - A <code>Map&lt;String, Object&gt;</code> containing the indices of
+     *     the longest common subsequence between the 2 strings and the length of the longest common
+     *     subsequence. The <code>Object</code> mapped to the <code>"matches"</code> map key contains
+     *     a two-dimensional <code>Long</code> array that stores the pair of start and end indices of
+     *     the first and second strings that match. An empty <code>Object</code> in the <code>Map
+     *     </code> is returned if the keys do not exist or have no common subsequences.
      */
     public T lcsIdx(@NonNull String key1, @NonNull String key2, @NonNull LcsOptions lcsOptions) {
         ArgsArray args =

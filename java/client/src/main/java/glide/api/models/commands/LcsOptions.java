@@ -28,7 +28,6 @@ public final class LcsOptions {
     /** Will include match lengths in the result if set to <code>true</code>. */
     private boolean isWithMatchLen;
 
-    /** Sets <code>isWithMatchLen</code> to <code>true</code>. */
     public static class LcsOptionsBuilder {
         /** Sets <code>isWithMatchLen</code> to <code>true</code>. */
         public LcsOptionsBuilder withMatchLen() {
