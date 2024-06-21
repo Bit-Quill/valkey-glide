@@ -1869,12 +1869,12 @@ class BaseTransaction:
             start (StreamRangeBound): The starting stream ID bound for the range.
                 - Use `IdBound` to specify a stream ID
                 - Use `ExclusiveIdBound` to specify an exclusive bounded stream ID.
-                - Use `InfRangeBound.MIN` to start with the minimum available ID.
+                - Use `MinId` to start with the minimum available ID.
             end (StreamRangeBound): The ending stream ID bound for the range.
                 - Use `IdBound` to specify a stream ID
                 - Use `ExclusiveIdBound` to specify an exclusive bounded stream ID.
-                - Use `InfRangeBound.MAX` to end with the maximum available ID.
-            count (Optional[int]): An optional argument specifying the maixmum count of stream entries to return.
+                - Use `MaxId` to end with the maximum available ID.
+            count (Optional[int]): An optional argument specifying the maximum count of stream entries to return.
                 By default, if `count` is not provided, all stream entries in the range will be returned.
 
         Command response:

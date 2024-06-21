@@ -2673,32 +2673,30 @@ class CoreCommands(Protocol):
             start (StreamRangeBound): The starting stream ID bound for the range.
                 - Use `IdBound` to specify a stream ID
                 - Use `ExclusiveIdBound` to specify an exclusive bounded stream ID.
-                - Use `InfRangeBound.MIN` to start with the minimum available ID.
+                - Use `MinId` to start with the minimum available ID.
             end (StreamRangeBound): The ending stream ID bound for the range.
                 - Use `IdBound` to specify a stream ID
                 - Use `ExclusiveIdBound` to specify an exclusive bounded stream ID.
-                - Use `InfRangeBound.MAX` to end with the maximum available ID.
-            count (Optional[int]): An optional argument specifying the maixmum count of stream entries to return.
+                - Use `MaxId` to end with the maximum available ID.
+            count (Optional[int]): An optional argument specifying the maximum count of stream entries to return.
                 By default, if `count` is not provided, all stream entries in the range will be returned.
 
         Returns:
-            Optional[Mapping[str, List[str]]]: A Mapping of stream IDs to stream entry data, where entry data is a list of
-                field-value pairings.
+            Optional[Mapping[str, List[str]]]: A mapping of stream IDs to stream entry data, where entry data is a list
+                of field-value pairings.
 
         Examples:
             >>> await client.xadd("mystream", [("field1", "value1")], StreamAddOptions(id="0-1"))
             >>> await client.xadd("mystream", [("field2", "value2")], StreamAddOptions(id="0-2"))
-            >>> await client.xrange("mystream", InfRangeBound.MIN, InfRangeBound.MAX)
+            >>> await client.xrange("mystream", MinId(), MaxId())
                 {
-                    "0-1": ["field1", "value1"],
-                    "0-2": ["field2", "value2"],
+                    "0-1": [["field1", "value1"]],
+                    "0-2": [["field2", "value2"]],
                 }  # Indicates the stream IDs and their associated field-value pairs for all stream entries in "mystream".
         """
         args = [key, start.to_arg(), end.to_arg()]
         if count is not None:
             args.extend(["COUNT", str(count)])
-
-        print(f"asdf - {args}")
 
         return cast(
             Optional[Mapping[str, List[str]]],
