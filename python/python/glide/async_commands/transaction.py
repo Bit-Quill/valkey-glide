@@ -1867,19 +1867,19 @@ class BaseTransaction:
         Args:
             key (str): The key of the stream.
             start (StreamRangeBound): The starting stream ID bound for the range.
-                - Use `IdBound` to specify a stream ID
+                - Use `IdBound` to specify a stream ID.
                 - Use `ExclusiveIdBound` to specify an exclusive bounded stream ID.
                 - Use `MinId` to start with the minimum available ID.
             end (StreamRangeBound): The ending stream ID bound for the range.
-                - Use `IdBound` to specify a stream ID
+                - Use `IdBound` to specify a stream ID.
                 - Use `ExclusiveIdBound` to specify an exclusive bounded stream ID.
                 - Use `MaxId` to end with the maximum available ID.
             count (Optional[int]): An optional argument specifying the maximum count of stream entries to return.
                 By default, if `count` is not provided, all stream entries in the range will be returned.
 
         Command response:
-            Optional[Mapping[str, List[str]]]: A Mapping of stream IDs to stream entry data, where entry data is a list of
-                field-value pairings.
+            Optional[Mapping[str, List[List[str]]]]: A mapping of stream IDs to stream entry data, where entry data is a
+                list of pairings with format `[[field, entry], [field, entry], ...]`.
         """
         args = [key, start.to_arg(), end.to_arg()]
         if count is not None:
