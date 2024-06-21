@@ -48,8 +48,6 @@ import glide.api.models.commands.InfoOptions;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration.Route;
 import glide.api.models.configuration.RequestRoutingConfiguration.SingleNodeRoute;
-import glide.managers.CommandManager;
-import glide.managers.ConnectionManager;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,10 +67,6 @@ public class RedisClusterClient extends BaseClient
                 ScriptingAndFunctionsClusterCommands,
                 TransactionsClusterCommands {
 
-    protected RedisClusterClient(ConnectionManager connectionManager, CommandManager commandManager) {
-        super(connectionManager, commandManager);
-    }
-
     /**
      * Async request for an async (non-blocking) Redis client in Cluster mode.
      *
@@ -81,11 +75,7 @@ public class RedisClusterClient extends BaseClient
      */
     public static CompletableFuture<RedisClusterClient> CreateClient(
             @NonNull RedisClusterClientConfiguration config) {
-        return CreateClient(config, RedisClusterClient::new)
-                .thenApply(
-                        client ->
-                                (RedisClusterClient)
-                                        client.setSubscriptionConfiguration(config.getSubscriptionConfiguration()));
+        return CreateClient(config, RedisClusterClient::new);
     }
 
     @Override
