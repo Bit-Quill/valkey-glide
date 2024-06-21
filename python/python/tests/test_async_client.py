@@ -56,9 +56,13 @@ from glide.async_commands.sorted_set import (
     ScoreFilter,
 )
 from glide.async_commands.stream import (
+    ExclusiveIdBound,
+    IdBound,
+    MaxId,
+    MinId,
     StreamAddOptions,
+    TrimByMaxLen,
     TrimByMinId,
-    TrimByMaxLen, InfRangeBound, ExclusiveIdBound,
 )
 from glide.config import (
     ClusterClientConfiguration,
@@ -4808,29 +4812,63 @@ class TestCommands:
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
     async def test_xrange(self, redis_client: TRedisClient):
-        key1 = get_random_string(10)
-        key2 = get_random_string(10)
-        key3 = get_random_string(10)
+        key = get_random_string(10)
+        non_existing_key = get_random_string(10)
+        string_key = get_random_string(10)
         stream_id1 = "0-1"
         stream_id2 = "0-2"
         stream_id3 = "0-3"
 
-        assert await redis_client.xadd(key1, [("f1", "v1")], StreamAddOptions(stream_id1)) == stream_id1
-        assert await redis_client.xadd(key1, [("f2", "v2")], StreamAddOptions(stream_id2)) == stream_id2
-        assert await redis_client.xlen(key1) == 2
+        assert (
+            await redis_client.xadd(key, [("f1", "v1")], StreamAddOptions(stream_id1))
+            == stream_id1
+        )
+        assert (
+            await redis_client.xadd(key, [("f2", "v2")], StreamAddOptions(stream_id2))
+            == stream_id2
+        )
+        assert await redis_client.xlen(key) == 2
 
         # get everything from the stream
-        assert await redis_client.xrange(key1, InfRangeBound.MIN, InfRangeBound.MAX) == {stream_id1: ["f1", "v1"], stream_id2: ["f2", "v2"]}
+        assert await redis_client.xrange(key, MinId(), MaxId()) == {
+            stream_id1: [["f1", "v1"]],
+            stream_id2: [["f2", "v2"]],
+        }
 
         # returns empty mapping if + before -
-        assert await redis_client.xrange(key1, InfRangeBound.MAX, InfRangeBound.MIN) == {}
+        assert await redis_client.xrange(key, MaxId(), MinId()) == {}
 
-        assert await redis_client.xadd(key1, [("f3", "v3")], StreamAddOptions(stream_id3)) == stream_id3
+        assert (
+            await redis_client.xadd(key, [("f3", "v3")], StreamAddOptions(stream_id3))
+            == stream_id3
+        )
         # get the newest entry
-        assert await redis_client.xrange(key1, ExclusiveIdBound(stream_id2), ExclusiveIdBound.from_timestamp(5), 1) == {stream_id3: ["f3", "v3"]}
+        assert await redis_client.xrange(
+            key, ExclusiveIdBound(stream_id2), ExclusiveIdBound.from_timestamp(5), 1
+        ) == {stream_id3: [["f3", "v3"]]}
 
         # xrange against an emptied stream
-        assert await redis_client.xdel(key1, [stream_id1, stream_id2, stream_id3]) == 3
+        assert await redis_client.xdel(key, [stream_id1, stream_id2, stream_id3]) == 3
+        assert await redis_client.xrange(key, MinId(), MaxId(), 10) == {}
+
+        assert await redis_client.xrange(non_existing_key, MinId(), MaxId()) == {}
+
+        # count value < 1 returns None
+        assert await redis_client.xrange(key, MinId(), MaxId(), 0) is None
+        assert await redis_client.xrange(key, MinId(), MaxId(), -1) is None
+
+        # key exists, but it is not a stream
+        assert await redis_client.set(string_key, "foo")
+        with pytest.raises(RequestError):
+            await redis_client.xrange(string_key, MinId(), MaxId())
+
+        # invalid start bound
+        with pytest.raises(RequestError):
+            await redis_client.xrange(key, IdBound("not_a_stream_id"), MaxId())
+
+        # invalid end bound
+        with pytest.raises(RequestError):
+            await redis_client.xrange(key, MinId(), IdBound("not_a_stream_id"))
 
     @pytest.mark.parametrize("cluster_mode", [True, False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])

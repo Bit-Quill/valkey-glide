@@ -1,14 +1,16 @@
 # Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Optional, Union, List
+from typing import List, Optional, Union
 
 
 class StreamTrimOptions(ABC):
     """
     Abstract base class for stream trim options.
     """
+
     @abstractmethod
     def __init__(
         self,
@@ -146,17 +148,28 @@ class StreamRangeBound(ABC):
         pass
 
 
-class InfRangeBound(Enum, StreamRangeBound):
+class MinId(StreamRangeBound):
     """
-    Enumeration representing minimum or maximum stream entry bounds for the range search, to get the first or last
-    stream ID.
+    Stream ID boundary used to specify the minimum stream entry ID. Can be used in the `XRANGE` or `XREVRANGE` commands
+    to get the first stream ID.
     """
 
-    MIN = "-"
-    MAX = "+"
+    MIN_RANGE_REDIS_API = "-"
 
     def to_arg(self) -> str:
-        return self.value
+        return self.MIN_RANGE_REDIS_API
+
+
+class MaxId(StreamRangeBound):
+    """
+    Stream ID boundary used to specify the maximum stream entry ID. Can be used in the `XRANGE` or `XREVRANGE` commands
+    to get the last stream ID.
+    """
+
+    MAX_RANGE_REDIS_API = "+"
+
+    def to_arg(self) -> str:
+        return self.MAX_RANGE_REDIS_API
 
 
 class IdBound(StreamRangeBound):
@@ -199,14 +212,14 @@ class ExclusiveIdBound(StreamRangeBound):
     EXCLUSIVE_BOUND_REDIS_API = "("
 
     @staticmethod
-    def from_timestamp(timestamp: int) -> IdBound:
+    def from_timestamp(timestamp: int) -> ExclusiveIdBound:
         """
         Creates an incomplete stream ID boundary without the sequence number for a range search.
 
         Args:
             timestamp (int): The stream ID timestamp.
         """
-        return IdBound(f"{ExclusiveIdBound}{str(timestamp)}")
+        return ExclusiveIdBound(str(timestamp))
 
     def __init__(self, stream_id: str):
         """
@@ -215,7 +228,7 @@ class ExclusiveIdBound(StreamRangeBound):
         Args:
             stream_id (str): The stream ID.
         """
-        self.stream_id = f"{ExclusiveIdBound}{stream_id}"
+        self.stream_id = f"{self.EXCLUSIVE_BOUND_REDIS_API}{stream_id}"
 
     def to_arg(self) -> str:
         return self.stream_id

@@ -45,10 +45,14 @@ from glide.async_commands.sorted_set import (
     _create_zinter_zunion_cmd_args,
     _create_zrange_args,
 )
+from glide.async_commands.stream import (
+    StreamAddOptions,
+    StreamRangeBound,
+    StreamTrimOptions,
+)
 from glide.constants import TOK, TResult
 from glide.protobuf.redis_request_pb2 import RequestType
 from glide.routes import Route
-from glide.async_commands.stream import StreamAddOptions, StreamTrimOptions, StreamRangeBound
 
 from ..glide import Script
 
@@ -2652,7 +2656,13 @@ class CoreCommands(Protocol):
             await self._execute_command(RequestType.XLen, [key]),
         )
 
-    async def xrange(self, key: str, start: StreamRangeBound, end: StreamRangeBound, count: Optional[int] = None) -> Mapping[str, List[str]]:
+    async def xrange(
+        self,
+        key: str,
+        start: StreamRangeBound,
+        end: StreamRangeBound,
+        count: Optional[int] = None,
+    ) -> Optional[Mapping[str, List[str]]]:
         """
         Returns stream entries matching a given range of IDs.
 
@@ -2672,7 +2682,7 @@ class CoreCommands(Protocol):
                 By default, if `count` is not provided, all stream entries in the range will be returned.
 
         Returns:
-            Mapping[str, List[str]]: A Mapping of stream IDs to stream entry data, where entry data is a list of
+            Optional[Mapping[str, List[str]]]: A Mapping of stream IDs to stream entry data, where entry data is a list of
                 field-value pairings.
 
         Examples:
@@ -2688,8 +2698,10 @@ class CoreCommands(Protocol):
         if count is not None:
             args.extend(["COUNT", str(count)])
 
+        print(f"asdf - {args}")
+
         return cast(
-            Mapping[str, List[str]],
+            Optional[Mapping[str, List[str]]],
             await self._execute_command(RequestType.XRange, args),
         )
 

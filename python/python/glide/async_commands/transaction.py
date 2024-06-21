@@ -44,7 +44,8 @@ from glide.async_commands.sorted_set import (
 )
 from glide.async_commands.stream import (
     StreamAddOptions,
-    StreamTrimOptions, StreamRangeBound,
+    StreamRangeBound,
+    StreamTrimOptions,
 )
 from glide.protobuf.redis_request_pb2 import RequestType
 
@@ -1851,7 +1852,13 @@ class BaseTransaction:
         """
         return self.append_command(RequestType.XLen, [key])
 
-    def xrange(self: TTransaction, key: str, start: StreamRangeBound, end: StreamRangeBound, count: Optional[int] = None) -> TTransaction:
+    def xrange(
+        self: TTransaction,
+        key: str,
+        start: StreamRangeBound,
+        end: StreamRangeBound,
+        count: Optional[int] = None,
+    ) -> TTransaction:
         """
         Returns stream entries matching a given range of IDs.
 
@@ -1871,7 +1878,7 @@ class BaseTransaction:
                 By default, if `count` is not provided, all stream entries in the range will be returned.
 
         Command response:
-            Mapping[str, List[str]]: A Mapping of stream IDs to stream entry data, where entry data is a list of
+            Optional[Mapping[str, List[str]]]: A Mapping of stream IDs to stream entry data, where entry data is a list of
                 field-value pairings.
         """
         args = [key, start.to_arg(), end.to_arg()]
