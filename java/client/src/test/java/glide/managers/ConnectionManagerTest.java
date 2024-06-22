@@ -143,10 +143,11 @@ public class ConnectionManagerTest {
                         .databaseId(DATABASE_ID)
                         .clientName(CLIENT_NAME)
                         .subscriptionConfiguration(
-                                new StandaloneSubscriptionConfiguration()
-                                        .addSubscription(EXACT, "channel_1")
-                                        .addSubscription(EXACT, "channel_2")
-                                        .addSubscription(PATTERN, "*chatRoom*"))
+                                StandaloneSubscriptionConfiguration.builder()
+                                        .subscription(EXACT, "channel_1")
+                                        .subscription(EXACT, "channel_2")
+                                        .subscription(PATTERN, "*chatRoom*")
+                                        .build())
                         .build();
         ConnectionRequest expectedProtobufConnectionRequest =
                 ConnectionRequest.newBuilder()

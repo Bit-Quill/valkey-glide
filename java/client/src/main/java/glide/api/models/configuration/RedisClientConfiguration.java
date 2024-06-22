@@ -1,11 +1,30 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.configuration;
 
+import glide.api.RedisClient;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
-/** Represents the configuration settings for a Standalone Redis client. */
-// TODO add example
+/**
+ * Represents the configuration settings for a Standalone {@link RedisClient}.
+ *
+ * @example
+ *     <pre>{@code
+ * RedisClientConfiguration redisClientConfiguration =
+ *     RedisClientConfiguration.builder()
+ *         .address(node1address)
+ *         .address(node2address)
+ *         .useTLS(true)
+ *         .readFrom(ReadFrom.PREFER_REPLICA)
+ *         .credentials(credentialsConfiguration)
+ *         .requestTimeout(2000)
+ *         .reconnectStrategy(reconnectionConfiguration)
+ *         .databaseId(1)
+ *         .clientName("GLIDE")
+ *         .subscriptionConfiguration(subscriptionConfiguration)
+ *         .build();
+ * }</pre>
+ */
 @Getter
 @SuperBuilder
 public class RedisClientConfiguration extends BaseClientConfiguration {

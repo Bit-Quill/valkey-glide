@@ -250,7 +250,7 @@ public abstract class BaseClient
 
     @Setter(AccessLevel.PROTECTED)
     @Accessors(chain = true)
-    protected BaseSubscriptionConfiguration<?> subscriptionConfiguration;
+    protected BaseSubscriptionConfiguration subscriptionConfiguration;
 
     /**
      * Async request for an async (non-blocking) Redis client.
