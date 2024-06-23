@@ -356,19 +356,33 @@ public interface StringBaseCommands {
      * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
      * @param key1 The key that stores the first string.
      * @param key2 The key that stores the second string.
-     * @return A <code>Map&lt;String, Object&gt;</code> containing the indices of the longest common
-     *     subsequence between the 2 strings and the length of the longest common subsequence. The
-     *     <code>Object</code> mapped to the <code>"matches"</code> map key contains a two-dimensional
-     *     <code>Long</code> array that stores the pair of start and end indices of the first and
-     *     second strings that match. An empty <code>Object</code> in the <code>Map</code> is returned
-     *     if the keys do not exist or have no common subsequences.
+     * @return A <code>Map</code> containing the indices of the longest common subsequence between the
+     *     2 strings and the length of the longest common subsequence. The resulting map contains two
+     *     keys: "matches" and "len":
+     *     <ul>
+     *       <li>"len" is mapped to the length of the longest common subsequence between the 2 strings
+     *           stored as <code>Long</code>.
+     *       <li>"matches" is mapped to a three dimensional <code>Long</code> array that stores pairs
+     *           of indices that represent the location of the common subsequences in the strings held
+     *           by <code>key1</code> and <code>key2</code>. For example, the sample result <code>
+     *           new Long[][][] {{{1L, 3L}, {0L, 2L}}}</code> indicates that the substring in <code>
+     *           key1</code> at index 1 to 3 matches the substring in <code>key2</code> at index 0 to
+     *           2.
+     *     </ul>
+     *
      * @example
      *     <pre>{@code
      * // testKey1 = "abcd", testKey2 = "bcde"
      * Map<String, Object> result = client.lcsIdx("testKey1", "testKey2").get();
-     * Map<String, Object> expectedLcsIdxObject = Map.of("matches", new Object[] {new Long[][] {{1L, 3L}, {0L, 2L}}},
-     *      "len", 3L);
-     * // result is equal to expectedLcsIdxObject
+     * Long[][][] matches = (Long[][][]) result.get("matches");
+     *
+     * for (int i = 0; i < matches.length; i++) {
+     *   System.out.printf("Match #%d:\n", i + 1);
+     *   for (int j = 0; j < matches[i].length; j++) {
+     *     System.out.printf("\tString #%d indices: %d, %d\n", j + 1, matches[i][j][0], matches[i][j][1]);
+     *   }
+     * }
+     * System.out.printf("Total LCS length: %d\n", result.get("len"));
      * }</pre>
      */
     CompletableFuture<Map<String, Object>> lcsIdx(String key1, String key2);
@@ -384,20 +398,40 @@ public interface StringBaseCommands {
      * @param key1 The key that stores the first string.
      * @param key2 The key that stores the second string.
      * @param lcsOptions The {@link LcsOptions}.
-     * @return A <code>Map&lt;String, Object&gt;</code> containing the indices of the longest common
-     *     subsequence between the 2 strings and the length of the longest common subsequence. The
-     *     <code>Object</code> mapped to the <code>"matches"</code> map key contains a two-dimensional
-     *     <code>Long</code> array that stores the pair of start and end indices of the first and
-     *     second strings that match. An empty <code>Object</code> in the <code>Map</code> is returned
-     *     if the keys do not exist or have no common subsequences.
+     * @return A <code>Map</code> containing the indices of the longest common subsequence between the
+     *     2 strings and the length of the longest common subsequence. The resulting map contains two
+     *     keys: "matches" and "len":
+     *     <ul>
+     *       <li>"len" is mapped to the length of the longest common subsequence between the 2 strings
+     *           stored as <code>Long</code>.
+     *       <li>"matches" is mapped to a three dimensional <code>Object</code> array that stores
+     *           pairs of indices that represent the location of the common subsequences in the
+     *           strings held by <code>key1</code> and <code>key2</code>. For example, the sample
+     *           result if <code>WITHMATCHLEN</code> if specified is <code>
+     *           new Object[] {{new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}}</code> indicates that
+     *           the substring in <code>key1</code> at index 1 to 3 matches the substring in <code>
+     *           key2</code> at index 0 to 2. And the last item in the list indicates that the length
+     *           of the matched subsequence is 3.
+     *     </ul>
+     *
      * @example
      *     <pre>{@code
      * // testKey1 = "abcd", testKey2 = "bcde"
-     * Map<String, Object> result = client.lcsIdx("testKey1", "testKey2", LcsOptions.builder().withMatchLen().build()).get();
-     * Map<String, Object> expectedLcsIdxObject = Map.of("matches",
-     *      new Object[] {new Object[] {new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}},
-     *      "len", 3L);
-     * // result is equal to expectedLcsIdxObject
+     * Map<String, Object> result = client.lcsIdx(key1, key2, LcsOptions.builder().withMatchLen().build()).get();
+     * Object[] matches = (Object[]) result.get("matches");
+     *
+     * for (int i = 0; i < matches.length; i++) {
+     *   System.out.printf("Match #%d:\n", i + 1);
+     *   Object[] match = (Object[])matches[i];
+     *   for (int j = 0; j < match.length; j++) {
+     *     if((j+1) % 3 != 0) {
+     *       System.out.printf("\tString #%d indices: %d, %d\n", j + 1, (Long)((Object[])match[j])[0], (Long)((Object[])match[j])[1]);
+     *     } else {
+     *       System.out.printf("\tLCS subsequence length: %d\n", match[j]);
+     *     }
+     *   }
+     * }
+     * System.out.printf("Total LCS length: %d\n", result.get("len"));
      * }</pre>
      */
     CompletableFuture<Map<String, Object>> lcsIdx(String key1, String key2, LcsOptions lcsOptions);

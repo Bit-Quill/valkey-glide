@@ -210,7 +210,7 @@ public class TransactionTestUtilities {
         String stringKey8 = "{StringKey}-8-" + UUID.randomUUID();
 
         Map<String, Object> expectedLcsIdxObject =
-                Map.of("matches", new Object[] {new Long[][] {{1L, 3L}, {0L, 2L}}}, "len", 3L);
+                Map.of("matches", new Long[][][] {{{1L, 3L}, {0L, 2L}}}, "len", 3L);
 
         Map<String, Object> expectedLcsIdxWithMatchLenObject =
                 Map.of(

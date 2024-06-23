@@ -6467,8 +6467,7 @@ public class RedisClientTest {
         String key1 = "testKey1";
         String key2 = "testKey2";
         String[] arguments = new String[] {key1, key2, IDX_COMMAND_STRING};
-        Map<String, Object> value =
-                Map.of("matches", new Object[] {new Long[][] {{1L, 3L}, {0L, 2L}}}, "len", 3L);
+        Map<String, Object> value = Map.of("matches", new Long[][][] {{{1L, 3L}, {0L, 2L}}}, "len", 3L);
 
         CompletableFuture<Map<String, Object>> testResponse = new CompletableFuture<>();
         testResponse.complete(value);

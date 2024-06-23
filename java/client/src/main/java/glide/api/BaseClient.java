@@ -6,6 +6,7 @@ import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlyS
 import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
 import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArgs;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
+import static glide.utils.ArrayTransformUtils.cast3DArray;
 import static glide.utils.ArrayTransformUtils.castArray;
 import static glide.utils.ArrayTransformUtils.castArrayofArrays;
 import static glide.utils.ArrayTransformUtils.castMapOf2DArray;
@@ -445,6 +446,15 @@ public abstract class BaseClient
             Object[] command = (Object[]) runningScriptInfo.get("command");
             runningScriptInfo.put("command", castArray(command, String.class));
         }
+        return response;
+    }
+
+    /** Process a <code>LCS key1 key2 IDX</code> response */
+    protected Map<String, Object> handleLcsIdxResponse(Map<String, Object> response)
+            throws RedisException {
+        Long[][][] convertedMatchesObject =
+                cast3DArray((Object[]) (response.get("matches")), Long.class);
+        response.put("matches", convertedMatchesObject);
         return response;
     }
 
@@ -1896,7 +1906,8 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Map<String, Object>> lcsIdx(@NonNull String key1, @NonNull String key2) {
         String[] arguments = new String[] {key1, key2, IDX_COMMAND_STRING};
-        return commandManager.submitNewCommand(LCS, arguments, this::handleMapResponse);
+        return commandManager.submitNewCommand(
+                LCS, arguments, response -> handleLcsIdxResponse(handleMapResponse(response)));
     }
 
     @Override

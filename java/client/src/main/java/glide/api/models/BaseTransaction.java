@@ -4644,12 +4644,19 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
      * @param key1 The key that stores the first string.
      * @param key2 The key that stores the second string.
-     * @return Command Response - A <code>Map&lt;String, Object&gt;</code> containing the indices of
-     *     the longest common subsequence between the 2 strings and the length of the longest common
-     *     subsequence. The <code>Object</code> mapped to the <code>"matches"</code> map key contains
-     *     a two-dimensional <code>Long</code> array that stores the pair of start and end indices of
-     *     the first and second strings that match. An empty <code>Object</code> in the <code>Map
-     *     </code> is returned if the keys do not exist or have no common subsequences.
+     * @return Command Response - A <code>Map</code> containing the indices of the longest common
+     *     subsequence between the 2 strings and the length of the longest common subsequence. The
+     *     resulting map contains two keys: "matches" and "len":
+     *     <ul>
+     *       <li>"len" is mapped to the length of the longest common subsequence between the 2 strings
+     *           stored as <code>Long</code>.
+     *       <li>"matches" is mapped to a three dimensional <code>Long</code> array that stores pairs
+     *           of indices that represent the location of the common subsequences in the strings held
+     *           by <code>key1</code> and <code>key2</code>. For example, the sample result <code>
+     *           new Long[][][] {{{1L, 3L}, {0L, 2L}}}</code> indicates that the substring in <code>
+     *           key1</code> at index 1 to 3 matches the substring in <code>key2</code> at index 0 to
+     *           2.
+     *     </ul>
      */
     public T lcsIdx(@NonNull String key1, @NonNull String key2) {
         ArgsArray args = buildArgs(key1, key2, IDX_COMMAND_STRING);
@@ -4666,12 +4673,21 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key1 The key that stores the first string.
      * @param key2 The key that stores the second string.
      * @param lcsOptions The {@link LcsOptions}.
-     * @return Command Response - A <code>Map&lt;String, Object&gt;</code> containing the indices of
-     *     the longest common subsequence between the 2 strings and the length of the longest common
-     *     subsequence. The <code>Object</code> mapped to the <code>"matches"</code> map key contains
-     *     a two-dimensional <code>Long</code> array that stores the pair of start and end indices of
-     *     the first and second strings that match. An empty <code>Object</code> in the <code>Map
-     *     </code> is returned if the keys do not exist or have no common subsequences.
+     * @return A <code>Map</code> containing the indices of the longest common subsequence between the
+     *     2 strings and the length of the longest common subsequence. The resulting map contains two
+     *     keys: "matches" and "len":
+     *     <ul>
+     *       <li>"len" is mapped to the length of the longest common subsequence between the 2 strings
+     *           stored as <code>Long</code>.
+     *       <li>"matches" is mapped to a three dimensional <code>Object</code> array that stores
+     *           pairs of indices that represent the location of the common subsequences in the
+     *           strings held by <code>key1</code> and <code>key2</code>. For example, the sample
+     *           result if <code>WITHMATCHLEN</code> if specified is <code>
+     *           new Object[] {{new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}}</code> indicates that
+     *           the substring in <code>key1</code> at index 1 to 3 matches the substring in <code>
+     *           key2</code> at index 0 to 2. And the last item in the list indicates that the length
+     *           of the matched subsequence is 3.
+     *     </ul>
      */
     public T lcsIdx(@NonNull String key1, @NonNull String key2, @NonNull LcsOptions lcsOptions) {
         ArgsArray args =
