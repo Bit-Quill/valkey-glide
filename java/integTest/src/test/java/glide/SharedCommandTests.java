@@ -47,6 +47,7 @@ import glide.api.models.commands.RangeOptions.RangeByLex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.RestoreOptions;
+import glide.api.models.commands.ScanOptions;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
@@ -7007,6 +7008,48 @@ public class SharedCommandTests {
                 assertThrows(
                         ExecutionException.class,
                         () -> client.lcsIdxWithMatchLen(nonStringKey, key1, 10L).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void sscan(BaseClient client) {
+        String key1 = "{key}-1" + UUID.randomUUID();
+        String key2 = "{key}-2" + UUID.randomUUID();
+        long initialCursor = 0;
+        String[] numberMembers = new String[125];
+        for (int i = 0; i < numberMembers.length; i++) {
+            numberMembers[i] = String.valueOf(i);
+        }
+        String[] charMembers = new String[] {"a", "b", "c", "d", "e"};
+        int resultCursorIndex = 0;
+        int resultCollectionIndex = 1;
+
+        // Empty set
+        Object[] result = client.sscan(key1, initialCursor).get();
+        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertDeepEquals(new String[] {}, result[resultCollectionIndex]);
+
+        // Result contains the whole set
+        assertEquals(charMembers.length, client.sadd(key1, charMembers).get());
+        result = client.sscan(key1, initialCursor).get();
+        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertDeepEquals(charMembers, result[resultCollectionIndex]);
+
+        result = client.sscan(key1, initialCursor, ScanOptions.builder().matchPattern("a").build()).get();
+        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertDeepEquals(new String[] {"a"}, result[resultCollectionIndex]);
+
+        // Exceptions
+        // Non-set key
+        assertEquals(OK, client.set(key2, "test").get());
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> client.sscan(key2, initialCursor).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        executionException =
+            assertThrows(ExecutionException.class, () -> client.sscan(key2, initialCursor, ScanOptions.builder().matchPattern("test").count(1L).build()).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 }
