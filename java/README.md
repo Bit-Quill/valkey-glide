@@ -1,15 +1,33 @@
+# GLIDE for Redis
+
+General Language Independent Driver for the Enterprise (GLIDE) for Redis, is an AWS-sponsored, open-source Redis client. GLIDE for Redis works with any Redis distribution that adheres to the Redis Serialization
+Protocol (RESP) specification, including open-source Redis, Amazon ElastiCache for Redis, and Amazon MemoryDB for Redis.
+Strategic, mission-critical Redis-based applications have requirements for security, optimized performance, minimal downtime, and observability. GLIDE for Redis is designed to provide a client experience that helps meet these objectives.
+It is sponsored and supported by AWS, and comes pre-configured with best practices learned from over a decade of operating Redis-compatible services used by hundreds of thousands of customers.
+To help ensure consistency in development and operations, GLIDE for Redis is implemented using a core driver framework, written in Rust, with extensions made available for each supported programming language. This design ensures that updates easily propagate to each language and reduces overall complexity.
+In this release, GLIDE for Redis is available for Python, Javascript (Node.js), and Java.
+
+## Supported Redis Versions
+
+GLIDE for Redis is API-compatible with open source Redis version 6 and 7.
+
+## Current Status
+
+We've made GLIDE for Redis an open-source project, and are releasing it in Preview to the community to gather feedback, and actively collaborate on the project roadmap. We welcome questions and contributions from all Redis stakeholders.
+This preview release is recommended for testing purposes only.
+
 # Getting Started - Java Wrapper
 
-## Notice: Java Wrapper - Work in Progress
+## System Requirements
 
-We're excited to share that the Java client is currently in development! However, it's important to note that this client
-is a work in progress and is not yet complete or fully tested. Your contributions and feedback are highly encouraged as
-we work towards refining and improving this implementation. Thank you for your interest and understanding as we continue
-to develop this Java wrapper.
+The beta release of GLIDE for Redis was tested on Intel x86_64 using Ubuntu 22.04.1, Amazon Linux 2023 (AL2023), and macOS 12.7.
+
+## Java supported version
+JDK 11+.
 
 The Java client contains the following parts:
 
-1. `src`: A rust part of the Java client and corresponding tests.
+1. `src`: Rust dynamic library FFI to integrate with [GLIDE core library](https://github.com/aws/glide-for-redis/blob/main/glide-core/README.md).
 2. `client`: A Java-wrapper around the [GLIDE core rust library](../glide-core/README.md) and unit tests for it.
 3. `examples`: An examples app to test the client against a Redis localhost.
 4. `benchmark`: A dedicated benchmarking tool designed to evaluate and compare the performance of GLIDE for Redis and other Java clients.
@@ -41,7 +59,7 @@ Please also consider installing the following packages to build [GLIDE core rust
 
 **Protoc installation**
 
-Download a binary matching your system from the [official release page](https://github.com/protocolbuffers/protobuf/releases/tag/v25.1) and make it accessible in your $PATH by moving it or creating a symlink.
+Download a binary matching your system from the [official release page](https://github.com/protocolbuffers/protobuf/releases) and make it accessible in your $PATH by moving it or creating a symlink.
 For example, on Linux you can copy it to `/usr/bin`:
 
 ```bash
@@ -121,6 +139,29 @@ Other useful gradle developer commands:
 import glide.api.RedisClient;
 
 RedisClient client = RedisClient.CreateClient().get();
+
+CompletableFuture<String> setResponse = client.set("key", "foobar");
+assert setResponse.get() == "OK" : "Failed on client.set("key", "foobar") request";
+
+CompletableFuture<String> getResponse = client.get("key");
+assert getResponse.get() == "foobar" : "Failed on client.get("key") request";
+```
+
+### Cluster Redis:
+```java
+import glide.api.RedisClusterClient;
+
+String host = "localhost";
+Integer port = 6379;
+boolean useSsl = false;
+
+RedisClientConfiguration config =
+        RedisClientConfiguration.builder()
+                .address(NodeAddress.builder().host(host).port(port).build())
+                .useTLS(useSsl)
+                .build();
+
+RedisClusterClient client = RedisClusterClient.CreateClient(config).get();
 
 CompletableFuture<String> setResponse = client.set("key", "foobar");
 assert setResponse.get() == "OK" : "Failed on client.set("key", "foobar") request";
