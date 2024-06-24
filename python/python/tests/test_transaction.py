@@ -768,7 +768,7 @@ class TestTransaction:
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
     async def test_lolwut_transaction(self, redis_client: RedisClusterClient):
         transaction = Transaction()
-        transaction.lolwut().lolwut(5).lolwut(parameters={1, 2}).lolwut(6, {42})
+        transaction.lolwut().lolwut(5).lolwut(parameters=[1, 2]).lolwut(6, [42])
         results = await redis_client.exec(transaction)
         assert results is not None
         for element in results:

@@ -538,7 +538,7 @@ class ClusterCommands(CoreCommands):
             str: A piece of generative computer art along with the current Redis version.
 
         Examples:
-            >>>  client.lolwut(6, new int[] { 40, 20 }, ALL_NODES);
+            >>>  client.lolwut(6, new int[] [ 40, 20 ], ALL_NODES);
             "Redis ver. 7.2.3" # Indicate the current Redis version
 
         Since: Redis version 5.0.0.
