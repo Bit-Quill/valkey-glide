@@ -772,15 +772,6 @@ class TestTransaction:
         results = await redis_client.exec(transaction)
         assert results is not None
 
-        if isinstance(results, dict):
-            for node_result in results.values():
-                if isinstance(node_result, str) and "Redis ver. " in node_result:
-                    assert True
-                else:
-                    assert False
-        else:
-            for element in results:
-                if isinstance(element, str) and "Redis ver. " in element:
-                    assert True
-                else:
-                    assert False
+        for element in results:
+            if isinstance(element, str):
+                assert "Redis ver. " in element

@@ -467,26 +467,23 @@ class StandaloneCommands(CoreCommands):
     ) -> str:
         """
         Displays a piece of generative computer art and the Redis version.
-        The command will be routed to a random node.
 
         See https://valkey.io/commands/lolwut for more details.
 
         Args:
-            version (Optional(int)): Version of computer art to generate.
-            parameters (Optional[str]): Additional set of arguments in order to change the output:
-                For version <code>5</code>, those are length of the line, number of squares per row, and number of squares per column.
-                For version <code>6</code>, those are number of columns and number of lines.
+            version (Optional[int]): Version of computer art to generate.
+            parameters (Optional[List[int]]): Additional set of arguments in order to change the output:
+                For version `5`, those are length of the line, number of squares per row, and number of squares per column.
+                For version `6`, those are number of columns and number of lines.
 
         Returns:
             str: A piece of generative computer art along with the current Redis version.
 
         Examples:
-            >>>  client.lolwut(6, new int[] [ 40, 20 ]);
-            "Redis ver. 7.2.3" # Indicate the current Redis version
-            >>> client.lolwut(5, new int[] [ 30, 5, 5 ]);
-            "Redis ver. 7.2.3" # Indicate the current Redis version
-
-        Since: Redis version 5.0.0.
+            >>> await client.lolwut(6, [40, 20]);
+            "Redis ver. 7.2.3" # Indicates the current Redis version
+            >>> await client.lolwut(5, [30, 5, 5]);
+            "Redis ver. 7.2.3" # Indicates the current Redis version
         """
         args = []
         if version is not None:

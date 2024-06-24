@@ -5564,6 +5564,8 @@ class TestCommands:
     async def test_lolwut(self, redis_client: TRedisClient):
         result = await redis_client.lolwut()
         assert "Redis ver. " in result
+        result = await redis_client.lolwut(parameters=[])
+        assert "Redis ver. " in result
         result = await redis_client.lolwut(parameters=[50, 20])
         assert "Redis ver. " in result
         result = await redis_client.lolwut(6)
@@ -5574,33 +5576,21 @@ class TestCommands:
         if isinstance(redis_client, RedisClusterClient):
             # test with multi-node route
             result = await redis_client.lolwut(route=AllNodes())
-            if isinstance(result, dict):
-                for node_result in result.values():
-                    assert "Redis ver. " in node_result
-            else:
-                assert "Redis ver. " in result
+            assert isinstance(result, dict)
+            for node_result in result.values():
+                assert "Redis ver. " in node_result
 
             result = await redis_client.lolwut(parameters=[10, 20], route=AllNodes())
-            if isinstance(result, dict):
-                for node_result in result.values():
-                    assert "Redis ver. " in node_result
-            else:
-                assert "Redis ver. " in result
+            assert isinstance(result, dict)
+            for node_result in result.values():
+                assert "Redis ver. " in node_result
 
-            # # test with single-node route
+            # test with single-node route
             result = await redis_client.lolwut(2, route=RandomNode())
-            if isinstance(result, dict):
-                for node_result in result.values():
-                    assert "Redis ver. " in node_result
-            else:
-                assert "Redis ver. " in result
+            assert "Redis ver. " in node_result
 
             result = await redis_client.lolwut(2, [10, 20], RandomNode())
-            if isinstance(result, dict):
-                for node_result in result.values():
-                    assert "Redis ver. " in node_result
-            else:
-                assert "Redis ver. " in result
+            assert "Redis ver. " in node_result
 
 
 class TestMultiKeyCommandCrossSlot:
