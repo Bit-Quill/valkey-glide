@@ -3442,6 +3442,34 @@ class BaseTransaction:
             args.extend(expiry.get_cmd_args())
         return self.append_command(RequestType.GetEx, args)
 
+    def lolwut(
+        self: TTransaction,
+        version: Optional[int] = None,
+        parameters: Optional[List[int]] = None,
+    ) -> TTransaction:
+        """
+        Displays a piece of generative computer art and the Redis version.
+        See https://valkey.io/commands/copy for more details.
+
+        Args:
+            version (Optional(int)): Version of computer art to generate.
+            parameters (Optional[str]): Additional set of arguments in order to change the output:
+                For version <code>5</code>, those are length of the line, number of squares per row, and number of squares per column.
+                For version <code>6</code>, those are number of columns and number of lines.
+
+        Command Response:
+            str: A piece of generative computer art along with the current Redis version.
+
+        Since: Redis version 5.0.0.
+        """
+        args = []
+        if version is not None:
+            args.extend(["VERSION", str(version)])
+        if parameters:
+            for var in parameters:
+                args.extend(str(var))
+        return self.append_command(RequestType.Lolwut, args)
+
 
 class Transaction(BaseTransaction):
     """

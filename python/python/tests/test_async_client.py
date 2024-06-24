@@ -5559,6 +5559,32 @@ class TestCommands:
         )
         assert await redis_client.ttl(key1) == -1
 
+    @pytest.mark.parametrize("cluster_mode", [True, False])
+    @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
+    async def test_lolwut(self, redis_client: TRedisClient):
+        result = await redis_client.lolwut()
+        assert "Redis ver. " in result
+        result = await redis_client.lolwut(parameters={50, 20})
+        assert "Redis ver. " in result
+        result = await redis_client.lolwut(6)
+        assert "Redis ver. " in result
+        result = await redis_client.lolwut(5, {30, 4, 4})
+        assert "Redis ver. " in result
+
+        if isinstance(redis_client, RedisClusterClient):
+            # test with multi-node route
+            result = await redis_client.lolwut(route=AllNodes())
+            for nodeResult in result.values():
+                assert "Redis ver. " in nodeResult
+            result = await redis_client.lolwut(parameters={10, 20}, route=AllNodes())
+            for nodeResult in result.values():
+                assert "Redis ver. " in nodeResult
+            # test with single-node route
+            result = await redis_client.lolwut(2, route=RandomNode())
+            assert "Redis ver. " in result
+            result = await redis_client.lolwut(2, {10, 20}, RandomNode())
+            assert "Redis ver. " in result
+
 
 class TestMultiKeyCommandCrossSlot:
     @pytest.mark.parametrize("cluster_mode", [True])

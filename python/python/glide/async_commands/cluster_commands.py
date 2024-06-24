@@ -514,3 +514,42 @@ class ClusterCommands(CoreCommands):
             TClusterResponse[TOK],
             await self._execute_command(RequestType.FlushAll, args, route),
         )
+
+    async def lolwut(
+        self,
+        version: Optional[int] = None,
+        parameters: Optional[List[int]] = None,
+        route: Optional[Route] = None,
+    ) -> str:
+        """
+        Displays a piece of generative computer art and the Redis version.
+
+        See https://valkey.io/commands/lolwut for more details.
+
+        Args:
+            version (Optional(int)): Version of computer art to generate.
+            parameters (Optional[str]): Additional set of arguments in order to change the output:
+                For version <code>5</code>, those are length of the line, number of squares per row, and number of squares per column.
+                For version <code>6</code>, those are number of columns and number of lines.
+            route (Optional[Route]): The command will be routed to all primary nodes, unless `route` is provided,
+                in which case the client will route the command to the nodes defined by `route`.
+
+        Returns:
+            str: A piece of generative computer art along with the current Redis version.
+
+        Examples:
+            >>>  client.lolwut(6, new int[] { 40, 20 }, ALL_NODES);
+            "Redis ver. 7.2.3" # Indicate the current Redis version
+
+        Since: Redis version 5.0.0.
+        """
+        args = []
+        if version is not None:
+            args.extend(["VERSION", str(version)])
+        if parameters:
+            for var in parameters:
+                args.extend(str(var))
+        return cast(
+            str,
+            await self._execute_command(RequestType.Lolwut, args, route),
+        )
