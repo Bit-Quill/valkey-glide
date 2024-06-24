@@ -14,6 +14,7 @@ import static glide.api.models.commands.FlushMode.ASYNC;
 import static glide.api.models.commands.InfoOptions.Section.EVERYTHING;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
 import static glide.api.models.commands.LcsOptions.IDX_COMMAND_STRING;
+import static glide.api.models.commands.LcsOptions.MINMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.LcsOptions.WITHMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.NEGATIVE_INFINITY;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.POSITIVE_INFINITY;
@@ -1055,9 +1056,26 @@ public class TransactionTests {
         transaction.lcsIdx("key1", "key2");
         results.add(Pair.of(LCS, buildArgs("key1", "key2", IDX_COMMAND_STRING)));
 
-        transaction.lcsIdx("key1", "key2", LcsOptions.builder().withMatchLen().build());
+        transaction.lcsIdx("key1", "key2", LcsOptions.builder().minMatchLen(10L).build());
+        results.add(
+                Pair.of(
+                        LCS, buildArgs("key1", "key2", IDX_COMMAND_STRING, MINMATCHLEN_COMMAND_STRING, "10")));
+
+        transaction.lcsIdxWithMatchLen("key1", "key2");
         results.add(
                 Pair.of(LCS, buildArgs("key1", "key2", IDX_COMMAND_STRING, WITHMATCHLEN_COMMAND_STRING)));
+
+        transaction.lcsIdxWithMatchLen("key1", "key2", LcsOptions.builder().minMatchLen(10L).build());
+        results.add(
+                Pair.of(
+                        LCS,
+                        buildArgs(
+                                "key1",
+                                "key2",
+                                IDX_COMMAND_STRING,
+                                MINMATCHLEN_COMMAND_STRING,
+                                "10",
+                                WITHMATCHLEN_COMMAND_STRING)));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

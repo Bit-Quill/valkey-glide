@@ -253,7 +253,9 @@ public class TransactionTestUtilities {
                     .lcsLen(stringKey6, stringKey7)
                     .lcsLen(stringKey6, stringKey8)
                     .lcsIdx(stringKey6, stringKey7)
-                    .lcsIdx(stringKey6, stringKey7, LcsOptions.builder().withMatchLen().build());
+                    .lcsIdx(stringKey6, stringKey7, LcsOptions.builder().minMatchLen(1L).build())
+                    .lcsIdxWithMatchLen(stringKey6, stringKey7)
+                    .lcsIdxWithMatchLen(stringKey6, stringKey7, LcsOptions.builder().minMatchLen(1L).build());
         }
 
         var expectedResults =
@@ -295,7 +297,9 @@ public class TransactionTestUtilities {
                                 3L, // lcsLEN(stringKey6, stringKey7)
                                 0L, // lcsLEN(stringKey6, stringKey8)
                                 expectedLcsIdxObject, // lcsIdx(stringKey6, stringKey7)
-                                expectedLcsIdxWithMatchLenObject, // lcsIdx(stringKey6, stringKey7, withMatchLen())
+                                expectedLcsIdxObject, // lcsIdx(stringKey6, stringKey7, minMatchLen(1L)
+                                expectedLcsIdxWithMatchLenObject, // lcsIdxWithMatchLen(stringKey6, stringKey7)
+                                expectedLcsIdxWithMatchLenObject, // lcsIdxWithMatchLen(key6, key7, minMatchLen(1L))
                             });
         }
 

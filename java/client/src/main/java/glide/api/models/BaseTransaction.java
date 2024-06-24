@@ -12,6 +12,7 @@ import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.commands.StringBaseCommands.LEN_REDIS_API;
 import static glide.api.models.commands.LcsOptions.IDX_COMMAND_STRING;
+import static glide.api.models.commands.LcsOptions.WITHMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.RangeOptions.createZRangeArgs;
 import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArgs;
 import static glide.api.models.commands.function.FunctionListOptions.LIBRARY_NAME_REDIS_API;
@@ -4679,20 +4680,83 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     <ul>
      *       <li>"len" is mapped to the length of the longest common subsequence between the 2 strings
      *           stored as <code>Long</code>.
-     *       <li>"matches" is mapped to a three dimensional <code>Object</code> array that stores
-     *           pairs of indices that represent the location of the common subsequences in the
-     *           strings held by <code>key1</code> and <code>key2</code>. For example, the sample
-     *           result if <code>WITHMATCHLEN</code> if specified is <code>
-     *           new Object[] {{new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}}</code> indicates that
-     *           the substring in <code>key1</code> at index 1 to 3 matches the substring in <code>
-     *           key2</code> at index 0 to 2. And the last item in the list indicates that the length
-     *           of the matched subsequence is 3.
+     *       <li>"matches" is mapped to a three dimensional <code>Long</code> array that stores pairs
+     *           of indices that represent the location of the common subsequences in the strings held
+     *           by <code>key1</code> and <code>key2</code>. For example, the sample result <code>
+     *           new Long[][][] {{{1L, 3L}, {0L, 2L}}}</code> indicates that the substring in <code>
+     *           key1</code> at index 1 to 3 matches the substring in <code>key2</code> at index 0 to
+     *           2.
      *     </ul>
      */
     public T lcsIdx(@NonNull String key1, @NonNull String key2, @NonNull LcsOptions lcsOptions) {
         ArgsArray args =
                 buildArgs(
                         ArrayUtils.addAll(new String[] {key1, key2, IDX_COMMAND_STRING}, lcsOptions.toArgs()));
+        protobufTransaction.addCommands(buildCommand(LCS, args));
+        return getThis();
+    }
+
+    /**
+     * Returns the indices and length of the longest common subsequence between strings stored at
+     * <code>key1</code> and <code>key2</code>.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
+     * @param key1 The key that stores the first string.
+     * @param key2 The key that stores the second string.
+     * @return Command Response - A <code>Map</code> containing the indices of the longest common
+     *     subsequence between the 2 strings and the length of the longest common subsequence. The
+     *     resulting map contains two keys: "matches" and "len":
+     *     <ul>
+     *       <li>"len" is mapped to the length of the longest common subsequence between the 2 strings
+     *           stored as <code>Long</code>.
+     *       <li>"matches" is mapped to a three dimensional <code>Object</code> array that stores
+     *           pairs of indices that represent the location of the common subsequences in the
+     *           strings held by <code>key1</code> and <code>key2</code>. For example, the sample
+     *           result is <code>new Object[] {{new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}}</code>
+     *           which indicates that the substring in <code>key1</code> at index 1 to 3 matches the
+     *           substring in <code>key2</code> at index 0 to 2. And the last item in the list
+     *           indicates that the length of the matched subsequence is 3.
+     *     </ul>
+     */
+    public T lcsIdxWithMatchLen(@NonNull String key1, @NonNull String key2) {
+        ArgsArray args = buildArgs(key1, key2, IDX_COMMAND_STRING, WITHMATCHLEN_COMMAND_STRING);
+        protobufTransaction.addCommands(buildCommand(LCS, args));
+        return getThis();
+    }
+
+    /**
+     * Returns the indices and length of the longest common subsequence between strings stored at
+     * <code>key1</code> and <code>key2</code>.
+     *
+     * @since Redis 7.0 and above.
+     * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
+     * @param key1 The key that stores the first string.
+     * @param key2 The key that stores the second string.
+     * @param lcsOptions The {@link LcsOptions}.
+     * @return Command Response - A <code>Map</code> containing the indices of the longest common
+     *     subsequence between the 2 strings and the length of the longest common subsequence. The
+     *     resulting map contains two keys: "matches" and "len":
+     *     <ul>
+     *       <li>"len" is mapped to the length of the longest common subsequence between the 2 strings
+     *           stored as <code>Long</code>.
+     *       <li>"matches" is mapped to a three dimensional <code>Object</code> array that stores
+     *           pairs of indices that represent the location of the common subsequences in the
+     *           strings held by <code>key1</code> and <code>key2</code>. For example, the sample
+     *           result is <code>new Object[] {{new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}}</code>
+     *           which indicates that the substring in <code>key1</code> at index 1 to 3 matches the
+     *           substring in <code>key2</code> at index 0 to 2. And the last item in the list
+     *           indicates that the length of the matched subsequence is 3.
+     *     </ul>
+     */
+    public T lcsIdxWithMatchLen(
+            @NonNull String key1, @NonNull String key2, @NonNull LcsOptions lcsOptions) {
+        ArgsArray args =
+                buildArgs(
+                        concatenateArrays(
+                                new String[] {key1, key2, IDX_COMMAND_STRING},
+                                lcsOptions.toArgs(),
+                                new String[] {WITHMATCHLEN_COMMAND_STRING}));
         protobufTransaction.addCommands(buildCommand(LCS, args));
         return getThis();
     }

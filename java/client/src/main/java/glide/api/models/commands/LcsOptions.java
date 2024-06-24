@@ -25,16 +25,6 @@ public final class LcsOptions {
     /** Minimum length of matches to include in the result. */
     private final Long minMatchLen;
 
-    /** Will include match lengths in the result if set to <code>true</code>. */
-    private boolean isWithMatchLen;
-
-    public static class LcsOptionsBuilder {
-        /** Sets <code>isWithMatchLen</code> to <code>true</code>. */
-        public LcsOptionsBuilder withMatchLen() {
-            return isWithMatchLen(true);
-        }
-    }
-
     /**
      * Converts LcsOptions into a String[].
      *
@@ -46,10 +36,6 @@ public final class LcsOptions {
         if (minMatchLen != null) {
             optionArgs.add(MINMATCHLEN_COMMAND_STRING);
             optionArgs.add(minMatchLen.toString());
-        }
-
-        if (isWithMatchLen) {
-            optionArgs.add(WITHMATCHLEN_COMMAND_STRING);
         }
 
         return optionArgs.toArray(new String[0]);

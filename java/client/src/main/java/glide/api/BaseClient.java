@@ -2,6 +2,7 @@
 package glide.api;
 
 import static glide.api.models.commands.LcsOptions.IDX_COMMAND_STRING;
+import static glide.api.models.commands.LcsOptions.WITHMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
 import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
 import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArgs;
@@ -1915,6 +1916,25 @@ public abstract class BaseClient
             @NonNull String key1, @NonNull String key2, @NonNull LcsOptions lcsOptions) {
         String[] arguments =
                 concatenateArrays(new String[] {key1, key2, IDX_COMMAND_STRING}, lcsOptions.toArgs());
+        return commandManager.submitNewCommand(
+                LCS, arguments, response -> handleLcsIdxResponse(handleMapResponse(response)));
+    }
+
+    @Override
+    public CompletableFuture<Map<String, Object>> lcsIdxWithMatchLen(
+            @NonNull String key1, @NonNull String key2) {
+        String[] arguments = new String[] {key1, key2, IDX_COMMAND_STRING, WITHMATCHLEN_COMMAND_STRING};
+        return commandManager.submitNewCommand(LCS, arguments, this::handleMapResponse);
+    }
+
+    @Override
+    public CompletableFuture<Map<String, Object>> lcsIdxWithMatchLen(
+            @NonNull String key1, @NonNull String key2, @NonNull LcsOptions lcsOptions) {
+        String[] arguments =
+                concatenateArrays(
+                        new String[] {key1, key2, IDX_COMMAND_STRING},
+                        lcsOptions.toArgs(),
+                        new String[] {WITHMATCHLEN_COMMAND_STRING});
         return commandManager.submitNewCommand(LCS, arguments, this::handleMapResponse);
     }
 

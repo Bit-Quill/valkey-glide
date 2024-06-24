@@ -797,7 +797,13 @@ public class CommandTests {
                 Arguments.of(
                         "lcsIdx",
                         "7.0.0",
-                        clusterClient.lcsIdx("abc", "def", LcsOptions.builder().withMatchLen().build())));
+                        clusterClient.lcsIdx("abc", "def", LcsOptions.builder().minMatchLen(10L).build())),
+                Arguments.of("lcsIdxWithMatchLen", "7.0.0", clusterClient.lcsIdxWithMatchLen("abc", "def")),
+                Arguments.of(
+                        "lcsIdxWithMatchLen",
+                        "7.0.0",
+                        clusterClient.lcsIdxWithMatchLen(
+                                "abc", "def", LcsOptions.builder().minMatchLen(10L).build())));
     }
 
     @SneakyThrows

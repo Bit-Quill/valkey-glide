@@ -6492,6 +6492,68 @@ public class RedisClientTest {
         String key1 = "testKey1";
         String key2 = "testKey2";
         String[] arguments =
+                new String[] {key1, key2, IDX_COMMAND_STRING, MINMATCHLEN_COMMAND_STRING, "2"};
+        Map<String, Object> value =
+                Map.of(
+                        "matches",
+                        new Object[] {new Object[] {new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}},
+                        "len",
+                        3L);
+
+        CompletableFuture<Map<String, Object>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, Object>>submitNewCommand(eq(LCS), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, Object>> response =
+                service.lcsIdx(key1, key2, LcsOptions.builder().minMatchLen(2L).build());
+        Map<String, Object> payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lcsIdxWithMatchLen() {
+        // setup
+        String key1 = "testKey1";
+        String key2 = "testKey2";
+        String[] arguments = new String[] {key1, key2, IDX_COMMAND_STRING, WITHMATCHLEN_COMMAND_STRING};
+        Map<String, Object> value =
+                Map.of(
+                        "matches",
+                        new Object[] {new Object[] {new Long[] {1L, 3L}, new Long[] {0L, 2L}, 3L}},
+                        "len",
+                        3L);
+
+        CompletableFuture<Map<String, Object>> testResponse = new CompletableFuture<>();
+        testResponse.complete(value);
+
+        // match on protobuf request
+        when(commandManager.<Map<String, Object>>submitNewCommand(eq(LCS), eq(arguments), any()))
+                .thenReturn(testResponse);
+
+        // exercise
+        CompletableFuture<Map<String, Object>> response = service.lcsIdxWithMatchLen(key1, key2);
+        Map<String, Object> payload = response.get();
+
+        // verify
+        assertEquals(testResponse, response);
+        assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lcsIdxWithMatchLen_with_options() {
+        // setup
+        String key1 = "testKey1";
+        String key2 = "testKey2";
+        String[] arguments =
                 new String[] {
                     key1,
                     key2,
@@ -6516,7 +6578,7 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<Map<String, Object>> response =
-                service.lcsIdx(key1, key2, LcsOptions.builder().minMatchLen(2L).withMatchLen().build());
+                service.lcsIdxWithMatchLen(key1, key2, LcsOptions.builder().minMatchLen(2L).build());
         Map<String, Object> payload = response.get();
 
         // verify
