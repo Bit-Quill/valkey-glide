@@ -771,9 +771,16 @@ class TestTransaction:
         transaction.lolwut().lolwut(5).lolwut(parameters=[1, 2]).lolwut(6, [42])
         results = await redis_client.exec(transaction)
         assert results is not None
+
         if isinstance(results, dict):
             for node_result in results.values():
-                assert "Redis ver. " in node_result
+                if isinstance(node_result, str) and "Redis ver. " in node_result:
+                    assert True
+                else:
+                    assert False
         else:
             for element in results:
-                assert "Redis ver. " in element
+                if isinstance(element, str) and "Redis ver. " in element:
+                    assert True
+                else:
+                    assert False
