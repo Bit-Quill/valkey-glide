@@ -4,9 +4,9 @@ package glide.api.models.configuration;
 import glide.api.RedisClient;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 
 /**
  * Subscription configuration for {@link RedisClient}.
@@ -29,7 +29,6 @@ import lombok.experimental.SuperBuilder;
  * }</pre>
  */
 @Getter
-@SuperBuilder
 public final class StandaloneSubscriptionConfiguration extends BaseSubscriptionConfiguration {
 
     /**
@@ -51,18 +50,25 @@ public final class StandaloneSubscriptionConfiguration extends BaseSubscriptionC
      */
     private final Map<PubSubChannelMode, Set<String>> subscriptions;
 
-    // all code below is a `SuperBuilder` extension to provide user-friendly
-    // API `subscription` to add a single subscription
-    private StandaloneSubscriptionConfiguration(BaseSubscriptionConfigurationBuilder<?, ?> b) {
-        super(b);
-        this.subscriptions = ((StandaloneSubscriptionConfigurationBuilder<?, ?>) b).subscriptions;
+    // All code below is a custom implementation of `SuperBuilder`
+    public StandaloneSubscriptionConfiguration(
+            Optional<MessageCallback> callback,
+            Optional<Object> context,
+            Map<PubSubChannelMode, Set<String>> subscriptions) {
+        super(callback, context);
+        this.subscriptions = subscriptions;
+    }
+
+    public static StandaloneSubscriptionConfigurationBuilder builder() {
+        return new StandaloneSubscriptionConfigurationBuilder();
     }
 
     /** Builder for {@link StandaloneSubscriptionConfiguration}. */
-    public abstract static class StandaloneSubscriptionConfigurationBuilder<
-                    C extends StandaloneSubscriptionConfiguration,
-                    B extends StandaloneSubscriptionConfigurationBuilder<C, B>>
-            extends BaseSubscriptionConfigurationBuilder<C, B> {
+    public static class StandaloneSubscriptionConfigurationBuilder
+            extends BaseSubscriptionConfigurationBuilder<
+                    StandaloneSubscriptionConfigurationBuilder, StandaloneSubscriptionConfiguration> {
+
+        private StandaloneSubscriptionConfigurationBuilder() {}
 
         private Map<PubSubChannelMode, Set<String>> subscriptions = new HashMap<>(2);
 
@@ -71,9 +77,37 @@ public final class StandaloneSubscriptionConfiguration extends BaseSubscriptionC
          * is used.<br>
          * See {@link #subscriptions}.
          */
-        public B subscription(PubSubChannelMode mode, String channelOrPattern) {
+        public StandaloneSubscriptionConfigurationBuilder subscription(
+                PubSubChannelMode mode, String channelOrPattern) {
             addSubscription(subscriptions, mode, channelOrPattern);
             return self();
+        }
+
+        /** Set all subscriptions in a bulk. Rewrites previously stored configurations. */
+        public StandaloneSubscriptionConfigurationBuilder subscriptions(
+                Map<PubSubChannelMode, Set<String>> subscriptions) {
+            this.subscriptions = subscriptions;
+            return this;
+        }
+
+        /**
+         * Set subscriptions in a bulk for the given mode. Rewrites previously stored configurations for
+         * that mode.
+         */
+        public StandaloneSubscriptionConfigurationBuilder subscriptions(
+                PubSubChannelMode mode, Set<String> subscriptions) {
+            this.subscriptions.put(mode, subscriptions);
+            return this;
+        }
+
+        @Override
+        protected StandaloneSubscriptionConfigurationBuilder self() {
+            return this;
+        }
+
+        @Override
+        public StandaloneSubscriptionConfiguration build() {
+            return new StandaloneSubscriptionConfiguration(callback, context, subscriptions);
         }
     }
 }

@@ -9,14 +9,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Client subscription configuration. Could be either {@link StandaloneSubscriptionConfiguration} or
  * {@link ClusterSubscriptionConfiguration}.
  */
 @Getter
-@SuperBuilder
+@RequiredArgsConstructor
 public abstract class BaseSubscriptionConfiguration {
 
     /**
@@ -49,10 +49,14 @@ public abstract class BaseSubscriptionConfiguration {
      */
     protected final Optional<Object> context;
 
-    // all code below is a `SuperBuilder` extension to provide user-friendly
-    // API `callback` to add a callback [and a context]
+    // All code below is a custom implementation of `SuperBuilder`, because we provide
+    // custom user-friendly API `callback` and `subscription`.
     public abstract static class BaseSubscriptionConfigurationBuilder<
-            C, B extends BaseSubscriptionConfigurationBuilder<C, B>> {
+            B extends BaseSubscriptionConfigurationBuilder<B, C>,
+            C extends BaseSubscriptionConfiguration> {
+
+        protected Optional<MessageCallback> callback;
+        protected Optional<Object> context;
 
         protected <M extends ChannelMode> void addSubscription(
                 Map<M, Set<String>> subscriptions, M mode, String channelOrPattern) {
@@ -61,6 +65,10 @@ public abstract class BaseSubscriptionConfiguration {
             }
             subscriptions.get(mode).add(channelOrPattern);
         }
+
+        protected abstract B self();
+
+        protected abstract C build();
 
         /**
          * Set a callback and a context.

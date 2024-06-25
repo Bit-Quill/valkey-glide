@@ -4,9 +4,9 @@ package glide.api.models.configuration;
 import glide.api.RedisClusterClient;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 
 /**
  * Subscription configuration for {@link RedisClusterClient}.
@@ -30,7 +30,6 @@ import lombok.experimental.SuperBuilder;
  * }</pre>
  */
 @Getter
-@SuperBuilder
 public final class ClusterSubscriptionConfiguration extends BaseSubscriptionConfiguration {
 
     /**
@@ -43,7 +42,11 @@ public final class ClusterSubscriptionConfiguration extends BaseSubscriptionConf
         EXACT,
         /** Use glob-style channel name patterns. */
         PATTERN,
-        /** Use sharded pubsub. */
+        /**
+         * Use sharded pubsub.
+         *
+         * @since Redis 7.0 and above.
+         */
         SHARDED,
     }
 
@@ -54,29 +57,64 @@ public final class ClusterSubscriptionConfiguration extends BaseSubscriptionConf
      */
     private final Map<PubSubClusterChannelMode, Set<String>> subscriptions;
 
-    // all code below is a `SuperBuilder` extension to provide user-friendly
-    // API `subscription` to add a single subscription
-    private ClusterSubscriptionConfiguration(BaseSubscriptionConfigurationBuilder<?, ?> b) {
-        super(b);
-        this.subscriptions = ((ClusterSubscriptionConfigurationBuilder<?, ?>) b).subscriptions;
+    // All code below is a custom implementation of `SuperBuilder`
+    private ClusterSubscriptionConfiguration(
+            Optional<MessageCallback> callback,
+            Optional<Object> context,
+            Map<PubSubClusterChannelMode, Set<String>> subscriptions) {
+        super(callback, context);
+        this.subscriptions = subscriptions;
+    }
+
+    public static ClusterSubscriptionConfigurationBuilder builder() {
+        return new ClusterSubscriptionConfigurationBuilder();
     }
 
     /** Builder for {@link ClusterSubscriptionConfiguration}. */
-    public abstract static class ClusterSubscriptionConfigurationBuilder<
-                    C extends ClusterSubscriptionConfiguration,
-                    B extends ClusterSubscriptionConfigurationBuilder<C, B>>
-            extends BaseSubscriptionConfigurationBuilder<C, B> {
+    public static class ClusterSubscriptionConfigurationBuilder
+            extends BaseSubscriptionConfigurationBuilder<
+                    ClusterSubscriptionConfigurationBuilder, ClusterSubscriptionConfiguration> {
+
+        private ClusterSubscriptionConfigurationBuilder() {}
 
         private Map<PubSubClusterChannelMode, Set<String>> subscriptions = new HashMap<>(3);
 
         /**
          * Add a subscription to a channel or to multiple channels if {@link
          * PubSubClusterChannelMode#PATTERN} is used.<br>
-         * See {@link #subscriptions}.
+         * See {@link ClusterSubscriptionConfiguration#subscriptions}.
          */
-        public B subscription(PubSubClusterChannelMode mode, String channelOrPattern) {
+        public ClusterSubscriptionConfigurationBuilder subscription(
+                PubSubClusterChannelMode mode, String channelOrPattern) {
             addSubscription(subscriptions, mode, channelOrPattern);
-            return self();
+            return this;
+        }
+
+        /** Set all subscriptions in a bulk. Rewrites previously stored configurations. */
+        public ClusterSubscriptionConfigurationBuilder subscriptions(
+                Map<PubSubClusterChannelMode, Set<String>> subscriptions) {
+            this.subscriptions = subscriptions;
+            return this;
+        }
+
+        /**
+         * Set subscriptions in a bulk for the given mode. Rewrites previously stored configurations for
+         * that mode.
+         */
+        public ClusterSubscriptionConfigurationBuilder subscriptions(
+                PubSubClusterChannelMode mode, Set<String> subscriptions) {
+            this.subscriptions.put(mode, subscriptions);
+            return this;
+        }
+
+        @Override
+        protected ClusterSubscriptionConfigurationBuilder self() {
+            return this;
+        }
+
+        @Override
+        public ClusterSubscriptionConfiguration build() {
+            return new ClusterSubscriptionConfiguration(callback, context, subscriptions);
         }
     }
 }
