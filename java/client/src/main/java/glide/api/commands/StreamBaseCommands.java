@@ -499,6 +499,7 @@ public interface StreamBaseCommands {
      * Returns the number of messages that were successfully acknowledged by the consumer group member of a stream.
      * This command should be called on a pending message so that such message does not get processed again.
      *
+     * @see <a href="https://valkey.io/commands/xack/">valkey.io</a> for details.
      * @param key The key of the stream.
      * @param group The consumer group name.
      * @param ids Stream entry ID to acknowledge and purge messages.
@@ -517,6 +518,7 @@ public interface StreamBaseCommands {
     /**
      * Returns stream message summary information for pending messages matching a given range of IDs.
      *
+     * @see <a href="https://valkey.io/commands/xpending/">valkey.io</a> for details.
      * @param key The key of the stream.
      * @param group The consumer group name.
      * @return An array that includes the summary of pending messages, with the format
@@ -542,6 +544,7 @@ public interface StreamBaseCommands {
     /**
      * Returns an extended form of stream message information for pending messages matching a given range of IDs.
      *
+     * @see <a href="https://valkey.io/commands/xpending/">valkey.io</a> for details.
      * @param key The key of the stream.
      * @param group The consumer group name.
      * @param start Starting stream ID bound for range.
@@ -580,6 +583,7 @@ public interface StreamBaseCommands {
     /**
      * Returns an extended form of stream message information for pending messages matching a given range of IDs.
      *
+     * @see <a href="https://valkey.io/commands/xpending/">valkey.io</a> for details.
      * @param key The key of the stream.
      * @param group The consumer group name.
      * @param start Starting stream ID bound for range.
