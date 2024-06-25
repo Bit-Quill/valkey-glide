@@ -2088,28 +2088,55 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Map<String, String[]>> xclaim(@NonNull String key, @NonNull String group, @NonNull String consumer, long minIdleTime, @NonNull String[] ids) {
-        String[] args = concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
+    public CompletableFuture<Map<String, String[]>> xclaim(
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull String consumer,
+            long minIdleTime,
+            @NonNull String[] ids) {
+        String[] args =
+                concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
         return commandManager.submitNewCommand(XClaim, args, this::handleMapResponse);
     }
 
     @Override
-    public CompletableFuture<Map<String, String[]>> xclaim(@NonNull String key, @NonNull String group, @NonNull String consumer, long minIdleTime, @NonNull String[] ids, @NonNull StreamClaimOptions options) {
-        String[] args = concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
+    public CompletableFuture<Map<String, String[]>> xclaim(
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull String consumer,
+            long minIdleTime,
+            @NonNull String[] ids,
+            @NonNull StreamClaimOptions options) {
+        String[] args =
+                concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
         args = concatenateArrays(args, options.toArgs(false));
         return commandManager.submitNewCommand(XClaim, args, this::handleMapResponse);
     }
 
     @Override
-    public CompletableFuture<String[]> xclaimJustId(@NonNull String key, @NonNull String group, @NonNull String consumer, long minIdleTime, @NonNull String[] ids) {
-        return xclaimJustId(key, group, consumer, minIdleTime, ids, StreamClaimOptions.builder().build());
+    public CompletableFuture<String[]> xclaimJustId(
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull String consumer,
+            long minIdleTime,
+            @NonNull String[] ids) {
+        return xclaimJustId(
+                key, group, consumer, minIdleTime, ids, StreamClaimOptions.builder().build());
     }
 
     @Override
-    public CompletableFuture<String[]> xclaimJustId(@NonNull String key, @NonNull String group, @NonNull String consumer, long minIdleTime, @NonNull String[] ids, @NonNull StreamClaimOptions options) {
-        String[] args = concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
+    public CompletableFuture<String[]> xclaimJustId(
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull String consumer,
+            long minIdleTime,
+            @NonNull String[] ids,
+            @NonNull StreamClaimOptions options) {
+        String[] args =
+                concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
         args = concatenateArrays(args, options.toArgs(true));
-        return commandManager.submitNewCommand(XClaim, args, response -> castArray(handleArrayResponse(response), String.class));
+        return commandManager.submitNewCommand(
+                XClaim, args, response -> castArray(handleArrayResponse(response), String.class));
     }
 
     @Override

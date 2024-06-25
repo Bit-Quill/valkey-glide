@@ -1,3 +1,4 @@
+/** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands.stream;
 
 import glide.api.commands.StreamBaseCommands;
@@ -6,7 +7,8 @@ import java.util.List;
 import lombok.Builder;
 
 /**
- * Optional arguments to {@link StreamBaseCommands#xclaim(String, String, String, long, String[], StreamClaimOptions)}
+ * Optional arguments to {@link StreamBaseCommands#xclaim(String, String, String, long, String[],
+ * StreamClaimOptions)}
  *
  * @see <a href="https://redis.io/commands/xclaim/">redis.io</a>
  */
@@ -31,34 +33,48 @@ public class StreamClaimOptions {
     /** Redis api string to designate LASTID */
     public static final String LAST_ID_REDIS_API = "LASTID";
 
-    /** Set the idle time (last time it was delivered) of the message. If <code>idle</code> is not specified, an <code>idle</code> of <code>0</code> is assumed, that is, the time count is reset because the message has now a new owner trying to process it. */
-     private final Long idle; // in milliseconds
+    /**
+     * Set the idle time (last time it was delivered) of the message. If <code>idle</code> is not
+     * specified, an <code>idle</code> of <code>0</code> is assumed, that is, the time count is reset
+     * because the message has now a new owner trying to process it.
+     */
+    private final Long idle; // in milliseconds
 
     /**
-     * This is the same as idle but instead of a relative amount of milliseconds, it sets the idle time to a specific Unix time (in milliseconds). This is useful in order to rewrite the AOF file generating <code>XCLAIM</code> commands.
+     * This is the same as idle but instead of a relative amount of milliseconds, it sets the idle
+     * time to a specific Unix time (in milliseconds). This is useful in order to rewrite the AOF file
+     * generating <code>XCLAIM</code> commands.
      */
     private final Long idleUnixTime; // in unix-time milliseconds
 
-    /** Set the retry counter to the specified value. This counter is incremented every time a message is delivered again. Normally <code>XCLAIM</code> does not alter this counter, which is just served to clients when the <code>XPENDING</code> command is called: this way clients can detect anomalies, like messages that are never processed for some reason after a big number of delivery attempts. */
-     private final Long retryCount;
+    /**
+     * Set the retry counter to the specified value. This counter is incremented every time a message
+     * is delivered again. Normally <code>XCLAIM</code> does not alter this counter, which is just
+     * served to clients when the <code>XPENDING</code> command is called: this way clients can detect
+     * anomalies, like messages that are never processed for some reason after a big number of
+     * delivery attempts.
+     */
+    private final Long retryCount;
 
     /**
-     * Creates the pending message entry in the PEL even if certain specified IDs are not already in the PEL assigned to a different client. However, the message must exist in the stream, otherwise the IDs of non-existing messages are ignored.
+     * Creates the pending message entry in the PEL even if certain specified IDs are not already in
+     * the PEL assigned to a different client. However, the message must exist in the stream,
+     * otherwise the IDs of non-existing messages are ignored.
      */
-    private final boolean force;
+    private final boolean isForce;
 
-    /**
-     * Filter up to the <code>lastid</code> when claiming messages
-     */
+    /** Filter up to the <code>lastid</code> when claiming messages */
     private final String lastId;
 
     public static class StreamClaimOptionsBuilder {
 
         /**
-         * Creates the pending message entry in the PEL even if certain specified IDs are not already in the PEL assigned to a different client. However, the message must exist in the stream, otherwise the IDs of non-existing messages are ignored.
+         * Creates the pending message entry in the PEL even if certain specified IDs are not already in
+         * the PEL assigned to a different client. However, the message must exist in the stream,
+         * otherwise the IDs of non-existing messages are ignored.
          */
-        public StreamClaimOptions.StreamClaimOptionsBuilder force() {
-            return force(true);
+        public StreamClaimOptionsBuilder force() {
+            return isForce(true);
         }
     }
 
@@ -85,7 +101,7 @@ public class StreamClaimOptions {
             optionArgs.add(Long.toString(retryCount));
         }
 
-        if (force) {
+        if (isForce) {
             optionArgs.add(FORCE_REDIS_API);
         }
 

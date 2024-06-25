@@ -722,10 +722,10 @@ public interface StreamBaseCommands {
      * @param ids
      * @return
      */
-    CompletableFuture<Map<String, String[]>> xclaim(String key, String group, String consumer, long minIdleTime, String[] ids);
+    CompletableFuture<Map<String, String[]>> xclaim(
+            String key, String group, String consumer, long minIdleTime, String[] ids);
 
     /**
-     *
      * @param key
      * @param group
      * @param consumer
@@ -734,10 +734,15 @@ public interface StreamBaseCommands {
      * @param options
      * @return
      */
-    CompletableFuture<Map<String, String[]>> xclaim(String key, String group, String consumer, long minIdleTime, String[] ids, StreamClaimOptions options);
+    CompletableFuture<Map<String, String[]>> xclaim(
+            String key,
+            String group,
+            String consumer,
+            long minIdleTime,
+            String[] ids,
+            StreamClaimOptions options);
 
     /**
-     *
      * @param key
      * @param group
      * @param consumer
@@ -745,10 +750,10 @@ public interface StreamBaseCommands {
      * @param ids
      * @return
      */
-    CompletableFuture<String[]> xclaimJustId(String key, String group, String consumer, long minIdleTime, String[] ids);
+    CompletableFuture<String[]> xclaimJustId(
+            String key, String group, String consumer, long minIdleTime, String[] ids);
 
     /**
-     *
      * @param key
      * @param group
      * @param consumer
@@ -757,5 +762,11 @@ public interface StreamBaseCommands {
      * @param options
      * @return
      */
-    CompletableFuture<String[]> xclaimJustId(String key, String group, String consumer, long minIdleTime, String[] ids, StreamClaimOptions options);
+    CompletableFuture<String[]> xclaimJustId(
+            String key,
+            String group,
+            String consumer,
+            long minIdleTime,
+            String[] ids,
+            StreamClaimOptions options);
 }
