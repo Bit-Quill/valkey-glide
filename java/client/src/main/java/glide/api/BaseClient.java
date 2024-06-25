@@ -336,11 +336,11 @@ public abstract class BaseClient
     }
 
     /**
-     * Returns a next pubsub message.
+     * Returns a promise for a next pubsub message.
      *
      * @throws WrongConfiguration If client is not subscribed to any channel or if client configured
      *     with a callback.
-     * @return A message if any or <code>null</code> if there are no unread messages.
+     * @return A <code>Future</code> which resolved with the next incoming message.
      */
     public CompletableFuture<Message> getPubSubMessage() {
         if (subscriptionConfiguration.isEmpty()) {

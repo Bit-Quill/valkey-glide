@@ -83,8 +83,8 @@ fn redis_value_to_java<'local>(env: &mut JNIEnv<'local>, val: Value) -> JObject<
             attributes: _,
         } => todo!(),
         // Create a java `Map<String, Object>` with two keys:
-        //   - "kind" which responds to the push type, stored as a `String`
-        //   - "values" which responds to the array of values received, stored as `Object[]`
+        //   - "kind" which corresponds to the push type, stored as a `String`
+        //   - "values" which corresponds to the array of values received, stored as `Object[]`
         // Only string messages are supported now by Redis and `redis-rs`.
         Value::Push { kind, data } => {
             // TODO rework unwraps after https://github.com/aws/glide-for-redis/pull/1601

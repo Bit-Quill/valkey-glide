@@ -50,7 +50,13 @@ public class MessageHandler {
 
         switch (pushType) {
             case Disconnection:
-                // TODO what to do?
+                // TODO log thru logger https://github.com/aws/glide-for-redis/pull/1422
+                /*
+                ClientLogger.log(
+                    LogLevel.WARN,
+                    "disconnect notification",
+                    "Transport disconnected, messages might be lost",
+                */
                 break;
             case PMessage:
                 handle(new Message((String) values[2], (String) values[1], (String) values[0]));
@@ -77,6 +83,12 @@ public class MessageHandler {
             default:
                 // TODO log thru logger https://github.com/aws/glide-for-redis/pull/1422
                 System.err.printf("Received push with unsupported type: %s.\n", pushType);
+                /*
+                ClientLogger.log(
+                    LogLevel.WARN,
+                    "unknown notification",
+                    f"Unknown notification message: '{message_kind}'",
+                */
         }
     }
 
