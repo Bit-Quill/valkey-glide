@@ -136,6 +136,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.XGroupCreateConsu
 import static redis_request.RedisRequestOuterClass.RequestType.XGroupDelConsumer;
 import static redis_request.RedisRequestOuterClass.RequestType.XGroupDestroy;
 import static redis_request.RedisRequestOuterClass.RequestType.XLen;
+import static redis_request.RedisRequestOuterClass.RequestType.XPending;
 import static redis_request.RedisRequestOuterClass.RequestType.XRange;
 import static redis_request.RedisRequestOuterClass.RequestType.XRead;
 import static redis_request.RedisRequestOuterClass.RequestType.XReadGroup;
@@ -207,6 +208,7 @@ import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
+import glide.api.models.commands.stream.StreamPendingOptions;
 import glide.api.models.commands.stream.StreamRange;
 import glide.api.models.commands.stream.StreamReadGroupOptions;
 import glide.api.models.commands.stream.StreamReadOptions;
@@ -1557,6 +1559,35 @@ public abstract class BaseClient
             @NonNull String key, @NonNull String group, @NonNull String[] ids) {
         String[] args = concatenateArrays(new String[] {key, group}, ids);
         return commandManager.submitNewCommand(XAck, args, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Object[]> xpending(@NonNull String key, @NonNull String group) {
+        return commandManager.submitNewCommand(
+                XPending, new String[] {key, group}, this::handleArrayOrNullResponse);
+    }
+
+    @Override
+    public CompletableFuture<Object[][]> xpending(
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull StreamRange start,
+            @NonNull StreamRange end,
+            long count) {
+        return xpending(key, group, start, end, count, StreamPendingOptions.builder().build());
+    }
+
+    @Override
+    public CompletableFuture<Object[][]> xpending(
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull StreamRange start,
+            @NonNull StreamRange end,
+            long count,
+            @NonNull StreamPendingOptions options) {
+        String[] args = concatenateArrays(new String[] {key, group}, options.toArgs(start, end, count));
+        return commandManager.submitNewCommand(
+                XPending, args, response -> castArray(handleArrayResponse(response), Object[].class));
     }
 
     @Override

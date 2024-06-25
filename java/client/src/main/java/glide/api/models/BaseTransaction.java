@@ -160,6 +160,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.XGroupCreateConsu
 import static redis_request.RedisRequestOuterClass.RequestType.XGroupDelConsumer;
 import static redis_request.RedisRequestOuterClass.RequestType.XGroupDestroy;
 import static redis_request.RedisRequestOuterClass.RequestType.XLen;
+import static redis_request.RedisRequestOuterClass.RequestType.XPending;
 import static redis_request.RedisRequestOuterClass.RequestType.XRange;
 import static redis_request.RedisRequestOuterClass.RequestType.XRead;
 import static redis_request.RedisRequestOuterClass.RequestType.XReadGroup;
@@ -239,6 +240,7 @@ import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
 import glide.api.models.commands.stream.StreamGroupOptions;
+import glide.api.models.commands.stream.StreamPendingOptions;
 import glide.api.models.commands.stream.StreamRange;
 import glide.api.models.commands.stream.StreamReadGroupOptions;
 import glide.api.models.commands.stream.StreamReadOptions;
@@ -3152,6 +3154,118 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T xack(@NonNull String key, @NonNull String group, @NonNull String[] ids) {
         String[] args = concatenateArrays(new String[] {key, group}, ids);
         protobufTransaction.addCommands(buildCommand(XAck, buildArgs(args)));
+        return getThis();
+    }
+
+    /**
+     * Returns stream message summary information for pending messages matching a given range of IDs.
+     *
+     * @param key The key of the stream.
+     * @param group The consumer group name.
+     * @return Command Response - An array that includes the summary of pending messages, with the
+     *     format <code>[NumOfMessages, StartId, EndId, [Consumer, NumOfMessages]]</code>, where:
+     *     <ul>
+     *       <li><code>NumOfMessages</code>: The total number of pending messages for this consumer
+     *           group.
+     *       <li><code>StartId</code>: The smallest ID among the pending messages.
+     *       <li><code>EndId</code>: The greatest ID among the pending messages.
+     *       <li><code>[Consumer, NumOfMessages]</code>: An array of every consumer in the consumer
+     *           group with at least one pending message, and the number of pending messages it has.
+     *     </ul>
+     */
+    public T xpending(@NonNull String key, @NonNull String group) {
+        String[] args = {key, group};
+        protobufTransaction.addCommands(buildCommand(XPending, buildArgs(args)));
+        return getThis();
+    }
+
+    /**
+     * Returns an extended form of stream message information for pending messages matching a given
+     * range of IDs.
+     *
+     * @param key The key of the stream.
+     * @param group The consumer group name.
+     * @param start Starting stream ID bound for range.
+     *     <ul>
+     *       <li>Use {@link StreamRange.IdBound#of} to specify a stream ID.
+     *       <li>Use {@link StreamRange.IdBound#ofExclusive} to specify an exclusive bounded stream
+     *           ID.
+     *       <li>Use {@link StreamRange.InfRangeBound#MIN} to start with the minimum available ID.
+     *     </ul>
+     *
+     * @param end Ending stream ID bound for range.
+     *     <ul>
+     *       <li>Use {@link StreamRange.IdBound#of} to specify a stream ID.
+     *       <li>Use {@link StreamRange.IdBound#ofExclusive} to specify an exclusive bounded stream
+     *           ID.
+     *       <li>Use {@link StreamRange.InfRangeBound#MAX} to end with the maximum available ID.
+     *     </ul>
+     *
+     * @param count Limits the number of messages returned.
+     * @return Command Response - An array of 4-tuples containing extended message information with
+     *     the format <code>[[ID, Consumer, TimeElapsed, NumOfDelivered], ... ]</code>, where:
+     *     <ul>
+     *       <li><code>ID</code>: The ID of the message.
+     *       <li><code>Consumer</code>: The name of the consumer that fetched the message and has
+     *           still to acknowledge it. We call it the current owner of the message.
+     *       <li><code>TimeElapsed</code>: The number of milliseconds that elapsed since the last time
+     *           this message was delivered to this consumer.
+     *       <li><code>NumOfDelivered</code>: The number of times this message was delivered.
+     *     </ul>
+     */
+    public T xpending(
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull StreamRange start,
+            @NonNull StreamRange end,
+            long count) {
+        return xpending(key, group, start, end, count, StreamPendingOptions.builder().build());
+    }
+
+    /**
+     * Returns an extended form of stream message information for pending messages matching a given
+     * range of IDs.
+     *
+     * @param key The key of the stream.
+     * @param group The consumer group name.
+     * @param start Starting stream ID bound for range.
+     *     <ul>
+     *       <li>Use {@link StreamRange.IdBound#of} to specify a stream ID.
+     *       <li>Use {@link StreamRange.IdBound#ofExclusive} to specify an exclusive bounded stream
+     *           ID.
+     *       <li>Use {@link StreamRange.InfRangeBound#MIN} to start with the minimum available ID.
+     *     </ul>
+     *
+     * @param end Ending stream ID bound for range.
+     *     <ul>
+     *       <li>Use {@link StreamRange.IdBound#of} to specify a stream ID.
+     *       <li>Use {@link StreamRange.IdBound#ofExclusive} to specify an exclusive bounded stream
+     *           ID.
+     *       <li>Use {@link StreamRange.InfRangeBound#MAX} to end with the maximum available ID.
+     *     </ul>
+     *
+     * @param count Limits the number of messages returned.
+     * @param options Stream add options {@link StreamPendingOptions}.
+     * @return Command Response - An array of 4-tuples containing extended message information with
+     *     the format <code>[[ID, Consumer, TimeElapsed, NumOfDelivered], ... ]</code>, where:
+     *     <ul>
+     *       <li><code>ID</code>: The ID of the message.
+     *       <li><code>Consumer</code>: The name of the consumer that fetched the message and has
+     *           still to acknowledge it. We call it the current owner of the message.
+     *       <li><code>TimeElapsed</code>: The number of milliseconds that elapsed since the last time
+     *           this message was delivered to this consumer.
+     *       <li><code>NumOfDelivered</code>: The number of times this message was delivered.
+     *     </ul>
+     */
+    public T xpending(
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull StreamRange start,
+            @NonNull StreamRange end,
+            long count,
+            @NonNull StreamPendingOptions options) {
+        String[] args = concatenateArrays(new String[] {key, group}, options.toArgs(start, end, count));
+        protobufTransaction.addCommands(buildCommand(XPending, buildArgs(args)));
         return getThis();
     }
 

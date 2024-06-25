@@ -204,6 +204,10 @@ pub enum RequestType {
     Dump = 193,
     Restore = 194,
     SortReadOnly = 195,
+    XPending = 196,
+    XClaim = 197,
+    XAutoClaim = 198,
+    XInfo = 199,
 }
 
 fn get_two_word_command(first: &str, second: &str) -> Cmd {
@@ -411,6 +415,10 @@ impl From<::protobuf::EnumOrUnknown<ProtobufRequestType>> for RequestType {
             ProtobufRequestType::Dump => RequestType::Dump,
             ProtobufRequestType::Restore => RequestType::Restore,
             ProtobufRequestType::SortReadOnly => RequestType::SortReadOnly,
+            ProtobufRequestType::XPending => RequestType::XPending,
+            ProtobufRequestType::XClaim => RequestType::XClaim,
+            ProtobufRequestType::XAutoClaim => RequestType::XAutoClaim,
+            ProtobufRequestType::XInfo => RequestType::XInfo,
         }
     }
 }
@@ -616,6 +624,10 @@ impl RequestType {
             RequestType::Dump => Some(cmd("DUMP")),
             RequestType::Restore => Some(cmd("RESTORE")),
             RequestType::SortReadOnly => Some(cmd("SORT_RO")),
+            RequestType::XPending => Some(cmd("XPENDING")),
+            RequestType::XClaim => Some(cmd("XCLAIM")),
+            RequestType::XAutoClaim => Some(cmd("XAUTOCLAIM")),
+            RequestType::XInfo => Some(cmd("XINFO")),
         }
     }
 }
