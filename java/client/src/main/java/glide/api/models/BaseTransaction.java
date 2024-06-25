@@ -4753,24 +4753,24 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *           by <code>key1</code> and <code>key2</code>. For example,
      *     </ul>
      *
-     * @example If <code>key1</code> holds the string <code>"abcd123"</code> and <code>key2</code>
-     *     holds the string <code>"bcdef123"</code> then the sample result would be
+     * @example If <code>key1</code> holds the string <code>"abcd1234"</code> and <code>key2</code>
+     *     holds the string <code>"bcdef1234"</code> then the sample result would be
      *     <pre>{@code
      * new Object[] {
      *      new Object[] {
-     *          new Long[] {4L, 6L},
-     *          new Long[] {5L, 7L},
-     *          3L},
+     *          new Long[] {4L, 7L},
+     *          new Long[] {5L, 8L},
+     *          4L},
      *      new Object[] {
      *          new Long[] {1L, 3L},
      *          new Long[] {0L, 2L},
      *          3L}
      *      }
      * }</pre>
-     *     The result indicates that the first substring match is <code>"123"</code> in <code>key1
-     *     </code> at index <code>4</code> to <code>6</code> which matches the substring in <code>key2
-     *     </code> at index <code>5</code> to <code>7</code> and the last element in the array is the
-     *     length of the substring match which is <code>3</code>. And the second substring match is
+     *     The result indicates that the first substring match is <code>"1234"</code> in <code>key1
+     *     </code> at index <code>4</code> to <code>7</code> which matches the substring in <code>key2
+     *     </code> at index <code>5</code> to <code>8</code> and the last element in the array is the
+     *     length of the substring match which is <code>4</code>. And the second substring match is
      *     <code>"bcd"</code> in <code>key1</code> at index <code>1</code> to <code>3</code> which
      *     matches the substring in <code>key2</code> at index <code>0</code> to <code>2</code> and
      *     the last element in the array is the length of the substring match which is <code>3</code>.
@@ -4801,24 +4801,24 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *           by <code>key1</code> and <code>key2</code>.
      *     </ul>
      *
-     * @example If <code>key1</code> holds the string <code>"abcd123"</code> and <code>key2</code>
-     *     holds the string <code>"bcdef123"</code> then the sample result would be
+     * @example If <code>key1</code> holds the string <code>"abcd1234"</code> and <code>key2</code>
+     *     holds the string <code>"bcdef1234"</code> then the sample result would be
      *     <pre>{@code
      * new Object[] {
      *      new Object[] {
-     *          new Long[] {4L, 6L},
-     *          new Long[] {5L, 7L},
-     *          3L},
+     *          new Long[] {4L, 7L},
+     *          new Long[] {5L, 8L},
+     *          4L},
      *      new Object[] {
      *          new Long[] {1L, 3L},
      *          new Long[] {0L, 2L},
      *          3L}
      *      }
      * }</pre>
-     *     The result indicates that the first substring match is <code>"123"</code> in <code>key1
-     *     </code> at index <code>4</code> to <code>6</code> which matches the substring in <code>key2
-     *     </code> at index <code>5</code> to <code>7</code> and the last element in the array is the
-     *     length of the substring match which is <code>3</code>. And the second substring match is
+     *     The result indicates that the first substring match is <code>"1234"</code> in <code>key1
+     *     </code> at index <code>4</code> to <code>7</code> which matches the substring in <code>key2
+     *     </code> at index <code>5</code> to <code>8</code> and the last element in the array is the
+     *     length of the substring match which is <code>4</code>. And the second substring match is
      *     <code>"bcd"</code> in <code>key1</code> at index <code>1</code> to <code>3</code> which
      *     matches the substring in <code>key2</code> at index <code>0</code> to <code>2</code> and
      *     the last element in the array is the length of the substring match which is <code>3</code>.
