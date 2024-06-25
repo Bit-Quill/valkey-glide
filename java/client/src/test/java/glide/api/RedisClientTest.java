@@ -12,6 +12,7 @@ import static glide.api.commands.SortedSetBaseCommands.LIMIT_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
 import static glide.api.commands.StringBaseCommands.IDX_COMMAND_STRING;
+import static glide.api.commands.StringBaseCommands.LCS_MATCHES_RESULT_KEY;
 import static glide.api.commands.StringBaseCommands.LEN_REDIS_API;
 import static glide.api.commands.StringBaseCommands.MINMATCHLEN_COMMAND_STRING;
 import static glide.api.commands.StringBaseCommands.WITHMATCHLEN_COMMAND_STRING;
@@ -49,6 +50,7 @@ import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -6482,6 +6484,21 @@ public class RedisClientTest {
         // verify
         assertEquals(testResponse, response);
         assertEquals(value, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void lcsIdx_throws_NullPointerException() {
+        // setup
+        Map<String, Object> value = Map.of("missing", new Long[][][] {{{1L, 3L}, {0L, 2L}}}, "len", 3L);
+
+        // exception
+        RuntimeException runtimeException =
+                assertThrows(RuntimeException.class, () -> service.handleLcsIdxResponse(value));
+        assertInstanceOf(NullPointerException.class, runtimeException);
+        assertEquals(
+                "LCS result does not contain the key \"" + LCS_MATCHES_RESULT_KEY + "\"",
+                runtimeException.getMessage());
     }
 
     @SneakyThrows

@@ -451,7 +451,13 @@ public abstract class BaseClient
     protected Map<String, Object> handleLcsIdxResponse(Map<String, Object> response)
             throws RedisException {
         Long[][][] convertedMatchesObject =
-                cast3DArray((Object[]) (response.get("matches")), Long.class);
+                cast3DArray((Object[]) (response.get(LCS_MATCHES_RESULT_KEY)), Long.class);
+
+        if (convertedMatchesObject == null) {
+            throw new NullPointerException(
+                    "LCS result does not contain the key \"" + LCS_MATCHES_RESULT_KEY + "\"");
+        }
+
         response.put("matches", convertedMatchesObject);
         return response;
     }

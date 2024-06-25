@@ -27,6 +27,9 @@ public interface StringBaseCommands {
     /** <code>WITHMATCHLEN</code> option string to include in the <code>LCS</code> command. */
     public static final String WITHMATCHLEN_COMMAND_STRING = "WITHMATCHLEN";
 
+    /** Key for LCS matches result. */
+    public static final String LCS_MATCHES_RESULT_KEY = "matches";
+
     /**
      * Gets the value associated with the given <code>key</code>, or <code>null</code> if no such
      * value exists.
@@ -375,20 +378,25 @@ public interface StringBaseCommands {
      *           by <code>key1</code> and <code>key2</code>.
      *     </ul>
      *
-     * @example
+     * @example If <code>key1</code> holds the string <code>"abcd123"</code> and <code>key2</code>
+     *     holds the string <code>"bcdef123"</code> then the sample result would be
      *     <pre>{@code
-     * // testKey1 = "abcd", testKey2 = "bcde"
-     * Map<String, Object> result = client.lcsIdx("testKey1", "testKey2").get();
-     * Long[][][] matches = (Long[][][]) result.get("matches");
-     *
-     * for (int i = 0; i < matches.length; i++) {
-     *   System.out.printf("Match #%d:\n", i + 1);
-     *   for (int j = 0; j < matches[i].length; j++) {
-     *     System.out.printf("\tString #%d indices: %d, %d\n", j + 1, matches[i][j][0], matches[i][j][1]);
-     *   }
-     * }
-     * System.out.printf("Total LCS length: %d\n", result.get("len"));
+     * new Long[][][] {
+     *      {
+     *          {4L, 6L},
+     *          {5L, 7L}
+     *      },
+     *      {
+     *          {1L, 3L},
+     *          {0L, 2L}
+     *      }
+     *  }
      * }</pre>
+     *     The result indicates that the first substring match is <code>"123"</code> in <code>key1
+     *     </code> at index <code>4</code> to <code>6</code> which matches the substring in <code>key2
+     *     </code> at index <code>5</code> to <code>7</code>. And the second substring match is <code>
+     *     "bcd"</code> in <code>key1</code> at index <code>1</code> to <code>3</code> which matches
+     *     the substring in <code>key2</code> at index <code>0</code> to <code>2</code>.
      */
     CompletableFuture<Map<String, Object>> lcsIdx(String key1, String key2);
 
@@ -414,20 +422,25 @@ public interface StringBaseCommands {
      *           by <code>key1</code> and <code>key2</code>.
      *     </ul>
      *
-     * @example
+     * @example If <code>key1</code> holds the string <code>"abcd123"</code> and <code>key2</code>
+     *     holds the string <code>"bcdef123"</code> then the sample result would be
      *     <pre>{@code
-     * // testKey1 = "abcd", testKey2 = "bcde"
-     * Map<String, Object> result = client.lcsIdx("testKey1", "testKey2", 1).get();
-     * Long[][][] matches = (Long[][][]) result.get("matches");
-     *
-     * for (int i = 0; i < matches.length; i++) {
-     *   System.out.printf("Match #%d:\n", i + 1);
-     *   for (int j = 0; j < matches[i].length; j++) {
-     *     System.out.printf("\tString #%d indices: %d, %d\n", j + 1, matches[i][j][0], matches[i][j][1]);
-     *   }
-     * }
-     * System.out.printf("Total LCS length: %d\n", result.get("len"));
+     * new Long[][][] {
+     *      {
+     *          {4L, 6L},
+     *          {5L, 7L}
+     *      },
+     *      {
+     *          {1L, 3L},
+     *          {0L, 2L}
+     *      }
+     *  }
      * }</pre>
+     *     The result indicates that the first substring match is <code>"123"</code> in <code>key1
+     *     </code> at index <code>4</code> to <code>6</code> which matches the substring in <code>key2
+     *     </code> at index <code>5</code> to <code>7</code>. And the second substring match is <code>
+     *     "bcd"</code> in <code>key1</code> at index <code>1</code> to <code>3</code> which matches
+     *     the substring in <code>key2</code> at index <code>0</code> to <code>2</code>.
      */
     CompletableFuture<Map<String, Object>> lcsIdx(String key1, String key2, long minMatchLen);
 
@@ -452,25 +465,27 @@ public interface StringBaseCommands {
      *           by <code>key1</code> and <code>key2</code>.
      *     </ul>
      *
-     * @example
+     * @example If <code>key1</code> holds the string <code>"abcd1234"</code> and <code>key2</code>
+     *     holds the string <code>"bcdef1234"</code> then the sample result would be
      *     <pre>{@code
-     * // testKey1 = "abcd", testKey2 = "bcde"
-     * Map<String, Object> result = client.lcsIdxWithMatchLen(key1, key2).get();
-     * Object[] matches = (Object[]) result.get("matches");
-     *
-     * for (int i = 0; i < matches.length; i++) {
-     *   System.out.printf("Match #%d:\n", i + 1);
-     *   Object[] match = (Object[])matches[i];
-     *   for (int j = 0; j < match.length; j++) {
-     *     if((j+1) % 3 != 0) {
-     *       System.out.printf("\tString #%d indices: %d, %d\n", j + 1, (Long)((Object[])match[j])[0], (Long)((Object[])match[j])[1]);
-     *     } else {
-     *       System.out.printf("\tLCS subsequence length: %d\n", match[j]);
-     *     }
-     *   }
-     * }
-     * System.out.printf("Total LCS length: %d\n", result.get("len"));
+     * new Object[] {
+     *      new Object[] {
+     *          new Long[] {4L, 7L},
+     *          new Long[] {5L, 8L},
+     *          4L},
+     *      new Object[] {
+     *          new Long[] {1L, 3L},
+     *          new Long[] {0L, 2L},
+     *          3L}
+     *      }
      * }</pre>
+     *     The result indicates that the first substring match is <code>"1234"</code> in <code>key1
+     *     </code> at index <code>4</code> to <code>7</code> which matches the substring in <code>key2
+     *     </code> at index <code>5</code> to <code>8</code> and the last element in the array is the
+     *     length of the substring match which is <code>4</code>. And the second substring match is
+     *     <code>"bcd"</code> in <code>key1</code> at index <code>1</code> to <code>3</code> which
+     *     matches the substring in <code>key2</code> at index <code>0</code> to <code>2</code> and
+     *     the last element in the array is the length of the substring match which is <code>3</code>.
      */
     CompletableFuture<Map<String, Object>> lcsIdxWithMatchLen(String key1, String key2);
 
@@ -496,25 +511,27 @@ public interface StringBaseCommands {
      *           by <code>key1</code> and <code>key2</code>.
      *     </ul>
      *
-     * @example
+     * @example If <code>key1</code> holds the string <code>"abcd1234"</code> and <code>key2</code>
+     *     holds the string <code>"bcdef1234"</code> then the sample result would be
      *     <pre>{@code
-     * // testKey1 = "abcd", testKey2 = "bcde"
-     * Map<String, Object> result = client.lcsIdxWithMatchLen(key1, key2, 1).get();
-     * Object[] matches = (Object[]) result.get("matches");
-     *
-     * for (int i = 0; i < matches.length; i++) {
-     *   System.out.printf("Match #%d:\n", i + 1);
-     *   Object[] match = (Object[])matches[i];
-     *   for (int j = 0; j < match.length; j++) {
-     *     if((j+1) % 3 != 0) {
-     *       System.out.printf("\tString #%d indices: %d, %d\n", j + 1, (Long)((Object[])match[j])[0], (Long)((Object[])match[j])[1]);
-     *     } else {
-     *       System.out.printf("\tLCS subsequence length: %d\n", match[j]);
-     *     }
-     *   }
-     * }
-     * System.out.printf("Total LCS length: %d\n", result.get("len"));
+     * new Object[] {
+     *      new Object[] {
+     *          new Long[] {4L, 7L},
+     *          new Long[] {5L, 8L},
+     *          4L},
+     *      new Object[] {
+     *          new Long[] {1L, 3L},
+     *          new Long[] {0L, 2L},
+     *          3L}
+     *      }
      * }</pre>
+     *     The result indicates that the first substring match is <code>"1234"</code> in <code>key1
+     *     </code> at index <code>4</code> to <code>7</code> which matches the substring in <code>key2
+     *     </code> at index <code>5</code> to <code>8</code> and the last element in the array is the
+     *     length of the substring match which is <code>4</code>. And the second substring match is
+     *     <code>"bcd"</code> in <code>key1</code> at index <code>1</code> to <code>3</code> which
+     *     matches the substring in <code>key2</code> at index <code>0</code> to <code>2</code> and
+     *     the last element in the array is the length of the substring match which is <code>3</code>.
      */
     CompletableFuture<Map<String, Object>> lcsIdxWithMatchLen(
             String key1, String key2, long minMatchLen);
