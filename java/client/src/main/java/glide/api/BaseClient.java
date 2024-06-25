@@ -1,8 +1,6 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api;
 
-import static glide.api.models.commands.LcsOptions.IDX_COMMAND_STRING;
-import static glide.api.models.commands.LcsOptions.WITHMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
 import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
 import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArgs;
@@ -176,7 +174,6 @@ import glide.api.models.Script;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.LInsertOptions.InsertPosition;
 import glide.api.models.commands.LPosOptions;
-import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.LexRange;
@@ -1913,9 +1910,11 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Map<String, Object>> lcsIdx(
-            @NonNull String key1, @NonNull String key2, @NonNull LcsOptions lcsOptions) {
+            @NonNull String key1, @NonNull String key2, long minMatchLen) {
         String[] arguments =
-                concatenateArrays(new String[] {key1, key2, IDX_COMMAND_STRING}, lcsOptions.toArgs());
+                new String[] {
+                    key1, key2, IDX_COMMAND_STRING, MINMATCHLEN_COMMAND_STRING, String.valueOf(minMatchLen)
+                };
         return commandManager.submitNewCommand(
                 LCS, arguments, response -> handleLcsIdxResponse(handleMapResponse(response)));
     }
@@ -1929,12 +1928,17 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Map<String, Object>> lcsIdxWithMatchLen(
-            @NonNull String key1, @NonNull String key2, @NonNull LcsOptions lcsOptions) {
+            @NonNull String key1, @NonNull String key2, long minMatchLen) {
         String[] arguments =
                 concatenateArrays(
-                        new String[] {key1, key2, IDX_COMMAND_STRING},
-                        lcsOptions.toArgs(),
-                        new String[] {WITHMATCHLEN_COMMAND_STRING});
+                        new String[] {
+                            key1,
+                            key2,
+                            IDX_COMMAND_STRING,
+                            MINMATCHLEN_COMMAND_STRING,
+                            String.valueOf(minMatchLen),
+                            WITHMATCHLEN_COMMAND_STRING
+                        });
         return commandManager.submitNewCommand(LCS, arguments, this::handleMapResponse);
     }
 

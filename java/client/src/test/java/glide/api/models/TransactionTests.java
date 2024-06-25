@@ -7,15 +7,15 @@ import static glide.api.commands.ServerManagementCommands.VERSION_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.LIMIT_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORES_REDIS_API;
 import static glide.api.commands.SortedSetBaseCommands.WITH_SCORE_REDIS_API;
+import static glide.api.commands.StringBaseCommands.IDX_COMMAND_STRING;
+import static glide.api.commands.StringBaseCommands.MINMATCHLEN_COMMAND_STRING;
+import static glide.api.commands.StringBaseCommands.WITHMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.ExpireOptions.HAS_EXISTING_EXPIRY;
 import static glide.api.models.commands.ExpireOptions.HAS_NO_EXPIRY;
 import static glide.api.models.commands.ExpireOptions.NEW_EXPIRY_LESS_THAN_CURRENT;
 import static glide.api.models.commands.FlushMode.ASYNC;
 import static glide.api.models.commands.InfoOptions.Section.EVERYTHING;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.AFTER;
-import static glide.api.models.commands.LcsOptions.IDX_COMMAND_STRING;
-import static glide.api.models.commands.LcsOptions.MINMATCHLEN_COMMAND_STRING;
-import static glide.api.models.commands.LcsOptions.WITHMATCHLEN_COMMAND_STRING;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.NEGATIVE_INFINITY;
 import static glide.api.models.commands.RangeOptions.InfScoreBound.POSITIVE_INFINITY;
 import static glide.api.models.commands.ScoreFilter.MAX;
@@ -206,7 +206,6 @@ import com.google.protobuf.ByteString;
 import glide.api.models.commands.ConditionalChange;
 import glide.api.models.commands.InfoOptions;
 import glide.api.models.commands.LPosOptions;
-import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions;
 import glide.api.models.commands.RangeOptions.InfLexBound;
@@ -1056,7 +1055,7 @@ public class TransactionTests {
         transaction.lcsIdx("key1", "key2");
         results.add(Pair.of(LCS, buildArgs("key1", "key2", IDX_COMMAND_STRING)));
 
-        transaction.lcsIdx("key1", "key2", LcsOptions.builder().minMatchLen(10L).build());
+        transaction.lcsIdx("key1", "key2", 10);
         results.add(
                 Pair.of(
                         LCS, buildArgs("key1", "key2", IDX_COMMAND_STRING, MINMATCHLEN_COMMAND_STRING, "10")));
@@ -1065,7 +1064,7 @@ public class TransactionTests {
         results.add(
                 Pair.of(LCS, buildArgs("key1", "key2", IDX_COMMAND_STRING, WITHMATCHLEN_COMMAND_STRING)));
 
-        transaction.lcsIdxWithMatchLen("key1", "key2", LcsOptions.builder().minMatchLen(10L).build());
+        transaction.lcsIdxWithMatchLen("key1", "key2", 10);
         results.add(
                 Pair.of(
                         LCS,

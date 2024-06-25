@@ -44,7 +44,6 @@ import glide.api.RedisClusterClient;
 import glide.api.models.ClusterTransaction;
 import glide.api.models.ClusterValue;
 import glide.api.models.commands.InfoOptions;
-import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions.RangeByIndex;
 import glide.api.models.commands.WeightAggregateOptions.KeyArray;
@@ -794,16 +793,10 @@ public class CommandTests {
                 Arguments.of("lcs", "7.0.0", clusterClient.lcs("abc", "def")),
                 Arguments.of("lcsLEN", "7.0.0", clusterClient.lcsLen("abc", "def")),
                 Arguments.of("lcsIdx", "7.0.0", clusterClient.lcsIdx("abc", "def")),
-                Arguments.of(
-                        "lcsIdx",
-                        "7.0.0",
-                        clusterClient.lcsIdx("abc", "def", LcsOptions.builder().minMatchLen(10L).build())),
+                Arguments.of("lcsIdx", "7.0.0", clusterClient.lcsIdx("abc", "def", 10)),
                 Arguments.of("lcsIdxWithMatchLen", "7.0.0", clusterClient.lcsIdxWithMatchLen("abc", "def")),
                 Arguments.of(
-                        "lcsIdxWithMatchLen",
-                        "7.0.0",
-                        clusterClient.lcsIdxWithMatchLen(
-                                "abc", "def", LcsOptions.builder().minMatchLen(10L).build())));
+                        "lcsIdxWithMatchLen", "7.0.0", clusterClient.lcsIdxWithMatchLen("abc", "def", 10)));
     }
 
     @SneakyThrows

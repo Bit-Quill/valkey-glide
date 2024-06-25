@@ -1,7 +1,6 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.commands;
 
-import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.SetOptions.ConditionalSet;
 import glide.api.models.commands.SetOptions.SetOptionsBuilder;
@@ -18,6 +17,15 @@ public interface StringBaseCommands {
 
     /** Redis API keyword used to indicate that the length of the lcs should be returned. */
     public static final String LEN_REDIS_API = "LEN";
+
+    /** <code>IDX</code> option string to include in the <code>LCS</code> command. */
+    public static final String IDX_COMMAND_STRING = "IDX";
+
+    /** <code>MINMATCHLEN</code> option string to include in the <code>LCS</code> command. */
+    public static final String MINMATCHLEN_COMMAND_STRING = "MINMATCHLEN";
+
+    /** <code>WITHMATCHLEN</code> option string to include in the <code>LCS</code> command. */
+    public static final String WITHMATCHLEN_COMMAND_STRING = "WITHMATCHLEN";
 
     /**
      * Gets the value associated with the given <code>key</code>, or <code>null</code> if no such
@@ -402,7 +410,7 @@ public interface StringBaseCommands {
      * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
      * @param key1 The key that stores the first string.
      * @param key2 The key that stores the second string.
-     * @param lcsOptions The {@link LcsOptions}.
+     * @param minMatchLen The minimum length of matches to include in the result.
      * @return A <code>Map</code> containing the indices of the longest common subsequence between the
      *     2 strings and the length of the longest common subsequence. The resulting map contains two
      *     keys, "matches" and "len":
@@ -425,7 +433,7 @@ public interface StringBaseCommands {
      * @example
      *     <pre>{@code
      * // testKey1 = "abcd", testKey2 = "bcde"
-     * Map<String, Object> result = client.lcsIdx("testKey1", "testKey2", LcsOptions.builder().minMatchLen(1L).build()).get();
+     * Map<String, Object> result = client.lcsIdx("testKey1", "testKey2", 1).get();
      * Long[][][] matches = (Long[][][]) result.get("matches");
      *
      * for (int i = 0; i < matches.length; i++) {
@@ -437,7 +445,7 @@ public interface StringBaseCommands {
      * System.out.printf("Total LCS length: %d\n", result.get("len"));
      * }</pre>
      */
-    CompletableFuture<Map<String, Object>> lcsIdx(String key1, String key2, LcsOptions lcsOptions);
+    CompletableFuture<Map<String, Object>> lcsIdx(String key1, String key2, long minMatchLen);
 
     /**
      * Returns the indices and length of the longest common subsequence between strings stored at
@@ -503,7 +511,7 @@ public interface StringBaseCommands {
      * @see <a href="https://valkey.io/commands/lcs/">valkey.io</a> for details.
      * @param key1 The key that stores the first string.
      * @param key2 The key that stores the second string.
-     * @param lcsOptions The {@link LcsOptions}.
+     * @param minMatchLen The minimum length of matches to include in the result.
      * @return A <code>Map</code> containing the indices of the longest common subsequence between the
      *     2 strings and the length of the longest common subsequence. The resulting map contains two
      *     keys, "matches" and "len":
@@ -529,7 +537,7 @@ public interface StringBaseCommands {
      * @example
      *     <pre>{@code
      * // testKey1 = "abcd", testKey2 = "bcde"
-     * Map<String, Object> result = client.lcsIdxWithMatchLen(key1, key2, LcsOptions.builder().minMatchLen(1L).build()).get();
+     * Map<String, Object> result = client.lcsIdxWithMatchLen(key1, key2, 1).get();
      * Object[] matches = (Object[]) result.get("matches");
      *
      * for (int i = 0; i < matches.length; i++) {
@@ -547,5 +555,5 @@ public interface StringBaseCommands {
      * }</pre>
      */
     CompletableFuture<Map<String, Object>> lcsIdxWithMatchLen(
-            String key1, String key2, LcsOptions lcsOptions);
+            String key1, String key2, long minMatchLen);
 }

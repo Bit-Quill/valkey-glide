@@ -14,7 +14,6 @@ import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import glide.api.models.BaseTransaction;
 import glide.api.models.commands.ExpireOptions;
 import glide.api.models.commands.LPosOptions;
-import glide.api.models.commands.LcsOptions;
 import glide.api.models.commands.ListDirection;
 import glide.api.models.commands.RangeOptions.InfLexBound;
 import glide.api.models.commands.RangeOptions.InfScoreBound;
@@ -253,9 +252,9 @@ public class TransactionTestUtilities {
                     .lcsLen(stringKey6, stringKey7)
                     .lcsLen(stringKey6, stringKey8)
                     .lcsIdx(stringKey6, stringKey7)
-                    .lcsIdx(stringKey6, stringKey7, LcsOptions.builder().minMatchLen(1L).build())
+                    .lcsIdx(stringKey6, stringKey7, 1)
                     .lcsIdxWithMatchLen(stringKey6, stringKey7)
-                    .lcsIdxWithMatchLen(stringKey6, stringKey7, LcsOptions.builder().minMatchLen(1L).build());
+                    .lcsIdxWithMatchLen(stringKey6, stringKey7, 1);
         }
 
         var expectedResults =
