@@ -106,6 +106,7 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.opentest4j.AssertionFailedError;
 
 @Timeout(10) // seconds
 public class SharedCommandTests {
@@ -7018,6 +7019,7 @@ public class SharedCommandTests {
         String key1 = "{key}-1" + UUID.randomUUID();
         String key2 = "{key}-2" + UUID.randomUUID();
         long initialCursor = 0;
+        long defaultCount = 10;
         String[] numberMembers = new String[125];
         for (int i = 0; i < numberMembers.length; i++) {
             numberMembers[i] = String.valueOf(i);
@@ -7040,6 +7042,29 @@ public class SharedCommandTests {
         result = client.sscan(key1, initialCursor, ScanOptions.builder().matchPattern("a").build()).get();
         assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
         assertDeepEquals(new String[] {"a"}, result[resultCollectionIndex]);
+
+        // Result contains a subset of the key
+        assertEquals(numberMembers.length, client.sadd(key1, numberMembers).get());
+        result = client.sscan(key1, initialCursor).get();
+        long resultCursor = Long.valueOf(result[resultCursorIndex].toString());
+        assertTrue(resultCursor > 0);
+        assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
+
+        // Scan with result cursor has a different set
+        Object[] secondResult = client.sscan(key1, resultCursor).get();
+        assertTrue(resultCursor != (Long.valueOf(secondResult[resultCursorIndex].toString())));
+        assertFalse(Arrays.deepEquals(ArrayUtils.toArray(result[resultCollectionIndex]), ArrayUtils.toArray(secondResult[resultCollectionIndex])));
+        assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
+
+        // Test match pattern
+        result = client.sscan(key1, initialCursor, ScanOptions.builder().matchPattern("*").build()).get();
+        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
+
+        // Test count
+        result = client.sscan(key1, initialCursor, ScanOptions.builder().count(20L).build()).get();
+        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= 20);
 
         // Exceptions
         // Non-set key
