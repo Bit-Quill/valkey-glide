@@ -33,6 +33,7 @@ pub(crate) enum ExpectedReturnType<'a> {
     KeyWithMemberAndScore,
     FunctionStatsReturnType,
     GeoSearchReturnType,
+    SimpleString,
 }
 
 pub(crate) fn convert_to_expected_type(
@@ -139,6 +140,9 @@ pub(crate) fn convert_to_expected_type(
                 .into()),
         },
         ExpectedReturnType::BulkString => Ok(Value::BulkString(
+            from_owned_redis_value::<String>(value)?.into(),
+        )),
+        ExpectedReturnType::SimpleString => Ok(Value::SimpleString(
             from_owned_redis_value::<String>(value)?.into(),
         )),
         ExpectedReturnType::JsonToggleReturnType => match value {
@@ -860,7 +864,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
             }),
         }),
         b"LCS" => cmd.position(b"IDX").map(|_| ExpectedReturnType::Map {
-            key_type: &Some(ExpectedReturnType::BulkString),
+            key_type: &Some(ExpectedReturnType::SimpleString),
             value_type: &None,
         }),
         b"INCRBYFLOAT" | b"HINCRBYFLOAT" | b"ZINCRBY" => Some(ExpectedReturnType::Double),
@@ -2361,7 +2365,7 @@ mod tests {
         assert!(matches!(
             expected_type_for_cmd(redis::cmd("LCS").arg("key1").arg("key2").arg("IDX")),
             Some(ExpectedReturnType::Map {
-                key_type: &Some(ExpectedReturnType::BulkString),
+                key_type: &Some(ExpectedReturnType::SimpleString),
                 value_type: &None,
             })
         ));
