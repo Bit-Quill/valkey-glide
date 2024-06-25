@@ -53,6 +53,7 @@ import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -561,7 +562,8 @@ public class CommandTests {
         }
     }
 
-    @Test
+    // @Test
+    @RepeatedTest(50)
     @SneakyThrows
     public void functionStats_and_functionKill() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
@@ -604,6 +606,7 @@ public class CommandTests {
 
                 // redis kills a function with 5 sec delay
                 assertEquals(OK, regularClient.functionKill().get());
+                Thread.sleep(404); // sometimes kill doesn't happen immediately
 
                 exception =
                         assertThrows(ExecutionException.class, () -> regularClient.functionKill().get());

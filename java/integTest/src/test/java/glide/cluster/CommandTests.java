@@ -74,6 +74,7 @@ import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -1200,7 +1201,8 @@ public class CommandTests {
         assertEquals(OK, clusterClient.functionDelete(libName).get());
     }
 
-    @Test
+    // @Test
+    @RepeatedTest(50)
     @SneakyThrows
     public void functionStats_and_functionKill_without_route() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
@@ -1253,6 +1255,7 @@ public class CommandTests {
                 }
 
                 assertEquals(OK, clusterClient.functionKill().get());
+                Thread.sleep(404); // sometimes kill doesn't happen immediately
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill().get());
@@ -1278,7 +1281,13 @@ public class CommandTests {
     }
 
     @ParameterizedTest(name = "single node route = {0}")
-    @ValueSource(booleans = {true, false})
+    @ValueSource(
+            booleans = {
+                true, false, true, false, true, false, true, false, true, false, true, false, true, false,
+                true, false, true, false, true, false, true, false, true, false, true, false, true, false,
+                true, false, true, false, true, false, true, false, true, false, true, false, true, false,
+                true, false, true, false, true, false, true, false, true, false, true, false, true, false,
+            })
     @SneakyThrows
     public void functionStats_and_functionKill_with_route(boolean singleNodeRoute) {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
@@ -1339,7 +1348,7 @@ public class CommandTests {
 
                 // redis kills a function with 5 sec delay
                 assertEquals(OK, clusterClient.functionKill(route).get());
-                Thread.sleep(404);
+                Thread.sleep(404); // sometimes kill doesn't happen immediately
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
@@ -1364,7 +1373,8 @@ public class CommandTests {
         assertTrue(error.isEmpty(), "Something went wrong during the test");
     }
 
-    @Test
+    // @Test
+    @RepeatedTest(50)
     @SneakyThrows
     public void functionStats_and_functionKill_with_key_based_route() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
@@ -1410,6 +1420,7 @@ public class CommandTests {
 
                 // redis kills a function with 5 sec delay
                 assertEquals(OK, clusterClient.functionKill(route).get());
+                Thread.sleep(404); // sometimes kill doesn't happen immediately
 
                 exception =
                         assertThrows(ExecutionException.class, () -> clusterClient.functionKill(route).get());
