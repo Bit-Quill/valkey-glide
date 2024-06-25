@@ -22,6 +22,10 @@ This preview release is recommended for testing purposes only.
 
 The beta release of GLIDE for Redis was tested on Intel x86_64 using Ubuntu 22.04.1, Amazon Linux 2023 (AL2023), and macOS 12.7.
 
+## Supported Operating Systems
+
+GLIDE for Redis is supported in Ubuntu, CentOS, and MacOS.
+
 ## Java supported version
 JDK 11+.
 
