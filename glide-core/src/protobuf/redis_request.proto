@@ -242,6 +242,7 @@ enum RequestType {
     ZScan = 201;
     HScan = 202;
     Wait = 208;
+    XClaim = 209;
 }
 
 message Command {

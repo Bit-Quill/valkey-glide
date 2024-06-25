@@ -4,6 +4,7 @@ package glide.api.commands;
 import glide.api.models.GlideString;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
+import glide.api.models.commands.stream.StreamClaimOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamPendingOptions;
 import glide.api.models.commands.stream.StreamRange;
@@ -711,4 +712,50 @@ public interface StreamBaseCommands {
             StreamRange end,
             long count,
             StreamPendingOptions options);
+
+    /**
+     *
+     * @param key
+     * @param group
+     * @param consumer
+     * @param minIdleTime
+     * @param ids
+     * @return
+     */
+    CompletableFuture<Map<String, String[]>> xclaim(String key, String group, String consumer, long minIdleTime, String[] ids);
+
+    /**
+     *
+     * @param key
+     * @param group
+     * @param consumer
+     * @param minIdleTime
+     * @param ids
+     * @param options
+     * @return
+     */
+    CompletableFuture<Map<String, String[]>> xclaim(String key, String group, String consumer, long minIdleTime, String[] ids, StreamClaimOptions options);
+
+    /**
+     *
+     * @param key
+     * @param group
+     * @param consumer
+     * @param minIdleTime
+     * @param ids
+     * @return
+     */
+    CompletableFuture<String[]> xclaimJustId(String key, String group, String consumer, long minIdleTime, String[] ids);
+
+    /**
+     *
+     * @param key
+     * @param group
+     * @param consumer
+     * @param minIdleTime
+     * @param ids
+     * @param options
+     * @return
+     */
+    CompletableFuture<String[]> xclaimJustId(String key, String group, String consumer, long minIdleTime, String[] ids, StreamClaimOptions options);
 }
