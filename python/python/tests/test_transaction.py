@@ -773,5 +773,5 @@ class TestTransaction:
         assert results is not None
 
         for element in results:
-            if isinstance(element, str):
-                assert "Redis ver. " in element
+            assert isinstance(element, str)
+            assert "Redis ver. " in element
