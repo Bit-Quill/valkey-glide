@@ -90,7 +90,10 @@ public final class ClusterSubscriptionConfiguration extends BaseSubscriptionConf
             return this;
         }
 
-        /** Set all subscriptions in a bulk. Rewrites previously stored configurations. */
+        /**
+         * Set all subscriptions in a bulk. Rewrites previously stored configurations.<br>
+         * See {@link ClusterSubscriptionConfiguration#subscriptions}.
+         */
         public ClusterSubscriptionConfigurationBuilder subscriptions(
                 Map<PubSubClusterChannelMode, Set<String>> subscriptions) {
             this.subscriptions = subscriptions;
@@ -99,7 +102,8 @@ public final class ClusterSubscriptionConfiguration extends BaseSubscriptionConf
 
         /**
          * Set subscriptions in a bulk for the given mode. Rewrites previously stored configurations for
-         * that mode.
+         * that mode.<br>
+         * See {@link ClusterSubscriptionConfiguration#subscriptions}.
          */
         public ClusterSubscriptionConfigurationBuilder subscriptions(
                 PubSubClusterChannelMode mode, Set<String> subscriptions) {

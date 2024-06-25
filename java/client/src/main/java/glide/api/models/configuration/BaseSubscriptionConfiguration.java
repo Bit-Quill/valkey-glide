@@ -55,8 +55,8 @@ public abstract class BaseSubscriptionConfiguration {
             B extends BaseSubscriptionConfigurationBuilder<B, C>,
             C extends BaseSubscriptionConfiguration> {
 
-        protected Optional<MessageCallback> callback;
-        protected Optional<Object> context;
+        protected Optional<MessageCallback> callback = Optional.empty();
+        protected Optional<Object> context = Optional.empty();
 
         protected <M extends ChannelMode> void addSubscription(
                 Map<M, Set<String>> subscriptions, M mode, String channelOrPattern) {

@@ -75,7 +75,7 @@ public final class StandaloneSubscriptionConfiguration extends BaseSubscriptionC
         /**
          * Add a subscription to a channel or to multiple channels if {@link PubSubChannelMode#PATTERN}
          * is used.<br>
-         * See {@link #subscriptions}.
+         * See {@link StandaloneSubscriptionConfiguration#subscriptions}.
          */
         public StandaloneSubscriptionConfigurationBuilder subscription(
                 PubSubChannelMode mode, String channelOrPattern) {
@@ -83,7 +83,10 @@ public final class StandaloneSubscriptionConfiguration extends BaseSubscriptionC
             return self();
         }
 
-        /** Set all subscriptions in a bulk. Rewrites previously stored configurations. */
+        /**
+         * Set all subscriptions in a bulk. Rewrites previously stored configurations.<br>
+         * See {@link StandaloneSubscriptionConfiguration#subscriptions}.
+         */
         public StandaloneSubscriptionConfigurationBuilder subscriptions(
                 Map<PubSubChannelMode, Set<String>> subscriptions) {
             this.subscriptions = subscriptions;
@@ -92,7 +95,8 @@ public final class StandaloneSubscriptionConfiguration extends BaseSubscriptionC
 
         /**
          * Set subscriptions in a bulk for the given mode. Rewrites previously stored configurations for
-         * that mode.
+         * that mode.<br>
+         * See {@link StandaloneSubscriptionConfiguration#subscriptions}.
          */
         public StandaloneSubscriptionConfigurationBuilder subscriptions(
                 PubSubChannelMode mode, Set<String> subscriptions) {
