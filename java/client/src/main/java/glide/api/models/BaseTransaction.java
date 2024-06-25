@@ -3146,6 +3146,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * of a stream. This command should be called on a pending message so that such message does not
      * get processed again.
      *
+     * @see <a href="https://valkey.io/commands/xack/">valkey.io</a> for details.
      * @param key The key of the stream.
      * @param group The consumer group name.
      * @param ids Stream entry ID to acknowledge and purge messages.
@@ -3160,6 +3161,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Returns stream message summary information for pending messages matching a given range of IDs.
      *
+     * @see <a href="https://valkey.io/commands/xpending/">valkey.io</a> for details.
      * @param key The key of the stream.
      * @param group The consumer group name.
      * @return Command Response - An array that includes the summary of pending messages, with the
@@ -3183,6 +3185,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns an extended form of stream message information for pending messages matching a given
      * range of IDs.
      *
+     * @see <a href="https://valkey.io/commands/xpending/">valkey.io</a> for details.
      * @param key The key of the stream.
      * @param group The consumer group name.
      * @param start Starting stream ID bound for range.
@@ -3226,6 +3229,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * Returns an extended form of stream message information for pending messages matching a given
      * range of IDs.
      *
+     * @see <a href="https://valkey.io/commands/xpending/">valkey.io</a> for details.
      * @param key The key of the stream.
      * @param group The consumer group name.
      * @param start Starting stream ID bound for range.
