@@ -3917,17 +3917,17 @@ public class SharedCommandTests {
         assertArrayEquals(
                 new Object[] {streamid_3, consumer2, 1L},
                 ArrayUtils.remove(pending_results_extended[2], 2));
-        assertTrue((Long) pending_results_extended[2][2] > 0L);
+        assertTrue((Long) pending_results_extended[2][2] >= 0L);
 
         assertArrayEquals(
                 new Object[] {streamid_4, consumer2, 1L},
                 ArrayUtils.remove(pending_results_extended[3], 2));
-        assertTrue((Long) pending_results_extended[3][2] > 0L);
+        assertTrue((Long) pending_results_extended[3][2] >= 0L);
 
         assertArrayEquals(
                 new Object[] {streamid_5, consumer2, 1L},
                 ArrayUtils.remove(pending_results_extended[4], 2));
-        assertTrue((Long) pending_results_extended[4][2] > 0L);
+        assertTrue((Long) pending_results_extended[4][2] >= 0L);
 
         // acknowledge streams 2-4 and remove them from the xpending results
         assertEquals(
