@@ -143,7 +143,7 @@ pub(crate) fn convert_to_expected_type(
             from_owned_redis_value::<String>(value)?.into(),
         )),
         ExpectedReturnType::SimpleString => Ok(Value::SimpleString(
-            from_owned_redis_value::<String>(value)?.into(),
+            from_owned_redis_value::<String>(value)?,
         )),
         ExpectedReturnType::JsonToggleReturnType => match value {
             Value::Array(array) => {
