@@ -74,7 +74,6 @@ import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -1201,8 +1200,7 @@ public class CommandTests {
         assertEquals(OK, clusterClient.functionDelete(libName).get());
     }
 
-    // @Test
-    @RepeatedTest(50)
+    @Test
     @SneakyThrows
     public void functionStats_and_functionKill_without_route() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
@@ -1281,13 +1279,7 @@ public class CommandTests {
     }
 
     @ParameterizedTest(name = "single node route = {0}")
-    @ValueSource(
-            booleans = {
-                true, false, true, false, true, false, true, false, true, false, true, false, true, false,
-                true, false, true, false, true, false, true, false, true, false, true, false, true, false,
-                true, false, true, false, true, false, true, false, true, false, true, false, true, false,
-                true, false, true, false, true, false, true, false, true, false, true, false, true, false,
-            })
+    @ValueSource(booleans = {true, false})
     @SneakyThrows
     public void functionStats_and_functionKill_with_route(boolean singleNodeRoute) {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
@@ -1373,8 +1365,7 @@ public class CommandTests {
         assertTrue(error.isEmpty(), "Something went wrong during the test");
     }
 
-    // @Test
-    @RepeatedTest(50)
+    @Test
     @SneakyThrows
     public void functionStats_and_functionKill_with_key_based_route() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
