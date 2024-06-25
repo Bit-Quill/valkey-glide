@@ -247,4 +247,12 @@ public class ClusterTransactionTests {
         assertEquals(foobarString, clusterClient.get(key1).get());
         assertEquals(foobarString, clusterClient.get(key2).get());
     }
+
+    @Test
+    @SneakyThrows
+    public void spublish() {
+        ClusterTransaction transaction = new ClusterTransaction().spublish("Schannel", "message");
+
+        assertArrayEquals(new Object[] {0L}, clusterClient.exec(transaction).get());
+    }
 }
