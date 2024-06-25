@@ -17,16 +17,16 @@ public interface StreamRange {
 
     String getRedisApi();
 
-    /** Redis api string for MINIMUM entry ID range bounds */
+    /** Redis API string for MINIMUM entry ID range bounds */
     String MINIMUM_RANGE_REDIS_API = "-";
 
-    /** Redis api string for MAXIMUM entry ID range bounds */
+    /** Redis API string for MAXIMUM entry ID range bounds */
     String MAXIMUM_RANGE_REDIS_API = "+";
 
-    /** Redis api string to designate COUNT */
+    /** Redis API string to designate COUNT */
     String RANGE_COUNT_REDIS_API = "COUNT";
 
-    /** Redis api character to designate exclusive range bounds */
+    /** Redis API character to designate exclusive range bounds */
     String EXCLUSIVE_RANGE_REDIS_API = "(";
 
     /**

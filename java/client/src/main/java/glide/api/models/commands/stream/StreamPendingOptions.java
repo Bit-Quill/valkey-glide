@@ -1,13 +1,14 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands.stream;
 
+import glide.api.commands.StreamBaseCommands;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 
 /**
- * Arguments for {@link glide.api.commands.StreamBaseCommands#xpending} to specify additional filter
- * items by idle time and consumer.
+ * Arguments for {@link StreamBaseCommands#xpending} to specify additional filter items by idle time
+ * and consumer.
  *
  * @see <a href="https://redis.io/commands/xpending/">redis.io</a>
  */

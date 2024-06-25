@@ -3164,15 +3164,17 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://valkey.io/commands/xpending/">valkey.io</a> for details.
      * @param key The key of the stream.
      * @param group The consumer group name.
-     * @return Command Response - An array that includes the summary of pending messages, with the
-     *     format <code>[NumOfMessages, StartId, EndId, [Consumer, NumOfMessages]]</code>, where:
+     * @return Command Response - A 2D-<code>array</code> that includes the summary of pending
+     *     messages, with the format <code>
+     *     [NumOfMessages, StartId, EndId, [[Consumer, NumOfMessages], ...]</code>, where:
      *     <ul>
      *       <li><code>NumOfMessages</code>: The total number of pending messages for this consumer
      *           group.
      *       <li><code>StartId</code>: The smallest ID among the pending messages.
      *       <li><code>EndId</code>: The greatest ID among the pending messages.
-     *       <li><code>[Consumer, NumOfMessages]</code>: An array of every consumer in the consumer
-     *           group with at least one pending message, and the number of pending messages it has.
+     *       <li><code>[[Consumer, NumOfMessages], ...]</code>: A 2D-<code>array</code> of every
+     *           consumer in the consumer group with at least one pending message, and the number of
+     *           pending messages it has.
      *     </ul>
      */
     public T xpending(@NonNull String key, @NonNull String group) {
@@ -3205,8 +3207,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     </ul>
      *
      * @param count Limits the number of messages returned.
-     * @return Command Response - An array of 4-tuples containing extended message information with
-     *     the format <code>[[ID, Consumer, TimeElapsed, NumOfDelivered], ... ]</code>, where:
+     * @return Command Response - A 2D-<code>array</code> of 4-tuples containing extended message
+     *     information with the format <code>[[ID, Consumer, TimeElapsed, NumOfDelivered], ... ]
+     *     </code>, where:
      *     <ul>
      *       <li><code>ID</code>: The ID of the message.
      *       <li><code>Consumer</code>: The name of the consumer that fetched the message and has
@@ -3250,8 +3253,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @param count Limits the number of messages returned.
      * @param options Stream add options {@link StreamPendingOptions}.
-     * @return Command Response - An array of 4-tuples containing extended message information with
-     *     the format <code>[[ID, Consumer, TimeElapsed, NumOfDelivered], ... ]</code>, where:
+     * @return Command Response - A 2D-<code>array</code> of 4-tuples containing extended message
+     *     information with the format <code>[[ID, Consumer, TimeElapsed, NumOfDelivered], ... ]
+     *     </code>, where:
      *     <ul>
      *       <li><code>ID</code>: The ID of the message.
      *       <li><code>Consumer</code>: The name of the consumer that fetched the message and has
