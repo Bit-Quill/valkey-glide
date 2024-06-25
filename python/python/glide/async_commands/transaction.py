@@ -3449,6 +3449,7 @@ class BaseTransaction:
     ) -> TTransaction:
         """
         Displays a piece of generative computer art and the Redis version.
+
         See https://valkey.io/commands/lolwut for more details.
 
         Args:
