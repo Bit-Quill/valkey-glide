@@ -372,15 +372,7 @@ public interface StringBaseCommands {
      *           stored as <code>Long</code>.
      *       <li>"matches" is mapped to a three dimensional <code>Long</code> array that stores pairs
      *           of indices that represent the location of the common subsequences in the strings held
-     *           by <code>key1</code> and <code>key2</code>. For example, if <code>key1</code> holds
-     *           the string <code>"abcd123"</code> and <code>key2</code> holds the string <code>
-     *           "bcdefg123"</code> then the sample result would be <code>new Long[][][] {{{4L, 6L},
-     *           {6L, 8L}}, {{1L, 3L}, {0L, 2L}}}</code>. The result indicates that the first
-     *           substring match is <code>"123"</code> in <code>key1</code> at index <code>4</code> to
-     *           <code>6</code> which matches the substring in <code>key2</code> at index <code>6
-     *           </code> to <code>8</code>. And the second substring match is <code>"bcd"</code> in
-     *           <code>key1</code> at index <code>1</code> to <code>3</code> which matches the
-     *           substring in <code>key2</code> at index <code>0</code> to <code>2</code>.
+     *           by <code>key1</code> and <code>key2</code>.
      *     </ul>
      *
      * @example
@@ -419,15 +411,7 @@ public interface StringBaseCommands {
      *           stored as <code>Long</code>.
      *       <li>"matches" is mapped to a three dimensional <code>Long</code> array that stores pairs
      *           of indices that represent the location of the common subsequences in the strings held
-     *           by <code>key1</code> and <code>key2</code>. For example, if <code>key1</code> holds
-     *           the string <code>"abcd123"</code> and <code>key2</code> holds the string <code>
-     *           "bcdefg123"</code> then the sample result would be <code>new Long[][][] {{{4L, 6L},
-     *           {6L, 8L}}, {{1L, 3L}, {0L, 2L}}}</code>. The result indicates that the first
-     *           substring match is <code>"123"</code> in <code>key1</code> at index <code>4</code> to
-     *           <code>6</code> which matches the substring in <code>key2</code> at index <code>6
-     *           </code> to <code>8</code>. And the second substring match is <code>"bcd"</code> in
-     *           <code>key1</code> at index <code>1</code> to <code>3</code> which matches the
-     *           substring in <code>key2</code> at index <code>0</code> to <code>2</code>.
+     *           by <code>key1</code> and <code>key2</code>.
      *     </ul>
      *
      * @example
@@ -465,18 +449,7 @@ public interface StringBaseCommands {
      *           stored as <code>Long</code>.
      *       <li>"matches" is mapped to a three dimensional <code>Long</code> array that stores pairs
      *           of indices that represent the location of the common subsequences in the strings held
-     *           by <code>key1</code> and <code>key2</code>. For example, if <code>key1</code> holds
-     *           the string <code>"abcd123"</code> and <code>key2</code> holds the string <code>
-     *           "bcdefg123"</code> then the sample result would be <code>new Object[]{new Object[]
-     *           {new Long[] {4L, 6L}, new Long[] {6L, 8L}, 3L}, new Object[] {new Long[] {1L, 3L},
-     *           new Long[] {0L, 2L}, 3L}}</code>. The result indicates that the first substring match
-     *           is <code>"123"</code> in <code>key1</code> at index <code>4</code> to <code>6</code>
-     *           which matches the substring in <code>key2</code> at index <code>6</code> to <code>8
-     *           </code> and the last element in the array is the length of the substring match which
-     *           is <code>3</code>. And the second substring match is <code>"bcd"</code> in <code>key1
-     *           </code> at index <code>1</code> to <code>3</code> which matches the substring in
-     *           <code>key2</code> at index <code>0</code> to <code>2</code> and the last element in
-     *           the array is the length of the substring match which is <code>3</code>.
+     *           by <code>key1</code> and <code>key2</code>.
      *     </ul>
      *
      * @example
@@ -520,18 +493,7 @@ public interface StringBaseCommands {
      *           stored as <code>Long</code>.
      *       <li>"matches" is mapped to a three dimensional <code>Long</code> array that stores pairs
      *           of indices that represent the location of the common subsequences in the strings held
-     *           by <code>key1</code> and <code>key2</code>. For example, if <code>key1</code> holds
-     *           the string <code>"abcd123"</code> and <code>key2</code> holds the string <code>
-     *           "bcdefg123"</code> then the sample result would be <code>new Object[]{new Object[]
-     *           {new Long[] {4L, 6L}, new Long[] {6L, 8L}, 3L}, new Object[] {new Long[] {1L, 3L},
-     *           new Long[] {0L, 2L}, 3L}}</code>. The result indicates that the first substring match
-     *           is <code>"123"</code> in <code>key1</code> at index <code>4</code> to <code>6</code>
-     *           which matches the substring in <code>key2</code> at index <code>6</code> to <code>8
-     *           </code> and the last element in the array is the length of the substring match which
-     *           is <code>3</code>. And the second substring match is <code>"bcd"</code> in <code>key1
-     *           </code> at index <code>1</code> to <code>3</code> which matches the substring in
-     *           <code>key2</code> at index <code>0</code> to <code>2</code> and the last element in
-     *           the array is the length of the substring match which is <code>3</code>.
+     *           by <code>key1</code> and <code>key2</code>.
      *     </ul>
      *
      * @example
