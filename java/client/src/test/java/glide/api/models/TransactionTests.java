@@ -27,7 +27,7 @@ import static glide.api.models.commands.function.FunctionListOptions.WITH_CODE_R
 import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_API;
 import static glide.api.models.commands.stream.StreamGroupOptions.ENTRIES_READ_REDIS_API;
 import static glide.api.models.commands.stream.StreamGroupOptions.MAKE_STREAM_REDIS_API;
-import static glide.api.models.commands.stream.StreamPendingOptions.IDLE_Time_REDIS_API;
+import static glide.api.models.commands.stream.StreamPendingOptions.IDLE_TIME_REDIS_API;
 import static glide.api.models.commands.stream.StreamRange.EXCLUSIVE_RANGE_REDIS_API;
 import static glide.api.models.commands.stream.StreamRange.MAXIMUM_RANGE_REDIS_API;
 import static glide.api.models.commands.stream.StreamRange.MINIMUM_RANGE_REDIS_API;
@@ -860,7 +860,7 @@ public class TransactionTests {
                         buildArgs(
                                 "key",
                                 "group",
-                                IDLE_Time_REDIS_API,
+                                IDLE_TIME_REDIS_API,
                                 "5",
                                 EXCLUSIVE_RANGE_REDIS_API + "11",
                                 EXCLUSIVE_RANGE_REDIS_API + "1234-0",
