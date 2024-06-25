@@ -520,7 +520,7 @@ class ClusterCommands(CoreCommands):
         version: Optional[int] = None,
         parameters: Optional[List[int]] = None,
         route: Optional[Route] = None,
-    ) -> str:
+    ) -> TClusterResponse[str]:
         """
         Displays a piece of generative computer art and the Redis version.
 
@@ -535,7 +535,7 @@ class ClusterCommands(CoreCommands):
                 in which case the client will route the command to the nodes defined by `route`.
 
         Returns:
-            str: A piece of generative computer art along with the current Redis version.
+            TClusterResponse[str]: A piece of generative computer art along with the current Redis version.
 
         Examples:
             >>> await client.lolwut(6, [40, 20], ALL_NODES);
@@ -548,6 +548,6 @@ class ClusterCommands(CoreCommands):
             for var in parameters:
                 args.extend(str(var))
         return cast(
-            str,
+            TClusterResponse[str],
             await self._execute_command(RequestType.Lolwut, args, route),
         )
