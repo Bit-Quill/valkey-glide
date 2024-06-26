@@ -6105,23 +6105,30 @@ public class RedisClientTest {
         Long minIdleTime = 18L;
         String[] ids = new String[] {"testId"};
         StreamClaimOptions options =
-            StreamClaimOptions.builder().force().idle(11L).idleUnixTime(12L).retryCount(5L)
-                .lastId("2345-5").build();
-        String[] arguments = new String[] {
-            key,
-            groupName,
-            consumer,
-            "18",
-            "testId",
-            IDLE_REDIS_API,
-            "11",
-            TIME_REDIS_API,
-            "12",
-            RETRY_COUNT_REDIS_API,
-            "5",
-            FORCE_REDIS_API,
-            LAST_ID_REDIS_API,
-            "2345-5"};
+                StreamClaimOptions.builder()
+                        .force()
+                        .idle(11L)
+                        .idleUnixTime(12L)
+                        .retryCount(5L)
+                        .lastId("2345-5")
+                        .build();
+        String[] arguments =
+                new String[] {
+                    key,
+                    groupName,
+                    consumer,
+                    "18",
+                    "testId",
+                    IDLE_REDIS_API,
+                    "11",
+                    TIME_REDIS_API,
+                    "12",
+                    RETRY_COUNT_REDIS_API,
+                    "5",
+                    FORCE_REDIS_API,
+                    LAST_ID_REDIS_API,
+                    "2345-5"
+                };
         Map<String, String[]> mockResult = Map.of("1234-0", new String[] {"message", "log"});
 
         CompletableFuture<Map<String, String[]>> testResponse = new CompletableFuture<>();
@@ -6129,11 +6136,11 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Map<String, String[]>>submitNewCommand(eq(XClaim), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Map<String, String[]>> response =
-            service.xclaim(key, groupName, consumer, minIdleTime, ids, options);
+                service.xclaim(key, groupName, consumer, minIdleTime, ids, options);
         Map<String, String[]> payload = response.get();
 
         // verify
@@ -6149,13 +6156,8 @@ public class RedisClientTest {
         String groupName = "testGroupName";
         String consumer = "testConsumer";
         Long minIdleTime = 18L;
-        String[] ids = new String[] {"testId"};String[] arguments = new String[] {
-            key,
-            groupName,
-            consumer,
-            "18",
-            "testId",
-            JUST_ID_REDIS_API};
+        String[] ids = new String[] {"testId"};
+        String[] arguments = new String[] {key, groupName, consumer, "18", "testId", JUST_ID_REDIS_API};
         String[] mockResult = {"message", "log"};
 
         CompletableFuture<String[]> testResponse = new CompletableFuture<>();
@@ -6163,11 +6165,11 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<String[]>submitNewCommand(eq(XClaim), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String[]> response =
-            service.xclaimJustId(key, groupName, consumer, minIdleTime, ids);
+                service.xclaimJustId(key, groupName, consumer, minIdleTime, ids);
         String[] payload = response.get();
 
         // verify
@@ -6185,24 +6187,31 @@ public class RedisClientTest {
         Long minIdleTime = 18L;
         String[] ids = new String[] {"testId"};
         StreamClaimOptions options =
-            StreamClaimOptions.builder().force().idle(11L).idleUnixTime(12L).retryCount(5L)
-                .lastId("2345-5").build();
-        String[] arguments = new String[] {
-            key,
-            groupName,
-            consumer,
-            "18",
-            "testId",
-            IDLE_REDIS_API,
-            "11",
-            TIME_REDIS_API,
-            "12",
-            RETRY_COUNT_REDIS_API,
-            "5",
-            FORCE_REDIS_API,
-            JUST_ID_REDIS_API,
-            LAST_ID_REDIS_API,
-            "2345-5"};
+                StreamClaimOptions.builder()
+                        .force()
+                        .idle(11L)
+                        .idleUnixTime(12L)
+                        .retryCount(5L)
+                        .lastId("2345-5")
+                        .build();
+        String[] arguments =
+                new String[] {
+                    key,
+                    groupName,
+                    consumer,
+                    "18",
+                    "testId",
+                    IDLE_REDIS_API,
+                    "11",
+                    TIME_REDIS_API,
+                    "12",
+                    RETRY_COUNT_REDIS_API,
+                    "5",
+                    FORCE_REDIS_API,
+                    JUST_ID_REDIS_API,
+                    LAST_ID_REDIS_API,
+                    "2345-5"
+                };
         String[] mockResult = {"message", "log"};
 
         CompletableFuture<String[]> testResponse = new CompletableFuture<>();
@@ -6210,11 +6219,11 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<String[]>submitNewCommand(eq(XClaim), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<String[]> response =
-            service.xclaimJustId(key, groupName, consumer, minIdleTime, ids, options);
+                service.xclaimJustId(key, groupName, consumer, minIdleTime, ids, options);
         String[] payload = response.get();
 
         // verify

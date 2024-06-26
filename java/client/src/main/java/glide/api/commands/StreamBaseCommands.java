@@ -714,25 +714,35 @@ public interface StreamBaseCommands {
             StreamPendingOptions options);
 
     /**
+     * Changes the ownership of a pending message.
      *
-     * @param key
-     * @param group
-     * @param consumer
-     * @param minIdleTime
-     * @param ids
-     * @return
+     * @see <a href="https://valkey.io/commands/xclaim/">valkey.io</a> for details.
+     * @param key The key of the stream.
+     * @param group The consumer group name.
+     * @param consumer The group consumer.
+     * @param minIdleTime The minimum idle time for the message to be claimed.
+     * @param ids An array of entry ids.
+     * @return An <code>array</code> of message entries with the format <code>
+     *     [[id, ["entry", "data"]], ...]</code> that are claimed by the consumer.
+     * @example
+     *     <pre>
+     * </pre>
      */
     CompletableFuture<Map<String, String[]>> xclaim(
             String key, String group, String consumer, long minIdleTime, String[] ids);
 
     /**
-     * @param key
-     * @param group
-     * @param consumer
-     * @param minIdleTime
-     * @param ids
-     * @param options
-     * @return
+     * Changes the ownership of a pending message.
+     *
+     * @see <a href="https://valkey.io/commands/xclaim/">valkey.io</a> for details.
+     * @param key The key of the stream.
+     * @param group The consumer group name.
+     * @param consumer The group consumer.
+     * @param minIdleTime The minimum idle time for the message to be claimed.
+     * @param ids An array of entry ids.
+     * @param options Stream claim options {@link StreamClaimOptions}.
+     * @return An <code>array</code> of message entries with the format <code>
+     *     [[id, ["entry", "data"]], ...]</code> that are claimed by the consumer.
      */
     CompletableFuture<Map<String, String[]>> xclaim(
             String key,
@@ -743,24 +753,32 @@ public interface StreamBaseCommands {
             StreamClaimOptions options);
 
     /**
-     * @param key
-     * @param group
-     * @param consumer
-     * @param minIdleTime
-     * @param ids
-     * @return
+     * Changes the ownership of a pending message. This command uses the JUSTID optional argument to
+     * return a list of stream message ids.
+     *
+     * @see <a href="https://valkey.io/commands/xclaim/">valkey.io</a> for details.
+     * @param key The key of the stream.
+     * @param group The consumer group name.
+     * @param consumer The group consumer.
+     * @param minIdleTime The minimum idle time for the message to be claimed.
+     * @param ids An array of entry ids.
+     * @return An <code>array</code> of message ids claimed by the consumer.
      */
     CompletableFuture<String[]> xclaimJustId(
             String key, String group, String consumer, long minIdleTime, String[] ids);
 
     /**
-     * @param key
-     * @param group
-     * @param consumer
-     * @param minIdleTime
-     * @param ids
-     * @param options
-     * @return
+     * Changes the ownership of a pending message.This command uses the JUSTID optional argument to
+     * return a list of stream message ids.
+     *
+     * @see <a href="https://valkey.io/commands/xclaim/">valkey.io</a> for details.
+     * @param key The key of the stream.
+     * @param group The consumer group name.
+     * @param consumer The group consumer.
+     * @param minIdleTime The minimum idle time for the message to be claimed.
+     * @param ids An array of entry ids.
+     * @param options Stream claim options {@link StreamClaimOptions}.
+     * @return An <code>array</code> of message ids claimed by the consumer.
      */
     CompletableFuture<String[]> xclaimJustId(
             String key,
