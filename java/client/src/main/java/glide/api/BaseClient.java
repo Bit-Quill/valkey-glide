@@ -46,6 +46,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.GeoDist;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoHash;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoPos;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoSearch;
+import static redis_request.RedisRequestOuterClass.RequestType.GeoSearchStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Get;
 import static redis_request.RedisRequestOuterClass.RequestType.GetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.GetDel;
@@ -210,6 +211,7 @@ import glide.api.models.commands.geospatial.GeoSearchOptions;
 import glide.api.models.commands.geospatial.GeoSearchOrigin;
 import glide.api.models.commands.geospatial.GeoSearchResultOptions;
 import glide.api.models.commands.geospatial.GeoSearchShape;
+import glide.api.models.commands.geospatial.GeoSearchStoreOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
@@ -2749,5 +2751,67 @@ public abstract class BaseClient
                         options.toArgs(),
                         resultOptions.toArgs());
         return commandManager.submitNewCommand(GeoSearch, arguments, this::handleArrayResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> geosearchstore(
+            @NonNull String destination,
+            @NonNull String source,
+            @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
+            @NonNull GeoSearchShape searchBy) {
+        String[] arguments =
+                concatenateArrays(
+                        new String[] {destination, source}, searchFrom.toArgs(), searchBy.toArgs());
+        return commandManager.submitNewCommand(GeoSearchStore, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> geosearchstore(
+            @NonNull String destination,
+            @NonNull String source,
+            @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
+            @NonNull GeoSearchShape searchBy,
+            @NonNull GeoSearchResultOptions resultOptions) {
+        String[] arguments =
+                concatenateArrays(
+                        new String[] {destination, source},
+                        searchFrom.toArgs(),
+                        searchBy.toArgs(),
+                        resultOptions.toArgs());
+        return commandManager.submitNewCommand(GeoSearchStore, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> geosearchstore(
+            @NonNull String destination,
+            @NonNull String source,
+            @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
+            @NonNull GeoSearchShape searchBy,
+            @NonNull GeoSearchStoreOptions options) {
+        String[] arguments =
+                concatenateArrays(
+                        new String[] {destination, source},
+                        searchFrom.toArgs(),
+                        searchBy.toArgs(),
+                        options.toArgs());
+        return commandManager.submitNewCommand(GeoSearchStore, arguments, this::handleLongResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> geosearchstore(
+            @NonNull String destination,
+            @NonNull String source,
+            @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
+            @NonNull GeoSearchShape searchBy,
+            @NonNull GeoSearchStoreOptions options,
+            @NonNull GeoSearchResultOptions resultOptions) {
+        String[] arguments =
+                concatenateArrays(
+                        new String[] {destination, source},
+                        searchFrom.toArgs(),
+                        searchBy.toArgs(),
+                        options.toArgs(),
+                        resultOptions.toArgs());
+        return commandManager.submitNewCommand(GeoSearchStore, arguments, this::handleLongResponse);
     }
 }

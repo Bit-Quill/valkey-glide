@@ -89,6 +89,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.GeoDist;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoHash;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoPos;
 import static redis_request.RedisRequestOuterClass.RequestType.GeoSearch;
+import static redis_request.RedisRequestOuterClass.RequestType.GeoSearchStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Get;
 import static redis_request.RedisRequestOuterClass.RequestType.GetBit;
 import static redis_request.RedisRequestOuterClass.RequestType.GetDel;
@@ -254,6 +255,7 @@ import glide.api.models.commands.geospatial.GeoSearchOptions;
 import glide.api.models.commands.geospatial.GeoSearchOrigin;
 import glide.api.models.commands.geospatial.GeoSearchResultOptions;
 import glide.api.models.commands.geospatial.GeoSearchShape;
+import glide.api.models.commands.geospatial.GeoSearchStoreOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
@@ -1210,7 +1212,7 @@ public class TransactionTests {
                 "key",
                 new GeoSearchOrigin.MemberOrigin("member"),
                 new GeoSearchShape(1, GeoUnit.KILOMETERS),
-                new GeoSearchOptions.GeoSearchOptionsBuilder().withhash().withdist().withcoord().build(),
+                GeoSearchOptions.builder().withhash().withdist().withcoord().build(),
                 new GeoSearchResultOptions(SortOrder.ASC, 1, true));
         results.add(
                 Pair.of(
@@ -1234,7 +1236,7 @@ public class TransactionTests {
                 "key",
                 new GeoSearchOrigin.CoordOrigin(new GeospatialData(1.0, 1.0)),
                 new GeoSearchShape(1, 1, GeoUnit.KILOMETERS),
-                new GeoSearchOptions.GeoSearchOptionsBuilder().withhash().withdist().withcoord().build());
+                GeoSearchOptions.builder().withhash().withdist().withcoord().build());
         results.add(
                 Pair.of(
                         GeoSearch,
@@ -1250,6 +1252,83 @@ public class TransactionTests {
                                 "WITHDIST",
                                 "WITHCOORD",
                                 "WITHHASH")));
+
+        transaction.geosearchstore(
+                "destination",
+                "source",
+                new GeoSearchOrigin.MemberOrigin("member"),
+                new GeoSearchShape(1, GeoUnit.KILOMETERS));
+        results.add(
+                Pair.of(
+                        GeoSearchStore,
+                        buildArgs(
+                                "destination", "source", FROMMEMBER_REDIS_API, "member", "BYRADIUS", "1.0", "km")));
+
+        transaction.geosearchstore(
+                "destination",
+                "source",
+                new GeoSearchOrigin.CoordOrigin(new GeospatialData(1.0, 1.0)),
+                new GeoSearchShape(1, 1, GeoUnit.KILOMETERS),
+                new GeoSearchResultOptions(SortOrder.ASC, 2));
+        results.add(
+                Pair.of(
+                        GeoSearchStore,
+                        buildArgs(
+                                "destination",
+                                "source",
+                                FROMLONLAT_REDIS_API,
+                                "1.0",
+                                "1.0",
+                                "BYBOX",
+                                "1.0",
+                                "1.0",
+                                "km",
+                                COUNT_REDIS_API,
+                                "2",
+                                "ASC")));
+
+        transaction.geosearchstore(
+                "destination",
+                "source",
+                new GeoSearchOrigin.MemberOrigin("member"),
+                new GeoSearchShape(1, GeoUnit.KILOMETERS),
+                GeoSearchStoreOptions.builder().storedist().build());
+        results.add(
+                Pair.of(
+                        GeoSearchStore,
+                        buildArgs(
+                                "destination",
+                                "source",
+                                FROMMEMBER_REDIS_API,
+                                "member",
+                                "BYRADIUS",
+                                "1.0",
+                                "km",
+                                "STOREDIST")));
+
+        transaction.geosearchstore(
+                "destination",
+                "source",
+                new GeoSearchOrigin.MemberOrigin("member"),
+                new GeoSearchShape(1, GeoUnit.KILOMETERS),
+                GeoSearchStoreOptions.builder().storedist().build(),
+                new GeoSearchResultOptions(SortOrder.ASC, 1, true));
+        results.add(
+                Pair.of(
+                        GeoSearchStore,
+                        buildArgs(
+                                "destination",
+                                "source",
+                                FROMMEMBER_REDIS_API,
+                                "member",
+                                "BYRADIUS",
+                                "1.0",
+                                "km",
+                                "STOREDIST",
+                                "COUNT",
+                                "1",
+                                "ANY",
+                                "ASC")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 

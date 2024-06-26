@@ -39,6 +39,7 @@ import glide.api.models.commands.geospatial.GeoSearchOptions;
 import glide.api.models.commands.geospatial.GeoSearchOrigin;
 import glide.api.models.commands.geospatial.GeoSearchResultOptions;
 import glide.api.models.commands.geospatial.GeoSearchShape;
+import glide.api.models.commands.geospatial.GeoSearchStoreOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.stream.StreamAddOptions;
@@ -869,6 +870,7 @@ public class TransactionTestUtilities {
 
     private static Object[] geospatialCommands(BaseTransaction<?> transaction) {
         final String geoKey1 = "{geoKey}-1-" + UUID.randomUUID();
+        final String geoKey2 = "{geoKey}-2-" + UUID.randomUUID();
 
         transaction
                 .geoadd(
@@ -898,21 +900,26 @@ public class TransactionTestUtilities {
                             geoKey1,
                             new GeoSearchOrigin.MemberOrigin("Palermo"),
                             new GeoSearchShape(200, GeoUnit.KILOMETERS),
-                            new GeoSearchOptions.GeoSearchOptionsBuilder()
-                                    .withhash()
-                                    .withdist()
-                                    .withcoord()
-                                    .build(),
+                            GeoSearchOptions.builder().withhash().withdist().withcoord().build(),
                             new GeoSearchResultOptions(SortOrder.ASC, 2))
                     .geosearch(
                             geoKey1,
                             new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
                             new GeoSearchShape(400, 400, GeoUnit.KILOMETERS),
-                            new GeoSearchOptions.GeoSearchOptionsBuilder()
-                                    .withhash()
-                                    .withdist()
-                                    .withcoord()
-                                    .build(),
+                            GeoSearchOptions.builder().withhash().withdist().withcoord().build(),
+                            new GeoSearchResultOptions(SortOrder.ASC, 2))
+                    .geosearchstore(
+                            geoKey2,
+                            geoKey1,
+                            new GeoSearchOrigin.MemberOrigin("Palermo"),
+                            new GeoSearchShape(200, GeoUnit.KILOMETERS),
+                            new GeoSearchResultOptions(SortOrder.ASC))
+                    .geosearchstore(
+                            geoKey2,
+                            geoKey1,
+                            new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
+                            new GeoSearchShape(400, 400, GeoUnit.KILOMETERS),
+                            GeoSearchStoreOptions.builder().build(),
                             new GeoSearchResultOptions(SortOrder.ASC, 2));
         }
 
@@ -975,6 +982,8 @@ public class TransactionTestUtilities {
                                         }
                                     },
                                 }, // geosearch(geoKey1, (15,37), BYBOX(400,400,km), ASC, COUNT 2)
+                                2L,
+                                2L,
                             });
         }
 

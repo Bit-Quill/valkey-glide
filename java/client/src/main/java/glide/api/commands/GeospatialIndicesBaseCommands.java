@@ -9,6 +9,7 @@ import glide.api.models.commands.geospatial.GeoSearchOrigin.MemberOrigin;
 import glide.api.models.commands.geospatial.GeoSearchOrigin.SearchOrigin;
 import glide.api.models.commands.geospatial.GeoSearchResultOptions;
 import glide.api.models.commands.geospatial.GeoSearchShape;
+import glide.api.models.commands.geospatial.GeoSearchStoreOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import java.util.Map;
@@ -381,7 +382,8 @@ public interface GeospatialIndicesBaseCommands {
      *           axis-aligned rectangle, determined by height and width.
      *     </ul>
      *
-     * @param options The optional inputs to request additional information.
+     * @param options The optional inputs to request additional information. See - {@link
+     *     GeoSearchOptions}
      * @param resultOptions Optional inputs for sorting/limiting the results. See - {@link
      *     GeoSearchResultOptions}
      * @return An array of arrays where each sub-array represents a single item in the following
@@ -435,5 +437,192 @@ public interface GeospatialIndicesBaseCommands {
             SearchOrigin searchFrom,
             GeoSearchShape searchBy,
             GeoSearchOptions options,
+            GeoSearchResultOptions resultOptions);
+
+    /**
+     * The command is like {@link #geosearch(String, SearchOrigin, GeoSearchShape)}, but stores the
+     * result in <code>destination</code>.
+     *
+     * @since Redis 6.2.0 and above.
+     * @apiNote When in cluster mode, <code>source</code> and <code>destination</code> must map to the
+     *     same hash slot.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param destination The key of the destination sorted set.
+     * @param source The key of the source sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link MemberOrigin} to use the position of the given existing member in the sorted
+     *           set.
+     *       <li>{@link CoordOrigin} to use the given longitude and latitude coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @return The number of elements in the resulting set.
+     * @example
+     *     <pre>{@code
+     * Long result = client
+     *                     .geosearchstore(
+     *                             destinationKey,
+     *                             sourceKey,
+     *                             new CoordOrigin(new GeospatialData(15, 37)),
+     *                             new GeoSearchShape(400, 400, GeoUnit.KILOMETERS))
+     *                     .get();
+     * assert result == 4L;
+     * }</pre>
+     */
+    CompletableFuture<Long> geosearchstore(
+            String destination, String source, SearchOrigin searchFrom, GeoSearchShape searchBy);
+
+    /**
+     * The command is like {@link #geosearch(String, SearchOrigin, GeoSearchShape,
+     * GeoSearchResultOptions)}, but stores the result in <code>destination</code>.
+     *
+     * @since Redis 6.2.0 and above.
+     * @apiNote When in cluster mode, <code>source</code> and <code>destination</code> must map to the
+     *     same hash slot.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param destination The key of the destination sorted set.
+     * @param source The key of the source sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link MemberOrigin} to use the position of the given existing member in the sorted
+     *           set.
+     *       <li>{@link CoordOrigin} to use the given longitude and latitude coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @param resultOptions Optional inputs for sorting/limiting the results. See - {@link
+     *     GeoSearchResultOptions}
+     * @return The number of elements in the resulting set.
+     * @example
+     *     <pre>{@code
+     * Long result = client
+     *                     .geosearchstore(
+     *                             destinationKey,
+     *                             sourceKey,
+     *                             new CoordOrigin(new GeospatialData(15, 37)),
+     *                             new GeoSearchShape(400, 400, GeoUnit.KILOMETERS),
+     *                             new GeoSearchResultOptions(2, true))
+     *                     .get();
+     * assert result == 2L;
+     * }</pre>
+     */
+    CompletableFuture<Long> geosearchstore(
+            String destination,
+            String source,
+            SearchOrigin searchFrom,
+            GeoSearchShape searchBy,
+            GeoSearchResultOptions resultOptions);
+
+    /**
+     * The command is like {@link #geosearch(String, SearchOrigin, GeoSearchShape, GeoSearchOptions)},
+     * but stores the result in <code>destination</code>.
+     *
+     * @since Redis 6.2.0 and above.
+     * @apiNote When in cluster mode, <code>source</code> and <code>destination</code> must map to the
+     *     same hash slot.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param destination The key of the destination sorted set.
+     * @param source The key of the source sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link MemberOrigin} to use the position of the given existing member in the sorted
+     *           set.
+     *       <li>{@link CoordOrigin} to use the given longitude and latitude coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @param options The optional inputs to request additional information.
+     * @return The number of elements in the resulting set.
+     * @example
+     *     <pre>{@code
+     * Long result = client
+     *                     .geosearchstore(
+     *                             destinationKey,
+     *                             sourceKey,
+     *                             new CoordOrigin(new GeospatialData(15, 37)),
+     *                             new GeoSearchShape(400, 400, GeoUnit.KILOMETERS),
+     *                             GeoSearchStoreOptions.builder().storedist().build())
+     *                     .get();
+     * assert result == 4L;
+     * }</pre>
+     */
+    CompletableFuture<Long> geosearchstore(
+            String destination,
+            String source,
+            SearchOrigin searchFrom,
+            GeoSearchShape searchBy,
+            GeoSearchStoreOptions options);
+
+    /**
+     * The command is like {@link #geosearch(String, SearchOrigin, GeoSearchShape, GeoSearchOptions,
+     * GeoSearchResultOptions)}, but stores the result in <code>destination</code>.
+     *
+     * @since Redis 6.2.0 and above.
+     * @apiNote When in cluster mode, <code>source</code> and <code>destination</code> must map to the
+     *     same hash slot.
+     * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
+     * @param destination The key of the destination sorted set.
+     * @param source The key of the source sorted set.
+     * @param searchFrom The query's center point options, could be one of:
+     *     <ul>
+     *       <li>{@link MemberOrigin} to use the position of the given existing member in the sorted
+     *           set.
+     *       <li>{@link CoordOrigin} to use the given longitude and latitude coordinates.
+     *     </ul>
+     *
+     * @param searchBy The query's shape options:
+     *     <ul>
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, GeoUnit)} to search inside circular area
+     *           according to given radius.
+     *       <li>{@link GeoSearchShape#GeoSearchShape(double, double, GeoUnit)} to search inside an
+     *           axis-aligned rectangle, determined by height and width.
+     *     </ul>
+     *
+     * @param options The optional inputs to request additional information.
+     * @param resultOptions Optional inputs for sorting/limiting the results. See - {@link
+     *     GeoSearchResultOptions}
+     * @return The number of elements in the resulting set.
+     * @example
+     *     <pre>{@code
+     * Long result = client
+     *                     .geosearchstore(
+     *                             destinationKey,
+     *                             sourceKey,
+     *                             new CoordOrigin(new GeospatialData(15, 37)),
+     *                             new GeoSearchShape(400, 400, GeoUnit.KILOMETERS),
+     *                             GeoSearchStoreOptions.builder().storedist().build()
+     *                             new GeoSearchResultOptions(2, true))
+     *                     .get();
+     * assert result == 2L;
+     * }</pre>
+     */
+    CompletableFuture<Long> geosearchstore(
+            String destination,
+            String source,
+            SearchOrigin searchFrom,
+            GeoSearchShape searchBy,
+            GeoSearchStoreOptions options,
             GeoSearchResultOptions resultOptions);
 }
