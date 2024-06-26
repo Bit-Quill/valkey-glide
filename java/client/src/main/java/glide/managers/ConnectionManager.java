@@ -145,6 +145,7 @@ public class ConnectionManager {
         }
 
         if (configuration.getSubscriptionConfiguration() != null) {
+            // TODO throw WrongConfiguration if RESP2
             var subscriptionsBuilder = PubSubSubscriptions.newBuilder();
             for (var entry : configuration.getSubscriptionConfiguration().getSubscriptions().entrySet()) {
                 var channelsBuilder = PubSubChannelsOrPatterns.newBuilder();
@@ -172,6 +173,7 @@ public class ConnectionManager {
         connectionRequestBuilder.setClusterModeEnabled(true);
 
         if (configuration.getSubscriptionConfiguration() != null) {
+            // TODO throw WrongConfiguration if RESP2
             var subscriptionsBuilder = PubSubSubscriptions.newBuilder();
             for (var entry : configuration.getSubscriptionConfiguration().getSubscriptions().entrySet()) {
                 var channelsBuilder = PubSubChannelsOrPatterns.newBuilder();

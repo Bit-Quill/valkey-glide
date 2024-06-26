@@ -90,6 +90,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.Persist;
 import static redis_request.RedisRequestOuterClass.RequestType.PfAdd;
 import static redis_request.RedisRequestOuterClass.RequestType.PfCount;
 import static redis_request.RedisRequestOuterClass.RequestType.PfMerge;
+import static redis_request.RedisRequestOuterClass.RequestType.Publish;
 import static redis_request.RedisRequestOuterClass.RequestType.RPop;
 import static redis_request.RedisRequestOuterClass.RequestType.RPush;
 import static redis_request.RedisRequestOuterClass.RequestType.RPushX;
@@ -163,6 +164,7 @@ import glide.api.commands.GeospatialIndicesBaseCommands;
 import glide.api.commands.HashBaseCommands;
 import glide.api.commands.HyperLogLogBaseCommands;
 import glide.api.commands.ListBaseCommands;
+import glide.api.commands.PubSubBaseCommands;
 import glide.api.commands.ScriptingAndFunctionsBaseCommands;
 import glide.api.commands.SetBaseCommands;
 import glide.api.commands.SortedSetBaseCommands;
@@ -241,7 +243,8 @@ public abstract class BaseClient
                 HyperLogLogBaseCommands,
                 GeospatialIndicesBaseCommands,
                 ScriptingAndFunctionsBaseCommands,
-                TransactionsBaseCommands {
+                TransactionsBaseCommands,
+                PubSubBaseCommands {
 
     /** Redis simple string response with "OK" */
     public static final String OK = ConstantResponse.OK.toString();
@@ -317,8 +320,8 @@ public abstract class BaseClient
     /**
      * Tries to return a next pubsub message.
      *
-     * @throws WrongConfigurationException If client is not subscribed to any channel or if client configured
-     *     with a callback.
+     * @throws WrongConfigurationException If client is not subscribed to any channel or if client
+     *     configured with a callback.
      * @return A message if any or <code>null</code> if there are no unread messages.
      */
     public Message tryGetPubSubMessage() {
@@ -338,8 +341,8 @@ public abstract class BaseClient
     /**
      * Returns a promise for a next pubsub message.
      *
-     * @throws WrongConfigurationException If client is not subscribed to any channel or if client configured
-     *     with a callback.
+     * @throws WrongConfigurationException If client is not subscribed to any channel or if client
+     *     configured with a callback.
      * @return A <code>Future</code> which resolved with the next incoming message.
      */
     public CompletableFuture<Message> getPubSubMessage() {
@@ -1985,5 +1988,11 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<String> watch(@NonNull String[] keys) {
         return commandManager.submitNewCommand(Watch, keys, this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<Long> publish(@NonNull String channel, @NonNull String message) {
+        return commandManager.submitNewCommand(
+                Publish, new String[] {channel, message}, this::handleLongResponse);
     }
 }
