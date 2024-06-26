@@ -909,63 +909,63 @@ public class TransactionTests {
         results.add(Pair.of(XClaim, buildArgs("key", "group", "consumer", "99", "12345-1", "98765-4")));
 
         StreamClaimOptions claimOptions =
-            StreamClaimOptions.builder()
-                .force()
-                .idle(11L)
-                .idleUnixTime(12L)
-                .retryCount(5L)
-                .lastId("2345-5")
-                .build();
+                StreamClaimOptions.builder()
+                        .force()
+                        .idle(11L)
+                        .idleUnixTime(12L)
+                        .retryCount(5L)
+                        .lastId("2345-5")
+                        .build();
         transaction.xclaim(
-            "key", "group", "consumer", 99L, new String[] {"12345-1", "98765-4"}, claimOptions);
+                "key", "group", "consumer", 99L, new String[] {"12345-1", "98765-4"}, claimOptions);
         results.add(
-            Pair.of(
-                XClaim,
-                buildArgs(
-                    "key",
-                    "group",
-                    "consumer",
-                    "99",
-                    "12345-1",
-                    "98765-4",
-                    IDLE_REDIS_API,
-                    "11",
-                    TIME_REDIS_API,
-                    "12",
-                    RETRY_COUNT_REDIS_API,
-                    "5",
-                    FORCE_REDIS_API,
-                    LAST_ID_REDIS_API,
-                    "2345-5")));
+                Pair.of(
+                        XClaim,
+                        buildArgs(
+                                "key",
+                                "group",
+                                "consumer",
+                                "99",
+                                "12345-1",
+                                "98765-4",
+                                IDLE_REDIS_API,
+                                "11",
+                                TIME_REDIS_API,
+                                "12",
+                                RETRY_COUNT_REDIS_API,
+                                "5",
+                                FORCE_REDIS_API,
+                                LAST_ID_REDIS_API,
+                                "2345-5")));
 
         transaction.xclaimJustId("key", "group", "consumer", 99L, new String[] {"12345-1", "98765-4"});
         results.add(
-            Pair.of(
-                XClaim,
-                buildArgs("key", "group", "consumer", "99", "12345-1", "98765-4", JUST_ID_REDIS_API)));
+                Pair.of(
+                        XClaim,
+                        buildArgs("key", "group", "consumer", "99", "12345-1", "98765-4", JUST_ID_REDIS_API)));
 
         transaction.xclaimJustId(
-            "key", "group", "consumer", 99L, new String[] {"12345-1", "98765-4"}, claimOptions);
+                "key", "group", "consumer", 99L, new String[] {"12345-1", "98765-4"}, claimOptions);
         results.add(
-            Pair.of(
-                XClaim,
-                buildArgs(
-                    "key",
-                    "group",
-                    "consumer",
-                    "99",
-                    "12345-1",
-                    "98765-4",
-                    IDLE_REDIS_API,
-                    "11",
-                    TIME_REDIS_API,
-                    "12",
-                    RETRY_COUNT_REDIS_API,
-                    "5",
-                    FORCE_REDIS_API,
-                    JUST_ID_REDIS_API,
-                    LAST_ID_REDIS_API,
-                    "2345-5")));
+                Pair.of(
+                        XClaim,
+                        buildArgs(
+                                "key",
+                                "group",
+                                "consumer",
+                                "99",
+                                "12345-1",
+                                "98765-4",
+                                IDLE_REDIS_API,
+                                "11",
+                                TIME_REDIS_API,
+                                "12",
+                                RETRY_COUNT_REDIS_API,
+                                "5",
+                                FORCE_REDIS_API,
+                                JUST_ID_REDIS_API,
+                                LAST_ID_REDIS_API,
+                                "2345-5")));
 
         transaction.time();
         results.add(Pair.of(Time, buildArgs()));

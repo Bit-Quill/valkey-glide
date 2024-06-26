@@ -3344,11 +3344,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     [[id, ["entry", "data"]], ...]</code> that are claimed by the consumer.
      */
     public T xclaim(
-        @NonNull String key,
-        @NonNull String group,
-        @NonNull String consumer,
-        long minIdleTime,
-        @NonNull String[] ids) {
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull String consumer,
+            long minIdleTime,
+            @NonNull String[] ids) {
         return xclaim(key, group, consumer, minIdleTime, ids, StreamClaimOptions.builder().build());
     }
 
@@ -3366,14 +3366,14 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     [[id, ["entry", "data"]], ...]</code> that are claimed by the consumer.
      */
     public T xclaim(
-        @NonNull String key,
-        @NonNull String group,
-        @NonNull String consumer,
-        long minIdleTime,
-        @NonNull String[] ids,
-        @NonNull StreamClaimOptions options) {
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull String consumer,
+            long minIdleTime,
+            @NonNull String[] ids,
+            @NonNull StreamClaimOptions options) {
         String[] args =
-            concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
+                concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
         args = concatenateArrays(args, options.toArgs(false));
         protobufTransaction.addCommands(buildCommand(XClaim, buildArgs(args)));
         return getThis();
@@ -3392,13 +3392,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return Command Response - An <code>array</code> of message ids claimed by the consumer.
      */
     public T xclaimJustId(
-        @NonNull String key,
-        @NonNull String group,
-        @NonNull String consumer,
-        long minIdleTime,
-        @NonNull String[] ids) {
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull String consumer,
+            long minIdleTime,
+            @NonNull String[] ids) {
         return xclaimJustId(
-            key, group, consumer, minIdleTime, ids, StreamClaimOptions.builder().build());
+                key, group, consumer, minIdleTime, ids, StreamClaimOptions.builder().build());
     }
 
     /**
@@ -3415,14 +3415,14 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return Command Response - An <code>array</code> of message ids claimed by the consumer.
      */
     public T xclaimJustId(
-        @NonNull String key,
-        @NonNull String group,
-        @NonNull String consumer,
-        long minIdleTime,
-        @NonNull String[] ids,
-        @NonNull StreamClaimOptions options) {
+            @NonNull String key,
+            @NonNull String group,
+            @NonNull String consumer,
+            long minIdleTime,
+            @NonNull String[] ids,
+            @NonNull StreamClaimOptions options) {
         String[] args =
-            concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
+                concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
         args = concatenateArrays(args, options.toArgs(true));
         protobufTransaction.addCommands(buildCommand(XClaim, buildArgs(args)));
         return getThis();
