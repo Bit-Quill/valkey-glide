@@ -2,10 +2,13 @@
 package glide.api.models;
 
 import java.util.Optional;
+
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /** PubSub message received by the client. */
 @Getter
+@EqualsAndHashCode
 public class Message {
     /** An incoming message received. */
     private final String message;
