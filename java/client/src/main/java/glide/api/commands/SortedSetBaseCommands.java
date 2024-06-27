@@ -20,7 +20,6 @@ import glide.api.models.commands.WeightAggregateOptions.KeysOrWeightedKeys;
 import glide.api.models.commands.WeightAggregateOptions.WeightedKeys;
 import glide.api.models.commands.ZAddOptions;
 import glide.api.models.commands.scan.ZScanOptions;
-
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -1619,7 +1618,6 @@ public interface SortedSetBaseCommands {
      * @param key The key of the set.
      * @param cursor The cursor that points to the next iteration of results.
      * @param zScanOptions The {@link ZScanOptions}.
-     *
      * @return An <code>Array</code> of <code>Objects</code>. The first element is always the <code>
      *     cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
      *     </code> returned on the last iteration of the set. The second element is always an <code>
