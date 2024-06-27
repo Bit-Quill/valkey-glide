@@ -5165,17 +5165,40 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         return getThis();
     }
 
-    // TODO: Add docs
+    /**
+     * Iterates incrementally over a sorted set.
+     *
+     * @see <a href="https://valkey.io/commands/zscan">valkey.io</a> for details.
+     * @param key The key of the set.
+     * @param cursor The cursor that points to the next iteration of results.
+     * @return Command Response - An <code>Array</code> of <code>Objects</code>. The first element is
+     *     always the <code>
+     *     cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
+     *     </code> returned on the last iteration of the set. The second element is always an <code>
+     *     Array</code> of the subset of the set held in <code>key</code>.
+     */
     public T zscan(@NonNull String key, long cursor) {
         protobufTransaction.addCommands(buildCommand(ZScan, buildArgs(key, Long.toString(cursor))));
         return getThis();
     }
 
-    // TODO: Add docs
-    public T zscan(@NonNull String key, long cursor, @NonNull ZScanOptions zscanOptions) {
+    /**
+     * Iterates incrementally over a sorted set.
+     *
+     * @see <a href="https://valkey.io/commands/zscan">valkey.io</a> for details.
+     * @param key The key of the set.
+     * @param cursor The cursor that points to the next iteration of results.
+     * @param zScanOptions The {@link ZScanOptions}.
+     * @return Command Response - An <code>Array</code> of <code>Objects</code>. The first element is
+     *     always the <code>
+     *     cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
+     *     </code> returned on the last iteration of the set. The second element is always an <code>
+     *     Array</code> of the subset of the set held in <code>key</code>.
+     */
+    public T zscan(@NonNull String key, long cursor, @NonNull ZScanOptions zScanOptions) {
         ArgsArray commandArgs =
-            buildArgs(
-                concatenateArrays(new String[] {key, Long.toString(cursor)}, zscanOptions.toArgs()));
+                buildArgs(
+                        concatenateArrays(new String[] {key, Long.toString(cursor)}, zScanOptions.toArgs()));
         protobufTransaction.addCommands(buildCommand(ZScan, commandArgs));
         return getThis();
     }
