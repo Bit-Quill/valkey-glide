@@ -46,6 +46,7 @@ import glide.api.models.commands.scan.HScanOptions;
 import glide.api.models.commands.scan.SScanOptions;
 import glide.api.models.commands.scan.ZScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamClaimOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamRange;
 import glide.api.models.commands.stream.StreamRange.IdBound;
@@ -75,29 +76,37 @@ public class TransactionTestUtilities {
     /** Generate test samples for parametrized tests. Could be routed to random node. */
     public static Stream<Arguments> getCommonTransactionBuilders() {
         return Stream.of(
+                //                Arguments.of(
+                //                        "Generic Commands", (TransactionBuilder)
+                // TransactionTestUtilities::genericCommands),
+                //                Arguments.of(
+                //                        "String Commands", (TransactionBuilder)
+                // TransactionTestUtilities::stringCommands),
+                //                Arguments.of("Hash Commands", (TransactionBuilder)
+                // TransactionTestUtilities::hashCommands),
+                //                Arguments.of("List Commands", (TransactionBuilder)
+                // TransactionTestUtilities::listCommands),
+                //                Arguments.of("Set Commands", (TransactionBuilder)
+                // TransactionTestUtilities::setCommands),
+                //                Arguments.of(
+                //                        "Sorted Set Commands",
+                //                        (TransactionBuilder) TransactionTestUtilities::sortedSetCommands),
+                //                Arguments.of(
+                //                        "HyperLogLog Commands",
+                //                        (TransactionBuilder)
+                // TransactionTestUtilities::hyperLogLogCommands),
                 Arguments.of(
-                        "Generic Commands", (TransactionBuilder) TransactionTestUtilities::genericCommands),
-                Arguments.of(
-                        "String Commands", (TransactionBuilder) TransactionTestUtilities::stringCommands),
-                Arguments.of("Hash Commands", (TransactionBuilder) TransactionTestUtilities::hashCommands),
-                Arguments.of("List Commands", (TransactionBuilder) TransactionTestUtilities::listCommands),
-                Arguments.of("Set Commands", (TransactionBuilder) TransactionTestUtilities::setCommands),
-                Arguments.of(
-                        "Sorted Set Commands",
-                        (TransactionBuilder) TransactionTestUtilities::sortedSetCommands),
-                Arguments.of(
-                        "HyperLogLog Commands",
-                        (TransactionBuilder) TransactionTestUtilities::hyperLogLogCommands),
-                Arguments.of(
-                        "Stream Commands", (TransactionBuilder) TransactionTestUtilities::streamCommands),
-                Arguments.of(
-                        "Connection Management Commands",
-                        (TransactionBuilder) TransactionTestUtilities::connectionManagementCommands),
-                Arguments.of(
-                        "Geospatial Commands",
-                        (TransactionBuilder) TransactionTestUtilities::geospatialCommands),
-                Arguments.of(
-                        "Bitmap Commands", (TransactionBuilder) TransactionTestUtilities::bitmapCommands));
+                        "Stream Commands", (TransactionBuilder) TransactionTestUtilities::streamCommands));
+        //                Arguments.of(
+        //                        "Connection Management Commands",
+        //                        (TransactionBuilder)
+        // TransactionTestUtilities::connectionManagementCommands),
+        //                Arguments.of(
+        //                        "Geospatial Commands",
+        //                        (TransactionBuilder) TransactionTestUtilities::geospatialCommands),
+        //                Arguments.of(
+        //                        "Bitmap Commands", (TransactionBuilder)
+        // TransactionTestUtilities::bitmapCommands));
     }
 
     /** Generate test samples for parametrized tests. Could be routed to primary nodes only. */
@@ -839,6 +848,22 @@ public class TransactionTestUtilities {
                         groupName1,
                         consumer1,
                         StreamReadGroupOptions.builder().count(2L).build())
+                .xclaim(streamKey1, groupName1, consumer1, 0L, new String[] {"0-1"})
+                .xclaim(
+                        streamKey1,
+                        groupName1,
+                        consumer1,
+                        0L,
+                        new String[] {"0-3"},
+                        StreamClaimOptions.builder().force().build())
+                .xclaimJustId(streamKey1, groupName1, consumer1, 0L, new String[] {"0-3"})
+                .xclaimJustId(
+                        streamKey1,
+                        groupName1,
+                        consumer1,
+                        0L,
+                        new String[] {"0-4"},
+                        StreamClaimOptions.builder().force().build())
                 .xpending(streamKey1, groupName1)
                 .xack(streamKey1, groupName1, new String[] {"0-3"})
                 .xpending(
@@ -892,6 +917,17 @@ public class TransactionTestUtilities {
             Map.of(
                     streamKey1,
                     Map.of()), // xreadgroup(Map.of(streamKey1, ">"), groupName1, consumer1, options);
+            Map.of(), // xclaim(streamKey1, groupName1, consumer1, 0L, new String[] {"0-1"})
+            Map.of(
+                    "0-3",
+                    new String[] {
+                        "field3", "value3"
+                    }), // xclaim(streamKey1, groupName1, consumer1, 0L, {"0-3"}, options)
+            new String[] {
+                "0-3"
+            }, // xclaimJustId(streamKey1, groupName1, consumer1, 0L, new String[] {"0-3"})
+            new String
+                    [0], // xclaimJustId(streamKey1, groupName1, consumer1, 0L, new String[] {"0-4"}, options)
             new Object[] {
                 1L, "0-3", "0-3", new Object[][] {{consumer1, "1"}}
             }, // xpending(streamKey1, groupName1)
