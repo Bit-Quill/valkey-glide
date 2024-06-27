@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
  *
  * <p>TODO: Add to function links when implementing HSCAN, ZSCAN, and SCAN.
  *
- * @see <a href="https://redis.io/commands/scan/">redis.io</a>
+ * @see <a href="https://valkey.io/commands/scan/">valkey.io</a>
  */
 @SuperBuilder
 public abstract class ScanOptions {

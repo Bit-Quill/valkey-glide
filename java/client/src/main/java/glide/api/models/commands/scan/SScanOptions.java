@@ -8,7 +8,7 @@ import lombok.experimental.SuperBuilder;
  * Optional arguments for {@link SetBaseCommands#sscan(String, long)}, {@link
  * SetBaseCommands#sscan(String, long, SScanOptions)}.
  *
- * @see <a href="https://redis.io/commands/sscan/">redis.io</a>
+ * @see <a href="https://valkey.io/commands/sscan/">valkey.io</a>
  */
 @SuperBuilder
 public class SScanOptions extends ScanOptions {}

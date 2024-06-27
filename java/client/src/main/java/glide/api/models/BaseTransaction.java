@@ -4897,10 +4897,12 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Iterates incrementally over a set.
      *
+     * @see <a href="https://valkey.io/commands/sscan">valkey.io</a> for details.
      * @param key The key of the set.
      * @param cursor The cursor that points to the next iteration of results.
      * @return Command Response - An <code>Array</code> of <code>Objects</code>. The first element is
-     *     always the <code>cursor</code> for the next iteration of results. The second element is
+     *     always the <code>cursor</code> for the next iteration of results. <code>0</code> will be
+     *     the <code>cursor</code> returned on the last iteration of the set. The second element is
      *     always an <code>Array</code> of the subset of the set held in <code>key</code>.
      */
     public T sscan(@NonNull String key, long cursor) {
@@ -5145,11 +5147,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Iterates incrementally over a set.
      *
+     * @see <a href="https://valkey.io/commands/sscan">valkey.io</a> for details.
      * @param key The key of the set.
      * @param cursor The cursor that points to the next iteration of results.
      * @param sscanOptions The {@link SScanOptions}.
      * @return Command Response - An <code>Array</code> of <code>Objects</code>. The first element is
-     *     always the <code>cursor</code> for the next iteration of results. The second element is
+     *     always the <code>cursor</code> for the next iteration of results. <code>0</code> will be
+     *     the <code>cursor</code> returned on the last iteration of the set. The second element is
      *     always an <code>Array</code> of the subset of the set held in <code>key</code>.
      */
     public T sscan(@NonNull String key, long cursor, @NonNull SScanOptions sscanOptions) {

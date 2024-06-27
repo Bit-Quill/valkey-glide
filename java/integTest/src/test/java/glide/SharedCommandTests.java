@@ -7068,7 +7068,7 @@ public class SharedCommandTests {
                     Arrays.deepEquals(
                             ArrayUtils.toArray(result[resultCollectionIndex]),
                             ArrayUtils.toArray(secondResult[resultCollectionIndex])));
-        } while (resultCursor != 0);
+        } while (resultCursor != 0); // 0 is returned for the cursor of the last iteration.
 
         // Test match pattern
         result =
