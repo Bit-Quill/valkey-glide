@@ -1601,12 +1601,38 @@ public interface SortedSetBaseCommands {
      *   Object[] stringResults = (Object[]) result[1];
      *
      *   System.out.println("\nZSCAN iteration:");
-     *   Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));            TODO: fix
+     *   Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
      * } while (cursor != 0);
      * }</pre>
      */
     CompletableFuture<Object[]> zscan(String key, long cursor);
 
-    // TODO: add docs and example
+    /**
+     * Iterates incrementally over a sorted set.
+     *
+     * @see <a href="https://valkey.io/commands/zscan">valkey.io</a> for details.
+     * @param key The key of the set.
+     * @param cursor The cursor that points to the next iteration of results.
+     * @param zScanOptions The {@link ZScanOptions}.
+     *
+     * @return An <code>Array</code> of <code>Objects</code>. The first element is always the <code>
+     *     cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
+     *     </code> returned on the last iteration of the set. The second element is always an <code>
+     *     Array</code> of the subset of the set held in <code>key</code>.
+     * @example
+     *     <pre>{@code
+     * // Assume key contains a set with 200 member-score pairs
+     * long cursor = 0;
+     * Object[] result;
+     * do {
+     *   result = client.zscan(key1, cursor, ZScanOptions.builder().matchPattern("*").count(20L).build()).get();
+     *   cursor = Long.valueOf(result[0].toString());
+     *   Object[] stringResults = (Object[]) result[1];
+     *
+     *   System.out.println("\nZSCAN iteration:");
+     *   Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
+     * } while (cursor != 0);
+     * }</pre>
+     */
     CompletableFuture<Object[]> zscan(String key, long cursor, ZScanOptions zScanOptions);
 }
