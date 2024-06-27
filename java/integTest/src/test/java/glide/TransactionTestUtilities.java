@@ -628,6 +628,7 @@ public class TransactionTestUtilities {
                 .zrandmemberWithCount(zSetKey2, 1)
                 .zrandmemberWithCountWithScores(zSetKey2, 1)
                 .bzpopmin(new String[] {zSetKey2}, .1);
+                // TODO: Add tests for zscan
         // zSetKey2 is now empty
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("6.2.0")) {

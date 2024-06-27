@@ -167,6 +167,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByScore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRevRank;
+import static redis_request.RedisRequestOuterClass.RequestType.ZScan;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZUnion;
 import static redis_request.RedisRequestOuterClass.RequestType.ZUnionStore;
@@ -209,6 +210,7 @@ import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.scan.SScanOptions;
+import glide.api.models.commands.scan.ZScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamPendingOptions;
@@ -2798,5 +2800,17 @@ public abstract class BaseClient
             @NonNull String key, @NonNull String cursor, @NonNull SScanOptions sScanOptions) {
         String[] arguments = concatenateArrays(new String[] {key, cursor}, sScanOptions.toArgs());
         return commandManager.submitNewCommand(SScan, arguments, this::handleArrayResponse);
+    }
+
+    @Override
+    public CompletableFuture<Object[]> zscan(@NonNull String key, long cursor) {
+        String[] arguments = new String[] {key, Long.toString(cursor)};
+        return commandManager.submitNewCommand(ZScan, arguments, this::handleArrayResponse);
+    }
+
+    @Override
+    public CompletableFuture<Object[]> zscan(@NonNull String key, long cursor, @NonNull ZScanOptions zscanOptions) {
+        String[] arguments = concatenateArrays(new String[] {key, Long.toString(cursor)}, zscanOptions.toArgs());
+        return commandManager.submitNewCommand(ZScan, arguments, this::handleArrayResponse);
     }
 }

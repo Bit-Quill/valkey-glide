@@ -193,6 +193,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByLex;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByRank;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRemRangeByScore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZRevRank;
+import static redis_request.RedisRequestOuterClass.RequestType.ZScan;
 import static redis_request.RedisRequestOuterClass.RequestType.ZScore;
 import static redis_request.RedisRequestOuterClass.RequestType.ZUnion;
 import static redis_request.RedisRequestOuterClass.RequestType.ZUnionStore;
@@ -242,6 +243,7 @@ import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.scan.SScanOptions;
+import glide.api.models.commands.scan.ZScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
 import glide.api.models.commands.stream.StreamGroupOptions;
@@ -5160,6 +5162,21 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
         ArgsArray commandArgs =
                 buildArgs(concatenateArrays(new String[] {key, cursor}, sScanOptions.toArgs()));
         protobufTransaction.addCommands(buildCommand(SScan, commandArgs));
+        return getThis();
+    }
+
+    // TODO: Add docs
+    public T zscan(@NonNull String key, long cursor) {
+        protobufTransaction.addCommands(buildCommand(ZScan, buildArgs(key, Long.toString(cursor))));
+        return getThis();
+    }
+
+    // TODO: Add docs
+    public T zscan(@NonNull String key, long cursor, @NonNull ZScanOptions zscanOptions) {
+        ArgsArray commandArgs =
+            buildArgs(
+                concatenateArrays(new String[] {key, Long.toString(cursor)}, zscanOptions.toArgs()));
+        protobufTransaction.addCommands(buildCommand(ZScan, commandArgs));
         return getThis();
     }
 
