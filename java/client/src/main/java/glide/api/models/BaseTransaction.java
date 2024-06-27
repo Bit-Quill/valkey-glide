@@ -142,6 +142,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SMove;
 import static redis_request.RedisRequestOuterClass.RequestType.SPop;
 import static redis_request.RedisRequestOuterClass.RequestType.SRandMember;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
+import static redis_request.RedisRequestOuterClass.RequestType.SScan;
 import static redis_request.RedisRequestOuterClass.RequestType.SUnion;
 import static redis_request.RedisRequestOuterClass.RequestType.SUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Set;
@@ -240,6 +241,7 @@ import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
+import glide.api.models.commands.scan.SScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamAddOptions.StreamAddOptionsBuilder;
 import glide.api.models.commands.stream.StreamGroupOptions;
@@ -4889,6 +4891,20 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     public T sort(@NonNull String key) {
         ArgsArray commandArgs = buildArgs(key);
         protobufTransaction.addCommands(buildCommand(Sort, commandArgs));
+         return getThis();
+    }
+
+    /**
+     * Iterates incrementally over a set.
+     *
+     * @param key The key of the set.
+     * @param cursor The cursor that points to the next iteration of results.
+     * @return Command Response - An <code>Array</code> of <code>Objects</code>. The first element is
+     *     always the <code>cursor</code> for the next iteration of results. The second element is
+     *     always an <code>Array</code> of the subset of the set held in <code>key</code>.
+     */
+    public T sscan(@NonNull String key, long cursor) {
+        protobufTransaction.addCommands(buildCommand(SScan, buildArgs(key, Long.toString(cursor))));
         return getThis();
     }
 
@@ -5123,6 +5139,24 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
                         String.valueOf(minMatchLen),
                         WITHMATCHLEN_COMMAND_STRING);
         protobufTransaction.addCommands(buildCommand(LCS, args));
+        return getThis();
+    }
+
+    /**
+     * Iterates incrementally over a set.
+     *
+     * @param key The key of the set.
+     * @param cursor The cursor that points to the next iteration of results.
+     * @param sscanOptions The {@link SScanOptions}.
+     * @return Command Response - An <code>Array</code> of <code>Objects</code>. The first element is
+     *     always the <code>cursor</code> for the next iteration of results. The second element is
+     *     always an <code>Array</code> of the subset of the set held in <code>key</code>.
+     */
+    public T sscan(@NonNull String key, long cursor, @NonNull SScanOptions sscanOptions) {
+        ArgsArray commandArgs =
+                buildArgs(
+                        concatenateArrays(new String[] {key, Long.toString(cursor)}, sscanOptions.toArgs()));
+        protobufTransaction.addCommands(buildCommand(SScan, commandArgs));
         return getThis();
     }
 

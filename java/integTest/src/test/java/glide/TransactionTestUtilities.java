@@ -36,6 +36,7 @@ import glide.api.models.commands.bitmap.BitmapIndexType;
 import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
+import glide.api.models.commands.scan.SScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamRange;
@@ -519,6 +520,8 @@ public class TransactionTestUtilities {
 
         transaction
                 .sadd(setKey1, new String[] {"baz", "foo"})
+                .sscan(setKey1, 0)
+                .sscan(setKey1, 0, SScanOptions.builder().matchPattern("*").count(10L).build())
                 .srem(setKey1, new String[] {"foo"})
                 .scard(setKey1)
                 .sismember(setKey1, "baz")
@@ -550,6 +553,8 @@ public class TransactionTestUtilities {
         var expectedResults =
                 new Object[] {
                     2L, // sadd(setKey1, new String[] {"baz", "foo"});
+                    new Object[] {"0", new String[] {"baz", "foo"}}, // sscan(setKey1, 0)
+                    new Object[] {"0", new String[] {"baz", "foo"}}, // sscan(key1, 0, match "*", count(10L))
                     1L, // srem(setKey1, new String[] {"foo"});
                     1L, // scard(setKey1);
                     true, // sismember(setKey1, "baz")

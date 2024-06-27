@@ -47,7 +47,6 @@ import glide.api.models.commands.RangeOptions.RangeByLex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.RestoreOptions;
-import glide.api.models.commands.ScanOptions;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
 import glide.api.models.commands.WeightAggregateOptions.Aggregate;
@@ -70,6 +69,7 @@ import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
+import glide.api.models.commands.scan.SScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamPendingOptions;
@@ -106,7 +106,6 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.opentest4j.AssertionFailedError;
 
 @Timeout(10) // seconds
 public class SharedCommandTests {
@@ -7033,13 +7032,19 @@ public class SharedCommandTests {
         assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
         assertDeepEquals(new String[] {}, result[resultCollectionIndex]);
 
+        // Negative cursor
+        result = client.sscan(key1, -1).get();
+        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertDeepEquals(new String[] {}, result[resultCollectionIndex]);
+
         // Result contains the whole set
         assertEquals(charMembers.length, client.sadd(key1, charMembers).get());
         result = client.sscan(key1, initialCursor).get();
         assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
         assertDeepEquals(charMembers, result[resultCollectionIndex]);
 
-        result = client.sscan(key1, initialCursor, ScanOptions.builder().matchPattern("a").build()).get();
+        result =
+                client.sscan(key1, initialCursor, SScanOptions.builder().matchPattern("a").build()).get();
         assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
         assertDeepEquals(new String[] {"a"}, result[resultCollectionIndex]);
 
@@ -7053,18 +7058,31 @@ public class SharedCommandTests {
         // Scan with result cursor has a different set
         Object[] secondResult = client.sscan(key1, resultCursor).get();
         assertTrue(resultCursor != (Long.valueOf(secondResult[resultCursorIndex].toString())));
-        assertFalse(Arrays.deepEquals(ArrayUtils.toArray(result[resultCollectionIndex]), ArrayUtils.toArray(secondResult[resultCollectionIndex])));
+        assertFalse(
+                Arrays.deepEquals(
+                        ArrayUtils.toArray(result[resultCollectionIndex]),
+                        ArrayUtils.toArray(secondResult[resultCollectionIndex])));
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
 
         // Test match pattern
-        result = client.sscan(key1, initialCursor, ScanOptions.builder().matchPattern("*").build()).get();
+        result =
+                client.sscan(key1, initialCursor, SScanOptions.builder().matchPattern("*").build()).get();
         assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
 
         // Test count
-        result = client.sscan(key1, initialCursor, ScanOptions.builder().count(20L).build()).get();
+        result = client.sscan(key1, initialCursor, SScanOptions.builder().count(20L).build()).get();
         assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= 20);
+
+        // Test count with match returns a non-empty list
+        result =
+                client
+                        .sscan(
+                                key1, initialCursor, SScanOptions.builder().matchPattern("1*").count(20L).build())
+                        .get();
+        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) > 0);
 
         // Exceptions
         // Non-set key
@@ -7074,7 +7092,22 @@ public class SharedCommandTests {
         assertInstanceOf(RequestException.class, executionException.getCause());
 
         executionException =
-            assertThrows(ExecutionException.class, () -> client.sscan(key2, initialCursor, ScanOptions.builder().matchPattern("test").count(1L).build()).get());
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .sscan(
+                                                key2,
+                                                initialCursor,
+                                                SScanOptions.builder().matchPattern("test").count(1L).build())
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        // Negative count
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () -> client.sscan(key1, -1, SScanOptions.builder().count(-1L).build()).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 }

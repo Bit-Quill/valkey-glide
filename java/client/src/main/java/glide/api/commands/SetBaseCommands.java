@@ -2,6 +2,7 @@
 package glide.api.commands;
 
 import glide.api.models.GlideString;
+import glide.api.models.commands.scan.SScanOptions;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -553,4 +554,60 @@ public interface SetBaseCommands {
      * }</pre>
      */
     CompletableFuture<Set<String>> sunion(String[] keys);
+
+    /**
+     * Iterates incrementally over a set.
+     *
+     * @param key The key of the set.
+     * @param cursor The cursor that points to the next iteration of results.
+     * @return An <code>Array</code> of <code>Objects</code>. The first element is always the <code>
+     *     cursor</code> for the next iteration of results. The second element is always an <code>
+     *     Array</code> of the subset of the set held in <code>key</code>.
+     * @example
+     *     <pre>{@code
+     * // Assume key contains a set with 200 members
+     * Object[] result = client.sscan(key1, 0).get();
+     * long cursor = Long.valueOf(result[0].toString());
+     * Object[] stringResults = (Object[]) result[1];
+     *
+     * System.out.println("\nFirst SSCAN iteration:");
+     * Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
+     *
+     * result = client.sscan(key1, cursor).get();
+     * stringResults = (Object[]) result[1];
+     *
+     * System.out.println("\nSecond SSCAN iteration:");
+     * Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
+     *
+     * }</pre>
+     */
+    CompletableFuture<Object[]> sscan(String key, long cursor);
+
+    /**
+     * Iterates incrementally over a set.
+     *
+     * @param key The key of the set.
+     * @param cursor The cursor that points to the next iteration of results.
+     * @param sscanOptions The {@link SScanOptions}.
+     * @return An <code>Array</code> of <code>Objects</code>. The first element is always the <code>
+     *     cursor</code> for the next iteration of results. The second element is always an <code>
+     *     Array</code> of the subset of the set held in <code>key</code>.
+     * @example
+     *     <pre>{@code
+     * // Assume key contains a set with 200 members
+     * Object[] result = client.sscan(key1, 0, SScanOptions.builder().matchPattern("*").count(20L).build()).get();
+     * long cursor = Long.valueOf(result[0].toString());
+     * Object[] stringResults = (Object[]) result[1];
+     *
+     * System.out.println("\nFirst SSCAN iteration:");
+     * Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
+     *
+     * result = client.sscan(key1, cursor, SScanOptions.builder().matchPattern("*").count(20L).build()).get();
+     * stringResults = (Object[]) result[1];
+     *
+     * System.out.println("\nSecond SSCAN iteration:");
+     * Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
+     * }</pre>
+     */
+    CompletableFuture<Object[]> sscan(String key, long cursor, SScanOptions sscanOptions);
 }

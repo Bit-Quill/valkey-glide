@@ -20,8 +20,6 @@ import static glide.api.models.GlideString.gs;
 import static glide.api.models.commands.FlushMode.ASYNC;
 import static glide.api.models.commands.FlushMode.SYNC;
 import static glide.api.models.commands.LInsertOptions.InsertPosition.BEFORE;
-import static glide.api.models.commands.ScanOptions.COUNT_OPTION_STRING;
-import static glide.api.models.commands.ScanOptions.MATCH_OPTION_STRING;
 import static glide.api.models.commands.ScoreFilter.MAX;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_DOES_NOT_EXIST;
 import static glide.api.models.commands.SetOptions.ConditionalSet.ONLY_IF_EXISTS;
@@ -39,6 +37,8 @@ import static glide.api.models.commands.bitmap.BitFieldOptions.SET_COMMAND_STRIN
 import static glide.api.models.commands.function.FunctionListOptions.LIBRARY_NAME_REDIS_API;
 import static glide.api.models.commands.function.FunctionListOptions.WITH_CODE_REDIS_API;
 import static glide.api.models.commands.geospatial.GeoAddOptions.CHANGED_REDIS_API;
+import static glide.api.models.commands.scan.ScanOptions.COUNT_OPTION_STRING;
+import static glide.api.models.commands.scan.ScanOptions.MATCH_OPTION_STRING;
 import static glide.api.models.commands.stream.StreamAddOptions.NO_MAKE_STREAM_REDIS_API;
 import static glide.api.models.commands.stream.StreamGroupOptions.ENTRIES_READ_REDIS_API;
 import static glide.api.models.commands.stream.StreamGroupOptions.MAKE_STREAM_REDIS_API;
@@ -271,7 +271,6 @@ import glide.api.models.commands.RangeOptions.RangeByLex;
 import glide.api.models.commands.RangeOptions.RangeByScore;
 import glide.api.models.commands.RangeOptions.ScoreBoundary;
 import glide.api.models.commands.RestoreOptions;
-import glide.api.models.commands.ScanOptions;
 import glide.api.models.commands.ScoreFilter;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
@@ -298,6 +297,7 @@ import glide.api.models.commands.function.FunctionRestorePolicy;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
+import glide.api.models.commands.scan.SScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamPendingOptions;
@@ -9008,7 +9008,7 @@ public class RedisClientTest {
 
         // exercise
         CompletableFuture<Object[]> response =
-                service.sscan(key, cursor, ScanOptions.builder().matchPattern("*").count(1L).build());
+                service.sscan(key, cursor, SScanOptions.builder().matchPattern("*").count(1L).build());
         Object[] payload = response.get();
 
         // verify

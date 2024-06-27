@@ -196,7 +196,6 @@ import glide.api.models.commands.RangeOptions.RangeQuery;
 import glide.api.models.commands.RangeOptions.ScoreRange;
 import glide.api.models.commands.RangeOptions.ScoredRangeQuery;
 import glide.api.models.commands.RestoreOptions;
-import glide.api.models.commands.ScanOptions;
 import glide.api.models.commands.ScoreFilter;
 import glide.api.models.commands.ScriptOptions;
 import glide.api.models.commands.SetOptions;
@@ -209,6 +208,7 @@ import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
+import glide.api.models.commands.scan.SScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamPendingOptions;
@@ -2795,9 +2795,9 @@ public abstract class BaseClient
 
     @Override
     public CompletableFuture<Object[]> sscan(
-            @NonNull String key, long cursor, @NonNull ScanOptions scanOptions) {
+            @NonNull String key, long cursor, @NonNull SScanOptions sscanOptions) {
         String[] arguments =
-                concatenateArrays(new String[] {key, Long.toString(cursor)}, scanOptions.toArgs());
+                concatenateArrays(new String[] {key, Long.toString(cursor)}, sscanOptions.toArgs());
         return commandManager.submitNewCommand(SScan, arguments, this::handleArrayResponse);
     }
 }
