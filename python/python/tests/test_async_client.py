@@ -6504,12 +6504,8 @@ class TestCommands:
             assert result is not None
             assert await redis_client.exists([result]) == 1
 
-        # TODO: returns a ResponseError for cluster clients but should return None
-        # Run this code for standalone and cluster clients when this is completed:
-        # https://github.com/amazon-contributing/redis-rs/pull/153
-        if isinstance(redis_client, GlideClient):
-            assert await redis_client.flushall(FlushMode.SYNC)
-            assert await redis_client.random_key() is None
+        assert await redis_client.flushall(FlushMode.SYNC)
+        assert await redis_client.random_key() is None
 
 
 class TestMultiKeyCommandCrossSlot:
