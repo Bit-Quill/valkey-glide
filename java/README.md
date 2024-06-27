@@ -133,44 +133,72 @@ Maven (AARCH_64) specific.
 ### Standalone Valkey:
 
 ```java
-import glide.api.ValkeyClient;
+import glide.api.RedisClient;
+import glide.api.models.configuration.NodeAddress;
+import glide.api.models.configuration.RedisClientConfiguration;
 
-ValkeyClient client = ValkeyClient.CreateClient().get();
+import java.util.concurrent.ExecutionException;
+import static glide.api.models.GlideString.gs;
 
-CompletableFuture<String> setResponse = client.set("key", "foobar");
-assert setResponse.get() == "OK" : "Failed on client.set("key", "foobar") request";
+# Run this code in the Main file. Include InterruptedException and ExecutionException handling.
 
-CompletableFuture<String> getResponse = client.get("key");
-assert getResponse.get() == "foobar" : "Failed on client.get("key") request";
-
-GlideString value = client.set(gs("key"), gs("value")).get();
-assert value.getString().equals("OK");
-```
-
-### Cluster Valkey:
-```java
-import glide.api.ValkeyClusterClient;
+public static void main(String[] args) throws InterruptedException, ExecutionException {
 
 String host = "localhost";
 Integer port = 6379;
 boolean useSsl = false;
 
-ValkeyClientConfiguration config =
-        ValkeyClientConfiguration.builder()
+RedisClientConfiguration config =
+        RedisClientConfiguration.builder()
                 .address(NodeAddress.builder().host(host).port(port).build())
                 .useTLS(useSsl)
                 .build();
 
-ValkeyClusterClient client = ValkeyClusterClient.CreateClient(config).get();
+RedisClient client = RedisClient.CreateClient(config).get();
 
-CompletableFuture<String> setResponse = client.set("key", "foobar");
-assert setResponse.get() == "OK" : "Failed on client.set(\"key\", \"foobar\") request";
+System.out.println("PING: " + client.ping().get());
+System.out.println("PING(found you): " + client.ping("found you").get());
 
-CompletableFuture<String> getResponse = client.get("key");
-assert getResponse.get() == "foobar" : "Failed on client.get(\"key\") request";
+System.out.println("SET(apples, oranges): " + client.set("apples", "oranges").get());
+System.out.println("GET(apples): " + client.get("apples").get());
 
-GlideString value = client.set(gs("key"), gs("value")).get();
-assert value.getString().equals("OK");
+System.out.println("GLIDESTRINGSET(cats, meow): " + client.set(gs("cats"), gs("meow")).get());
+System.out.println("GET(cats): " + client.get("cats").get());
+}
+```
+
+### Cluster Valkey:
+```java
+
+import glide.api.RedisClusterClient;
+import glide.api.models.configuration.NodeAddress;
+import glide.api.models.configuration.RedisClusterClientConfiguration;
+
+import java.util.concurrent.ExecutionException;
+import static glide.api.models.GlideString.gs;
+
+# Run this code in the Main file. Include InterruptedException and ExecutionException handling.
+
+String host = "localhost";
+Integer port = 6379;
+boolean useSsl = false;
+
+RedisClusterClientConfiguration config =
+        RedisClusterClientConfiguration.builder()
+                .address(NodeAddress.builder().host(host).port(port).build())
+                .useTLS(useSsl)
+                .build();
+
+RedisClusterClient client = RedisClusterClient.CreateClient(config).get();
+
+System.out.println("PING: " + client.ping().get());
+System.out.println("PING(found you): " + client.ping("found you").get());
+
+System.out.println("SET(apples, oranges): " + client.set("apples", "oranges").get());
+System.out.println("GET(apples): " + client.get("apples").get());
+
+System.out.println("GLIDESTRINGSET(cats, meow): " + client.set(gs("cats"), gs("meow")).get());
+System.out.println("GET(cats): " + client.get("cats").get());
 ```
 
 ### Benchmarks
