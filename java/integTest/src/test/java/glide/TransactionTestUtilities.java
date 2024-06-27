@@ -919,7 +919,7 @@ public class TransactionTestUtilities {
                             geoKey1,
                             new GeoSearchOrigin.CoordOrigin(new GeospatialData(15, 37)),
                             new GeoSearchShape(400, 400, GeoUnit.KILOMETERS),
-                            GeoSearchStoreOptions.builder().build(),
+                            GeoSearchStoreOptions.builder().storedist().build(),
                             new GeoSearchResultOptions(SortOrder.ASC, 2));
         }
 
@@ -982,8 +982,9 @@ public class TransactionTestUtilities {
                                         }
                                     },
                                 }, // geosearch(geoKey1, (15,37), BYBOX(400,400,km), ASC, COUNT 2)
-                                2L,
-                                2L,
+                                2L, // geosearch(geoKey2, geoKey1, (15,37), BYBOX(400,400,km), ASC, COUNT 2)
+                                2L, // geosearch(geoKey2, geoKey1, (15,37), BYBOX(400,400,km), STOREDIST, ASC, COUNT
+                                // 2)
                             });
         }
 

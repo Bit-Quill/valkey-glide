@@ -440,8 +440,11 @@ public interface GeospatialIndicesBaseCommands {
             GeoSearchResultOptions resultOptions);
 
     /**
-     * The command is like {@link #geosearch(String, SearchOrigin, GeoSearchShape)}, but stores the
-     * result in <code>destination</code>.
+     * Searches for members in a sorted set stored at <code>source</code> representing geospatial data
+     * within a circular or rectangular area and stores the result in <code>destination</code>. If
+     * <code>destination</code> already exists, it is overwritten. Otherwise, a new sorted set will be
+     * created. To get the result directly, see `{@link #geosearch(String, SearchOrigin,
+     * GeoSearchShape)}.
      *
      * @since Redis 6.2.0 and above.
      * @apiNote When in cluster mode, <code>source</code> and <code>destination</code> must map to the
@@ -481,8 +484,11 @@ public interface GeospatialIndicesBaseCommands {
             String destination, String source, SearchOrigin searchFrom, GeoSearchShape searchBy);
 
     /**
-     * The command is like {@link #geosearch(String, SearchOrigin, GeoSearchShape,
-     * GeoSearchResultOptions)}, but stores the result in <code>destination</code>.
+     * Searches for members in a sorted set stored at <code>source</code> representing geospatial data
+     * within a circular or rectangular area and stores the result in <code>destination</code>. If
+     * <code>destination</code> already exists, it is overwritten. Otherwise, a new sorted set will be
+     * created. To get the result directly, see `{@link #geosearch(String, SearchOrigin,
+     * GeoSearchShape, GeoSearchResultOptions)}.
      *
      * @since Redis 6.2.0 and above.
      * @apiNote When in cluster mode, <code>source</code> and <code>destination</code> must map to the
@@ -529,8 +535,11 @@ public interface GeospatialIndicesBaseCommands {
             GeoSearchResultOptions resultOptions);
 
     /**
-     * The command is like {@link #geosearch(String, SearchOrigin, GeoSearchShape, GeoSearchOptions)},
-     * but stores the result in <code>destination</code>.
+     * Searches for members in a sorted set stored at <code>source</code> representing geospatial data
+     * within a circular or rectangular area and stores the result in <code>destination</code>. If
+     * <code>destination</code> already exists, it is overwritten. Otherwise, a new sorted set will be
+     * created. To get the result directly, see `{@link #geosearch(String, SearchOrigin,
+     * GeoSearchShape, GeoSearchOptions)}.
      *
      * @since Redis 6.2.0 and above.
      * @apiNote When in cluster mode, <code>source</code> and <code>destination</code> must map to the
@@ -576,8 +585,11 @@ public interface GeospatialIndicesBaseCommands {
             GeoSearchStoreOptions options);
 
     /**
-     * The command is like {@link #geosearch(String, SearchOrigin, GeoSearchShape, GeoSearchOptions,
-     * GeoSearchResultOptions)}, but stores the result in <code>destination</code>.
+     * Searches for members in a sorted set stored at <code>source</code> representing geospatial data
+     * within a circular or rectangular area and stores the result in <code>destination</code>. If
+     * <code>destination</code> already exists, it is overwritten. Otherwise, a new sorted set will be
+     * created. To get the result directly, see `{@link #geosearch(String, SearchOrigin,
+     * GeoSearchShape, GeoSearchOptions, GeoSearchResultOptions)}.
      *
      * @since Redis 6.2.0 and above.
      * @apiNote When in cluster mode, <code>source</code> and <code>destination</code> must map to the

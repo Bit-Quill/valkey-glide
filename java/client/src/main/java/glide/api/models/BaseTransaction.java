@@ -5315,8 +5315,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * /** The command is like {@link #geosearch(String, GeoSearchOrigin.SearchOrigin,
-     * GeoSearchShape)}, but stores the result in <code>destination</code>.
+     * Searches for members in a sorted set stored at <code>source</code> representing geospatial data
+     * within a circular or rectangular area and stores the result in <code>destination</code>. If
+     * <code>destination</code> already exists, it is overwritten. Otherwise, a new sorted set will be
+     * created. To get the result directly, see `{@link #geosearch(String,
+     * GeoSearchOrigin.SearchOrigin, GeoSearchShape)}.
      *
      * @since Redis 6.2.0 and above.
      * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
@@ -5354,8 +5357,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * The command is like {@link #geosearch(String, GeoSearchOrigin.SearchOrigin, GeoSearchShape,
-     * GeoSearchResultOptions)}, but stores the result in <code>destination</code>.
+     * Searches for members in a sorted set stored at <code>source</code> representing geospatial data
+     * within a circular or rectangular area and stores the result in <code>destination</code>. If
+     * <code>destination</code> already exists, it is overwritten. Otherwise, a new sorted set will be
+     * created. To get the result directly, see `{@link #geosearch(String,
+     * GeoSearchOrigin.SearchOrigin, GeoSearchShape, GeoSearchResultOptions)}.
      *
      * @since Redis 6.2.0 and above.
      * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
@@ -5399,8 +5405,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * The command is like {@link #geosearch(String, GeoSearchOrigin.SearchOrigin, GeoSearchShape,
-     * GeoSearchOptions)}, but stores the result in <code>destination</code>.
+     * Searches for members in a sorted set stored at <code>source</code> representing geospatial data
+     * within a circular or rectangular area and stores the result in <code>destination</code>. If
+     * <code>destination</code> already exists, it is overwritten. Otherwise, a new sorted set will be
+     * created. To get the result directly, see `{@link #geosearch(String,
+     * GeoSearchOrigin.SearchOrigin, GeoSearchShape, GeoSearchOptions)}.
      *
      * @since Redis 6.2.0 and above.
      * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.
@@ -5443,8 +5452,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
     }
 
     /**
-     * The command is like {@link #geosearch(String, GeoSearchOrigin.SearchOrigin, GeoSearchShape,
-     * GeoSearchOptions, GeoSearchResultOptions)}, but stores the result in <code>destination</code>.
+     * Searches for members in a sorted set stored at <code>source</code> representing geospatial data
+     * within a circular or rectangular area and stores the result in <code>destination</code>. If
+     * <code>destination</code> already exists, it is overwritten. Otherwise, a new sorted set will be
+     * created. To get the result directly, see `{@link #geosearch(String,
+     * GeoSearchOrigin.SearchOrigin, GeoSearchShape, GeoSearchOptions, GeoSearchResultOptions)}.
      *
      * @since Redis 6.2.0 and above.
      * @see <a href="https://valkey.io/commands/geosearch">valkey.io</a> for more details.

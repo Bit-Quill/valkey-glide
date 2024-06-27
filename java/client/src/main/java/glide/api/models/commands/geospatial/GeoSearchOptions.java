@@ -31,13 +31,22 @@ public final class GeoSearchOptions {
     /** Redis API keyword used to perform geosearch with hash value. */
     public static final String WITHHASH_REDIS_API = "WITHHASH";
 
-    // Indicates if the 'WITHCOORD' keyword should be included.
+    /**
+     * Indicates if the 'WITHCOORD' keyword should be included. Can be included in builder
+     * construction by using {@link GeoSearchOptionsBuilder#withcoord()}.
+     */
     @Builder.Default private boolean withCoord = false;
 
-    // Indicates if the 'WITHDIST' keyword should be included.
+    /**
+     * Indicates if the 'WITHDIST' keyword should be included. Can be included in builder construction
+     * by using {@link GeoSearchOptionsBuilder#withdist()}.
+     */
     @Builder.Default private boolean withDist = false;
 
-    // Indicates if the 'WITHHASH' keyword should be included.
+    /**
+     * Indicates if the 'WITHHASH' keyword should be included. Can be included in builder construction
+     * by using {@link GeoSearchOptionsBuilder#withhash()}.
+     */
     @Builder.Default private boolean withHash = false;
 
     /**

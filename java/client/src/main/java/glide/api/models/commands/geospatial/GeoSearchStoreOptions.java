@@ -13,11 +13,15 @@ import lombok.Builder;
 @Builder
 public final class GeoSearchStoreOptions {
     /**
-     * Redis API keyword used to perform geosearchstore and sort the results with their distance from
-     * the center.
+     * Redis API keyword used to perform geosearchstore and optionally sort the results with their
+     * distance from the center.
      */
     public static final String GEOSEARCHSTORE_REDIS_API = "STOREDIST";
 
+    /**
+     * boolean value indicating if the STOREDIST option should be included. Can be included in builder
+     * construction by using {@link GeoSearchStoreOptionsBuilder#storedist()}.
+     */
     private boolean storeDist;
 
     /**
