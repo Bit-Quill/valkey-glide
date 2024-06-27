@@ -37,6 +37,7 @@ import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.scan.SScanOptions;
+import glide.api.models.commands.scan.ZScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamRange;
@@ -627,8 +628,9 @@ public class TransactionTestUtilities {
                 .zrandmember(zSetKey2)
                 .zrandmemberWithCount(zSetKey2, 1)
                 .zrandmemberWithCountWithScores(zSetKey2, 1)
+                .zscan(zSetKey2, 0)
+                .zscan(zSetKey2, 0, ZScanOptions.builder().count(20L).build())
                 .bzpopmin(new String[] {zSetKey2}, .1);
-                // TODO: Add tests for zscan
         // zSetKey2 is now empty
 
         if (REDIS_VERSION.isGreaterThanOrEqualTo("6.2.0")) {
@@ -687,6 +689,8 @@ public class TransactionTestUtilities {
                     "one", // zrandmember(zSetKey2)
                     new String[] {"one"}, // .zrandmemberWithCount(zSetKey2, 1)
                     new Object[][] {{"one", 1.0}}, // .zrandmemberWithCountWithScores(zSetKey2, 1);
+                    new Object[] {"0", new Object[] {"one", "1"}}, // zscan(zSetKey2, 0)
+                    new Object[] {"0", new Object[] {"one", "1"}}, // zscan(zSetKey2, 0, ZScanOptions.builder().count(20L).build())
                     new Object[] {zSetKey2, "one", 1.0}, // bzpopmin(new String[] { zsetKey2 }, .1)
                 };
 
