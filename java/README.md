@@ -119,7 +119,7 @@ dependencies {
 
 Maven (AARCH_64) specific.
 - **IMPORTANT** must include a `classifier` block. Please use this dependency block instead and add it to the pom.xml file.
-```bash
+```xml
 <dependency>
     <groupId>software.amazon.glide</groupId>
     <artifactId>glide-osx-aarch_64</artifactId>
