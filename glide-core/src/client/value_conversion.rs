@@ -853,6 +853,10 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
             key_type: &None,
             value_type: &None,
         }),
+        b"XCLAIM" => Some(ExpectedReturnType::Map {
+            key_type: &Some(ExpectedReturnType::BulkString),
+            value_type: &Some(ExpectedReturnType::ArrayOfStrings),
+        }),
         b"XRANGE" | b"XREVRANGE" => Some(ExpectedReturnType::Map {
             key_type: &Some(ExpectedReturnType::BulkString),
             value_type: &Some(ExpectedReturnType::ArrayOfPairs),

@@ -4618,7 +4618,7 @@ public class SharedCommandTests {
     @SneakyThrows
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("getClients")
-    public void xpending(BaseClient client) {
+    public void xpending_xclaim(BaseClient client) {
 
         String key = UUID.randomUUID().toString();
         String groupName = "group" + UUID.randomUUID();
@@ -4710,8 +4710,9 @@ public class SharedCommandTests {
         assertTrue((Long) pending_results_extended[4][2] >= 0L);
 
         // use claim to claim stream 3 and 4 for consumer 1
-        var claim_results = client.xclaim(key, groupName, consumer1, 0L, new String[]{streamid_3, streamid_4}).get();
-        System.out.println(claim_results);
+        var claim_results =
+                client.xclaim(key, groupName, consumer1, 0L, new String[] {streamid_3, streamid_5}).get();
+        assertDeepEquals(Map.of(streamid_3, new String[] {"field3", "value3"}, streamid_5, new String[] {"field5", "value5"}), claim_results);
 
         // acknowledge streams 2-4 and remove them from the xpending results
         assertEquals(
@@ -4723,7 +4724,7 @@ public class SharedCommandTests {
                         .get();
         assertEquals(1, pending_results_extended.length);
         assertEquals(streamid_5, pending_results_extended[0][0]);
-        assertEquals(consumer2, pending_results_extended[0][1]);
+        assertEquals(consumer1, pending_results_extended[0][1]);
 
         pending_results_extended =
                 client
@@ -4741,11 +4742,10 @@ public class SharedCommandTests {
                                 InfRangeBound.MIN,
                                 InfRangeBound.MAX,
                                 10L,
-                                StreamPendingOptions.builder().minIdleTime(1L).consumer(consumer2).build())
+                                StreamPendingOptions.builder().minIdleTime(1L).consumer(consumer1).build())
                         .get();
-        assertEquals(1, pending_results_extended.length);
-        assertEquals(streamid_5, pending_results_extended[0][0]);
-        assertEquals(consumer2, pending_results_extended[0][1]);
+        // note: consumer claimed all remaining messages
+        assertEquals(2, pending_results_extended.length);
     }
 
     @SneakyThrows
@@ -4905,6 +4905,33 @@ public class SharedCommandTests {
                                         .xpending(stringkey, groupName, InfRangeBound.MIN, InfRangeBound.MAX, 10L)
                                         .get());
         assertInstanceOf(RequestException.class, executionException.getCause());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void xclaim_return_failures(BaseClient client) {
+
+        String key = UUID.randomUUID().toString();
+        String stringkey = UUID.randomUUID().toString();
+        String groupName = "group" + UUID.randomUUID();
+        String zeroStreamId = "0";
+        String consumer1 = "consumer-1-" + UUID.randomUUID();
+
+        // create group and consumer for the group
+        assertEquals(
+            OK,
+            client
+                .xgroupCreate(
+                    key, groupName, zeroStreamId, StreamGroupOptions.builder().makeStream().build())
+                .get());
+        assertTrue(client.xgroupCreateConsumer(key, groupName, consumer1).get());
+
+        // Add two stream entries for consumer 1
+        String streamid_1 = client.xadd(key, Map.of("field1", "value1")).get();
+        assertNotNull(streamid_1);
+        String streamid_2 = client.xadd(key, Map.of("field2", "value2")).get();
+        assertNotNull(streamid_2);
     }
 
     @SneakyThrows
