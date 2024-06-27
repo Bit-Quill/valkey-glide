@@ -6487,6 +6487,30 @@ class TestCommands:
             result = await redis_client.lolwut(2, [10, 20], RandomNode())
             assert "Redis ver. " in node_result
 
+    @pytest.mark.parametrize("cluster_mode", [True, False])
+    @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
+    async def test_random_key(self, redis_client: TGlideClient):
+        key = get_random_string(10)
+
+        # set a key in the database in case it was empty
+        assert await redis_client.set(key, "foo") == OK
+
+        result = await redis_client.random_key()
+        assert result is not None
+        assert await redis_client.exists([result]) == 1
+
+        if isinstance(redis_client, GlideClusterClient):
+            result = await redis_client.random_key(AllPrimaries())
+            assert result is not None
+            assert await redis_client.exists([result]) == 1
+
+        # TODO: returns a ResponseError for cluster clients but should return None
+        # Run this code for standalone and cluster clients when this is completed:
+        # https://github.com/amazon-contributing/redis-rs/pull/153
+        if isinstance(redis_client, GlideClient):
+            assert await redis_client.flushall(FlushMode.SYNC)
+            assert await redis_client.random_key() is None
+
 
 class TestMultiKeyCommandCrossSlot:
     @pytest.mark.parametrize("cluster_mode", [True])
