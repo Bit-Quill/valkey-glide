@@ -566,19 +566,16 @@ public interface SetBaseCommands {
      * @example
      *     <pre>{@code
      * // Assume key contains a set with 200 members
-     * Object[] result = client.sscan(key1, 0).get();
-     * long cursor = Long.valueOf(result[0].toString());
-     * Object[] stringResults = (Object[]) result[1];
+     * long cursor = 0;
+     * Object[] result;
+     * do {
+     *   result = client.sscan(key1, cursor).get();
+     *   cursor = Long.valueOf(result[0].toString());
+     *   Object[] stringResults = (Object[]) result[1];
      *
-     * System.out.println("\nFirst SSCAN iteration:");
-     * Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
-     *
-     * result = client.sscan(key1, cursor).get();
-     * stringResults = (Object[]) result[1];
-     *
-     * System.out.println("\nSecond SSCAN iteration:");
-     * Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
-     *
+     *   System.out.println("\nSSCAN iteration:");
+     *   Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
+     * } while (cursor != 0);
      * }</pre>
      */
     CompletableFuture<Object[]> sscan(String key, long cursor);
@@ -595,18 +592,16 @@ public interface SetBaseCommands {
      * @example
      *     <pre>{@code
      * // Assume key contains a set with 200 members
-     * Object[] result = client.sscan(key1, 0, SScanOptions.builder().matchPattern("*").count(20L).build()).get();
-     * long cursor = Long.valueOf(result[0].toString());
-     * Object[] stringResults = (Object[]) result[1];
+     * long cursor = 0;
+     * Object[] result;
+     * do {
+     *   result = client.sscan(key1, cursor, SScanOptions.builder().matchPattern("*").count(20L).build()).get();
+     *   cursor = Long.valueOf(result[0].toString());
+     *   Object[] stringResults = (Object[]) result[1];
      *
-     * System.out.println("\nFirst SSCAN iteration:");
-     * Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
-     *
-     * result = client.sscan(key1, cursor, SScanOptions.builder().matchPattern("*").count(20L).build()).get();
-     * stringResults = (Object[]) result[1];
-     *
-     * System.out.println("\nSecond SSCAN iteration:");
-     * Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
+     *   System.out.println("\nSSCAN iteration:");
+     *   Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
+     * } while (cursor != 0);
      * }</pre>
      */
     CompletableFuture<Object[]> sscan(String key, long cursor, SScanOptions sscanOptions);

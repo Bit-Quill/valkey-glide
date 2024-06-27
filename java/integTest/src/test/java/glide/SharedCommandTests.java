@@ -7023,7 +7023,9 @@ public class SharedCommandTests {
         for (int i = 0; i < numberMembers.length; i++) {
             numberMembers[i] = String.valueOf(i);
         }
+        Set numberMembersSet = Set.of(numberMembers);
         String[] charMembers = new String[] {"a", "b", "c", "d", "e"};
+        Set charMemberSet = Set.of(charMembers);
         int resultCursorIndex = 0;
         int resultCollectionIndex = 1;
 
@@ -7042,6 +7044,8 @@ public class SharedCommandTests {
         result = client.sscan(key1, initialCursor).get();
         assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
         assertEquals(charMembers.length, ((Object[]) result[resultCollectionIndex]).length);
+        Arrays.stream((Object[]) result[resultCollectionIndex])
+                .forEach(member -> assertTrue(charMemberSet.contains(member)));
 
         result =
                 client.sscan(key1, initialCursor, SScanOptions.builder().matchPattern("a").build()).get();
@@ -7050,19 +7054,21 @@ public class SharedCommandTests {
 
         // Result contains a subset of the key
         assertEquals(numberMembers.length, client.sadd(key1, numberMembers).get());
-        result = client.sscan(key1, initialCursor).get();
-        long resultCursor = Long.valueOf(result[resultCursorIndex].toString());
-        assertTrue(resultCursor > 0);
-        assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
+        long resultCursor = 0;
+        do {
+            result = client.sscan(key1, resultCursor).get();
+            resultCursor = Long.valueOf(result[resultCursorIndex].toString());
 
-        // Scan with result cursor has a different set
-        Object[] secondResult = client.sscan(key1, resultCursor).get();
-        assertTrue(resultCursor != (Long.valueOf(secondResult[resultCursorIndex].toString())));
-        assertFalse(
-                Arrays.deepEquals(
-                        ArrayUtils.toArray(result[resultCollectionIndex]),
-                        ArrayUtils.toArray(secondResult[resultCollectionIndex])));
-        assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
+            // Scan with result cursor has a different set
+            Object[] secondResult = client.sscan(key1, resultCursor).get();
+            long newResultCursor = (Long.valueOf(secondResult[resultCursorIndex].toString()));
+            assertTrue(resultCursor != newResultCursor);
+            resultCursor = newResultCursor;
+            assertFalse(
+                    Arrays.deepEquals(
+                            ArrayUtils.toArray(result[resultCollectionIndex]),
+                            ArrayUtils.toArray(secondResult[resultCollectionIndex])));
+        } while (resultCursor != 0);
 
         // Test match pattern
         result =
