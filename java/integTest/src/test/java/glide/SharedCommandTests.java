@@ -71,6 +71,7 @@ import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
 import glide.api.models.commands.scan.SScanOptions;
+import glide.api.models.commands.scan.ZScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamPendingOptions;
@@ -7146,6 +7147,117 @@ public class SharedCommandTests {
                 assertThrows(
                         ExecutionException.class,
                         () -> client.sscan(key1, "-1", SScanOptions.builder().count(-1L).build()).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void zscan(BaseClient client) {
+        String key1 = "{key}-1" + UUID.randomUUID();
+        String key2 = "{key}-2" + UUID.randomUUID();
+        long initialCursor = 0;
+        long defaultCount = 20;
+        int resultCursorIndex = 0;
+        int resultCollectionIndex = 1;
+
+        // Setup test data
+        Map<String, Double> numberMap = new HashMap<>();
+        for(Double i = 0.0; i < 125; i ++) {
+            numberMap.put(String.valueOf(i), i);
+        }
+        String[] charMembers = new String[] {"a", "b", "c", "d", "e"};
+        Map<String, Double> charMap = new HashMap<>();
+        for(Double i = 0.0; i < 5; i ++) {
+            charMap.put(charMembers[i.intValue()], i);
+        }
+
+        // Empty set
+        Object[] result = client.zscan(key1, initialCursor).get();
+        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertDeepEquals(new String[] {}, result[resultCollectionIndex]);
+
+        // Negative cursor
+        result = client.zscan(key1, -1).get();
+        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertDeepEquals(new String[] {}, result[resultCollectionIndex]);
+
+        // Result contains the whole set
+        assertEquals(charMembers.length, client.zadd(key1, charMap).get());
+        result = client.zscan(key1, initialCursor).get();
+        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertEquals(charMap.size() * 2, ((Object[]) result[resultCollectionIndex]).length); // Length includes the score which is twice the map size
+        Arrays.stream((Object[]) result[resultCollectionIndex])
+            .forEach(member ->
+                assertTrue(charMap.containsKey(member) || charMap.containsValue(Double.valueOf(member.toString()))));
+
+        result =
+            client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("a").build()).get();
+        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertDeepEquals(new String[] {"a", "0"}, result[resultCollectionIndex]);
+
+        // Result contains a subset of the key
+        assertEquals(numberMap.size(), client.zadd(key1, numberMap).get());
+        long resultCursor = 0;
+        do {
+            result = client.zscan(key1, resultCursor).get();
+            resultCursor = Long.valueOf(result[resultCursorIndex].toString());
+
+            // Scan with result cursor has a different set
+            Object[] secondResult = client.zscan(key1, resultCursor).get();
+            long newResultCursor = (Long.valueOf(secondResult[resultCursorIndex].toString()));
+            assertTrue(resultCursor != newResultCursor);
+            resultCursor = newResultCursor;
+            assertFalse(
+                Arrays.deepEquals(
+                    ArrayUtils.toArray(result[resultCollectionIndex]),
+                    ArrayUtils.toArray(secondResult[resultCollectionIndex])));
+        } while (resultCursor != 0); // 0 is returned for the cursor of the last iteration.
+
+        // Test match pattern
+        result =
+            client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("*").build()).get();
+        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
+
+        // Test count
+        result = client.zscan(key1, initialCursor, ZScanOptions.builder().count(20L).build()).get();
+        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= 20);
+
+        // Test count with match returns a non-empty list
+        result =
+            client
+                .zscan(
+                    key1, initialCursor, ZScanOptions.builder().matchPattern("1*").count(20L).build())
+                .get();
+        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) > 0);
+
+        // Exceptions
+        // Non-set key
+        assertEquals(OK, client.set(key2, "test").get());
+        ExecutionException executionException =
+            assertThrows(ExecutionException.class, () -> client.zscan(key2, initialCursor).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        executionException =
+            assertThrows(
+                ExecutionException.class,
+                () ->
+                    client
+                        .zscan(
+                            key2,
+                            initialCursor,
+                            ZScanOptions.builder().matchPattern("test").count(1L).build())
+                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        // Negative count
+        executionException =
+            assertThrows(
+                ExecutionException.class,
+                () -> client.zscan(key1, -1, ZScanOptions.builder().count(-1L).build()).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 }
