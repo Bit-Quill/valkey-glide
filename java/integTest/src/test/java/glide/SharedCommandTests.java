@@ -82,6 +82,7 @@ import glide.api.models.commands.scan.HScanOptions;
 import glide.api.models.commands.scan.SScanOptions;
 import glide.api.models.commands.scan.ZScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
+import glide.api.models.commands.stream.StreamClaimOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamPendingOptions;
 import glide.api.models.commands.stream.StreamRange.IdBound;
@@ -4710,9 +4711,21 @@ public class SharedCommandTests {
         assertTrue((Long) pending_results_extended[4][2] >= 0L);
 
         // use claim to claim stream 3 and 4 for consumer 1
-        var claim_results =
+        var claimResults =
                 client.xclaim(key, groupName, consumer1, 0L, new String[] {streamid_3, streamid_5}).get();
-        assertDeepEquals(Map.of(streamid_3, new String[] {"field3", "value3"}, streamid_5, new String[] {"field5", "value5"}), claim_results);
+        assertDeepEquals(
+                Map.of(
+                        streamid_3,
+                        new String[] {"field3", "value3"},
+                        streamid_5,
+                        new String[] {"field5", "value5"}),
+                claimResults);
+
+        var claimResultsJustId =
+                client
+                        .xclaimJustId(key, groupName, consumer1, 0L, new String[] {streamid_3, streamid_5})
+                        .get();
+        assertArrayEquals(new String[] {streamid_3, streamid_5}, claimResultsJustId);
 
         // acknowledge streams 2-4 and remove them from the xpending results
         assertEquals(
@@ -4917,21 +4930,133 @@ public class SharedCommandTests {
         String groupName = "group" + UUID.randomUUID();
         String zeroStreamId = "0";
         String consumer1 = "consumer-1-" + UUID.randomUUID();
+        String consumer2 = "consumer-2-" + UUID.randomUUID();
 
         // create group and consumer for the group
         assertEquals(
-            OK,
-            client
-                .xgroupCreate(
-                    key, groupName, zeroStreamId, StreamGroupOptions.builder().makeStream().build())
-                .get());
+                OK,
+                client
+                        .xgroupCreate(
+                                key, groupName, zeroStreamId, StreamGroupOptions.builder().makeStream().build())
+                        .get());
         assertTrue(client.xgroupCreateConsumer(key, groupName, consumer1).get());
 
-        // Add two stream entries for consumer 1
+        // Add two stream entries and mark as pending:
         String streamid_1 = client.xadd(key, Map.of("field1", "value1")).get();
         assertNotNull(streamid_1);
-        String streamid_2 = client.xadd(key, Map.of("field2", "value2")).get();
-        assertNotNull(streamid_2);
+        assertNotNull(client.xreadgroup(Map.of(key, ">"), groupName, consumer1).get());
+
+        // claim with invalid stream entry IDs
+        ExecutionException executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client.xclaimJustId(key, groupName, consumer1, 1L, new String[] {"invalid"}).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        // non-existent key throws a RequestError (NOGROUP)
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .xclaim(stringkey, groupName, consumer1, 1L, new String[] {streamid_1})
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+        assertTrue(executionException.getMessage().contains("NOGROUP"));
+
+        final var claimOptions = StreamClaimOptions.builder().idle(1L).build();
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .xclaim(
+                                                stringkey,
+                                                groupName,
+                                                consumer1,
+                                                1L,
+                                                new String[] {streamid_1},
+                                                claimOptions)
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+        assertTrue(executionException.getMessage().contains("NOGROUP"));
+
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .xclaimJustId(stringkey, groupName, consumer1, 1L, new String[] {streamid_1})
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+        assertTrue(executionException.getMessage().contains("NOGROUP"));
+
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .xclaimJustId(
+                                                stringkey,
+                                                groupName,
+                                                consumer1,
+                                                1L,
+                                                new String[] {streamid_1},
+                                                claimOptions)
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+        assertTrue(executionException.getMessage().contains("NOGROUP"));
+
+        // Key exists, but it is not a stream
+        assertEquals(OK, client.set(stringkey, "bar").get());
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .xclaim(stringkey, groupName, consumer1, 1L, new String[] {streamid_1})
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .xclaim(
+                                                stringkey,
+                                                groupName,
+                                                consumer1,
+                                                1L,
+                                                new String[] {streamid_1},
+                                                claimOptions)
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .xclaimJustId(stringkey, groupName, consumer1, 1L, new String[] {streamid_1})
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
+
+        executionException =
+                assertThrows(
+                        ExecutionException.class,
+                        () ->
+                                client
+                                        .xclaimJustId(
+                                                stringkey,
+                                                groupName,
+                                                consumer1,
+                                                1L,
+                                                new String[] {streamid_1},
+                                                claimOptions)
+                                        .get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
     }
 
     @SneakyThrows
