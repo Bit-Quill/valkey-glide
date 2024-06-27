@@ -1,18 +1,13 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
 package glide.api.models.commands.scan;
 
-import glide.api.commands.SetBaseCommands;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Optional arguments for {@link SetBaseCommands#sscan(String, long)}, {@link
- * SetBaseCommands#sscan(String, long, SScanOptions)}.
- *
- * <p>TODO: Add to function links when implementing HSCAN, ZSCAN, and SCAN.
- *
- * @see <a href="https://valkey.io/commands/scan/">valkey.io</a>
+ * This base class represents the common set of optional arguments for the SCAN family of commands.
+ * Concrete implementations of this class are tied to specific SCAN commands (SCAN, HSCAN, SSCAN, and ZSCAN).
  */
 @SuperBuilder
 public abstract class ScanOptions {
