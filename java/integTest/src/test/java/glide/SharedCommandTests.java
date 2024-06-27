@@ -95,6 +95,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ArrayUtils;
@@ -7044,8 +7045,9 @@ public class SharedCommandTests {
         result = client.sscan(key1, initialCursor).get();
         assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
         assertEquals(charMembers.length, ((Object[]) result[resultCollectionIndex]).length);
-        Arrays.stream((Object[]) result[resultCollectionIndex])
-                .forEach(member -> assertTrue(charMemberSet.contains(member)));
+        final Set<Object> resultMembers =
+                Arrays.stream((Object[]) result[resultCollectionIndex]).collect(Collectors.toSet());
+        assertTrue(resultMembers.containsAll(charMemberSet));
 
         result =
                 client.sscan(key1, initialCursor, SScanOptions.builder().matchPattern("a").build()).get();
@@ -7055,6 +7057,7 @@ public class SharedCommandTests {
         // Result contains a subset of the key
         assertEquals(numberMembers.length, client.sadd(key1, numberMembers).get());
         long resultCursor = 0;
+        final Set<Object> secondResultValues = new HashSet<>();
         do {
             result = client.sscan(key1, resultCursor).get();
             resultCursor = Long.valueOf(result[resultCursorIndex].toString());
@@ -7068,7 +7071,12 @@ public class SharedCommandTests {
                     Arrays.deepEquals(
                             ArrayUtils.toArray(result[resultCollectionIndex]),
                             ArrayUtils.toArray(secondResult[resultCollectionIndex])));
+            secondResultValues.addAll(
+                    Arrays.stream((Object[]) secondResult[resultCollectionIndex])
+                            .collect(Collectors.toSet()));
         } while (resultCursor != 0); // 0 is returned for the cursor of the last iteration.
+
+        assertTrue(secondResultValues.containsAll(numberMembersSet));
 
         // Test match pattern
         result =

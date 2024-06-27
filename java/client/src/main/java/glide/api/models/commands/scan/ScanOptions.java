@@ -23,9 +23,8 @@ public abstract class ScanOptions {
      * match the pattern specified. If the set, hash, or list is large enough for scan commands to
      * return only a subset of the set, hash, or list, then there could be a case where the result is
      * empty although there are items that match the pattern specified. This is due to the default
-     * <code>
-     * COUNT</code> being <code>10</code> which indicates that it will only fetch and match <code>10
-     * </code> items from the list.
+     * <code>COUNT</code> being <code>10</code> which indicates that it will only fetch and match
+     * <code>10</code> items from the list.
      */
     private final String matchPattern;
 
