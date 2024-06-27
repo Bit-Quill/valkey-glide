@@ -569,16 +569,16 @@ class StandaloneCommands(CoreCommands):
 
     async def random_key(self) -> Optional[str]:
         """
-        Returns a random key from currently selected database.
+        Returns a random existing key name from the currently selected database.
 
         See https://valkey.io/commands/randomkey for more details.
 
         Returns:
-            Optional[str]: A random key from the database.
+            Optional[str]: A random existing key name from the currently selected database.
 
         Examples:
             >>> await client.random_key()
-            "random_key_name"  # A random key name that exists in the database.
+            "random_key_name"  # "random_key_name" is a random existing key name from the currently selected database.
         """
         return cast(
             Optional[str],

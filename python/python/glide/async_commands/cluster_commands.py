@@ -627,7 +627,7 @@ class ClusterCommands(CoreCommands):
 
     async def random_key(self, route: Optional[Route] = None) -> Optional[str]:
         """
-        Returns a random key from currently selected database.
+        Returns a random existing key name.
 
         See https://valkey.io/commands/randomkey for more details.
 
@@ -636,11 +636,11 @@ class ClusterCommands(CoreCommands):
                 in which case the client will route the command to the nodes defined by `route`.
 
         Returns:
-            Optional[str]: A random key from the database.
+            Optional[str]: A random existing key name.
 
         Examples:
             >>> await client.random_key()
-            "random_key_name"  # A random key name that exists in the database.
+            "random_key_name"  # "random_key_name" is a random existing key name.
         """
         return cast(
             Optional[str],

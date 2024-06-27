@@ -3739,12 +3739,12 @@ class BaseTransaction:
 
     def random_key(self: TTransaction) -> TTransaction:
         """
-        Returns a random key from currently selected database.
+        Returns a random existing key name.
 
         See https://valkey.io/commands/randomkey for more details.
 
         Command response:
-            Optional[str]: A random key from the database.
+            Optional[str]: A random existing key name.
         """
         return self.append_command(RequestType.RandomKey, [])
 
