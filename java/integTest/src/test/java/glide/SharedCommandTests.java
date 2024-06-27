@@ -7009,4 +7009,14 @@ public class SharedCommandTests {
                         () -> client.lcsIdxWithMatchLen(nonStringKey, key1, 10L).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    public void wait(BaseClient client) {
+        // setup
+        long numreplicas = 1L;
+        long timeout = 1000L;
+        Long result = 5L;
+    }
 }
