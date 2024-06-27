@@ -119,12 +119,12 @@ dependencies {
 
 Maven (AARCH_64) specific.
 - **IMPORTANT** must include a `classifier` block. Please use this dependency block instead and add it to the pom.xml file.
-```xml
+```java
 <dependency>
-    <groupId>software.amazon.glide</groupId>
-    <artifactId>glide-osx-aarch_64</artifactId>
-    <classifier>osx-aarch_64</classifier>
-    <version>0.4.2</version>
+   <groupId>software.amazon.glide</groupId>
+   <artifactId>glide-for-redis</artifactId>
+   <classifier>osx-aarch_64</classifier>
+   <version>0.4.3</version>
 </dependency>
 ```
 
@@ -140,7 +140,7 @@ import glide.api.models.configuration.RedisClientConfiguration;
 import java.util.concurrent.ExecutionException;
 import static glide.api.models.GlideString.gs;
 
-# Run this code in the Main file. Include InterruptedException and ExecutionException handling.
+// Run this code in the Main file. Include InterruptedException and ExecutionException handling.
 
 public static void main(String[] args) throws InterruptedException, ExecutionException {
 
@@ -177,7 +177,7 @@ import glide.api.models.configuration.RedisClusterClientConfiguration;
 import java.util.concurrent.ExecutionException;
 import static glide.api.models.GlideString.gs;
 
-# Run this code in the Main file. Include InterruptedException and ExecutionException handling.
+// Run this code in the Main file. Include InterruptedException and ExecutionException handling.
 
 String host = "localhost";
 Integer port = 6379;
