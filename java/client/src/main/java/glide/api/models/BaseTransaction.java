@@ -5137,7 +5137,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @return Command Response - The number of replicas reached by all the writes performed in the
      *     context of the current connection.
      */
-    T wait(long numreplicas, long timeout) {
+    public T wait(long numreplicas, long timeout) {
         ArgsArray args = buildArgs(Long.toString(numreplicas), Long.toString(timeout));
         protobufTransaction.addCommands(buildCommand(Wait, args));
         return getThis();
