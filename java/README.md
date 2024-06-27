@@ -108,6 +108,14 @@ Once set up, you can run the basic examples.
 
 Gradle:
 - Copy the snippet and paste it in the `build.gradle` dependencies section.
+Example shown below is for `glide-osx-aarch_64`.
+```bash
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation group: 'software.amazon.glide', name: 'glide-osx-aarch_64', version: '0.4.2'
+}
+```
 
 Maven (AARCH_64) specific.
 - **IMPORTANT** must include a `classifier` block. Please use this dependency block instead and add it to the pom.xml file.
@@ -134,6 +142,9 @@ assert setResponse.get() == "OK" : "Failed on client.set("key", "foobar") reques
 
 CompletableFuture<String> getResponse = client.get("key");
 assert getResponse.get() == "foobar" : "Failed on client.get("key") request";
+
+GlideString value = client.set(gs("key"), gs("value")).get();
+assert value.getString().equals("OK");
 ```
 
 ### Cluster Valkey:
@@ -157,6 +168,9 @@ assert setResponse.get() == "OK" : "Failed on client.set(\"key\", \"foobar\") re
 
 CompletableFuture<String> getResponse = client.get("key");
 assert getResponse.get() == "foobar" : "Failed on client.get(\"key\") request";
+
+GlideString value = client.set(gs("key"), gs("value")).get();
+assert value.getString().equals("OK");
 ```
 
 ### Benchmarks
