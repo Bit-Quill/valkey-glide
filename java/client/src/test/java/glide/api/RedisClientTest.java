@@ -314,7 +314,6 @@ import glide.api.models.commands.stream.StreamTrimOptions.MinId;
 import glide.managers.CommandManager;
 import glide.managers.ConnectionManager;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -9031,7 +9030,7 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Object[]>submitNewCommand(eq(ZScan), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Object[]> response = service.zscan(key, cursor);
@@ -9049,9 +9048,9 @@ public class RedisClientTest {
         String key = "testKey";
         long cursor = 0;
         String[] arguments =
-            new String[] {
-                key, Long.toString(cursor), MATCH_OPTION_STRING, "*", COUNT_OPTION_STRING, "1"
-            };
+                new String[] {
+                    key, Long.toString(cursor), MATCH_OPTION_STRING, "*", COUNT_OPTION_STRING, "1"
+                };
         Object[] value = new Object[] {0L, new String[] {"hello", "world"}};
 
         CompletableFuture<Object[]> testResponse = new CompletableFuture<>();
@@ -9059,11 +9058,11 @@ public class RedisClientTest {
 
         // match on protobuf request
         when(commandManager.<Object[]>submitNewCommand(eq(ZScan), eq(arguments), any()))
-            .thenReturn(testResponse);
+                .thenReturn(testResponse);
 
         // exercise
         CompletableFuture<Object[]> response =
-            service.zscan(key, cursor, ZScanOptions.builder().matchPattern("*").count(1L).build());
+                service.zscan(key, cursor, ZScanOptions.builder().matchPattern("*").count(1L).build());
         Object[] payload = response.get();
 
         // verify
