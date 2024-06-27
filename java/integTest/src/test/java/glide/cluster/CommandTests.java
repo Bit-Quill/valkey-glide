@@ -815,15 +815,15 @@ public class CommandTests {
                         "1.0.0",
                         clusterClient.sortStore("abc", "def", SortClusterOptions.builder().alpha().build())),
                 Arguments.of(
-                    "geosearchstore",
-                    "6.2.0",
-                    clusterClient.geosearchstore(
-                        "dest",
-                        "source",
-                        new GeoSearchOrigin.MemberOrigin("abc"),
-                        new GeoSearchShape(1, GeoUnit.METERS),
-                        GeoSearchStoreOptions.builder().build(),
-                        new GeoSearchResultOptions(1, true))));
+                        "geosearchstore",
+                        "6.2.0",
+                        clusterClient.geosearchstore(
+                                "dest",
+                                "source",
+                                new GeoSearchOrigin.MemberOrigin("abc"),
+                                new GeoSearchShape(1, GeoUnit.METERS),
+                                GeoSearchStoreOptions.builder().build(),
+                                new GeoSearchResultOptions(1, true))));
     }
 
     @SneakyThrows
