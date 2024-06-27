@@ -1601,7 +1601,12 @@ public interface SortedSetBaseCommands {
      *   Object[] stringResults = (Object[]) result[1];
      *
      *   System.out.println("\nZSCAN iteration:");
-     *   Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
+     *   for (int i = 0; i < stringResults.length; i += 2) {
+     *     System.out.printf("{%s=%s}", stringResults[i], stringResults[i + 1]);
+     *     if (i + 2 < stringResults.length) {
+     *       System.out.print(", ");
+     *     }
+     *   }
      * } while (cursor != 0);
      * }</pre>
      */
@@ -1630,7 +1635,12 @@ public interface SortedSetBaseCommands {
      *   Object[] stringResults = (Object[]) result[1];
      *
      *   System.out.println("\nZSCAN iteration:");
-     *   Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
+     *   for (int i = 0; i < stringResults.length; i += 2) {
+     *     System.out.printf("{%s=%s}", stringResults[i], stringResults[i + 1]);
+     *     if (i + 2 < stringResults.length) {
+     *       System.out.print(", ");
+     *     }
+     *   }
      * } while (cursor != 0);
      * }</pre>
      */
