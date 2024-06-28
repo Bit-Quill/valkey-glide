@@ -2788,16 +2788,15 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Object[]> sscan(@NonNull String key, long cursor) {
-        String[] arguments = new String[] {key, Long.toString(cursor)};
+    public CompletableFuture<Object[]> sscan(@NonNull String key, String cursor) {
+        String[] arguments = new String[] {key, cursor};
         return commandManager.submitNewCommand(SScan, arguments, this::handleArrayResponse);
     }
 
     @Override
     public CompletableFuture<Object[]> sscan(
-            @NonNull String key, long cursor, @NonNull SScanOptions sscanOptions) {
-        String[] arguments =
-                concatenateArrays(new String[] {key, Long.toString(cursor)}, sscanOptions.toArgs());
+            @NonNull String key, String cursor, @NonNull SScanOptions sScanOptions) {
+        String[] arguments = concatenateArrays(new String[] {key, cursor}, sScanOptions.toArgs());
         return commandManager.submitNewCommand(SScan, arguments, this::handleArrayResponse);
     }
 }

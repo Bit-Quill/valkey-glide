@@ -568,19 +568,19 @@ public interface SetBaseCommands {
      * @example
      *     <pre>{@code
      * // Assume key contains a set with 200 members
-     * long cursor = 0;
+     * String cursor = "0";
      * Object[] result;
      * do {
      *   result = client.sscan(key1, cursor).get();
-     *   cursor = Long.valueOf(result[0].toString());
+     *   cursor = result[0].toString();
      *   Object[] stringResults = (Object[]) result[1];
      *
      *   System.out.println("\nSSCAN iteration:");
      *   Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
-     * } while (cursor != 0);
+     * } while (!cursor.equals("0"));
      * }</pre>
      */
-    CompletableFuture<Object[]> sscan(String key, long cursor);
+    CompletableFuture<Object[]> sscan(String key, String cursor);
 
     /**
      * Iterates incrementally over a set.
@@ -588,7 +588,7 @@ public interface SetBaseCommands {
      * @see <a href="https://valkey.io/commands/sscan">valkey.io</a> for details.
      * @param key The key of the set.
      * @param cursor The cursor that points to the next iteration of results.
-     * @param sscanOptions The {@link SScanOptions}.
+     * @param sScanOptions The {@link SScanOptions}.
      * @return An <code>Array</code> of <code>Objects</code>. The first element is always the <code>
      *      cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
      *     </code> returned on the last iteration of the set. The second element is always an <code>
@@ -596,17 +596,17 @@ public interface SetBaseCommands {
      * @example
      *     <pre>{@code
      * // Assume key contains a set with 200 members
-     * long cursor = 0;
+     * String cursor = "0";
      * Object[] result;
      * do {
      *   result = client.sscan(key1, cursor, SScanOptions.builder().matchPattern("*").count(20L).build()).get();
-     *   cursor = Long.valueOf(result[0].toString());
+     *   cursor = result[0].toString();
      *   Object[] stringResults = (Object[]) result[1];
      *
      *   System.out.println("\nSSCAN iteration:");
      *   Arrays.asList(stringResults).stream().forEach(i -> System.out.print(i + ", "));
-     * } while (cursor != 0);
+     * } while (!cursor.equals("0"));
      * }</pre>
      */
-    CompletableFuture<Object[]> sscan(String key, long cursor, SScanOptions sscanOptions);
+    CompletableFuture<Object[]> sscan(String key, String cursor, SScanOptions sScanOptions);
 }

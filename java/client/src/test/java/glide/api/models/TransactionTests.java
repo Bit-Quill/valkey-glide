@@ -1170,10 +1170,10 @@ public class TransactionTests {
         transaction.sortStore("key1", "key2");
         results.add(Pair.of(Sort, buildArgs("key1", STORE_COMMAND_STRING, "key2")));
 
-        transaction.sscan("key1", 0);
+        transaction.sscan("key1", "0");
         results.add(Pair.of(SScan, buildArgs("key1", "0")));
 
-        transaction.sscan("key1", 0, SScanOptions.builder().matchPattern("*").count(10L).build());
+        transaction.sscan("key1", "0", SScanOptions.builder().matchPattern("*").count(10L).build());
         results.add(Pair.of(SScan, buildArgs("key1", "0", "MATCH", "*", "COUNT", "10")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();

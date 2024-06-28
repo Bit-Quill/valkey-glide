@@ -5139,8 +5139,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     the <code>cursor</code> returned on the last iteration of the set. The second element is
      *     always an <code>Array</code> of the subset of the set held in <code>key</code>.
      */
-    public T sscan(@NonNull String key, long cursor) {
-        protobufTransaction.addCommands(buildCommand(SScan, buildArgs(key, Long.toString(cursor))));
+    public T sscan(@NonNull String key, String cursor) {
+        protobufTransaction.addCommands(buildCommand(SScan, buildArgs(key, cursor)));
         return getThis();
     }
 
@@ -5150,16 +5150,15 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @see <a href="https://valkey.io/commands/sscan">valkey.io</a> for details.
      * @param key The key of the set.
      * @param cursor The cursor that points to the next iteration of results.
-     * @param sscanOptions The {@link SScanOptions}.
+     * @param sScanOptions The {@link SScanOptions}.
      * @return Command Response - An <code>Array</code> of <code>Objects</code>. The first element is
      *     always the <code>cursor</code> for the next iteration of results. <code>0</code> will be
      *     the <code>cursor</code> returned on the last iteration of the set. The second element is
      *     always an <code>Array</code> of the subset of the set held in <code>key</code>.
      */
-    public T sscan(@NonNull String key, long cursor, @NonNull SScanOptions sscanOptions) {
+    public T sscan(@NonNull String key, String cursor, @NonNull SScanOptions sScanOptions) {
         ArgsArray commandArgs =
-                buildArgs(
-                        concatenateArrays(new String[] {key, Long.toString(cursor)}, sscanOptions.toArgs()));
+                buildArgs(concatenateArrays(new String[] {key, cursor}, sScanOptions.toArgs()));
         protobufTransaction.addCommands(buildCommand(SScan, commandArgs));
         return getThis();
     }

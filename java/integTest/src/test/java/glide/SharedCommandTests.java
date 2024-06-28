@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -7018,7 +7019,7 @@ public class SharedCommandTests {
     public void sscan(BaseClient client) {
         String key1 = "{key}-1" + UUID.randomUUID();
         String key2 = "{key}-2" + UUID.randomUUID();
-        long initialCursor = 0;
+        String initialCursor = "0";
         long defaultCount = 10;
         String[] numberMembers = new String[125];
         for (int i = 0; i < numberMembers.length; i++) {
@@ -7032,24 +7033,18 @@ public class SharedCommandTests {
 
         // Empty set
         Object[] result = client.sscan(key1, initialCursor).get();
-        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertEquals(initialCursor, result[resultCursorIndex]);
         assertDeepEquals(new String[] {}, result[resultCollectionIndex]);
 
         // Negative cursor
-        result = client.sscan(key1, -1).get();
-        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        result = client.sscan(key1, "-1").get();
+        assertEquals(initialCursor, result[resultCursorIndex]);
         assertDeepEquals(new String[] {}, result[resultCollectionIndex]);
 
         // Result contains the whole set
         assertEquals(charMembers.length, client.sadd(key1, charMembers).get());
-        // Sleep after sadd() for eventual consistency.
-        // TODO: Replace sleep with WAIT request to enforce strong consistency.
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-        }
         result = client.sscan(key1, initialCursor).get();
-        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertEquals(initialCursor, result[resultCursorIndex]);
         assertEquals(charMembers.length, ((Object[]) result[resultCollectionIndex]).length);
         final Set<Object> resultMembers =
                 Arrays.stream((Object[]) result[resultCollectionIndex]).collect(Collectors.toSet());
@@ -7059,27 +7054,27 @@ public class SharedCommandTests {
 
         result =
                 client.sscan(key1, initialCursor, SScanOptions.builder().matchPattern("a").build()).get();
-        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertEquals(initialCursor, result[resultCursorIndex]);
         assertDeepEquals(new String[] {"a"}, result[resultCollectionIndex]);
 
         // Result contains a subset of the key
         assertEquals(numberMembers.length, client.sadd(key1, numberMembers).get());
-        // Sleep after sadd() for eventual consistency.
-        // TODO: Replace sleep with WAIT request to enforce strong consistency.
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-        }
-        long resultCursor = 0;
+        String resultCursor = "0";
         final Set<Object> secondResultValues = new HashSet<>();
         do {
             result = client.sscan(key1, resultCursor).get();
-            resultCursor = Long.parseLong(result[resultCursorIndex].toString());
+            resultCursor = result[resultCursorIndex].toString();
+            secondResultValues.addAll(
+                    Arrays.stream((Object[]) result[resultCollectionIndex]).collect(Collectors.toSet()));
+
+            if (resultCursor.equals("0")) {
+                break;
+            }
 
             // Scan with result cursor has a different set
             Object[] secondResult = client.sscan(key1, resultCursor).get();
-            long newResultCursor = (Long.parseLong(secondResult[resultCursorIndex].toString()));
-            assertTrue(resultCursor != newResultCursor);
+            String newResultCursor = secondResult[resultCursorIndex].toString();
+            assertNotEquals(resultCursor, newResultCursor);
             resultCursor = newResultCursor;
             assertFalse(
                     Arrays.deepEquals(
@@ -7088,7 +7083,7 @@ public class SharedCommandTests {
             secondResultValues.addAll(
                     Arrays.stream((Object[]) secondResult[resultCollectionIndex])
                             .collect(Collectors.toSet()));
-        } while (resultCursor != 0); // 0 is returned for the cursor of the last iteration.
+        } while (!resultCursor.equals("0")); // 0 is returned for the cursor of the last iteration.
 
         assertTrue(
                 secondResultValues.containsAll(numberMembersSet),
@@ -7139,7 +7134,7 @@ public class SharedCommandTests {
         executionException =
                 assertThrows(
                         ExecutionException.class,
-                        () -> client.sscan(key1, -1, SScanOptions.builder().count(-1L).build()).get());
+                        () -> client.sscan(key1, "-1", SScanOptions.builder().count(-1L).build()).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 }
