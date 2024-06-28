@@ -1843,5 +1843,10 @@ public class CommandTests {
 
         assertEquals(OK, clusterClient.set(key, "value").get());
         assertTrue(clusterClient.wait(numreplicas, timeout).get() >= 1);
+
+        // command should fail on a negative timeout value
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> clusterClient.wait(1L, -1L).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
     }
 }

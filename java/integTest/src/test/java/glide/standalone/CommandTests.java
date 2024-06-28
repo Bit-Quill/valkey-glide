@@ -1043,5 +1043,10 @@ public class CommandTests {
 
         assertEquals(OK, regularClient.set(key, "value").get());
         assertTrue(regularClient.wait(numreplicas, timeout).get() >= 0);
+
+        // command should fail on a negative timeout value
+        ExecutionException executionException =
+                assertThrows(ExecutionException.class, () -> regularClient.wait(1L, -1L).get());
+        assertInstanceOf(RequestException.class, executionException.getCause());
     }
 }
