@@ -7156,7 +7156,7 @@ public class SharedCommandTests {
     public void zscan(BaseClient client) {
         String key1 = "{key}-1" + UUID.randomUUID();
         String key2 = "{key}-2" + UUID.randomUUID();
-        long initialCursor = 0;
+        String initialCursor = "0";
         long defaultCount = 20;
         int resultCursorIndex = 0;
         int resultCollectionIndex = 1;
@@ -7174,21 +7174,18 @@ public class SharedCommandTests {
 
         // Empty set
         Object[] result = client.zscan(key1, initialCursor).get();
-        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertEquals(initialCursor, result[resultCursorIndex]);
         assertDeepEquals(new String[] {}, result[resultCollectionIndex]);
 
         // Negative cursor
-        result = client.zscan(key1, -1).get();
-        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        result = client.zscan(key1, "-1").get();
+        assertEquals(initialCursor, result[resultCursorIndex]);
         assertDeepEquals(new String[] {}, result[resultCollectionIndex]);
 
         // Result contains the whole set
         assertEquals(charMembers.length, client.zadd(key1, charMap).get());
-        // Sleep after zadd() for eventual consistency.
-        // TODO: Replace sleep with WAIT request to enforce strong consistency.
-        Thread.sleep(4200);
         result = client.zscan(key1, initialCursor).get();
-        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertEquals(initialCursor, result[resultCursorIndex]);
         assertEquals(
                 charMap.size() * 2,
                 ((Object[]) result[resultCollectionIndex])
@@ -7219,25 +7216,22 @@ public class SharedCommandTests {
 
         result =
                 client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("a").build()).get();
-        assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
+        assertEquals(initialCursor, result[resultCursorIndex]);
         assertDeepEquals(new String[] {"a", "0"}, result[resultCollectionIndex]);
 
         // Result contains a subset of the key
         assertEquals(numberMap.size(), client.zadd(key1, numberMap).get());
-        // Sleep after zadd() for eventual consistency.
-        // TODO: Replace sleep with WAIT request to enforce strong consistency.
-        Thread.sleep(4200);
-        long resultCursor = 0;
+        String resultCursor = "0";
         final Set<Object> secondResultAllKeys = new HashSet<>();
         final Set<Object> secondResultAllValues = new HashSet<>();
         do {
             result = client.zscan(key1, resultCursor).get();
-            resultCursor = Long.parseLong(result[resultCursorIndex].toString());
+            resultCursor = result[resultCursorIndex].toString();
 
             // Scan with result cursor has a different set
             Object[] secondResult = client.zscan(key1, resultCursor).get();
-            long newResultCursor = (Long.parseLong(secondResult[resultCursorIndex].toString()));
-            assertTrue(resultCursor != newResultCursor);
+            String newResultCursor = secondResult[resultCursorIndex].toString();
+            assertNotEquals(resultCursor, newResultCursor);
             resultCursor = newResultCursor;
             Object[] secondResultEntry = (Object[]) secondResult[resultCollectionIndex];
             assertFalse(
@@ -7249,7 +7243,7 @@ public class SharedCommandTests {
                 secondResultAllKeys.add(secondResultEntry[i]);
                 secondResultAllValues.add(secondResultEntry[i + 1]);
             }
-        } while (resultCursor != 0); // 0 is returned for the cursor of the last iteration.
+        } while (!resultCursor.equals("0")); // 0 is returned for the cursor of the last iteration.
 
         assertTrue(
                 secondResultAllKeys.containsAll(numberMap.keySet()),
@@ -7311,7 +7305,7 @@ public class SharedCommandTests {
         executionException =
                 assertThrows(
                         ExecutionException.class,
-                        () -> client.zscan(key1, -1, ZScanOptions.builder().count(-1L).build()).get());
+                        () -> client.zscan(key1, "-1", ZScanOptions.builder().count(-1L).build()).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
     }
 }

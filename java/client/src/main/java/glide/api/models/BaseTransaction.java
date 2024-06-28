@@ -5179,8 +5179,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     element is always a flattened series of String pairs, where the value is at even indices
      *     and the score is at odd indices.
      */
-    public T zscan(@NonNull String key, long cursor) {
-        protobufTransaction.addCommands(buildCommand(ZScan, buildArgs(key, Long.toString(cursor))));
+    public T zscan(@NonNull String key, String cursor) {
+        protobufTransaction.addCommands(buildCommand(ZScan, buildArgs(key, cursor)));
         return getThis();
     }
 
@@ -5199,10 +5199,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     element is always a flattened series of String pairs, where the value is at even indices
      *     and the score is at odd indices.
      */
-    public T zscan(@NonNull String key, long cursor, @NonNull ZScanOptions zScanOptions) {
+    public T zscan(@NonNull String key, String cursor, @NonNull ZScanOptions zScanOptions) {
         ArgsArray commandArgs =
-                buildArgs(
-                        concatenateArrays(new String[] {key, Long.toString(cursor)}, zScanOptions.toArgs()));
+                buildArgs(concatenateArrays(new String[] {key, cursor}, zScanOptions.toArgs()));
         protobufTransaction.addCommands(buildCommand(ZScan, commandArgs));
         return getThis();
     }

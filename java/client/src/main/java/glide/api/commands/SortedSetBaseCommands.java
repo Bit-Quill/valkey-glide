@@ -1611,7 +1611,7 @@ public interface SortedSetBaseCommands {
      * } while (cursor != 0);
      * }</pre>
      */
-    CompletableFuture<Object[]> zscan(String key, long cursor);
+    CompletableFuture<Object[]> zscan(String key, String cursor);
 
     /**
      * Iterates incrementally over a sorted set.
@@ -1646,5 +1646,5 @@ public interface SortedSetBaseCommands {
      * } while (cursor != 0);
      * }</pre>
      */
-    CompletableFuture<Object[]> zscan(String key, long cursor, ZScanOptions zScanOptions);
+    CompletableFuture<Object[]> zscan(String key, String cursor, ZScanOptions zScanOptions);
 }
