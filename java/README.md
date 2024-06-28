@@ -9,7 +9,7 @@ In this release, GLIDE for Valkey is available for Python, Javascript (Node.js),
 
 ## Supported Valkey Versions
 
-GLIDE for Valkey is API-compatible with open source Valkey version 6 and 7.
+GLIDE for Valkey is API-compatible with open-source Valkey version 6 and 7.
 
 ## Current Status
 
@@ -22,13 +22,10 @@ This preview release is recommended for testing purposes only.
 
 The beta release of GLIDE for Valkey was tested on Intel x86_64 using Ubuntu 22.04.1, Amazon Linux 2023 (AL2023), and macOS 12.7.
 
-## Supported Operating Systems
-
-GLIDE for Valkey is supported in Ubuntu, CentOS, and MacOS.
-
+## Layout of Java code
 The Java client contains the following parts:
 
-1. `src`: Rust dynamic library FFI to integrate with [GLIDE core library](https://github.com/aws/glide-for-redis/blob/main/glide-core/README.md).
+1. `src`: Rust dynamic library FFI to integrate with [GLIDE core library](./glide-core/README.md).
 2. `client`: A Java-wrapper around the GLIDE core rust library and unit tests for it.
 3. `examples`: An examples app to test the client against a Valkey localhost.
 4. `benchmark`: A dedicated benchmarking tool designed to evaluate and compare the performance of GLIDE for Valkey and other Java clients.
@@ -42,16 +39,7 @@ At the moment, the Java client must be built from source.
 
 #### Prerequisites
 
-**Protoc installation**
-
-Download a binary matching your system from the [official release page](https://github.com/protocolbuffers/protobuf/releases) and make it accessible in your $PATH by moving it or creating a symlink.
-For example, on Linux you can copy it to `/usr/bin`:
-
-```bash
-sudo cp protoc /usr/bin/
-```
-
-Refer to Java's [DEVELOPER.md](https://github.com/aws/glide-for-redis/blob/main/java/DEVELOPER.md) for further instruction on how to set up your development environment.
+Refer to Java's [DEVELOPER.md](./DEVELOPER.md) for further instruction on how to set up your development environment.
 
 **Java version check**
 
@@ -142,7 +130,6 @@ public class Main {
             e.printStackTrace();
         }
     }
-}
 }
 ```
 
