@@ -628,8 +628,8 @@ public class TransactionTestUtilities {
                 .zrandmember(zSetKey2)
                 .zrandmemberWithCount(zSetKey2, 1)
                 .zrandmemberWithCountWithScores(zSetKey2, 1)
-                .zscan(zSetKey2, 0)
-                .zscan(zSetKey2, 0, ZScanOptions.builder().count(20L).build())
+                .zscan(zSetKey2, "0")
+                .zscan(zSetKey2, "0", ZScanOptions.builder().count(20L).build())
                 .bzpopmin(new String[] {zSetKey2}, .1);
         // zSetKey2 is now empty
 

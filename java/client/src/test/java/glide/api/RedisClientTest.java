@@ -9021,8 +9021,8 @@ public class RedisClientTest {
     public void zscan_returns_success() {
         // setup
         String key = "testKey";
-        long cursor = 0;
-        String[] arguments = new String[] {key, Long.toString(cursor)};
+        String cursor = "0";
+        String[] arguments = new String[] {key, cursor};
         Object[] value = new Object[] {0L, new String[] {"hello", "world"}};
 
         CompletableFuture<Object[]> testResponse = new CompletableFuture<>();
@@ -9046,11 +9046,9 @@ public class RedisClientTest {
     public void zscan_with_options_returns_success() {
         // setup
         String key = "testKey";
-        long cursor = 0;
+        String cursor = "0";
         String[] arguments =
-                new String[] {
-                    key, Long.toString(cursor), MATCH_OPTION_STRING, "*", COUNT_OPTION_STRING, "1"
-                };
+                new String[] {key, cursor, MATCH_OPTION_STRING, "*", COUNT_OPTION_STRING, "1"};
         Object[] value = new Object[] {0L, new String[] {"hello", "world"}};
 
         CompletableFuture<Object[]> testResponse = new CompletableFuture<>();

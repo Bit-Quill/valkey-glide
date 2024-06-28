@@ -2803,16 +2803,15 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Object[]> zscan(@NonNull String key, long cursor) {
-        String[] arguments = new String[] {key, Long.toString(cursor)};
+    public CompletableFuture<Object[]> zscan(@NonNull String key, String cursor) {
+        String[] arguments = new String[] {key, cursor};
         return commandManager.submitNewCommand(ZScan, arguments, this::handleArrayResponse);
     }
 
     @Override
     public CompletableFuture<Object[]> zscan(
-            @NonNull String key, long cursor, @NonNull ZScanOptions zscanOptions) {
-        String[] arguments =
-                concatenateArrays(new String[] {key, Long.toString(cursor)}, zscanOptions.toArgs());
+            @NonNull String key, String cursor, @NonNull ZScanOptions zscanOptions) {
+        String[] arguments = concatenateArrays(new String[] {key, cursor}, zscanOptions.toArgs());
         return commandManager.submitNewCommand(ZScan, arguments, this::handleArrayResponse);
     }
 }
