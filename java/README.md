@@ -51,23 +51,7 @@ For example, on Linux you can copy it to `/usr/bin`:
 sudo cp protoc /usr/bin/
 ```
 
-**Dependencies installation for Ubuntu**
-
-```bash
-sudo apt update -y
-sudo apt install -y openjdk-11-jdk openssl gcc
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-```
-
-**Dependencies installation for MacOS**
-
-```bash
-brew update
-brew install git gcc pkgconfig openssl openjdk@11
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-```
+Refer to Java's [DEVELOPER.md](https://github.com/aws/glide-for-redis/blob/main/java/DEVELOPER.md) for further instruction on how to set up your development environment.
 
 **Java version check**
 
