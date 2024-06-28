@@ -1588,7 +1588,9 @@ public interface SortedSetBaseCommands {
      * @return An <code>Array</code> of <code>Objects</code>. The first element is always the <code>
      *     cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
      *     </code> returned on the last iteration of the set. The second element is always an <code>
-     *     Array</code> of the subset of the set held in <code>key</code>.
+     *     Array</code> of the subset of the set held in <code>key</code>. The array in the second
+     *     element is always a flattened series of String pairs, where the value is at even indices
+     *     and the score is at odd indices.
      * @example
      *     <pre>{@code
      * // Assume key contains a set with 200 member-score pairs
@@ -1621,7 +1623,9 @@ public interface SortedSetBaseCommands {
      * @return An <code>Array</code> of <code>Objects</code>. The first element is always the <code>
      *     cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
      *     </code> returned on the last iteration of the set. The second element is always an <code>
-     *     Array</code> of the subset of the set held in <code>key</code>.
+     *     Array</code> of the subset of the set held in <code>key</code>. The array in the second
+     *     element is always a flattened series of String pairs, where the value is at even indices
+     *     and the score is at odd indices.
      * @example
      *     <pre>{@code
      * // Assume key contains a set with 200 member-score pairs
