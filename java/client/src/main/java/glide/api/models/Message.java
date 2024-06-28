@@ -19,8 +19,6 @@ public class Message {
     /** A pattern matched to the channel name. */
     private final Optional<String> pattern;
 
-    // TODO store an error ?
-
     public Message(String message, String channel, String pattern) {
         this.message = message;
         this.channel = channel;

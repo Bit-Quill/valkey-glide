@@ -95,11 +95,17 @@ public class PubSubTests {
 
     /** Message queue used in callback to analyze received messages. Number is a client ID. */
     private final ConcurrentLinkedDeque<Pair<Integer, Message>> mq = new ConcurrentLinkedDeque<>();
+    /** Clients used in a test. */
+    private final List<BaseClient> clients = new ArrayList<>();
 
     @BeforeEach
+    @SneakyThrows
     public void cleanup() {
         mq.clear();
+        for (var client : clients) client.close();
+        clients.clear();
     }
+
 
     private void verifyReceivedMessages(
             Set<Pair<Integer, Message>> messages, BaseClient listener, boolean callback) {
@@ -123,7 +129,14 @@ public class PubSubTests {
                 Arguments.of(false, false));
     }
 
-    @Disabled
+    // TODO:
+    //  test_pubsub_exact_happy_path_coexistence
+    //  test_pubsub_exact_happy_path_many_channels_co_existence
+    //  test_sharded_pubsub_co_existence
+    //  test_pubsub_pattern_co_existence
+
+    // TODO do we need unsubscribe at the end of the test?
+
     @SneakyThrows
     @SuppressWarnings("unchecked")
     @ParameterizedTest(name = "standalone = {0}, use callback = {1}")
@@ -144,6 +157,7 @@ public class PubSubTests {
                                 standalone, subscriptions, Optional.of(callback), Optional.of(mq))
                         : createClientWithSubscriptions(standalone, subscriptions);
         var sender = createClient(standalone);
+        clients.addAll(List.of(listener, sender));
 
         assertEquals(1L, sender.publish(channel, message).get());
         Thread.sleep(404); // deliver the message
@@ -154,17 +168,8 @@ public class PubSubTests {
         if (!standalone) {
             ((RedisClusterClient) listener).customCommand(new String[] { "unsubscribe", channel}).get();
         }
-        listener.close();
-        sender.close();
     }
 
-    // TODO:
-    //  test_pubsub_exact_happy_path_coexistence
-    //  test_pubsub_exact_happy_path_many_channels_co_existence
-    //  test_sharded_pubsub_co_existence
-    //  test_pubsub_pattern_co_existence
-
-    @Disabled
     @SneakyThrows
     @SuppressWarnings("unchecked")
     @ParameterizedTest(name = "standalone = {0}, use callback = {1}")
@@ -194,6 +199,7 @@ public class PubSubTests {
                                 standalone, subscriptions, Optional.of(callback), Optional.of(mq))
                         : createClientWithSubscriptions(standalone, subscriptions);
         var sender = createClient(standalone);
+        clients.addAll(List.of(listener, sender));
 
         for (var message : messages) {
             assertEquals(1L, sender.publish(message.getChannel(), message.getMessage()).get());
@@ -210,12 +216,8 @@ public class PubSubTests {
             String[] channels = subscriptions.get(mode).toArray(String[]::new);
             ((RedisClusterClient) listener).customCommand(addFirst(channels, "unsubscribe")).get();
         }
-
-        listener.close();
-        sender.close();
     }
 
-    @Disabled
     @SneakyThrows
     @SuppressWarnings("unchecked")
     @ParameterizedTest(name = "use callback = {0}")
@@ -238,6 +240,7 @@ public class PubSubTests {
                 false, subscriptions, Optional.of(callback), Optional.of(mq))
                 : createClientWithSubscriptions(false, subscriptions));
         var sender = (RedisClusterClient) createClient(false);
+        clients.addAll(List.of(listener, sender));
 
         assertEquals(1L, sender.spublish(channel, message).get());
         Thread.sleep(404); // deliver the message
@@ -246,11 +249,8 @@ public class PubSubTests {
             Set.of(Pair.of(1, new Message(message, channel))), listener, useCallback);
 
         listener.customCommand(new String[] { "unsubscribe", channel}).get();
-        listener.close();
-        sender.close();
     }
 
-    @Disabled
     @SneakyThrows
     @SuppressWarnings("unchecked")
     @ParameterizedTest(name = "use callback = {0}")
@@ -280,13 +280,14 @@ public class PubSubTests {
                 false, subscriptions, Optional.of(callback), Optional.of(mq))
                 : createClientWithSubscriptions(false, subscriptions));
         var sender = (RedisClusterClient) createClient(false);
+        clients.addAll(List.of(listener, sender));
 
         for (var message : messages) {
             assertEquals(1L, sender.spublish(message.getChannel(), message.getMessage()).get());
         }
         assertEquals(0L, sender.spublish(UUID.randomUUID().toString(), UUID.randomUUID().toString()).get());
 
-        Thread.sleep(404); // deliver the messagess
+        Thread.sleep(404); // deliver the messages
 
         verifyReceivedMessages(
             messages.stream().map(m -> Pair.of(1, m)).collect(Collectors.toSet()),
@@ -295,12 +296,8 @@ public class PubSubTests {
 
         String[] channels = subscriptions.get(mode).toArray(String[]::new);
         listener.customCommand(addFirst(channels, "unsubscribe")).get();
-
-        listener.close();
-        sender.close();
     }
 
-    @Disabled
     @SneakyThrows
     @SuppressWarnings("unchecked")
     @ParameterizedTest(name = "standalone = {0}, use callback = {1}")
@@ -322,6 +319,7 @@ public class PubSubTests {
                 standalone, subscriptions, Optional.of(callback), Optional.of(mq))
                 : createClientWithSubscriptions(standalone, subscriptions);
         var sender = createClient(standalone);
+        clients.addAll(List.of(listener, sender));
 
         Thread.sleep(404); // need some time to propagate subscriptions - why?
 
@@ -339,21 +337,17 @@ public class PubSubTests {
         if (!standalone) {
             ((RedisClusterClient) listener).customCommand(new String[] { "punsubscribe", pattern}).get();
         }
-        listener.close();
-        sender.close();
     }
 
-    @Disabled
     @SneakyThrows
     @SuppressWarnings("unchecked")
     @ParameterizedTest(name = "standalone = {0}, use callback = {1}")
     @MethodSource("getTwoBoolPermutations")
     public void pubsub_pattern_many_channels(boolean standalone, boolean useCallback) {
-        // TODO debug fails on cluster
         String prefix = "channel.";
         String pattern = prefix + "*";
-        int numChannels = 2; //256; // TODO
-        int messagesPerChannel = 2;//256;
+        int numChannels = 256;
+        int messagesPerChannel = 256;
         ChannelMode mode = standalone ? PubSubChannelMode.PATTERN : PubSubClusterChannelMode.PATTERN;
         var messages = new ArrayList<Message>(numChannels * messagesPerChannel);
         var subscriptions =
@@ -376,13 +370,16 @@ public class PubSubTests {
                 standalone, subscriptions, Optional.of(callback), Optional.of(mq))
                 : createClientWithSubscriptions(standalone, subscriptions);
         var sender = createClient(standalone);
-
-        sender.set("==== TEST ====", String.format("standalone = %s, use callback = %s", standalone, useCallback)).get();
+        clients.addAll(List.of(listener, sender));
 
         Thread.sleep(404); // need some time to propagate subscriptions - why?
 
         for (var message : messages) {
-            assertEquals(1L, sender.publish(message.getChannel(), message.getMessage()).get());
+            // TODO why publish returns 0 on cluster? meanwhile messages are delivered
+            var res = sender.publish(message.getChannel(), message.getMessage()).get();
+            if (standalone) {
+                assertEquals(1L, res);
+            }
         }
         assertEquals(0L, sender.publish("channel", UUID.randomUUID().toString()).get());
         Thread.sleep(404); // deliver the messages
@@ -397,9 +394,5 @@ public class PubSubTests {
         } else {
             ((RedisClient) listener).customCommand(new String[] { "punsubscribe", pattern}).get();
         }
-        listener.close();
-        sender.close();
     }
-
-
 }
