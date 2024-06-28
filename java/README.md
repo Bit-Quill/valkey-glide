@@ -145,7 +145,7 @@ public class Main {
                         .build();
 
         try {
-            RedisClient client = RedisClient.CreateClient(config).get();
+            Glide client = GlideClient.CreateClient(config).get();
 
             // TODO wait for this PR to get merged https://github.com/aws/glide-for-redis/pull/1663/ for PING to work.
             System.out.println("PING: " + client.ping(gs("PING")).get());
