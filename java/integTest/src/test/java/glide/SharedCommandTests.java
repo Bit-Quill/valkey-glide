@@ -7168,8 +7168,8 @@ public class SharedCommandTests {
         }
         String[] charMembers = new String[] {"a", "b", "c", "d", "e"};
         Map<String, Double> charMap = new HashMap<>();
-        for (Double i = 0.0; i < 5; i++) {
-            charMap.put(charMembers[i.intValue()], i);
+        for (double i = 0.0; i < 5; i++) {
+            charMap.put(charMembers[(int) i], i);
         }
 
         // Empty set
@@ -7201,8 +7201,11 @@ public class SharedCommandTests {
         assertTrue(resultKeys.containsAll(charMap.keySet()));
 
         // The score comes back as an integer converted to a String when the fraction is zero.
-        assertTrue(resultValues.containsAll(charMap.values().stream().map(
-            v -> "" + v.intValue()).collect(Collectors.toSet())));
+        assertTrue(
+                resultValues.containsAll(
+                        charMap.values().stream()
+                                .map(v -> String.valueOf(v.intValue()))
+                                .collect(Collectors.toSet())));
 
         result =
                 client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("a").build()).get();
@@ -7216,11 +7219,11 @@ public class SharedCommandTests {
         final Set<Object> secondResultAllValues = new HashSet<>();
         do {
             result = client.zscan(key1, resultCursor).get();
-            resultCursor = Long.valueOf(result[resultCursorIndex].toString());
+            resultCursor = Long.parseLong(result[resultCursorIndex].toString());
 
             // Scan with result cursor has a different set
             Object[] secondResult = client.zscan(key1, resultCursor).get();
-            long newResultCursor = (Long.valueOf(secondResult[resultCursorIndex].toString()));
+            long newResultCursor = (Long.parseLong(secondResult[resultCursorIndex].toString()));
             assertTrue(resultCursor != newResultCursor);
             resultCursor = newResultCursor;
             Object[] secondResultEntry = (Object[]) secondResult[resultCollectionIndex];
@@ -7236,18 +7239,21 @@ public class SharedCommandTests {
         } while (resultCursor != 0); // 0 is returned for the cursor of the last iteration.
 
         assertTrue(secondResultAllKeys.containsAll(numberMap.keySet()));
-        assertTrue(secondResultAllValues.containsAll(
-            numberMap.values().stream().map(d -> "" + d.intValue()).collect(Collectors.toSet())));
+        assertTrue(
+                secondResultAllValues.containsAll(
+                        numberMap.values().stream()
+                                .map(d -> String.valueOf(d.intValue()))
+                                .collect(Collectors.toSet())));
 
         // Test match pattern
         result =
                 client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("*").build()).get();
-        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
 
         // Test count
         result = client.zscan(key1, initialCursor, ZScanOptions.builder().count(20L).build()).get();
-        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= 20);
 
         // Test count with match returns a non-empty list
@@ -7256,7 +7262,7 @@ public class SharedCommandTests {
                         .zscan(
                                 key1, initialCursor, ZScanOptions.builder().matchPattern("1*").count(20L).build())
                         .get();
-        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) > 0);
 
         // Exceptions
