@@ -1219,6 +1219,8 @@ public interface GenericBaseCommands {
      *     current connection.
      * @example
      *     <pre>{@code
+     * client.set("key", "value).get();
+     * assert client.wait(1L, 1000L).get() == 1L;
      * }</pre>
      */
     CompletableFuture<Long> wait(long numreplicas, long timeout);
