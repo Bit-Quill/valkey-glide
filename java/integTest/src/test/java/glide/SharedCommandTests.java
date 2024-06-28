@@ -7047,8 +7047,9 @@ public class SharedCommandTests {
         assertEquals(charMembers.length, ((Object[]) result[resultCollectionIndex]).length);
         final Set<Object> resultMembers =
                 Arrays.stream((Object[]) result[resultCollectionIndex]).collect(Collectors.toSet());
-        assertTrue(resultMembers.containsAll(charMemberSet),
-            String.format("resultMembers: {%s}, charMemberSet: {%s}", resultMembers, charMemberSet));
+        assertTrue(
+                resultMembers.containsAll(charMemberSet),
+                String.format("resultMembers: {%s}, charMemberSet: {%s}", resultMembers, charMemberSet));
 
         result =
                 client.sscan(key1, initialCursor, SScanOptions.builder().matchPattern("a").build()).get();
@@ -7077,8 +7078,11 @@ public class SharedCommandTests {
                             .collect(Collectors.toSet()));
         } while (resultCursor != 0); // 0 is returned for the cursor of the last iteration.
 
-        assertTrue(secondResultValues.containsAll(numberMembersSet),
-            String.format("secondResultValues: {%s}, numberMembersSet: {%s}", secondResultValues, numberMembersSet));
+        assertTrue(
+                secondResultValues.containsAll(numberMembersSet),
+                String.format(
+                        "secondResultValues: {%s}, numberMembersSet: {%s}",
+                        secondResultValues, numberMembersSet));
 
         // Test match pattern
         result =
