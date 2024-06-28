@@ -120,9 +120,9 @@ Maven (AARCH_64) specific.
 
 ```java
 // You can run this example code in the Main.
-import glide.api.RedisClient;
+import glide.api.GlideClient;
 import glide.api.models.configuration.NodeAddress;
-import glide.api.models.configuration.RedisClientConfiguration;
+import glide.api.models.configuration.GlideClientConfiguration;
 import java.util.concurrent.ExecutionException;
 
 import static glide.api.models.GlideString.gs;
@@ -138,8 +138,8 @@ public class Main {
         Integer port = 6379;
         boolean useSsl = false;
 
-        RedisClientConfiguration config =
-                RedisClientConfiguration.builder()
+        GlideClientConfiguration config =
+                GlideClientConfiguration.builder()
                         .address(NodeAddress.builder().host(host).port(port).build())
                         .useTLS(useSsl)
                         .build();
@@ -147,7 +147,6 @@ public class Main {
         try {
             Glide client = GlideClient.CreateClient(config).get();
 
-            // TODO wait for this PR to get merged https://github.com/aws/glide-for-redis/pull/1663/ for PING to work.
             System.out.println("PING: " + client.ping(gs("PING")).get());
             System.out.println("PING(found you): " + client.ping( gs("found you")).get());
 
@@ -166,9 +165,9 @@ public class Main {
 ### Cluster Valkey:
 ```java
 // You can run this example code in the Main.
-import glide.api.RedisClusterClient;
+import glide.api.GlideClusterClient;
 import glide.api.models.configuration.NodeAddress;
-import glide.api.models.configuration.RedisClusterClientConfiguration;
+import glide.api.models.configuration.GlideClusterClientConfiguration;
 import glide.api.models.configuration.RequestRoutingConfiguration;
 
 import java.util.concurrent.ExecutionException;
@@ -198,9 +197,8 @@ public class Main {
                         .build();
 
         try {
-            RedisClusterClient client = RedisClusterClient.CreateClient(config).get();
+            GlideClusterClient client = GlideClusterClient.CreateClient(config).get();
 
-            // TODO wait for this PR to get merged https://github.com/aws/glide-for-redis/pull/1663/ for PING to work.
             System.out.println("PING: " + client.ping(gs("PING")).get());
             System.out.println("PING(found you): " + client.ping( gs("found you")).get());
 
@@ -229,6 +227,6 @@ The following arguments are accepted:
 * `concurrentTasks`: Number of concurrent tasks
 * `clients`: one of: all|jedis|lettuce|glide
 * `clientCount`: Client count
-* `host`: redis server host url
-* `port`: redis server port number
-* `tls`: redis TLS configured
+* `host`: glide server host url
+* `port`: glide server port number
+* `tls`: glide TLS configured
