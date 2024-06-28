@@ -7227,6 +7227,15 @@ public class SharedCommandTests {
         do {
             result = client.zscan(key1, resultCursor).get();
             resultCursor = result[resultCursorIndex].toString();
+            Object[] resultEntry = (Object[]) result[resultCollectionIndex];
+            for (int i = 0; i < resultEntry.length; i += 2) {
+                secondResultAllKeys.add(resultEntry[i]);
+                secondResultAllValues.add(resultEntry[i + 1]);
+            }
+
+            if (resultCursor.equals("0")) {
+                break;
+            }
 
             // Scan with result cursor has a different set
             Object[] secondResult = client.zscan(key1, resultCursor).get();
