@@ -1594,11 +1594,11 @@ public interface SortedSetBaseCommands {
      * @example
      *     <pre>{@code
      * // Assume key contains a set with 200 member-score pairs
-     * long cursor = 0;
+     * String cursor = "0";
      * Object[] result;
      * do {
      *   result = client.zscan(key1, cursor).get();
-     *   cursor = Long.valueOf(result[0].toString());
+     *   cursor = result[0].toString();
      *   Object[] stringResults = (Object[]) result[1];
      *
      *   System.out.println("\nZSCAN iteration:");
@@ -1608,7 +1608,7 @@ public interface SortedSetBaseCommands {
      *       System.out.print(", ");
      *     }
      *   }
-     * } while (cursor != 0);
+     * } while (!cursor.equals("0"));
      * }</pre>
      */
     CompletableFuture<Object[]> zscan(String key, String cursor);
@@ -1629,11 +1629,11 @@ public interface SortedSetBaseCommands {
      * @example
      *     <pre>{@code
      * // Assume key contains a set with 200 member-score pairs
-     * long cursor = 0;
+     * String cursor = "0";
      * Object[] result;
      * do {
      *   result = client.zscan(key1, cursor, ZScanOptions.builder().matchPattern("*").count(20L).build()).get();
-     *   cursor = Long.valueOf(result[0].toString());
+     *   cursor = result[0].toString();
      *   Object[] stringResults = (Object[]) result[1];
      *
      *   System.out.println("\nZSCAN iteration:");
@@ -1643,7 +1643,7 @@ public interface SortedSetBaseCommands {
      *       System.out.print(", ");
      *     }
      *   }
-     * } while (cursor != 0);
+     * } while (!cursor.equals("0"));
      * }</pre>
      */
     CompletableFuture<Object[]> zscan(String key, String cursor, ZScanOptions zScanOptions);
