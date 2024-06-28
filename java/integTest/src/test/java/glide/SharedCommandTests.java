@@ -7245,7 +7245,12 @@ public class SharedCommandTests {
             }
         } while (resultCursor != 0); // 0 is returned for the cursor of the last iteration.
 
-        assertTrue(secondResultAllKeys.containsAll(numberMap.keySet()));
+        assertTrue(
+                secondResultAllKeys.containsAll(numberMap.keySet()),
+                String.format(
+                        "secondResultAllKeys: {%s} numberMap.keySet: {%s}",
+                        secondResultAllKeys, numberMap.keySet()));
+
         final Set<String> numberMapValuesAsStrings =
                 numberMap.values().stream()
                         .map(d -> String.valueOf(d.intValue()))
