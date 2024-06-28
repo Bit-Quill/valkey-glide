@@ -2,7 +2,6 @@
 package glide.api.models;
 
 import java.util.Optional;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 

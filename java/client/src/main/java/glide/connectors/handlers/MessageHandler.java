@@ -71,12 +71,12 @@ public class MessageHandler {
             case SUnsubscribe:
                 // ignore for now
                 // TODO log thru logger https://github.com/aws/glide-for-redis/pull/1422
-//                System.out.printf(
-//                        "Received push notification of type '%s': %s\n",
-//                        pushType,
-//                        Arrays.stream(values)
-//                                .map(v -> v instanceof Number ? v.toString() : String.format("'%s'", v))
-//                                .collect(Collectors.joining(" ")));
+                System.out.printf(
+                        "Received push notification of type '%s': %s\n",
+                        pushType,
+                        Arrays.stream(values)
+                                .map(v -> v instanceof Number ? v.toString() : String.format("'%s'", v))
+                                .collect(Collectors.joining(" ")));
                 break;
             default:
                 // TODO log thru logger https://github.com/aws/glide-for-redis/pull/1422
