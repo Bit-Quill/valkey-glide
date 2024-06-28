@@ -26,13 +26,10 @@ The beta release of GLIDE for Valkey was tested on Intel x86_64 using Ubuntu 22.
 
 GLIDE for Valkey is supported in Ubuntu, CentOS, and MacOS.
 
-## Java supported version
-JDK 11+.
-
 The Java client contains the following parts:
 
 1. `src`: Rust dynamic library FFI to integrate with [GLIDE core library](https://github.com/aws/glide-for-redis/blob/main/glide-core/README.md).
-2. `client`: A Java-wrapper around the [GLIDE core rust library](../glide-core/README.md) and unit tests for it.
+2. `client`: A Java-wrapper around the GLIDE core rust library and unit tests for it.
 3. `examples`: An examples app to test the client against a Valkey localhost.
 4. `benchmark`: A dedicated benchmarking tool designed to evaluate and compare the performance of GLIDE for Valkey and other Java clients.
 5. `integTest`: An integration test sub-project for API and E2E testing.
@@ -42,17 +39,6 @@ The Java client contains the following parts:
 ### Install from Gradle
 
 At the moment, the Java client must be built from source.
-
-### Build from source
-
-Software Dependencies:
-
-- JDK 11+
-
-Please also consider installing the following packages to build [GLIDE core rust library](../glide-core/README.md):
-
-- openssl
-- openssl-dev
 
 #### Prerequisites
 
@@ -109,7 +95,7 @@ Once set up, you can run the basic examples.
 Gradle:
 - Copy the snippet and paste it in the `build.gradle` dependencies section.
 Example shown below is for `glide-osx-aarch_64`.
-```bash
+```groovy
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -179,6 +165,7 @@ public class Main {
 
 ### Cluster Valkey:
 ```java
+// You can run this example code in the Main.
 import glide.api.RedisClusterClient;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
