@@ -160,6 +160,7 @@ import static redis_request.RedisRequestOuterClass.RequestType.SMove;
 import static redis_request.RedisRequestOuterClass.RequestType.SPop;
 import static redis_request.RedisRequestOuterClass.RequestType.SRandMember;
 import static redis_request.RedisRequestOuterClass.RequestType.SRem;
+import static redis_request.RedisRequestOuterClass.RequestType.SScan;
 import static redis_request.RedisRequestOuterClass.RequestType.SUnion;
 import static redis_request.RedisRequestOuterClass.RequestType.SUnionStore;
 import static redis_request.RedisRequestOuterClass.RequestType.Set;
@@ -247,6 +248,7 @@ import glide.api.models.commands.bitmap.BitwiseOperation;
 import glide.api.models.commands.geospatial.GeoAddOptions;
 import glide.api.models.commands.geospatial.GeoUnit;
 import glide.api.models.commands.geospatial.GeospatialData;
+import glide.api.models.commands.scan.SScanOptions;
 import glide.api.models.commands.stream.StreamAddOptions;
 import glide.api.models.commands.stream.StreamGroupOptions;
 import glide.api.models.commands.stream.StreamPendingOptions;
@@ -1167,6 +1169,12 @@ public class TransactionTests {
         results.add(Pair.of(SortReadOnly, buildArgs("key1")));
         transaction.sortStore("key1", "key2");
         results.add(Pair.of(Sort, buildArgs("key1", STORE_COMMAND_STRING, "key2")));
+
+        transaction.sscan("key1", "0");
+        results.add(Pair.of(SScan, buildArgs("key1", "0")));
+
+        transaction.sscan("key1", "0", SScanOptions.builder().matchPattern("*").count(10L).build());
+        results.add(Pair.of(SScan, buildArgs("key1", "0", "MATCH", "*", "COUNT", "10")));
 
         var protobufTransaction = transaction.getProtobufTransaction().build();
 
