@@ -5175,7 +5175,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     always the <code>
      *     cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
      *     </code> returned on the last iteration of the set. The second element is always an <code>
-     *     Array</code> of the subset of the set held in <code>key</code>.
+     *     Array</code> of the subset of the set held in <code>key</code>. The array in the second
+     *     element is always a flattened series of String pairs, where the value is at even indices
+     *     and the score is at odd indices.
      */
     public T zscan(@NonNull String key, long cursor) {
         protobufTransaction.addCommands(buildCommand(ZScan, buildArgs(key, Long.toString(cursor))));
@@ -5193,7 +5195,9 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     always the <code>
      *     cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
      *     </code> returned on the last iteration of the set. The second element is always an <code>
-     *     Array</code> of the subset of the set held in <code>key</code>.
+     *     Array</code> of the subset of the set held in <code>key</code>. The array in the second
+     *     element is always a flattened series of String pairs, where the value is at even indices
+     *     and the score is at odd indices.
      */
     public T zscan(@NonNull String key, long cursor, @NonNull ZScanOptions zScanOptions) {
         ArgsArray commandArgs =
