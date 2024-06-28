@@ -5139,7 +5139,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     the <code>cursor</code> returned on the last iteration of the set. The second element is
      *     always an <code>Array</code> of the subset of the set held in <code>key</code>.
      */
-    public T sscan(@NonNull String key, String cursor) {
+    public T sscan(@NonNull String key, @NonNull String cursor) {
         protobufTransaction.addCommands(buildCommand(SScan, buildArgs(key, cursor)));
         return getThis();
     }
@@ -5156,7 +5156,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     the <code>cursor</code> returned on the last iteration of the set. The second element is
      *     always an <code>Array</code> of the subset of the set held in <code>key</code>.
      */
-    public T sscan(@NonNull String key, String cursor, @NonNull SScanOptions sScanOptions) {
+    public T sscan(@NonNull String key, @NonNull String cursor, @NonNull SScanOptions sScanOptions) {
         ArgsArray commandArgs =
                 buildArgs(concatenateArrays(new String[] {key, cursor}, sScanOptions.toArgs()));
         protobufTransaction.addCommands(buildCommand(SScan, commandArgs));
