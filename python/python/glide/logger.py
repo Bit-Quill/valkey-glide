@@ -10,6 +10,7 @@ from .glide import py_init, py_log
 
 
 class Level(Enum):
+    DISABLED = -1
     ERROR = internalLevel.Error
     WARN = internalLevel.Warn
     INFO = internalLevel.Info
@@ -32,6 +33,9 @@ class Logger:
     logger_level: internalLevel
 
     def __init__(self, level: Optional[Level] = None, file_name: Optional[str] = None):
+        if level and level.value = Level.DISABLED:
+            Logger.logger_level = level.value
+            return
         level_value = level.value if level else None
         Logger.logger_level = py_init(level_value, file_name)
 
@@ -63,6 +67,10 @@ class Logger:
         """
         if not cls._instance:
             cls._instance = cls(None)
+        
+        if log_level.value is Level.DISABLED:
+            return
+
         if not log_level.value.is_lower(Logger.logger_level):
             return
         py_log(log_level.value, log_identifier, message)
