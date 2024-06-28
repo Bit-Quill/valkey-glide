@@ -7042,6 +7042,12 @@ public class SharedCommandTests {
 
         // Result contains the whole set
         assertEquals(charMembers.length, client.sadd(key1, charMembers).get());
+        // Sleep after sadd() for eventual consistency.
+        // TODO: Replace sleep with WAIT request to enforce strong consistency.
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+        }
         result = client.sscan(key1, initialCursor).get();
         assertEquals(String.valueOf(initialCursor), result[resultCursorIndex]);
         assertEquals(charMembers.length, ((Object[]) result[resultCollectionIndex]).length);
@@ -7058,6 +7064,12 @@ public class SharedCommandTests {
 
         // Result contains a subset of the key
         assertEquals(numberMembers.length, client.sadd(key1, numberMembers).get());
+        // Sleep after sadd() for eventual consistency.
+        // TODO: Replace sleep with WAIT request to enforce strong consistency.
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+        }
         long resultCursor = 0;
         final Set<Object> secondResultValues = new HashSet<>();
         do {
