@@ -689,9 +689,9 @@ public class TransactionTestUtilities {
                     "one", // zrandmember(zSetKey2)
                     new String[] {"one"}, // .zrandmemberWithCount(zSetKey2, 1)
                     new Object[][] {{"one", 1.0}}, // .zrandmemberWithCountWithScores(zSetKey2, 1);
-                    new Object[] {"0", new Object[] {"one", "1"}}, // zscan(zSetKey2, 0)
+                    new Object[] {"0", new String[] {"one", "1"}}, // zscan(zSetKey2, 0)
                     new Object[] {
-                        "0", new Object[] {"one", "1"}
+                        "0", new String[] {"one", "1"}
                     }, // zscan(zSetKey2, 0, ZScanOptions.builder().count(20L).build())
                     new Object[] {zSetKey2, "one", 1.0}, // bzpopmin(new String[] { zsetKey2 }, .1)
                 };
