@@ -2,15 +2,17 @@
 
 This document describes how to set up your development environment to build and test the GLIDE for Redis Java wrapper.
 
-### Development Overview
+## Development Overview
 
 The GLIDE for Redis Java wrapper consists of both Java and Rust code. Rust bindings for the Java Native Interface are implemented using [jni-rs](https://github.com/jni-rs/jni-rs), and the Java JAR is built using [Gradle](https://github.com/gradle/gradle). The Java and Rust components communicate using the [protobuf](https://github.com/protocolbuffers/protobuf) protocol.
 
-### Build from source
+## Build from source
 
-#### Prerequisites
+**Note:** See the [Troubleshooting](#troubleshooting) section below for possible solutions to problems.
 
-Software Dependencies
+### Prerequisites
+
+#### Software Dependencies
 
 -   git
 -   GCC
@@ -21,7 +23,43 @@ Software Dependencies
 -   rustup
 -   Java 11
 
-**Install protobuf compiler**
+#### Dependencies installation for Ubuntu
+
+```bash
+sudo apt update -y
+sudo apt install -y openjdk-11-jdk git gcc pkg-config openssl libssl-dev unzip
+# Install rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+# Check that the Rust compiler is installed
+rustc --version
+```
+
+Continue with [**Install protobuf compiler**](#install-protobuf-compiler) below.
+
+#### Dependencies installation for CentOS
+
+```bash
+sudo yum update -y
+sudo yum install -y java-11-openjdk-devel git gcc pkgconfig openssl openssl-devel unzip
+# Install rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Continue with [**Install protobuf compiler**](#install-protobuf-compiler) below.
+
+#### Dependencies installation for MacOS
+
+```bash
+brew update
+brew install openjdk@11 git gcc pkgconfig protobuf openssl protobuf
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+```
+
+Continue with [**Install protobuf compiler**](#install-protobuf-compiler) below.
+
+#### Install protobuf compiler
 
 To install protobuf for MacOS, run:
 ```bash
@@ -38,35 +76,6 @@ unzip protoc-26.1-linux-x86_64.zip -d $HOME/.local
 export PATH="$PATH:$HOME/.local/bin"
 # Check that the protobuf compiler version 26.1 or higher is installed
 protoc --version
-```
-
-**Dependencies installation for Ubuntu**
-
-```bash
-sudo apt update -y
-sudo apt install -y openjdk-11-jdk git gcc pkg-config openssl libssl-dev unzip
-# Install rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-# Check that the Rust compiler is installed
-rustc --version
-```
-
-**Dependencies installation for CentOS**
-
-```bash
-sudo yum update -y
-sudo yum install -y java-11-openjdk-devel git gcc pkgconfig openssl openssl-devel unzip
-# Install rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-**Dependencies installation for MacOS**
-
-```bash
-brew update
-brew install openjdk@11 git gcc pkgconfig protobuf openssl protobuf
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
 ```
 
 #### Building and installation steps
@@ -134,7 +143,11 @@ For Java, the only linter we use is Spotless.
 ### Troubleshooting
 
 Some troubleshooting issues:
-- Failed to find `cargo` after `rustup`: `gradle` daemon may need to be restarted via `./gradlew --stop` to recognize the new `$PATH`. If that doesn't work, you may need to restart your machine.
+- If the build fails after following the installation instructions, the `gradle` daemon may need to be 
+  restarted so that it recognizes changes to environment variables (e.g. `$PATH`). If that doesn't work,
+  you may need to restart your machine. In particular, this may solve the following problems:
+    - Failed to find `cargo` after `rustup`.
+    - No Protobuf compiler (protoc) found.
 - If build fails because of rust compiler fails, make sure submodules are updated using `git submodule update`.
 - If protobuf 26.0 or earlier is detected, upgrade to the latest protobuf release.
 
