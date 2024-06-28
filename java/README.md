@@ -113,7 +113,7 @@ Example shown below is for `glide-osx-aarch_64`.
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    implementation group: 'software.amazon.glide', name: 'glide-osx-aarch_64', version: '0.4.2'
+    implementation group: 'software.amazon.glide', name: 'glide-for-redis', version: '0.4.3'
 }
 ```
 
@@ -133,72 +133,99 @@ Maven (AARCH_64) specific.
 ### Standalone Valkey:
 
 ```java
+// You can run this example code in the Main.
 import glide.api.RedisClient;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClientConfiguration;
-
 import java.util.concurrent.ExecutionException;
+
 import static glide.api.models.GlideString.gs;
 
-// Run this code in the Main file. Include InterruptedException and ExecutionException handling.
+public class Main {
 
-public static void main(String[] args) throws InterruptedException, ExecutionException {
+    public static void main(String[] args) {
+        runGlideExamples();
+    }
 
-String host = "localhost";
-Integer port = 6379;
-boolean useSsl = false;
+    private static void runGlideExamples() {
+        String host = "localhost";
+        Integer port = 6379;
+        boolean useSsl = false;
 
-RedisClientConfiguration config =
-        RedisClientConfiguration.builder()
-                .address(NodeAddress.builder().host(host).port(port).build())
-                .useTLS(useSsl)
-                .build();
+        RedisClientConfiguration config =
+                RedisClientConfiguration.builder()
+                        .address(NodeAddress.builder().host(host).port(port).build())
+                        .useTLS(useSsl)
+                        .build();
 
-RedisClient client = RedisClient.CreateClient(config).get();
+        try {
+            RedisClient client = RedisClient.CreateClient(config).get();
 
-System.out.println("PING: " + client.ping().get());
-System.out.println("PING(found you): " + client.ping("found you").get());
+            // TODO wait for this PR to get merged https://github.com/aws/glide-for-redis/pull/1663/ for PING to work.
+            System.out.println("PING: " + client.ping(gs("PING")).get());
+            System.out.println("PING(found you): " + client.ping( gs("found you")).get());
 
-System.out.println("SET(apples, oranges): " + client.set("apples", "oranges").get());
-System.out.println("GET(apples): " + client.get("apples").get());
+            System.out.println("SET(apples, oranges): " + client.set(gs("apples"), gs("oranges")).get());
+            System.out.println("GET(apples): " + client.get(gs("apples")).get());
 
-System.out.println("GLIDESTRINGSET(cats, meow): " + client.set(gs("cats"), gs("meow")).get());
-System.out.println("GET(cats): " + client.get("cats").get());
+        } catch (ExecutionException | InterruptedException e) {
+            System.out.println("Glide example failed with an exception: ");
+            e.printStackTrace();
+        }
+    }
+}
 }
 ```
 
 ### Cluster Valkey:
 ```java
-
 import glide.api.RedisClusterClient;
 import glide.api.models.configuration.NodeAddress;
 import glide.api.models.configuration.RedisClusterClientConfiguration;
+import glide.api.models.configuration.RequestRoutingConfiguration;
 
 import java.util.concurrent.ExecutionException;
+
 import static glide.api.models.GlideString.gs;
 
-// Run this code in the Main file. Include InterruptedException and ExecutionException handling.
+public class Main {
 
-String host = "localhost";
-Integer port = 6379;
-boolean useSsl = false;
+    public static void main(String[] args) {
+        runGlideExamples();
+    }
 
-RedisClusterClientConfiguration config =
-        RedisClusterClientConfiguration.builder()
-                .address(NodeAddress.builder().host(host).port(port).build())
-                .useTLS(useSsl)
-                .build();
+    private static void runGlideExamples() {
+        String host = "localhost";
+        Integer port1 = 7001;
+        Integer port2 = 7002;
+        Integer port3 = 7003;
+        Integer port4 = 7004;
+        Integer port5 = 7005;
+        Integer port6 = 7006;
+        boolean useSsl = false;
 
-RedisClusterClient client = RedisClusterClient.CreateClient(config).get();
+        RedisClusterClientConfiguration config =
+                RedisClusterClientConfiguration.builder()
+                        .address(NodeAddress.builder().host(host).port(port1).port(port2).port(port3).port(port4).port(port5).port(port6).build())
+                        .useTLS(useSsl)
+                        .build();
 
-System.out.println("PING: " + client.ping().get());
-System.out.println("PING(found you): " + client.ping("found you").get());
+        try {
+            RedisClusterClient client = RedisClusterClient.CreateClient(config).get();
 
-System.out.println("SET(apples, oranges): " + client.set("apples", "oranges").get());
-System.out.println("GET(apples): " + client.get("apples").get());
+            // TODO wait for this PR to get merged https://github.com/aws/glide-for-redis/pull/1663/ for PING to work.
+            System.out.println("PING: " + client.ping(gs("PING")).get());
+            System.out.println("PING(found you): " + client.ping( gs("found you")).get());
 
-System.out.println("GLIDESTRINGSET(cats, meow): " + client.set(gs("cats"), gs("meow")).get());
-System.out.println("GET(cats): " + client.get("cats").get());
+            System.out.println("SET(apples, oranges): " + client.set(gs("apples"), gs("oranges")).get());
+            System.out.println("GET(apples): " + client.get(gs("apples")).get());
+
+        } catch (ExecutionException | InterruptedException e) {
+            System.out.println("Glide example failed with an exception: ");
+            e.printStackTrace();
+        }
+    }
+}
 ```
 
 ### Benchmarks
