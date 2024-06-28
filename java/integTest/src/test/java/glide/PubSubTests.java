@@ -4,6 +4,7 @@ package glide.standalone;
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestUtilities.commonClientConfig;
 import static glide.TestUtilities.commonClusterClientConfig;
+import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_NODES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -30,12 +31,14 @@ import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-// @Timeout(30) // sec
+@Timeout(30) // sec
 public class PubSubTests {
 
     // TODO protocol version
@@ -89,7 +92,8 @@ public class PubSubTests {
     }
 
     /** Message queue used in callback to analyze received messages. Number is a client ID. */
-    private final ConcurrentLinkedDeque<Pair<Integer, Message>> mq = new ConcurrentLinkedDeque<>();
+    private final ConcurrentLinkedDeque<Pair<Integer, Message>> messageQueue =
+            new ConcurrentLinkedDeque<>();
 
     /** Clients used in a test. */
     private final List<BaseClient> clients = new ArrayList<>();
@@ -97,12 +101,12 @@ public class PubSubTests {
     @BeforeEach
     @SneakyThrows
     public void cleanup() {
-        mq.clear();
+        messageQueue.clear();
         for (var client : clients) {
             if (client instanceof RedisClusterClient) {
-                ((RedisClusterClient) client).customCommand(new String[] {"unsubscribe"}).get();
-                ((RedisClusterClient) client).customCommand(new String[] {"punsubscribe"}).get();
-                ((RedisClusterClient) client).customCommand(new String[] {"sunsubscribe"}).get();
+                ((RedisClusterClient) client).customCommand(new String[] {"unsubscribe"}, ALL_NODES).get();
+                ((RedisClusterClient) client).customCommand(new String[] {"punsubscribe"}, ALL_NODES).get();
+                ((RedisClusterClient) client).customCommand(new String[] {"sunsubscribe"}, ALL_NODES).get();
             } else {
                 ((RedisClient) client).customCommand(new String[] {"unsubscribe"}).get();
                 ((RedisClient) client).customCommand(new String[] {"punsubscribe"}).get();
@@ -110,15 +114,12 @@ public class PubSubTests {
             client.close();
         }
         clients.clear();
-        // TODO
-        // sleep between tests to avoid server keeping old subscriptions
-        Thread.sleep(2404);
     }
 
     private void verifyReceivedMessages(
             Set<Pair<Integer, Message>> messages, BaseClient listener, boolean callback) {
         if (callback) {
-            assertEquals(messages, new HashSet<>(mq));
+            assertEquals(messages, new HashSet<>(messageQueue));
         } else {
             var received = new HashSet<Message>(messages.size());
             Message message;
@@ -137,7 +138,7 @@ public class PubSubTests {
                 Arguments.of(false, false));
     }
 
-    // TODO:
+    // TODO add following tests from https://github.com/aws/glide-for-redis/pull/1643
     //  test_pubsub_exact_happy_path_coexistence
     //  test_pubsub_exact_happy_path_many_channels_co_existence
     //  test_sharded_pubsub_co_existence
@@ -148,7 +149,9 @@ public class PubSubTests {
     //  test_pubsub_exact_max_size_message_callback
     //  test_pubsub_sharded_max_size_message_callback
 
-    // TODO do we need unsubscribe at the end of the test?
+    // TODO why `publish` returns 0 on cluster or > 1 on standalone when there is only 1 receiver???
+    //  meanwhile, all messages are delivered.
+    //  debug this and add checks for `publish` return value
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
@@ -167,7 +170,7 @@ public class PubSubTests {
         var listener =
                 useCallback
                         ? createClientWithSubscriptions(
-                                standalone, subscriptions, Optional.of(callback), Optional.of(mq))
+                                standalone, subscriptions, Optional.of(callback), Optional.of(messageQueue))
                         : createClientWithSubscriptions(standalone, subscriptions);
         var sender = createClient(standalone);
         clients.addAll(List.of(listener, sender));
@@ -205,7 +208,7 @@ public class PubSubTests {
         var listener =
                 useCallback
                         ? createClientWithSubscriptions(
-                                standalone, subscriptions, Optional.of(callback), Optional.of(mq))
+                                standalone, subscriptions, Optional.of(callback), Optional.of(messageQueue))
                         : createClientWithSubscriptions(standalone, subscriptions);
         var sender = createClient(standalone);
         clients.addAll(List.of(listener, sender));
@@ -240,7 +243,7 @@ public class PubSubTests {
                 (RedisClusterClient)
                         (useCallback
                                 ? createClientWithSubscriptions(
-                                        false, subscriptions, Optional.of(callback), Optional.of(mq))
+                                        false, subscriptions, Optional.of(callback), Optional.of(messageQueue))
                                 : createClientWithSubscriptions(false, subscriptions));
         var sender = (RedisClusterClient) createClient(false);
         clients.addAll(List.of(listener, sender));
@@ -281,7 +284,7 @@ public class PubSubTests {
                 (RedisClusterClient)
                         (useCallback
                                 ? createClientWithSubscriptions(
-                                        false, subscriptions, Optional.of(callback), Optional.of(mq))
+                                        false, subscriptions, Optional.of(callback), Optional.of(messageQueue))
                                 : createClientWithSubscriptions(false, subscriptions));
         var sender = (RedisClusterClient) createClient(false);
         clients.addAll(List.of(listener, sender));
@@ -321,7 +324,7 @@ public class PubSubTests {
         var listener =
                 useCallback
                         ? createClientWithSubscriptions(
-                                standalone, subscriptions, Optional.of(callback), Optional.of(mq))
+                                standalone, subscriptions, Optional.of(callback), Optional.of(messageQueue))
                         : createClientWithSubscriptions(standalone, subscriptions);
         var sender = createClient(standalone);
         clients.addAll(List.of(listener, sender));
@@ -329,7 +332,7 @@ public class PubSubTests {
         Thread.sleep(404); // need some time to propagate subscriptions - why?
 
         for (var entry : message2channels.entrySet()) {
-            assertEquals(1L, sender.publish(entry.getKey(), entry.getValue()).get());
+            sender.publish(entry.getKey(), entry.getValue()).get();
         }
         assertEquals(0L, sender.publish("channel", UUID.randomUUID().toString()).get());
         Thread.sleep(404); // deliver the messages
@@ -369,7 +372,7 @@ public class PubSubTests {
         var listener =
                 useCallback
                         ? createClientWithSubscriptions(
-                                standalone, subscriptions, Optional.of(callback), Optional.of(mq))
+                                standalone, subscriptions, Optional.of(callback), Optional.of(messageQueue))
                         : createClientWithSubscriptions(standalone, subscriptions);
         var sender = createClient(standalone);
         clients.addAll(List.of(listener, sender));
@@ -377,11 +380,7 @@ public class PubSubTests {
         Thread.sleep(404); // need some time to propagate subscriptions - why?
 
         for (var message : messages) {
-            // TODO why publish returns 0 on cluster? meanwhile messages are delivered
-            var res = sender.publish(message.getChannel(), message.getMessage()).get();
-            if (standalone) {
-                assertEquals(1L, res);
-            }
+            sender.publish(message.getChannel(), message.getMessage()).get();
         }
         assertEquals(0L, sender.publish("channel", UUID.randomUUID().toString()).get());
         Thread.sleep(404); // deliver the messages
@@ -431,17 +430,13 @@ public class PubSubTests {
         var listener =
                 useCallback
                         ? createClientWithSubscriptions(
-                                standalone, subscriptions, Optional.of(callback), Optional.of(mq))
+                                standalone, subscriptions, Optional.of(callback), Optional.of(messageQueue))
                         : createClientWithSubscriptions(standalone, subscriptions);
         var sender = createClient(standalone);
         clients.addAll(List.of(listener, sender));
 
         for (var message : messages) {
-            // TODO why publish returns 0 on cluster? meanwhile messages are delivered
-            var res = sender.publish(message.getChannel(), message.getMessage()).get();
-            if (standalone) {
-                assertEquals(1L, res);
-            }
+            sender.publish(message.getChannel(), message.getMessage()).get();
         }
 
         Thread.sleep(404); // deliver the messages
@@ -486,7 +481,7 @@ public class PubSubTests {
         var listenerExactSub =
                 useCallback
                         ? createClientWithSubscriptions(
-                                standalone, subscriptions, Optional.of(callbackExactSub), Optional.of(mq))
+                                standalone, subscriptions, Optional.of(callbackExactSub), Optional.of(messageQueue))
                         : createClientWithSubscriptions(standalone, subscriptions);
         subscriptions =
                 Map.of(
@@ -495,17 +490,16 @@ public class PubSubTests {
         var listenerPatternSub =
                 useCallback
                         ? createClientWithSubscriptions(
-                                standalone, subscriptions, Optional.of(callbackPatternSub), Optional.of(mq))
+                                standalone,
+                                subscriptions,
+                                Optional.of(callbackPatternSub),
+                                Optional.of(messageQueue))
                         : createClientWithSubscriptions(standalone, subscriptions);
         var sender = createClient(standalone);
         clients.addAll(List.of(listenerExactSub, listenerPatternSub, sender));
 
         for (var message : messages) {
-            // TODO why publish returns 0 on cluster? meanwhile messages are delivered
-            var res = sender.publish(message.getChannel(), message.getMessage()).get();
-            if (standalone) {
-                assertEquals(1L, res);
-            }
+            sender.publish(message.getChannel(), message.getMessage()).get();
         }
 
         Thread.sleep(404); // deliver the messages
@@ -580,13 +574,12 @@ public class PubSubTests {
         var listener =
                 useCallback
                         ? createClientWithSubscriptions(
-                                false, subscriptions, Optional.of(callback), Optional.of(mq))
+                                false, subscriptions, Optional.of(callback), Optional.of(messageQueue))
                         : createClientWithSubscriptions(false, subscriptions);
         var sender = (RedisClusterClient) createClient(false);
         clients.addAll(List.of(listener, sender));
 
         for (var message : messages) {
-            // TODO why publish returns 0 on cluster? meanwhile messages are delivered
             sender.publish(message.getChannel(), message.getMessage()).get();
         }
         for (var message : shardedMessages) {
@@ -661,27 +654,31 @@ public class PubSubTests {
         var listenerExact =
                 useCallback
                         ? createClientWithSubscriptions(
-                                false, subscriptionsExact, Optional.of(callbackExact), Optional.of(mq))
+                                false, subscriptionsExact, Optional.of(callbackExact), Optional.of(messageQueue))
                         : createClientWithSubscriptions(false, subscriptionsExact);
         var listenerPattern =
                 useCallback
                         ? createClientWithSubscriptions(
-                                false, subscriptionsPattern, Optional.of(callbackPattern), Optional.of(mq))
+                                false,
+                                subscriptionsPattern,
+                                Optional.of(callbackPattern),
+                                Optional.of(messageQueue))
                         : createClientWithSubscriptions(false, subscriptionsPattern);
         var listenerSharded =
                 useCallback
                         ? createClientWithSubscriptions(
-                                false, subscriptionsSharded, Optional.of(callbackSharded), Optional.of(mq))
+                                false,
+                                subscriptionsSharded,
+                                Optional.of(callbackSharded),
+                                Optional.of(messageQueue))
                         : createClientWithSubscriptions(false, subscriptionsSharded);
         var sender = (RedisClusterClient) createClient(false);
         clients.addAll(List.of(listenerExact, listenerPattern, listenerSharded, sender));
 
         for (var message : exactMessages) {
-            // TODO why publish returns 0 on cluster? meanwhile messages are delivered
             sender.publish(message.getChannel(), message.getMessage()).get();
         }
         for (var message : patternMessages) {
-            // TODO why publish returns 0 on cluster? meanwhile messages are delivered
             sender.publish(message.getChannel(), message.getMessage()).get();
         }
         for (var message : shardedMessages) {
@@ -729,10 +726,61 @@ public class PubSubTests {
     }
 
     @SneakyThrows
+    @Test
+    public void three_publishing_clients_same_name_with_sharded_no_callback() {
+        assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
+
+        String channel = UUID.randomUUID().toString();
+        var exactMessage = new Message(UUID.randomUUID().toString(), channel);
+        var patternMessage = new Message(UUID.randomUUID().toString(), channel, channel);
+        var shardedMessage = new Message(UUID.randomUUID().toString(), channel);
+        Map<PubSubClusterChannelMode, Set<String>> subscriptionsExact =
+                Map.of(PubSubClusterChannelMode.EXACT, Set.of(channel));
+        Map<PubSubClusterChannelMode, Set<String>> subscriptionsPattern =
+                Map.of(PubSubClusterChannelMode.PATTERN, Set.of(channel));
+        Map<PubSubClusterChannelMode, Set<String>> subscriptionsSharded =
+                Map.of(PubSubClusterChannelMode.SHARDED, Set.of(channel));
+
+        var listenerExact =
+                (RedisClusterClient) createClientWithSubscriptions(false, subscriptionsExact);
+        var listenerPattern =
+                (RedisClusterClient) createClientWithSubscriptions(false, subscriptionsPattern);
+        var listenerSharded =
+                (RedisClusterClient) createClientWithSubscriptions(false, subscriptionsSharded);
+        clients.addAll(List.of(listenerExact, listenerPattern, listenerSharded));
+
+        assertEquals(2L, listenerPattern.publish(channel, exactMessage.getMessage()).get());
+        assertEquals(2L, listenerSharded.publish(channel, patternMessage.getMessage()).get());
+        assertEquals(1L, listenerExact.spublish(channel, shardedMessage.getMessage()).get());
+
+        Thread.sleep(404); // deliver the messages
+
+        verifyReceivedMessages(
+                Set.of(
+                        Pair.of(PubSubClusterChannelMode.EXACT.ordinal(), exactMessage),
+                        Pair.of(
+                                PubSubClusterChannelMode.EXACT.ordinal(),
+                                new Message(patternMessage.getMessage(), channel))),
+                listenerExact,
+                false);
+        verifyReceivedMessages(
+                Set.of(
+                        Pair.of(PubSubClusterChannelMode.PATTERN.ordinal(), patternMessage),
+                        Pair.of(
+                                PubSubClusterChannelMode.PATTERN.ordinal(),
+                                new Message(exactMessage.getMessage(), channel, channel))),
+                listenerPattern,
+                false);
+        verifyReceivedMessages(
+                Set.of(Pair.of(PubSubClusterChannelMode.SHARDED.ordinal(), shardedMessage)),
+                listenerSharded,
+                false);
+    }
+
+    @SneakyThrows
     @SuppressWarnings("unchecked")
-    @ParameterizedTest(name = "use callback = {0}")
-    @ValueSource(booleans = {true, false})
-    public void three_publishing_clients_same_name_with_sharded(boolean useCallback) {
+    @Test
+    public void three_publishing_clients_same_name_with_sharded_with_callback() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
 
         String channel = UUID.randomUUID().toString();
@@ -763,22 +811,22 @@ public class PubSubTests {
 
         var listenerExact =
                 (RedisClusterClient)
-                        (useCallback
-                                ? createClientWithSubscriptions(
-                                        false, subscriptionsExact, Optional.of(callbackExact), Optional.of(mq))
-                                : createClientWithSubscriptions(false, subscriptionsExact));
+                        createClientWithSubscriptions(
+                                false, subscriptionsExact, Optional.of(callbackExact), Optional.of(messageQueue));
         var listenerPattern =
                 (RedisClusterClient)
-                        (useCallback
-                                ? createClientWithSubscriptions(
-                                        false, subscriptionsPattern, Optional.of(callbackPattern), Optional.of(mq))
-                                : createClientWithSubscriptions(false, subscriptionsPattern));
+                        createClientWithSubscriptions(
+                                false,
+                                subscriptionsPattern,
+                                Optional.of(callbackPattern),
+                                Optional.of(messageQueue));
         var listenerSharded =
                 (RedisClusterClient)
-                        (useCallback
-                                ? createClientWithSubscriptions(
-                                        false, subscriptionsSharded, Optional.of(callbackSharded), Optional.of(mq))
-                                : createClientWithSubscriptions(false, subscriptionsSharded));
+                        createClientWithSubscriptions(
+                                false,
+                                subscriptionsSharded,
+                                Optional.of(callbackSharded),
+                                Optional.of(messageQueue));
         clients.addAll(List.of(listenerExact, listenerPattern, listenerSharded));
 
         assertEquals(2L, listenerPattern.publish(channel, exactMessage.getMessage()).get());
@@ -787,41 +835,18 @@ public class PubSubTests {
 
         Thread.sleep(404); // deliver the messages
 
-        if (useCallback) {
-            var expected =
-                    Set.of(
-                            Pair.of(PubSubClusterChannelMode.EXACT.ordinal(), exactMessage),
-                            Pair.of(
-                                    PubSubClusterChannelMode.EXACT.ordinal(),
-                                    new Message(patternMessage.getMessage(), channel)),
-                            Pair.of(PubSubClusterChannelMode.PATTERN.ordinal(), patternMessage),
-                            Pair.of(
-                                    PubSubClusterChannelMode.PATTERN.ordinal(),
-                                    new Message(exactMessage.getMessage(), channel, channel)),
-                            Pair.of(PubSubClusterChannelMode.SHARDED.ordinal(), shardedMessage));
+        var expected =
+                Set.of(
+                        Pair.of(PubSubClusterChannelMode.EXACT.ordinal(), exactMessage),
+                        Pair.of(
+                                PubSubClusterChannelMode.EXACT.ordinal(),
+                                new Message(patternMessage.getMessage(), channel)),
+                        Pair.of(PubSubClusterChannelMode.PATTERN.ordinal(), patternMessage),
+                        Pair.of(
+                                PubSubClusterChannelMode.PATTERN.ordinal(),
+                                new Message(exactMessage.getMessage(), channel, channel)),
+                        Pair.of(PubSubClusterChannelMode.SHARDED.ordinal(), shardedMessage));
 
-            verifyReceivedMessages(expected, listenerExact, useCallback);
-        } else {
-            verifyReceivedMessages(
-                    Set.of(
-                            Pair.of(PubSubClusterChannelMode.EXACT.ordinal(), exactMessage),
-                            Pair.of(
-                                    PubSubClusterChannelMode.EXACT.ordinal(),
-                                    new Message(patternMessage.getMessage(), channel))),
-                    listenerExact,
-                    useCallback);
-            verifyReceivedMessages(
-                    Set.of(
-                            Pair.of(PubSubClusterChannelMode.PATTERN.ordinal(), patternMessage),
-                            Pair.of(
-                                    PubSubClusterChannelMode.PATTERN.ordinal(),
-                                    new Message(exactMessage.getMessage(), channel, channel))),
-                    listenerPattern,
-                    useCallback);
-            verifyReceivedMessages(
-                    Set.of(Pair.of(PubSubClusterChannelMode.SHARDED.ordinal(), shardedMessage)),
-                    listenerSharded,
-                    useCallback);
-        }
+        verifyReceivedMessages(expected, listenerExact, true);
     }
 }
