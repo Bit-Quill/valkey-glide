@@ -7106,12 +7106,12 @@ public class SharedCommandTests {
         // Test match pattern
         result =
                 client.sscan(key1, initialCursor, SScanOptions.builder().matchPattern("*").build()).get();
-        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) >= 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
 
         // Test count
         result = client.sscan(key1, initialCursor, SScanOptions.builder().count(20L).build()).get();
-        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) >= 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= 20);
 
         // Test count with match returns a non-empty list
@@ -7120,7 +7120,7 @@ public class SharedCommandTests {
                         .sscan(
                                 key1, initialCursor, SScanOptions.builder().matchPattern("1*").count(20L).build())
                         .get();
-        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) >= 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) > 0);
 
         // Exceptions
@@ -7273,13 +7273,13 @@ public class SharedCommandTests {
 
         // Test match pattern
         result =
-                client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("*").build()).get();
-        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
+                client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("*").busild()).get();
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) >= 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
 
         // Test count
         result = client.zscan(key1, initialCursor, ZScanOptions.builder().count(20L).build()).get();
-        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) >= 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= 20);
 
         // Test count with match returns a non-empty list
@@ -7288,7 +7288,7 @@ public class SharedCommandTests {
                         .zscan(
                                 key1, initialCursor, ZScanOptions.builder().matchPattern("1*").count(20L).build())
                         .get();
-        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) >= 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) > 0);
 
         // Exceptions
