@@ -5172,14 +5172,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param key The key of the set.
      * @param cursor The cursor that points to the next iteration of results.
      * @return Command Response - An <code>Array</code> of <code>Objects</code>. The first element is
-     *     always the <code>
-     *     cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
-     *     </code> returned on the last iteration of the set. The second element is always an <code>
-     *     Array</code> of the subset of the set held in <code>key</code>. The array in the second
-     *     element is always a flattened series of String pairs, where the value is at even indices
-     *     and the score is at odd indices.
+     *     always the <code>cursor</code> for the next iteration of results. <code>0</code> will be
+     *     the <code>cursor</code> returned on the last iteration of the set. The second element is
+     *     always an <code>Array</code> of the subset of the set held in <code>key</code>. The array
+     *     in the second element is always a flattened series of String pairs, where the value is at
+     *     even indices and the score is at odd indices.
      */
-    public T zscan(@NonNull String key, String cursor) {
+    public T zscan(@NonNull String key, @NonNull String cursor) {
         protobufTransaction.addCommands(buildCommand(ZScan, buildArgs(key, cursor)));
         return getThis();
     }
@@ -5192,14 +5191,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      * @param cursor The cursor that points to the next iteration of results.
      * @param zScanOptions The {@link ZScanOptions}.
      * @return Command Response - An <code>Array</code> of <code>Objects</code>. The first element is
-     *     always the <code>
-     *     cursor</code> for the next iteration of results. <code>0</code> will be the <code>cursor
-     *     </code> returned on the last iteration of the set. The second element is always an <code>
-     *     Array</code> of the subset of the set held in <code>key</code>. The array in the second
-     *     element is always a flattened series of String pairs, where the value is at even indices
-     *     and the score is at odd indices.
+     *     always the <code>cursor</code> for the next iteration of results. <code>0</code> will be
+     *     the <code>cursor</code> returned on the last iteration of the set. The second element is
+     *     always an <code>Array</code> of the subset of the set held in <code>key</code>. The array
+     *     in the second element is always a flattened series of String pairs, where the value is at
+     *     even indices and the score is at odd indices.
      */
-    public T zscan(@NonNull String key, String cursor, @NonNull ZScanOptions zScanOptions) {
+    public T zscan(@NonNull String key, @NonNull String cursor, @NonNull ZScanOptions zScanOptions) {
         ArgsArray commandArgs =
                 buildArgs(concatenateArrays(new String[] {key, cursor}, zScanOptions.toArgs()));
         protobufTransaction.addCommands(buildCommand(ZScan, commandArgs));
