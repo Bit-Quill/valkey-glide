@@ -7024,9 +7024,9 @@ public class SharedCommandTests {
         for (int i = 0; i < numberMembers.length; i++) {
             numberMembers[i] = String.valueOf(i);
         }
-        Set numberMembersSet = Set.of(numberMembers);
+        Set<String> numberMembersSet = Set.of(numberMembers);
         String[] charMembers = new String[] {"a", "b", "c", "d", "e"};
-        Set charMemberSet = Set.of(charMembers);
+        Set<String> charMemberSet = Set.of(charMembers);
         int resultCursorIndex = 0;
         int resultCollectionIndex = 1;
 
@@ -7060,11 +7060,11 @@ public class SharedCommandTests {
         final Set<Object> secondResultValues = new HashSet<>();
         do {
             result = client.sscan(key1, resultCursor).get();
-            resultCursor = Long.valueOf(result[resultCursorIndex].toString());
+            resultCursor = Long.parseLong(result[resultCursorIndex].toString());
 
             // Scan with result cursor has a different set
             Object[] secondResult = client.sscan(key1, resultCursor).get();
-            long newResultCursor = (Long.valueOf(secondResult[resultCursorIndex].toString()));
+            long newResultCursor = (Long.parseLong(secondResult[resultCursorIndex].toString()));
             assertTrue(resultCursor != newResultCursor);
             resultCursor = newResultCursor;
             assertFalse(
@@ -7081,12 +7081,12 @@ public class SharedCommandTests {
         // Test match pattern
         result =
                 client.sscan(key1, initialCursor, SScanOptions.builder().matchPattern("*").build()).get();
-        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
 
         // Test count
         result = client.sscan(key1, initialCursor, SScanOptions.builder().count(20L).build()).get();
-        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= 20);
 
         // Test count with match returns a non-empty list
@@ -7095,7 +7095,7 @@ public class SharedCommandTests {
                         .sscan(
                                 key1, initialCursor, SScanOptions.builder().matchPattern("1*").count(20L).build())
                         .get();
-        assertTrue(Long.valueOf(result[resultCursorIndex].toString()) > 0);
+        assertTrue(Long.parseLong(result[resultCursorIndex].toString()) > 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) > 0);
 
         // Exceptions
