@@ -7190,12 +7190,19 @@ public class SharedCommandTests {
                 charMap.size() * 2,
                 ((Object[]) result[resultCollectionIndex])
                         .length); // Length includes the score which is twice the map size
-        Arrays.stream((Object[]) result[resultCollectionIndex])
-                .forEach(
-                        member ->
-                                assertTrue(
-                                        charMap.containsKey(member)
-                                                || charMap.containsValue(Double.valueOf(member.toString()))));
+        final Object[] resultArray = (Object[]) result[resultCollectionIndex];
+
+        final Set<Object> resultKeys = new HashSet<>();
+        final Set<Object> resultValues = new HashSet<>();
+        for (int i = 0; i < resultArray.length; i += 2) {
+            resultKeys.add(resultArray[i]);
+            resultValues.add(resultArray[i + 1]);
+        }
+        assertTrue(resultKeys.containsAll(charMap.keySet()));
+
+        // The score comes back as an integer converted to a String when the fraction is zero.
+        assertTrue(resultValues.containsAll(charMap.values().stream().map(
+            v -> "" + v.intValue()).collect(Collectors.toSet())));
 
         result =
                 client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("a").build()).get();
@@ -7205,6 +7212,8 @@ public class SharedCommandTests {
         // Result contains a subset of the key
         assertEquals(numberMap.size(), client.zadd(key1, numberMap).get());
         long resultCursor = 0;
+        final Set<Object> secondResultAllKeys = new HashSet<>();
+        final Set<Object> secondResultAllValues = new HashSet<>();
         do {
             result = client.zscan(key1, resultCursor).get();
             resultCursor = Long.valueOf(result[resultCursorIndex].toString());
@@ -7214,11 +7223,21 @@ public class SharedCommandTests {
             long newResultCursor = (Long.valueOf(secondResult[resultCursorIndex].toString()));
             assertTrue(resultCursor != newResultCursor);
             resultCursor = newResultCursor;
+            Object[] secondResultEntry = (Object[]) secondResult[resultCollectionIndex];
             assertFalse(
                     Arrays.deepEquals(
                             ArrayUtils.toArray(result[resultCollectionIndex]),
                             ArrayUtils.toArray(secondResult[resultCollectionIndex])));
+
+            for (int i = 0; i < secondResultEntry.length; i += 2) {
+                secondResultAllKeys.add(secondResultEntry[i]);
+                secondResultAllValues.add(secondResultEntry[i + 1]);
+            }
         } while (resultCursor != 0); // 0 is returned for the cursor of the last iteration.
+
+        assertTrue(secondResultAllKeys.containsAll(numberMap.keySet()));
+        assertTrue(secondResultAllValues.containsAll(
+            numberMap.values().stream().map(d -> "" + d.intValue()).collect(Collectors.toSet())));
 
         // Test match pattern
         result =
