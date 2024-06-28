@@ -7198,14 +7198,21 @@ public class SharedCommandTests {
             resultKeys.add(resultArray[i]);
             resultValues.add(resultArray[i + 1]);
         }
-        assertTrue(resultKeys.containsAll(charMap.keySet()));
+        assertTrue(
+                resultKeys.containsAll(charMap.keySet()),
+                String.format("resultKeys: {%s} charMap.keySet(): {%s}", resultKeys, charMap.keySet()));
 
         // The score comes back as an integer converted to a String when the fraction is zero.
+        final Set<String> expectedScoresAsStrings =
+                charMap.values().stream()
+                        .map(v -> String.valueOf(v.intValue()))
+                        .collect(Collectors.toSet());
+
         assertTrue(
-                resultValues.containsAll(
-                        charMap.values().stream()
-                                .map(v -> String.valueOf(v.intValue()))
-                                .collect(Collectors.toSet())));
+                resultValues.containsAll(expectedScoresAsStrings),
+                String.format(
+                        "resultValues: {%s} expectedScoresAsStrings: {%s}",
+                        resultValues, expectedScoresAsStrings));
 
         result =
                 client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("a").build()).get();
@@ -7239,11 +7246,16 @@ public class SharedCommandTests {
         } while (resultCursor != 0); // 0 is returned for the cursor of the last iteration.
 
         assertTrue(secondResultAllKeys.containsAll(numberMap.keySet()));
+        final Set<String> numberMapValuesAsStrings =
+                numberMap.values().stream()
+                        .map(d -> String.valueOf(d.intValue()))
+                        .collect(Collectors.toSet());
+
         assertTrue(
-                secondResultAllValues.containsAll(
-                        numberMap.values().stream()
-                                .map(d -> String.valueOf(d.intValue()))
-                                .collect(Collectors.toSet())));
+                secondResultAllValues.containsAll(numberMapValuesAsStrings),
+                String.format(
+                        "secondResultAllValues: {%s} numberMapValuesAsStrings: {%s}",
+                        secondResultAllValues, numberMapValuesAsStrings));
 
         // Test match pattern
         result =
