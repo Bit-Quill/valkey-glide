@@ -7273,7 +7273,7 @@ public class SharedCommandTests {
 
         // Test match pattern
         result =
-                client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("*").busild()).get();
+                client.zscan(key1, initialCursor, ZScanOptions.builder().matchPattern("*").build()).get();
         assertTrue(Long.parseLong(result[resultCursorIndex].toString()) >= 0);
         assertTrue(ArrayUtils.getLength(result[resultCollectionIndex]) >= defaultCount);
 
