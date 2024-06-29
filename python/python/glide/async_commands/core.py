@@ -5488,7 +5488,7 @@ class CoreCommands(Protocol):
         args = [key1, key2, "LEN"]
 
         return cast(
-            str,
+            int,
             await self._execute_command(RequestType.LCS, args),
         )
 
