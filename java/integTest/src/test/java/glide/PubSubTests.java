@@ -343,6 +343,8 @@ public class PubSubTests {
         var sender = createClient(standalone);
         clients.addAll(List.of(listener, sender));
 
+        Thread.sleep(MESSAGE_DELIVERY_DELAY); // need some time to propagate subscriptions - why?
+
         for (var entry : PubsubMessage2channels.entrySet()) {
             sender.publish(entry.getKey(), entry.getValue()).get();
         }
@@ -382,6 +384,8 @@ public class PubSubTests {
         var listener = createListener(standalone, useCallback, 1, subscriptions);
         var sender = createClient(standalone);
         clients.addAll(List.of(listener, sender));
+
+        Thread.sleep(MESSAGE_DELIVERY_DELAY); // need some time to propagate subscriptions - why?
 
         for (var pubsubMessage : pubsubMessages) {
             sender.publish(pubsubMessage.getChannel(), pubsubMessage.getMessage()).get();
