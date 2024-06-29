@@ -4156,7 +4156,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull String member1,
             @NonNull String member2,
             @NonNull GeoUnit geoUnit) {
-        ArgsArray commandArgs = buildArgs(key, member1, member2, geoUnit.getValkeyAPI());
+        String[] commandArgs = buildArgs(key, member1, member2, geoUnit.getValkeyAPI());
         protobufTransaction.addCommands(buildCommand(GeoDist, commandArgs));
         return getThis();
     }
@@ -4925,7 +4925,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     the substring in <code>key2</code> at index <code>0</code> to <code>2</code>.
      */
     public T lcsIdx(@NonNull String key1, @NonNull String key2) {
-        ArgsArray args = buildArgs(key1, key2, IDX_COMMAND_STRING);
+        String[] args = buildArgs(key1, key2, IDX_COMMAND_STRING);
         protobufTransaction.addCommands(buildCommand(LCS, args));
         return getThis();
     }
@@ -4971,7 +4971,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     the substring in <code>key2</code> at index <code>0</code> to <code>2</code>.
      */
     public T lcsIdx(@NonNull String key1, @NonNull String key2, long minMatchLen) {
-        ArgsArray args =
+        String[] args =
                 buildArgs(
                         key1,
                         key2,
@@ -5024,7 +5024,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     the last element in the array is the length of the substring match which is <code>3</code>.
      */
     public T lcsIdxWithMatchLen(@NonNull String key1, @NonNull String key2) {
-        ArgsArray args = buildArgs(key1, key2, IDX_COMMAND_STRING, WITHMATCHLEN_COMMAND_STRING);
+        String[] args = buildArgs(key1, key2, IDX_COMMAND_STRING, WITHMATCHLEN_COMMAND_STRING);
         protobufTransaction.addCommands(buildCommand(LCS, args));
         return getThis();
     }
@@ -5072,7 +5072,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     the last element in the array is the length of the substring match which is <code>3</code>.
      */
     public T lcsIdxWithMatchLen(@NonNull String key1, @NonNull String key2, long minMatchLen) {
-        ArgsArray args =
+        String[] args =
                 buildArgs(
                         key1,
                         key2,
@@ -5164,7 +5164,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull String key,
             @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
             @NonNull GeoSearchShape searchBy) {
-        ArgsArray args =
+        String[] args =
                 buildArgs(concatenateArrays(new String[] {key}, searchFrom.toArgs(), searchBy.toArgs()));
         protobufTransaction.addCommands(buildCommand(GeoSearch, args));
         return getThis();
@@ -5202,7 +5202,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
             @NonNull GeoSearchShape searchBy,
             @NonNull GeoSearchResultOptions resultOptions) {
-        ArgsArray args =
+        String[] args =
                 buildArgs(
                         concatenateArrays(
                                 new String[] {key},
@@ -5252,7 +5252,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
             @NonNull GeoSearchShape searchBy,
             @NonNull GeoSearchOptions options) {
-        ArgsArray args =
+        String[] args =
                 buildArgs(
                         concatenateArrays(
                                 new String[] {key}, searchFrom.toArgs(), searchBy.toArgs(), options.toArgs()));
@@ -5302,7 +5302,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull GeoSearchShape searchBy,
             @NonNull GeoSearchOptions options,
             @NonNull GeoSearchResultOptions resultOptions) {
-        ArgsArray args =
+        String[] args =
                 buildArgs(
                         concatenateArrays(
                                 new String[] {key},
@@ -5348,7 +5348,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull String source,
             @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
             @NonNull GeoSearchShape searchBy) {
-        ArgsArray args =
+        String[] args =
                 buildArgs(
                         concatenateArrays(
                                 new String[] {destination, source}, searchFrom.toArgs(), searchBy.toArgs()));
@@ -5393,7 +5393,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
             @NonNull GeoSearchShape searchBy,
             @NonNull GeoSearchResultOptions resultOptions) {
-        ArgsArray args =
+        String[] args =
                 buildArgs(
                         concatenateArrays(
                                 new String[] {destination, source},
@@ -5440,7 +5440,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull GeoSearchOrigin.SearchOrigin searchFrom,
             @NonNull GeoSearchShape searchBy,
             @NonNull GeoSearchStoreOptions options) {
-        ArgsArray args =
+        String[] args =
                 buildArgs(
                         concatenateArrays(
                                 new String[] {destination, source},
@@ -5490,7 +5490,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull GeoSearchShape searchBy,
             @NonNull GeoSearchStoreOptions options,
             @NonNull GeoSearchResultOptions resultOptions) {
-        ArgsArray args =
+        String[] args =
                 buildArgs(
                         concatenateArrays(
                                 new String[] {destination, source},
@@ -5533,7 +5533,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     always an <code>Array</code> of the subset of the set held in <code>key</code>.
      */
     public T sscan(@NonNull String key, @NonNull String cursor, @NonNull SScanOptions sScanOptions) {
-        ArgsArray commandArgs =
+        String[] commandArgs =
                 buildArgs(concatenateArrays(new String[] {key, cursor}, sScanOptions.toArgs()));
         protobufTransaction.addCommands(buildCommand(SScan, commandArgs));
         return getThis();
@@ -5574,7 +5574,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
      *     </code> pairs, where the value is at even indices and the score is at odd indices.
      */
     public T zscan(@NonNull String key, @NonNull String cursor, @NonNull ZScanOptions zScanOptions) {
-        ArgsArray commandArgs =
+        String[] commandArgs =
                 buildArgs(concatenateArrays(new String[] {key, cursor}, zScanOptions.toArgs()));
         protobufTransaction.addCommands(buildCommand(ZScan, commandArgs));
         return getThis();
@@ -5582,6 +5582,7 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
 
     /** Build protobuf {@link Command} object for given command and arguments. */
     protected Command buildCommand(RequestType requestType) {
+        // An empty args array is still needed for parameter-less commands.
         return Command.newBuilder()
                 .setRequestType(requestType)
                 .setArgsArray(Command.ArgsArray.newBuilder().build())
