@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -372,7 +373,6 @@ public class PubSubTests {
 
         for (var i = 0; i < numChannels; i++) {
             var channel = i + "-" + UUID.randomUUID();
-            subscriptions.get(mode).add(channel);
             for (var j = 0; j < pubsubMessagesPerChannel; j++) {
                 var pubsubMessage = i + "-" + j + "-" + UUID.randomUUID();
                 pubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
@@ -803,7 +803,7 @@ public class PubSubTests {
         client.close();
 
         // client configured with callback and doesn't return pubsubMessages via API
-        MessageCallback callback = (msg, ctx) -> {};
+        MessageCallback callback = (msg, ctx) -> fail();
         client =
                 createClientWithSubscriptions(
                         true, Map.of(), Optional.of(callback), Optional.of(pubsubMessageQueue));
