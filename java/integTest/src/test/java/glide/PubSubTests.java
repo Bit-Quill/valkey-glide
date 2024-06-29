@@ -206,18 +206,18 @@ public class PubSubTests {
     public void exact_happy_path(boolean standalone, boolean useCallback) {
         skipTestsOnMac();
         String channel = UUID.randomUUID().toString();
-        String pubsubMessage = UUID.randomUUID().toString();
+        String message = UUID.randomUUID().toString();
         var subscriptions = Map.of(exact(standalone), Set.of(channel));
 
         var listener = createListener(standalone, useCallback, 1, subscriptions);
         var sender = createClient(standalone);
         clients.addAll(List.of(listener, sender));
 
-        assertEquals(1L, sender.publish(channel, pubsubMessage).get());
+        assertEquals(1L, sender.publish(channel, message).get());
         Thread.sleep(MESSAGE_DELIVERY_DELAY); // deliver the message
 
         verifyReceivedPubsubMessages(
-                Set.of(Pair.of(1, new PubSubMessage(pubsubMessage, channel))), listener, useCallback);
+                Set.of(Pair.of(1, new PubSubMessage(message, channel))), listener, useCallback);
     }
 
     /** Similar to `test_pubsub_exact_happy_path_many_channels` in python client tests. */
@@ -227,17 +227,17 @@ public class PubSubTests {
     public void exact_happy_path_many_channels(boolean standalone, boolean useCallback) {
         skipTestsOnMac();
         int numChannels = 256;
-        int pubsubMessagesPerChannel = 256;
-        var pubsubMessages = new ArrayList<PubSubMessage>(numChannels * pubsubMessagesPerChannel);
+        int messagesPerChannel = 256;
+        var messages = new ArrayList<PubSubMessage>(numChannels * messagesPerChannel);
         ChannelMode mode = exact(standalone);
         Map<? extends ChannelMode, Set<String>> subscriptions = Map.of(mode, new HashSet<>());
 
         for (var i = 0; i < numChannels; i++) {
             var channel = i + "-" + UUID.randomUUID();
             subscriptions.get(mode).add(channel);
-            for (var j = 0; j < pubsubMessagesPerChannel; j++) {
-                var pubsubMessage = i + "-" + j + "-" + UUID.randomUUID();
-                pubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
+            for (var j = 0; j < messagesPerChannel; j++) {
+                var message = i + "-" + j + "-" + UUID.randomUUID();
+                messages.add(new PubSubMessage(message, channel));
             }
         }
 
@@ -245,7 +245,7 @@ public class PubSubTests {
         var sender = createClient(standalone);
         clients.addAll(List.of(listener, sender));
 
-        for (var pubsubMessage : pubsubMessages) {
+        for (var pubsubMessage : messages) {
             assertEquals(
                     1L, sender.publish(pubsubMessage.getChannel(), pubsubMessage.getMessage()).get());
         }
@@ -253,7 +253,7 @@ public class PubSubTests {
         Thread.sleep(MESSAGE_DELIVERY_DELAY); // deliver the messages
 
         verifyReceivedPubsubMessages(
-                pubsubMessages.stream().map(m -> Pair.of(1, m)).collect(Collectors.toSet()),
+                messages.stream().map(m -> Pair.of(1, m)).collect(Collectors.toSet()),
                 listener,
                 useCallback);
     }
@@ -299,8 +299,8 @@ public class PubSubTests {
             var channel = i + "-" + UUID.randomUUID();
             subscriptions.get(mode).add(channel);
             for (var j = 0; j < pubsubMessagesPerChannel; j++) {
-                var pubsubMessage = i + "-" + j + "-" + UUID.randomUUID();
-                pubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
+                var message = i + "-" + j + "-" + UUID.randomUUID();
+                pubsubMessages.add(new PubSubMessage(message, channel));
             }
         }
 
@@ -331,7 +331,7 @@ public class PubSubTests {
         skipTestsOnMac();
         String prefix = "channel.";
         String pattern = prefix + "*";
-        Map<String, String> PubsubMessage2channels =
+        Map<String, String> message2channels =
                 Map.of(
                         prefix + "1", UUID.randomUUID().toString(), prefix + "2", UUID.randomUUID().toString());
         var subscriptions =
@@ -345,14 +345,14 @@ public class PubSubTests {
 
         Thread.sleep(MESSAGE_DELIVERY_DELAY); // need some time to propagate subscriptions - why?
 
-        for (var entry : PubsubMessage2channels.entrySet()) {
+        for (var entry : message2channels.entrySet()) {
             sender.publish(entry.getKey(), entry.getValue()).get();
         }
         assertEquals(0L, sender.publish("channel", UUID.randomUUID().toString()).get());
         Thread.sleep(MESSAGE_DELIVERY_DELAY); // deliver the messages
 
         var expected =
-                PubsubMessage2channels.entrySet().stream()
+                message2channels.entrySet().stream()
                         .map(e -> Pair.of(1, new PubSubMessage(e.getValue(), e.getKey(), pattern)))
                         .collect(Collectors.toSet());
 
@@ -368,16 +368,16 @@ public class PubSubTests {
         String prefix = "channel.";
         String pattern = prefix + "*";
         int numChannels = 256;
-        int pubsubMessagesPerChannel = 256;
+        int messagesPerChannel = 256;
         ChannelMode mode = standalone ? PubSubChannelMode.PATTERN : PubSubClusterChannelMode.PATTERN;
-        var pubsubMessages = new ArrayList<PubSubMessage>(numChannels * pubsubMessagesPerChannel);
+        var messages = new ArrayList<PubSubMessage>(numChannels * messagesPerChannel);
         var subscriptions = Map.of(mode, Set.of(pattern));
 
         for (var i = 0; i < numChannels; i++) {
             var channel = prefix + "-" + i + "-" + UUID.randomUUID();
-            for (var j = 0; j < pubsubMessagesPerChannel; j++) {
-                var pubsubMessage = i + "-" + j + "-" + UUID.randomUUID();
-                pubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
+            for (var j = 0; j < messagesPerChannel; j++) {
+                var message = i + "-" + j + "-" + UUID.randomUUID();
+                messages.add(new PubSubMessage(message, channel, pattern));
             }
         }
 
@@ -387,14 +387,14 @@ public class PubSubTests {
 
         Thread.sleep(MESSAGE_DELIVERY_DELAY); // need some time to propagate subscriptions - why?
 
-        for (var pubsubMessage : pubsubMessages) {
+        for (var pubsubMessage : messages) {
             sender.publish(pubsubMessage.getChannel(), pubsubMessage.getMessage()).get();
         }
         assertEquals(0L, sender.publish("channel", UUID.randomUUID().toString()).get());
         Thread.sleep(MESSAGE_DELIVERY_DELAY); // deliver the messages
 
         verifyReceivedPubsubMessages(
-                pubsubMessages.stream().map(m -> Pair.of(1, m)).collect(Collectors.toSet()),
+                messages.stream().map(m -> Pair.of(1, m)).collect(Collectors.toSet()),
                 listener,
                 useCallback);
     }
@@ -408,8 +408,8 @@ public class PubSubTests {
         String prefix = "channel.";
         String pattern = prefix + "*";
         int numChannels = 256;
-        int pubsubMessagesPerChannel = 256;
-        var pubsubMessages = new ArrayList<PubSubMessage>(numChannels * pubsubMessagesPerChannel);
+        int messagesPerChannel = 256;
+        var messages = new ArrayList<PubSubMessage>(numChannels * messagesPerChannel);
         ChannelMode mode = standalone ? PubSubChannelMode.EXACT : PubSubClusterChannelMode.EXACT;
         Map<? extends ChannelMode, Set<String>> subscriptions =
                 Map.of(
@@ -421,30 +421,30 @@ public class PubSubTests {
         for (var i = 0; i < numChannels; i++) {
             var channel = i + "-" + UUID.randomUUID();
             subscriptions.get(mode).add(channel);
-            for (var j = 0; j < pubsubMessagesPerChannel; j++) {
-                var pubsubMessage = i + "-" + j + "-" + UUID.randomUUID();
-                pubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
+            for (var j = 0; j < messagesPerChannel; j++) {
+                var message = i + "-" + j + "-" + UUID.randomUUID();
+                messages.add(new PubSubMessage(message, channel));
             }
         }
 
-        for (var j = 0; j < pubsubMessagesPerChannel; j++) {
-            var pubsubMessage = UUID.randomUUID().toString();
+        for (var j = 0; j < messagesPerChannel; j++) {
+            var pubsubMessage = j + "-" + UUID.randomUUID();
             var channel = prefix + "-" + j + "-" + UUID.randomUUID();
-            pubsubMessages.add(new PubSubMessage(pubsubMessage, channel, pattern));
+            messages.add(new PubSubMessage(pubsubMessage, channel, pattern));
         }
 
         var listener = createListener(standalone, useCallback, 1, subscriptions);
         var sender = createClient(standalone);
         clients.addAll(List.of(listener, sender));
 
-        for (var pubsubMessage : pubsubMessages) {
+        for (var pubsubMessage : messages) {
             sender.publish(pubsubMessage.getChannel(), pubsubMessage.getMessage()).get();
         }
 
         Thread.sleep(MESSAGE_DELIVERY_DELAY); // deliver the messages
 
         verifyReceivedPubsubMessages(
-                pubsubMessages.stream().map(m -> Pair.of(1, m)).collect(Collectors.toSet()),
+                messages.stream().map(m -> Pair.of(1, m)).collect(Collectors.toSet()),
                 listener,
                 useCallback);
     }
@@ -460,21 +460,21 @@ public class PubSubTests {
         String prefix = "channel.";
         String pattern = prefix + "*";
         int numChannels = 256;
-        var pubsubMessages = new ArrayList<PubSubMessage>(numChannels * 2);
+        var messages = new ArrayList<PubSubMessage>(numChannels * 2);
         ChannelMode mode = exact(standalone);
         Map<? extends ChannelMode, Set<String>> subscriptions = Map.of(mode, new HashSet<>());
 
         for (var i = 0; i < numChannels; i++) {
             var channel = i + "-" + UUID.randomUUID();
             subscriptions.get(mode).add(channel);
-            var pubsubMessage = i + "-" + UUID.randomUUID();
-            pubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
+            var message = i + "-" + UUID.randomUUID();
+            messages.add(new PubSubMessage(message, channel));
         }
 
         for (var j = 0; j < numChannels; j++) {
-            var pubsubMessage = j + "-" + UUID.randomUUID();
+            var message = j + "-" + UUID.randomUUID();
             var channel = prefix + "-" + j + "-" + UUID.randomUUID();
-            pubsubMessages.add(new PubSubMessage(pubsubMessage, channel, pattern));
+            messages.add(new PubSubMessage(message, channel, pattern));
         }
 
         var listenerExactSub = createListener(standalone, useCallback, 1, subscriptions);
@@ -485,7 +485,7 @@ public class PubSubTests {
         var sender = createClient(standalone);
         clients.addAll(List.of(listenerExactSub, listenerPatternSub, sender));
 
-        for (var pubsubMessage : pubsubMessages) {
+        for (var pubsubMessage : messages) {
             sender.publish(pubsubMessage.getChannel(), pubsubMessage.getMessage()).get();
         }
 
@@ -493,21 +493,21 @@ public class PubSubTests {
 
         if (useCallback) {
             verifyReceivedPubsubMessages(
-                    pubsubMessages.stream()
+                    messages.stream()
                             .map(m -> Pair.of(m.getPattern().isEmpty() ? 1 : 2, m))
                             .collect(Collectors.toSet()),
                     listenerExactSub,
                     useCallback);
         } else {
             verifyReceivedPubsubMessages(
-                    pubsubMessages.stream()
+                    messages.stream()
                             .filter(m -> m.getPattern().isEmpty())
                             .map(m -> Pair.of(1, m))
                             .collect(Collectors.toSet()),
                     listenerExactSub,
                     useCallback);
             verifyReceivedPubsubMessages(
-                    pubsubMessages.stream()
+                    messages.stream()
                             .filter(m -> m.getPattern().isPresent())
                             .map(m -> Pair.of(2, m))
                             .collect(Collectors.toSet()),
@@ -530,8 +530,8 @@ public class PubSubTests {
         String pattern = prefix + "*";
         String shardPrefix = "{shard}";
         int numChannels = 256;
-        var pubsubMessages = new ArrayList<PubSubMessage>(numChannels * 2);
-        var shardedPubsubMessages = new ArrayList<PubSubMessage>(numChannels);
+        var messages = new ArrayList<PubSubMessage>(numChannels * 2);
+        var shardedMessages = new ArrayList<PubSubMessage>(numChannels);
         Map<PubSubClusterChannelMode, Set<String>> subscriptions =
                 Map.of(
                         PubSubClusterChannelMode.EXACT, new HashSet<>(),
@@ -541,40 +541,40 @@ public class PubSubTests {
         for (var i = 0; i < numChannels; i++) {
             var channel = i + "-" + UUID.randomUUID();
             subscriptions.get(PubSubClusterChannelMode.EXACT).add(channel);
-            var pubsubMessage = i + "-" + UUID.randomUUID();
-            pubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
+            var message = i + "-" + UUID.randomUUID();
+            messages.add(new PubSubMessage(message, channel));
         }
 
         for (var i = 0; i < numChannels; i++) {
             var channel = shardPrefix + "-" + i + "-" + UUID.randomUUID();
             subscriptions.get(PubSubClusterChannelMode.SHARDED).add(channel);
-            var pubsubMessage = i + "-" + UUID.randomUUID();
-            shardedPubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
+            var message = i + "-" + UUID.randomUUID();
+            shardedMessages.add(new PubSubMessage(message, channel));
         }
 
         for (var j = 0; j < numChannels; j++) {
-            var pubsubMessage = j + "-" + UUID.randomUUID();
+            var message = j + "-" + UUID.randomUUID();
             var channel = prefix + "-" + j + "-" + UUID.randomUUID();
-            pubsubMessages.add(new PubSubMessage(pubsubMessage, channel, pattern));
+            messages.add(new PubSubMessage(message, channel, pattern));
         }
 
         var listener = createListener(false, useCallback, 1, subscriptions);
         var sender = (RedisClusterClient) createClient(false);
         clients.addAll(List.of(listener, sender));
 
-        for (var pubsubMessage : pubsubMessages) {
+        for (var pubsubMessage : messages) {
             sender.publish(pubsubMessage.getChannel(), pubsubMessage.getMessage()).get();
         }
-        for (var pubsubMessage : shardedPubsubMessages) {
+        for (var pubsubMessage : shardedMessages) {
             assertEquals(
                     1L, sender.spublish(pubsubMessage.getChannel(), pubsubMessage.getMessage()).get());
         }
 
         Thread.sleep(MESSAGE_DELIVERY_DELAY); // deliver the messages
 
-        pubsubMessages.addAll(shardedPubsubMessages);
+        messages.addAll(shardedMessages);
         verifyReceivedPubsubMessages(
-                pubsubMessages.stream().map(m -> Pair.of(1, m)).collect(Collectors.toSet()),
+                messages.stream().map(m -> Pair.of(1, m)).collect(Collectors.toSet()),
                 listener,
                 useCallback);
     }
@@ -594,9 +594,9 @@ public class PubSubTests {
         String pattern = prefix + "*";
         String shardPrefix = "{shard}";
         int numChannels = 256;
-        var exactPubsubMessages = new ArrayList<PubSubMessage>(numChannels);
-        var patternPubsubMessages = new ArrayList<PubSubMessage>(numChannels);
-        var shardedPubsubMessages = new ArrayList<PubSubMessage>(numChannels);
+        var exactMessages = new ArrayList<PubSubMessage>(numChannels);
+        var patternMessages = new ArrayList<PubSubMessage>(numChannels);
+        var shardedMessages = new ArrayList<PubSubMessage>(numChannels);
         Map<PubSubClusterChannelMode, Set<String>> subscriptionsExact =
                 Map.of(PubSubClusterChannelMode.EXACT, new HashSet<>());
         Map<PubSubClusterChannelMode, Set<String>> subscriptionsPattern =
@@ -608,20 +608,20 @@ public class PubSubTests {
             var channel = i + "-" + UUID.randomUUID();
             subscriptionsExact.get(PubSubClusterChannelMode.EXACT).add(channel);
             var pubsubMessage = i + "-" + UUID.randomUUID();
-            exactPubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
+            exactMessages.add(new PubSubMessage(pubsubMessage, channel));
         }
 
         for (var i = 0; i < numChannels; i++) {
             var channel = shardPrefix + "-" + i + "-" + UUID.randomUUID();
             subscriptionsSharded.get(PubSubClusterChannelMode.SHARDED).add(channel);
-            var pubsubMessage = i + "-" + UUID.randomUUID();
-            shardedPubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
+            var message = i + "-" + UUID.randomUUID();
+            shardedMessages.add(new PubSubMessage(message, channel));
         }
 
         for (var j = 0; j < numChannels; j++) {
-            var pubsubMessage = j + "-" + UUID.randomUUID();
+            var message = j + "-" + UUID.randomUUID();
             var channel = prefix + "-" + j + "-" + UUID.randomUUID();
-            patternPubsubMessages.add(new PubSubMessage(pubsubMessage, channel, pattern));
+            patternMessages.add(new PubSubMessage(message, channel, pattern));
         }
 
         var listenerExact =
@@ -637,13 +637,13 @@ public class PubSubTests {
         var sender = (RedisClusterClient) createClient(false);
         clients.addAll(List.of(listenerExact, listenerPattern, listenerSharded, sender));
 
-        for (var pubsubMessage : exactPubsubMessages) {
+        for (var pubsubMessage : exactMessages) {
             sender.publish(pubsubMessage.getChannel(), pubsubMessage.getMessage()).get();
         }
-        for (var pubsubMessage : patternPubsubMessages) {
+        for (var pubsubMessage : patternMessages) {
             sender.publish(pubsubMessage.getChannel(), pubsubMessage.getMessage()).get();
         }
-        for (var pubsubMessage : shardedPubsubMessages) {
+        for (var pubsubMessage : shardedMessages) {
             assertEquals(
                     1L, sender.spublish(pubsubMessage.getChannel(), pubsubMessage.getMessage()).get());
         }
@@ -653,34 +653,34 @@ public class PubSubTests {
         if (useCallback) {
             var expected = new HashSet<Pair<Integer, PubSubMessage>>();
             expected.addAll(
-                    exactPubsubMessages.stream()
+                    exactMessages.stream()
                             .map(m -> Pair.of(PubSubClusterChannelMode.EXACT.ordinal(), m))
                             .collect(Collectors.toSet()));
             expected.addAll(
-                    patternPubsubMessages.stream()
+                    patternMessages.stream()
                             .map(m -> Pair.of(PubSubClusterChannelMode.PATTERN.ordinal(), m))
                             .collect(Collectors.toSet()));
             expected.addAll(
-                    shardedPubsubMessages.stream()
+                    shardedMessages.stream()
                             .map(m -> Pair.of(PubSubClusterChannelMode.SHARDED.ordinal(), m))
                             .collect(Collectors.toSet()));
 
             verifyReceivedPubsubMessages(expected, listenerExact, useCallback);
         } else {
             verifyReceivedPubsubMessages(
-                    exactPubsubMessages.stream()
+                    exactMessages.stream()
                             .map(m -> Pair.of(PubSubClusterChannelMode.EXACT.ordinal(), m))
                             .collect(Collectors.toSet()),
                     listenerExact,
                     useCallback);
             verifyReceivedPubsubMessages(
-                    patternPubsubMessages.stream()
+                    patternMessages.stream()
                             .map(m -> Pair.of(PubSubClusterChannelMode.PATTERN.ordinal(), m))
                             .collect(Collectors.toSet()),
                     listenerPattern,
                     useCallback);
             verifyReceivedPubsubMessages(
-                    shardedPubsubMessages.stream()
+                    shardedMessages.stream()
                             .map(m -> Pair.of(PubSubClusterChannelMode.SHARDED.ordinal(), m))
                             .collect(Collectors.toSet()),
                     listenerSharded,
@@ -699,9 +699,9 @@ public class PubSubTests {
         skipTestsOnMac();
 
         String channel = UUID.randomUUID().toString();
-        var exactPubsubMessage = new PubSubMessage(UUID.randomUUID().toString(), channel);
-        var patternPubsubMessage = new PubSubMessage(UUID.randomUUID().toString(), channel, channel);
-        var shardedPubsubMessage = new PubSubMessage(UUID.randomUUID().toString(), channel);
+        var exactMessage = new PubSubMessage(UUID.randomUUID().toString(), channel);
+        var patternMessage = new PubSubMessage(UUID.randomUUID().toString(), channel, channel);
+        var shardedMessage = new PubSubMessage(UUID.randomUUID().toString(), channel);
         Map<PubSubClusterChannelMode, Set<String>> subscriptionsExact =
                 Map.of(PubSubClusterChannelMode.EXACT, Set.of(channel));
         Map<PubSubClusterChannelMode, Set<String>> subscriptionsPattern =
@@ -717,45 +717,48 @@ public class PubSubTests {
                 (RedisClusterClient) createClientWithSubscriptions(false, subscriptionsSharded);
         clients.addAll(List.of(listenerExact, listenerPattern, listenerSharded));
 
-        assertEquals(2L, listenerPattern.publish(channel, exactPubsubMessage.getMessage()).get());
-        assertEquals(2L, listenerSharded.publish(channel, patternPubsubMessage.getMessage()).get());
-        assertEquals(1L, listenerExact.spublish(channel, shardedPubsubMessage.getMessage()).get());
+        assertEquals(2L, listenerPattern.publish(channel, exactMessage.getMessage()).get());
+        assertEquals(2L, listenerSharded.publish(channel, patternMessage.getMessage()).get());
+        assertEquals(1L, listenerExact.spublish(channel, shardedMessage.getMessage()).get());
 
         Thread.sleep(MESSAGE_DELIVERY_DELAY); // deliver the messages
 
         verifyReceivedPubsubMessages(
                 Set.of(
-                        Pair.of(PubSubClusterChannelMode.EXACT.ordinal(), exactPubsubMessage),
+                        Pair.of(PubSubClusterChannelMode.EXACT.ordinal(), exactMessage),
                         Pair.of(
                                 PubSubClusterChannelMode.EXACT.ordinal(),
-                                new PubSubMessage(patternPubsubMessage.getMessage(), channel))),
+                                new PubSubMessage(patternMessage.getMessage(), channel))),
                 listenerExact,
                 false);
         verifyReceivedPubsubMessages(
                 Set.of(
-                        Pair.of(PubSubClusterChannelMode.PATTERN.ordinal(), patternPubsubMessage),
+                        Pair.of(PubSubClusterChannelMode.PATTERN.ordinal(), patternMessage),
                         Pair.of(
                                 PubSubClusterChannelMode.PATTERN.ordinal(),
-                                new PubSubMessage(exactPubsubMessage.getMessage(), channel, channel))),
+                                new PubSubMessage(exactMessage.getMessage(), channel, channel))),
                 listenerPattern,
                 false);
         verifyReceivedPubsubMessages(
-                Set.of(Pair.of(PubSubClusterChannelMode.SHARDED.ordinal(), shardedPubsubMessage)),
+                Set.of(Pair.of(PubSubClusterChannelMode.SHARDED.ordinal(), shardedMessage)),
                 listenerSharded,
                 false);
     }
 
-    /** Similar to `test_pubsub_combined_different_channels_with_same_name` in python client tests. */
+    /**
+     * Similar to `test_pubsub_three_publishing_clients_same_name_with_sharded` in python client
+     * tests.
+     */
     @SneakyThrows
     @Test
-    public void test_pubsub_three_publishing_clients_same_name_with_sharded() {
+    public void three_publishing_clients_same_name_with_sharded_with_callback() {
         assumeTrue(REDIS_VERSION.isGreaterThanOrEqualTo("7.0.0"), "This feature added in redis 7");
         skipTestsOnMac();
 
         String channel = UUID.randomUUID().toString();
-        var exactPubsubMessage = new PubSubMessage(UUID.randomUUID().toString(), channel);
-        var patternPubsubMessage = new PubSubMessage(UUID.randomUUID().toString(), channel, channel);
-        var shardedPubsubMessage = new PubSubMessage(UUID.randomUUID().toString(), channel);
+        var exactMessage = new PubSubMessage(UUID.randomUUID().toString(), channel);
+        var patternMessage = new PubSubMessage(UUID.randomUUID().toString(), channel, channel);
+        var shardedMessage = new PubSubMessage(UUID.randomUUID().toString(), channel);
         Map<PubSubClusterChannelMode, Set<String>> subscriptionsExact =
                 Map.of(PubSubClusterChannelMode.EXACT, Set.of(channel));
         Map<PubSubClusterChannelMode, Set<String>> subscriptionsPattern =
@@ -766,33 +769,33 @@ public class PubSubTests {
         var listenerExact =
                 (RedisClusterClient)
                         createListener(
-                                false, false, PubSubClusterChannelMode.EXACT.ordinal(), subscriptionsExact);
+                                false, true, PubSubClusterChannelMode.EXACT.ordinal(), subscriptionsExact);
         var listenerPattern =
                 createListener(
-                        false, false, PubSubClusterChannelMode.PATTERN.ordinal(), subscriptionsPattern);
+                        false, true, PubSubClusterChannelMode.PATTERN.ordinal(), subscriptionsPattern);
         var listenerSharded =
                 createListener(
-                        false, false, PubSubClusterChannelMode.SHARDED.ordinal(), subscriptionsSharded);
+                        false, true, PubSubClusterChannelMode.SHARDED.ordinal(), subscriptionsSharded);
 
         clients.addAll(List.of(listenerExact, listenerPattern, listenerSharded));
 
-        assertEquals(2L, listenerPattern.publish(channel, exactPubsubMessage.getMessage()).get());
-        assertEquals(2L, listenerSharded.publish(channel, patternPubsubMessage.getMessage()).get());
-        assertEquals(1L, listenerExact.spublish(channel, shardedPubsubMessage.getMessage()).get());
+        assertEquals(2L, listenerPattern.publish(channel, exactMessage.getMessage()).get());
+        assertEquals(2L, listenerSharded.publish(channel, patternMessage.getMessage()).get());
+        assertEquals(1L, listenerExact.spublish(channel, shardedMessage.getMessage()).get());
 
         Thread.sleep(MESSAGE_DELIVERY_DELAY); // deliver the messages
 
         var expected =
                 Set.of(
-                        Pair.of(PubSubClusterChannelMode.EXACT.ordinal(), exactPubsubMessage),
+                        Pair.of(PubSubClusterChannelMode.EXACT.ordinal(), exactMessage),
                         Pair.of(
                                 PubSubClusterChannelMode.EXACT.ordinal(),
-                                new PubSubMessage(patternPubsubMessage.getMessage(), channel)),
-                        Pair.of(PubSubClusterChannelMode.PATTERN.ordinal(), patternPubsubMessage),
+                                new PubSubMessage(patternMessage.getMessage(), channel)),
+                        Pair.of(PubSubClusterChannelMode.PATTERN.ordinal(), patternMessage),
                         Pair.of(
                                 PubSubClusterChannelMode.PATTERN.ordinal(),
-                                new PubSubMessage(exactPubsubMessage.getMessage(), channel, channel)),
-                        Pair.of(PubSubClusterChannelMode.SHARDED.ordinal(), shardedPubsubMessage));
+                                new PubSubMessage(exactMessage.getMessage(), channel, channel)),
+                        Pair.of(PubSubClusterChannelMode.SHARDED.ordinal(), shardedMessage));
 
         verifyReceivedPubsubMessages(expected, listenerExact, true);
     }
@@ -845,9 +848,9 @@ public class PubSubTests {
         String pattern = prefix + "*";
         String shardPrefix = "{shard}";
         String channel = UUID.randomUUID().toString();
-        var exactPubsubMessage = new PubSubMessage(UUID.randomUUID().toString(), channel);
-        var patternPubsubMessage = new PubSubMessage(UUID.randomUUID().toString(), prefix, pattern);
-        var shardedPubsubMessage = new PubSubMessage(UUID.randomUUID().toString(), shardPrefix);
+        var exactMessage = new PubSubMessage(UUID.randomUUID().toString(), channel);
+        var patternMessage = new PubSubMessage(UUID.randomUUID().toString(), prefix, pattern);
+        var shardedMessage = new PubSubMessage(UUID.randomUUID().toString(), shardPrefix);
 
         Map<? extends ChannelMode, Set<String>> subscriptions =
                 standalone
@@ -871,15 +874,15 @@ public class PubSubTests {
         if (standalone) {
             var transaction =
                     new Transaction()
-                            .publish(exactPubsubMessage.getChannel(), exactPubsubMessage.getMessage())
-                            .publish(patternPubsubMessage.getChannel(), patternPubsubMessage.getMessage());
+                            .publish(exactMessage.getChannel(), exactMessage.getMessage())
+                            .publish(patternMessage.getChannel(), patternMessage.getMessage());
             ((RedisClient) sender).exec(transaction).get();
         } else {
             var transaction =
                     new ClusterTransaction()
-                            .spublish(shardedPubsubMessage.getChannel(), shardedPubsubMessage.getMessage())
-                            .publish(exactPubsubMessage.getChannel(), exactPubsubMessage.getMessage())
-                            .publish(patternPubsubMessage.getChannel(), patternPubsubMessage.getMessage());
+                            .spublish(shardedMessage.getChannel(), shardedMessage.getMessage())
+                            .publish(exactMessage.getChannel(), exactMessage.getMessage())
+                            .publish(patternMessage.getChannel(), patternMessage.getMessage());
             ((RedisClusterClient) sender).exec(transaction).get();
         }
 
@@ -887,11 +890,9 @@ public class PubSubTests {
 
         var expected =
                 standalone
-                        ? Set.of(Pair.of(1, exactPubsubMessage), Pair.of(1, patternPubsubMessage))
+                        ? Set.of(Pair.of(1, exactMessage), Pair.of(1, patternMessage))
                         : Set.of(
-                                Pair.of(1, exactPubsubMessage),
-                                Pair.of(1, patternPubsubMessage),
-                                Pair.of(1, shardedPubsubMessage));
+                                Pair.of(1, exactMessage), Pair.of(1, patternMessage), Pair.of(1, shardedMessage));
         verifyReceivedPubsubMessages(expected, listener, useCallback);
     }
 }
