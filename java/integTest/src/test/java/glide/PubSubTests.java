@@ -133,7 +133,7 @@ public class PubSubTests {
         } else {
             var received = new HashSet<PubSubMessage>(PubsubMessages.size());
             PubSubMessage PubsubMessage;
-            while ((PubsubMessage = listener.trygetMessage()) != null) {
+            while ((PubsubMessage = listener.tryGetPubSubMessage()) != null) {
                 received.add(PubsubMessage);
             }
             assertEquals(
