@@ -606,9 +606,7 @@ async def transaction_test(
         transaction.bzmpop([key16], ScoreFilter.MIN, 0.1, 2)
         args.append([key16, {"a": 1.0, "b": 2.0}])
 
-        transaction.set(key23, "abcd1234")
-        args.append(OK)
-        transaction.set(key24, "bcdef1234")
+        transaction.mset({key23: "abcd1234", key24: "bcdef1234"})
         args.append(OK)
         transaction.lcs(key23, key24)
         args.append("bcd1234")

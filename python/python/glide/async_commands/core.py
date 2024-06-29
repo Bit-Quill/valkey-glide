@@ -5481,7 +5481,7 @@ class CoreCommands(Protocol):
             >>> await client.mset({"testKey1" : "abcd", "testKey2": "axcd"})
                 'OK'
             >>> await client.lcs_len("testKey1", "testKey2")
-                3  # the length of the longest common subsequence between these 2 stings is 2.
+                3  # the length of the longest common subsequence between these 2 strings is 2.
 
         Since: Redis version 7.0.0.
         """
@@ -5510,7 +5510,7 @@ class CoreCommands(Protocol):
             with_match_len (Optional[bool]): If True, include the length of the substring matched for each substring.
 
         Returns:
-            A Map containing the indices of the longest common subsequence between the
+            A Mapping containing the indices of the longest common subsequence between the
             2 strings and the length of the longest common subsequence. The resulting map contains two
             keys, "matches" and "len":
                 - "len" is mapped to the length of the longest common subsequence between the 2 strings.
