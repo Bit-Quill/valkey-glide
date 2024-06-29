@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.BaseClient;
@@ -162,7 +163,7 @@ public class PubSubTests {
 
     // TODO: remove once fixed
     private void skipTestsOnMac() {
-        assumeTrue(
+        assumeFalse(
                 System.getProperty("os.name").toLowerCase().contains("mac"),
                 "PubSub doesn't work on mac OS");
     }
