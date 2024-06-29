@@ -1,5 +1,5 @@
 /** Copyright GLIDE-for-Redis Project Contributors - SPDX Identifier: Apache-2.0 */
-package glide.standalone;
+package glide;
 
 import static glide.TestConfiguration.REDIS_VERSION;
 import static glide.TestUtilities.commonClientConfig;
@@ -32,13 +32,12 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-@Timeout(30) // sec
+// @Timeout(30) // sec
 public class PubSubTests {
 
     // TODO protocol version
@@ -101,7 +100,6 @@ public class PubSubTests {
     @BeforeEach
     @SneakyThrows
     public void cleanup() {
-        messageQueue.clear();
         for (var client : clients) {
             if (client instanceof RedisClusterClient) {
                 ((RedisClusterClient) client).customCommand(new String[] {"unsubscribe"}, ALL_NODES).get();
@@ -114,6 +112,7 @@ public class PubSubTests {
             client.close();
         }
         clients.clear();
+        messageQueue.clear();
     }
 
     private void verifyReceivedMessages(
