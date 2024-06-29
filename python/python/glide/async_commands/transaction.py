@@ -3859,6 +3859,28 @@ class BaseTransaction:
                 args.extend(str(var))
         return self.append_command(RequestType.Lolwut, args)
 
+    def wait(
+        self: TTransaction,
+        numreplicas: int,
+        timeout: int,
+    ) -> TTransaction:
+        """
+        Blocks the current client until all the previous write commands are successfully transferred
+        and acknowledged by at least `numreplicas` of replicas. If `timeout` is
+        reached, the command returns even if the specified number of replicas were not yet reached.
+
+        See https://valkey.io/commands/wait for more details.
+
+        Args:
+            numreplicas (int): The number of replicas to reach.
+            timeout (int): The timeout value specified in milliseconds.
+
+        Command Response:
+            str: The number of replicas reached by all the writes performed in the context of the current connection.
+        """
+        args = [str(numreplicas), str(timeout)]
+        return self.append_command(RequestType.Wait, args)
+
 
 class Transaction(BaseTransaction):
     """
@@ -4040,28 +4062,6 @@ class Transaction(BaseTransaction):
 
         return self.append_command(RequestType.Copy, args)
 
-    def wait(
-        self: TTransaction,
-        numreplicas: int,
-        timeout: int,
-    ) -> TTransaction:
-        """
-        Blocks the current client until all the previous write commands are successfully transferred
-        and acknowledged by at least `numreplicas` of replicas. If `timeout` is
-        reached, the command returns even if the specified number of replicas were not yet reached.
-
-        See https://valkey.io/commands/wait for more details.
-
-        Args:
-            numreplicas (int): The number of replicas to reach.
-            timeout (int): The timeout value specified in milliseconds.
-
-        Command Response:
-            str: The number of replicas reached by all the writes performed in the context of the current connection.
-        """
-        args = [str(numreplicas), str(timeout)]
-        return self.append_command(RequestType.Wait, args)
-
 
 class ClusterTransaction(BaseTransaction):
     """
@@ -4156,27 +4156,5 @@ class ClusterTransaction(BaseTransaction):
             args.append("REPLACE")
 
         return self.append_command(RequestType.Copy, args)
-
-    def wait(
-        self: TTransaction,
-        numreplicas: int,
-        timeout: int,
-    ) -> TTransaction:
-        """
-        Blocks the current client until all the previous write commands are successfully transferred
-        and acknowledged by at least `numreplicas` of replicas. If `timeout` is
-        reached, the command returns even if the specified number of replicas were not yet reached.
-
-        See https://valkey.io/commands/wait for more details.
-
-        Args:
-            numreplicas (int): The number of replicas to reach.
-            timeout (int): The timeout value specified in milliseconds.
-
-        Command Response:
-            str: The number of replicas reached by all the writes performed in the context of the current connection.
-        """
-        args = [str(numreplicas), str(timeout)]
-        return self.append_command(RequestType.Wait, args)
 
     # TODO: add all CLUSTER commands
