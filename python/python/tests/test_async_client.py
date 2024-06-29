@@ -7115,13 +7115,16 @@ class TestCommands:
         nonexistent_key = "nonexistent_key"
         expected_subsequence = "acd"
         expected_subsequence_with_nonexistent_key = ""
-        assert await redis_client.set(key1, value1) == OK
-        assert await redis_client.set(key2, value2) == OK
+        assert await redis_client.mset({key1: value1, key2: value2}) == OK
         assert await redis_client.lcs(key1, key2) == expected_subsequence
         assert (
             await redis_client.lcs(key1, nonexistent_key)
             == expected_subsequence_with_nonexistent_key
         )
+        lcs_non_string_key = "lcs_non_string_key"
+        assert await redis_client.sadd(lcs_non_string_key, ["Hello", "world"]) == 2
+        with pytest.raises(RequestError):
+            await redis_client.lcs(key1, lcs_non_string_key)
 
     @pytest.mark.parametrize("cluster_mode", [False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
@@ -7136,17 +7139,20 @@ class TestCommands:
         nonexistent_key = "nonexistent_key"
         expected_subsequence_length = 3
         expected_subsequence_length_with_nonexistent_key = 0
-        assert await redis_client.set(key1, value1) == OK
-        assert await redis_client.set(key2, value2) == OK
+        assert await redis_client.mset({key1: value1, key2: value2}) == OK
         assert await redis_client.lcs_len(key1, key2) == expected_subsequence_length
         assert (
             await redis_client.lcs_len(key1, nonexistent_key)
             == expected_subsequence_length_with_nonexistent_key
         )
+        lcs_non_string_key = "lcs_non_string_key"
+        assert await redis_client.sadd(lcs_non_string_key, ["Hello", "world"]) == 2
+        with pytest.raises(RequestError):
+            await redis_client.lcs_len(key1, lcs_non_string_key)
 
     @pytest.mark.parametrize("cluster_mode", [False])
     @pytest.mark.parametrize("protocol", [ProtocolVersion.RESP2, ProtocolVersion.RESP3])
-    async def test_lcs_len_idx(self, redis_client: GlideClient):
+    async def test_lcs_idx(self, redis_client: GlideClient):
         min_version = "7.0.0"
         if await check_if_server_version_lt(redis_client, min_version):
             return pytest.mark.skip(reason=f"Redis version required >= {min_version}")
@@ -7192,12 +7198,21 @@ class TestCommands:
             ],
             "len": 7,
         }
+        expected_response_with_min_match_len_equals_four_and_with_match_len = {
+            "matches": [
+                [
+                    [4, 7],
+                    [5, 8],
+                    4,
+                ],
+            ],
+            "len": 7,
+        }
         expected_response_with_nonexistent_key = {
             "matches": [],
             "len": 0,
         }
-        assert await redis_client.set(key1, value1) == OK
-        assert await redis_client.set(key2, value2) == OK
+        assert await redis_client.mset({key1: value1, key2: value2}) == OK
         assert (
             await redis_client.lcs_idx(key1, key2)
             == expected_response_no_min_match_len_no_with_match_len
@@ -7207,13 +7222,26 @@ class TestCommands:
             == expected_response_with_min_match_len_equals_four_no_with_match_len
         )
         assert (
+            # negative min_match_len should have no affect on the output
+            await redis_client.lcs_idx(key1, key2, min_match_len=-3)
+            == expected_response_no_min_match_len_no_with_match_len
+        )
+        assert (
             await redis_client.lcs_idx(key1, key2, with_match_len=True)
             == expected_response_no_min_match_len_with_match_len
+        )
+        assert (
+            await redis_client.lcs_idx(key1, key2, min_match_len=4, with_match_len=True)
+            == expected_response_with_min_match_len_equals_four_and_with_match_len
         )
         assert (
             await redis_client.lcs_idx(key1, nonexistent_key)
             == expected_response_with_nonexistent_key
         )
+        lcs_non_string_key = "lcs_non_string_key"
+        assert await redis_client.sadd(lcs_non_string_key, ["Hello", "world"]) == 2
+        with pytest.raises(RequestError):
+            await redis_client.lcs_idx(key1, lcs_non_string_key)
 
 
 class TestMultiKeyCommandCrossSlot:
