@@ -372,7 +372,7 @@ public class PubSubTests {
         var subscriptions = Map.of(mode, Set.of(pattern));
 
         for (var i = 0; i < numChannels; i++) {
-            var channel = i + "-" + UUID.randomUUID();
+            var channel = prefix + "-" + i + "-" + UUID.randomUUID();
             for (var j = 0; j < pubsubMessagesPerChannel; j++) {
                 var pubsubMessage = i + "-" + j + "-" + UUID.randomUUID();
                 pubsubMessages.add(new PubSubMessage(pubsubMessage, channel));
@@ -425,7 +425,7 @@ public class PubSubTests {
 
         for (var j = 0; j < pubsubMessagesPerChannel; j++) {
             var pubsubMessage = UUID.randomUUID().toString();
-            var channel = prefix + UUID.randomUUID();
+            var channel = prefix + "-" + j + "-" + UUID.randomUUID();
             pubsubMessages.add(new PubSubMessage(pubsubMessage, channel, pattern));
         }
 
@@ -469,7 +469,7 @@ public class PubSubTests {
 
         for (var j = 0; j < numChannels; j++) {
             var pubsubMessage = j + "-" + UUID.randomUUID();
-            var channel = prefix + UUID.randomUUID();
+            var channel = prefix + "-" + j + "-" + UUID.randomUUID();
             pubsubMessages.add(new PubSubMessage(pubsubMessage, channel, pattern));
         }
 
