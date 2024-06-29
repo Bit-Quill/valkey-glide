@@ -8,7 +8,7 @@ import lombok.Getter;
 /** PubSub message received by the client. */
 @Getter
 @EqualsAndHashCode
-public class PubsubMessage {
+public class PubSubMessage {
     /** An incoming message received. */
     private final String message;
 
@@ -18,13 +18,13 @@ public class PubsubMessage {
     /** A pattern matched to the channel name. */
     private final Optional<String> pattern;
 
-    public PubsubMessage(String message, String channel, String pattern) {
+    public PubSubMessage(String message, String channel, String pattern) {
         this.message = message;
         this.channel = channel;
         this.pattern = Optional.ofNullable(pattern);
     }
 
-    public PubsubMessage(String message, String channel) {
+    public PubSubMessage(String message, String channel) {
         this.message = message;
         this.channel = channel;
         this.pattern = Optional.empty();
