@@ -127,7 +127,7 @@ public class PubSubTests {
     }
 
     private void verifyReceivedPubsubMessages(
-        Set<Pair<Integer, PubSubMessage>> PubsubMessages, BaseClient listener, boolean callback) {
+            Set<Pair<Integer, PubSubMessage>> PubsubMessages, BaseClient listener, boolean callback) {
         if (callback) {
             assertEquals(PubsubMessages, new HashSet<>(PubsubMessageQueue));
         } else {
