@@ -723,17 +723,17 @@ public interface StreamBaseCommands {
      * @param minIdleTime The minimum idle time for the message to be claimed.
      * @param ids A array of entry ids.
      * @return A <code>Map</code> of message entries with the format <code>
-     *     {"entryId": ["entry", "data"], ...}</code> that are claimed by the consumer.
+     *     {"entryId": [["entry", "data"], ...], ...}</code> that are claimed by the consumer.
      * @example
      *     <pre>
      * // read messages from streamId for consumer1
      * var readResult = client.xreadgroup(Map.of("mystream", entryId), "mygroup", "consumer1").get();
      * // assign unclaimed messages to consumer2
-     * Map<String, String[]> results = client.xclaim("mystream", "mygroup", "consumer2", 0L, new String[] {entryId}).get();
+     * Map<String, String[][]> results = client.xclaim("mystream", "mygroup", "consumer2", 0L, new String[] {entryId}).get();
      *  for (String key: results.keySet()) {
      *      System.out.println(key);
-     *      for (int i=0; i<results.get(key).length+1; i=i+2) {
-     *          System.out.println("  {" + results.get(key)[i] + ":" + results.get(key)[i+1] + "}");
+     *      for (String[] entry: results.get(key)) {
+     *          System.out.printf("{%s=%s}%n", entry[0], entry[1]);
      *      }
      * }
      * </pre>
@@ -752,7 +752,7 @@ public interface StreamBaseCommands {
      * @param ids An array of entry ids.
      * @param options Stream claim options {@link StreamClaimOptions}.
      * @return A <code>Map</code> of message entries with the format <code>
-     *     {"entryId": ["entry", "data"], ...}</code> that are claimed by the consumer.
+     *     {"entryId": [["entry", "data"], ...], ...}</code> that are claimed by the consumer.
      * @example
      *     <pre>
      * // assign (force) unread and unclaimed messages to consumer2
@@ -760,8 +760,8 @@ public interface StreamBaseCommands {
      * Map<String, String[]> results = client.xclaim("mystream", "mygroup", "consumer2", 0L, new String[] {entryId}, options).get();
      *  for (String key: results.keySet()) {
      *      System.out.println(key);
-     *      for (int i=0; i<results.get(key).length+1; i=i+2) {
-     *          System.out.println("  {" + results.get(key)[i] + ":" + results.get(key)[i+1] + "}");
+     *      for (String[] entry: results.get(key)) {
+     *          System.out.printf("{%s=%s}%n", entry[0], entry[1]);
      *      }
      * }
      * </pre>
