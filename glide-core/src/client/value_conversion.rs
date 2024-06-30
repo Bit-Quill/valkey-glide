@@ -1195,14 +1195,29 @@ mod tests {
     #[test]
     fn convert_xclaim() {
         assert!(matches!(
-            expected_type_for_cmd(redis::cmd("XCLAIM").arg("key").arg("grou").arg("consumer").arg("0").arg("id")),
+            expected_type_for_cmd(
+                redis::cmd("XCLAIM")
+                    .arg("key")
+                    .arg("grou")
+                    .arg("consumer")
+                    .arg("0")
+                    .arg("id")
+            ),
             Some(ExpectedReturnType::Map {
                 key_type: &Some(ExpectedReturnType::SimpleString),
                 value_type: &Some(ExpectedReturnType::ArrayOfStrings),
             })
         ));
         assert!(matches!(
-            expected_type_for_cmd(redis::cmd("XCLAIM").arg("key").arg("grou").arg("consumer").arg("0").arg("id").arg("JUSTID")),
+            expected_type_for_cmd(
+                redis::cmd("XCLAIM")
+                    .arg("key")
+                    .arg("grou")
+                    .arg("consumer")
+                    .arg("0")
+                    .arg("id")
+                    .arg("JUSTID")
+            ),
             Some(ExpectedReturnType::ArrayOfStrings)
         ));
     }
