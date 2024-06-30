@@ -6,6 +6,7 @@ import static glide.api.models.commands.SortBaseOptions.STORE_COMMAND_STRING;
 import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldReadOnlySubCommands;
 import static glide.api.models.commands.bitmap.BitFieldOptions.BitFieldSubCommands;
 import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArgs;
+import static glide.api.models.commands.stream.StreamClaimOptions.JUST_ID_REDIS_API;
 import static glide.ffi.resolvers.SocketListenerResolver.getSocket;
 import static glide.utils.ArrayTransformUtils.cast3DArray;
 import static glide.utils.ArrayTransformUtils.castArray;
@@ -2108,8 +2109,8 @@ public abstract class BaseClient
             @NonNull String[] ids,
             @NonNull StreamClaimOptions options) {
         String[] args =
-                concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
-        args = concatenateArrays(args, options.toArgs(false));
+                concatenateArrays(
+                        new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids, options.toArgs());
         return commandManager.submitNewCommand(XClaim, args, this::handleMapResponse);
     }
 
@@ -2120,8 +2121,13 @@ public abstract class BaseClient
             @NonNull String consumer,
             long minIdleTime,
             @NonNull String[] ids) {
-        return xclaimJustId(
-                key, group, consumer, minIdleTime, ids, StreamClaimOptions.builder().build());
+        String[] args =
+                concatenateArrays(
+                        new String[] {key, group, consumer, Long.toString(minIdleTime)},
+                        ids,
+                        new String[] {JUST_ID_REDIS_API});
+        return commandManager.submitNewCommand(
+                XClaim, args, response -> castArray(handleArrayResponse(response), String.class));
     }
 
     @Override
@@ -2133,8 +2139,11 @@ public abstract class BaseClient
             @NonNull String[] ids,
             @NonNull StreamClaimOptions options) {
         String[] args =
-                concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
-        args = concatenateArrays(args, options.toArgs(true));
+                concatenateArrays(
+                        new String[] {key, group, consumer, Long.toString(minIdleTime)},
+                        ids,
+                        options.toArgs(),
+                        new String[] {JUST_ID_REDIS_API});
         return commandManager.submitNewCommand(
                 XClaim, args, response -> castArray(handleArrayResponse(response), String.class));
     }

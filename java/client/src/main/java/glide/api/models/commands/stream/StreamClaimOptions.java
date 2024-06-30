@@ -30,9 +30,6 @@ public class StreamClaimOptions {
     /** Redis api string to designate JUSTID */
     public static final String JUST_ID_REDIS_API = "JUSTID";
 
-    /** Redis api string to designate LASTID */
-    public static final String LAST_ID_REDIS_API = "LASTID";
-
     /**
      * Set the idle time (last time it was delivered) of the message. If <code>idle</code> is not
      * specified, an <code>idle</code> of <code>0</code> is assumed, that is, the time count is reset
@@ -63,9 +60,6 @@ public class StreamClaimOptions {
      */
     private final boolean isForce;
 
-    /** Filter up to the <code>lastid</code> when claiming messages */
-    private final String lastId;
-
     public static class StreamClaimOptionsBuilder {
 
         /**
@@ -83,7 +77,7 @@ public class StreamClaimOptions {
      *
      * @return String[]
      */
-    public String[] toArgs(boolean isJustId) {
+    public String[] toArgs() {
         List<String> optionArgs = new ArrayList<>();
 
         if (idle != null) {
@@ -103,15 +97,6 @@ public class StreamClaimOptions {
 
         if (isForce) {
             optionArgs.add(FORCE_REDIS_API);
-        }
-
-        if (isJustId) {
-            optionArgs.add(JUST_ID_REDIS_API);
-        }
-
-        if (lastId != null) {
-            optionArgs.add(LAST_ID_REDIS_API);
-            optionArgs.add(lastId);
         }
 
         return optionArgs.toArray(new String[0]);

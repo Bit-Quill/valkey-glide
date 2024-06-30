@@ -858,7 +858,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
                 Some(ExpectedReturnType::ArrayOfStrings)
             } else {
                 Some(ExpectedReturnType::Map {
-                    key_type: &Some(ExpectedReturnType::BulkString),
+                    key_type: &Some(ExpectedReturnType::SimpleString),
                     value_type: &Some(ExpectedReturnType::ArrayOfStrings),
                 })
             }
@@ -1190,6 +1190,21 @@ mod tests {
             Some(ExpectedReturnType::Lolwut),
         );
         assert!(converted_4.is_err());
+    }
+
+    #[test]
+    fn convert_xclaim() {
+        assert!(matches!(
+            expected_type_for_cmd(redis::cmd("XCLAIM").arg("key").arg("grou").arg("consumer").arg("0").arg("id")),
+            Some(ExpectedReturnType::Map {
+                key_type: &Some(ExpectedReturnType::SimpleString),
+                value_type: &Some(ExpectedReturnType::ArrayOfStrings),
+            })
+        ));
+        assert!(matches!(
+            expected_type_for_cmd(redis::cmd("XCLAIM").arg("key").arg("grou").arg("consumer").arg("0").arg("id").arg("JUSTID")),
+            Some(ExpectedReturnType::ArrayOfStrings)
+        ));
     }
 
     #[test]

@@ -36,7 +36,6 @@ import static glide.api.models.commands.stream.StreamGroupOptions.MAKE_STREAM_VA
 import static glide.api.models.commands.stream.StreamClaimOptions.FORCE_REDIS_API;
 import static glide.api.models.commands.stream.StreamClaimOptions.IDLE_REDIS_API;
 import static glide.api.models.commands.stream.StreamClaimOptions.JUST_ID_REDIS_API;
-import static glide.api.models.commands.stream.StreamClaimOptions.LAST_ID_REDIS_API;
 import static glide.api.models.commands.stream.StreamClaimOptions.RETRY_COUNT_REDIS_API;
 import static glide.api.models.commands.stream.StreamClaimOptions.TIME_REDIS_API;
 import static glide.api.models.commands.stream.StreamGroupOptions.ENTRIES_READ_REDIS_API;
@@ -909,13 +908,7 @@ public class TransactionTests {
         results.add(Pair.of(XClaim, buildArgs("key", "group", "consumer", "99", "12345-1", "98765-4")));
 
         StreamClaimOptions claimOptions =
-                StreamClaimOptions.builder()
-                        .force()
-                        .idle(11L)
-                        .idleUnixTime(12L)
-                        .retryCount(5L)
-                        .lastId("2345-5")
-                        .build();
+                StreamClaimOptions.builder().force().idle(11L).idleUnixTime(12L).retryCount(5L).build();
         transaction.xclaim(
                 "key", "group", "consumer", 99L, new String[] {"12345-1", "98765-4"}, claimOptions);
         results.add(
@@ -934,9 +927,7 @@ public class TransactionTests {
                                 "12",
                                 RETRY_COUNT_REDIS_API,
                                 "5",
-                                FORCE_REDIS_API,
-                                LAST_ID_REDIS_API,
-                                "2345-5")));
+                                FORCE_REDIS_API)));
 
         transaction.xclaimJustId("key", "group", "consumer", 99L, new String[] {"12345-1", "98765-4"});
         results.add(
@@ -963,9 +954,7 @@ public class TransactionTests {
                                 RETRY_COUNT_REDIS_API,
                                 "5",
                                 FORCE_REDIS_API,
-                                JUST_ID_REDIS_API,
-                                LAST_ID_REDIS_API,
-                                "2345-5")));
+                                JUST_ID_REDIS_API)));
 
         transaction.time();
         results.add(Pair.of(Time, buildArgs()));

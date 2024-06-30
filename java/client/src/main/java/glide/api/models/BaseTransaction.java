@@ -20,6 +20,7 @@ import static glide.api.models.commands.bitmap.BitFieldOptions.createBitFieldArg
 import static glide.api.models.commands.function.FunctionListOptions.LIBRARY_NAME_REDIS_API;
 import static glide.api.models.commands.function.FunctionListOptions.WITH_CODE_REDIS_API;
 import static glide.api.models.commands.function.FunctionLoadOptions.REPLACE;
+import static glide.api.models.commands.stream.StreamClaimOptions.JUST_ID_REDIS_API;
 import static glide.utils.ArrayTransformUtils.concatenateArrays;
 import static glide.utils.ArrayTransformUtils.convertMapToKeyValueStringArray;
 import static glide.utils.ArrayTransformUtils.convertMapToValueKeyStringArray;
@@ -3349,7 +3350,10 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull String consumer,
             long minIdleTime,
             @NonNull String[] ids) {
-        return xclaim(key, group, consumer, minIdleTime, ids, StreamClaimOptions.builder().build());
+        String[] args =
+                concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
+        protobufTransaction.addCommands(buildCommand(XClaim, buildArgs(args)));
+        return getThis();
     }
 
     /**
@@ -3373,8 +3377,8 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull String[] ids,
             @NonNull StreamClaimOptions options) {
         String[] args =
-                concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
-        args = concatenateArrays(args, options.toArgs(false));
+                concatenateArrays(
+                        new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids, options.toArgs());
         protobufTransaction.addCommands(buildCommand(XClaim, buildArgs(args)));
         return getThis();
     }
@@ -3397,8 +3401,13 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull String consumer,
             long minIdleTime,
             @NonNull String[] ids) {
-        return xclaimJustId(
-                key, group, consumer, minIdleTime, ids, StreamClaimOptions.builder().build());
+        String[] args =
+                concatenateArrays(
+                        new String[] {key, group, consumer, Long.toString(minIdleTime)},
+                        ids,
+                        new String[] {JUST_ID_REDIS_API});
+        protobufTransaction.addCommands(buildCommand(XClaim, buildArgs(args)));
+        return getThis();
     }
 
     /**
@@ -3422,8 +3431,11 @@ public abstract class BaseTransaction<T extends BaseTransaction<T>> {
             @NonNull String[] ids,
             @NonNull StreamClaimOptions options) {
         String[] args =
-                concatenateArrays(new String[] {key, group, consumer, Long.toString(minIdleTime)}, ids);
-        args = concatenateArrays(args, options.toArgs(true));
+                concatenateArrays(
+                        new String[] {key, group, consumer, Long.toString(minIdleTime)},
+                        ids,
+                        options.toArgs(),
+                        new String[] {JUST_ID_REDIS_API});
         protobufTransaction.addCommands(buildCommand(XClaim, buildArgs(args)));
         return getThis();
     }

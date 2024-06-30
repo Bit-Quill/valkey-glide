@@ -48,7 +48,6 @@ import static glide.api.models.commands.stream.StreamGroupOptions.MAKE_STREAM_VA
 import static glide.api.models.commands.stream.StreamClaimOptions.FORCE_REDIS_API;
 import static glide.api.models.commands.stream.StreamClaimOptions.IDLE_REDIS_API;
 import static glide.api.models.commands.stream.StreamClaimOptions.JUST_ID_REDIS_API;
-import static glide.api.models.commands.stream.StreamClaimOptions.LAST_ID_REDIS_API;
 import static glide.api.models.commands.stream.StreamClaimOptions.RETRY_COUNT_REDIS_API;
 import static glide.api.models.commands.stream.StreamClaimOptions.TIME_REDIS_API;
 import static glide.api.models.commands.stream.StreamGroupOptions.ENTRIES_READ_REDIS_API;
@@ -6105,13 +6104,7 @@ public class RedisClientTest {
         Long minIdleTime = 18L;
         String[] ids = new String[] {"testId"};
         StreamClaimOptions options =
-                StreamClaimOptions.builder()
-                        .force()
-                        .idle(11L)
-                        .idleUnixTime(12L)
-                        .retryCount(5L)
-                        .lastId("2345-5")
-                        .build();
+                StreamClaimOptions.builder().force().idle(11L).idleUnixTime(12L).retryCount(5L).build();
         String[] arguments =
                 new String[] {
                     key,
@@ -6125,9 +6118,7 @@ public class RedisClientTest {
                     "12",
                     RETRY_COUNT_REDIS_API,
                     "5",
-                    FORCE_REDIS_API,
-                    LAST_ID_REDIS_API,
-                    "2345-5"
+                    FORCE_REDIS_API
                 };
         Map<String, String[]> mockResult = Map.of("1234-0", new String[] {"message", "log"});
 
@@ -6187,13 +6178,7 @@ public class RedisClientTest {
         Long minIdleTime = 18L;
         String[] ids = new String[] {"testId"};
         StreamClaimOptions options =
-                StreamClaimOptions.builder()
-                        .force()
-                        .idle(11L)
-                        .idleUnixTime(12L)
-                        .retryCount(5L)
-                        .lastId("2345-5")
-                        .build();
+                StreamClaimOptions.builder().force().idle(11L).idleUnixTime(12L).retryCount(5L).build();
         String[] arguments =
                 new String[] {
                     key,
@@ -6208,9 +6193,7 @@ public class RedisClientTest {
                     RETRY_COUNT_REDIS_API,
                     "5",
                     FORCE_REDIS_API,
-                    JUST_ID_REDIS_API,
-                    LAST_ID_REDIS_API,
-                    "2345-5"
+                    JUST_ID_REDIS_API
                 };
         String[] mockResult = {"message", "log"};
 
