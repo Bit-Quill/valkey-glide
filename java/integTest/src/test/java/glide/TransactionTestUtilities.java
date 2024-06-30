@@ -910,16 +910,9 @@ public class TransactionTestUtilities {
                     streamKey1,
                     Map.of()), // xreadgroup(Map.of(streamKey1, ">"), groupName1, consumer1, options);
             Map.of(), // xclaim(streamKey1, groupName1, consumer1, 0L, new String[] {"0-1"})
-            Map.of(
-                    "0-3",
-                    new String[] {
-                        "field3", "value3"
-                    }), // xclaim(streamKey1, groupName1, consumer1, 0L, {"0-3"}, options)
-            new String[] {
-                "0-3"
-            }, // xclaimJustId(streamKey1, groupName1, consumer1, 0L, new String[] {"0-3"})
-            new String
-                    [0], // xclaimJustId(streamKey1, groupName1, consumer1, 0L, new String[] {"0-4"}, options)
+            Map.of("0-3", new String[] {"field3", "value3"}), // xclaim(streamKey1, ..., {"0-3"}, options)
+            new String[] {"0-3"}, // xclaimJustId(streamKey1, ..., new String[] {"0-3"})
+            new String[0], // xclaimJustId(streamKey1, ..., new String[] {"0-4"}, options)
             new Object[] {
                 1L, "0-3", "0-3", new Object[][] {{consumer1, "1"}}
             }, // xpending(streamKey1, groupName1)

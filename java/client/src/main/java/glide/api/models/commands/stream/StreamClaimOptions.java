@@ -10,46 +10,46 @@ import lombok.Builder;
  * Optional arguments to {@link StreamBaseCommands#xclaim(String, String, String, long, String[],
  * StreamClaimOptions)}
  *
- * @see <a href="https://redis.io/commands/xclaim/">redis.io</a>
+ * @see <a href="https://valkey.io/commands/xclaim/">valkey.io</a>
  */
 @Builder
 public class StreamClaimOptions {
 
-    /** Redis api string to designate IDLE time in milliseconds */
+    /** ValKey API string to designate IDLE time in milliseconds */
     public static final String IDLE_REDIS_API = "IDLE";
 
-    /** Redis api string to designate TIME time in unix-milliseconds */
+    /** ValKey API string to designate TIME time in unix-milliseconds */
     public static final String TIME_REDIS_API = "TIME";
 
-    /** Redis api string to designate RETRYCOUNT */
+    /** ValKey API string to designate RETRYCOUNT */
     public static final String RETRY_COUNT_REDIS_API = "RETRYCOUNT";
 
-    /** Redis api string to designate FORCE */
+    /** ValKey API string to designate FORCE */
     public static final String FORCE_REDIS_API = "FORCE";
 
-    /** Redis api string to designate JUSTID */
+    /** ValKey API string to designate JUSTID */
     public static final String JUST_ID_REDIS_API = "JUSTID";
 
     /**
-     * Set the idle time (last time it was delivered) of the message. If <code>idle</code> is not
-     * specified, an <code>idle</code> of <code>0</code> is assumed, that is, the time count is reset
-     * because the message has now a new owner trying to process it.
+     * Set the idle time (last time it was delivered) of the message in milliseconds. If <code>idle
+     * </code> is not specified, an <code>idle</code> of <code>0</code> is assumed, that is, the time
+     * count is reset because the message now has a new owner trying to process it.
      */
     private final Long idle; // in milliseconds
 
     /**
-     * This is the same as idle but instead of a relative amount of milliseconds, it sets the idle
-     * time to a specific Unix time (in milliseconds). This is useful in order to rewrite the AOF file
-     * generating <code>XCLAIM</code> commands.
+     * This is the same as {@link #idle} but instead of a relative amount of milliseconds, it sets the
+     * idle time to a specific Unix time (in milliseconds). This is useful in order to rewrite the AOF
+     * file generating <code>XCLAIM</code> commands.
      */
     private final Long idleUnixTime; // in unix-time milliseconds
 
     /**
      * Set the retry counter to the specified value. This counter is incremented every time a message
-     * is delivered again. Normally <code>XCLAIM</code> does not alter this counter, which is just
-     * served to clients when the <code>XPENDING</code> command is called: this way clients can detect
-     * anomalies, like messages that are never processed for some reason after a big number of
-     * delivery attempts.
+     * is delivered again. Normally {@link StreamBaseCommands#xclaim} does not alter this counter,
+     * which is just served to clients when the {@link StreamBaseCommands#xpending} command is called:
+     * this way clients can detect anomalies, like messages that are never processed for some reason
+     * after a big number of delivery attempts.
      */
     private final Long retryCount;
 

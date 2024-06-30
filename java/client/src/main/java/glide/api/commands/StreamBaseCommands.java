@@ -721,9 +721,9 @@ public interface StreamBaseCommands {
      * @param group The consumer group name.
      * @param consumer The group consumer.
      * @param minIdleTime The minimum idle time for the message to be claimed.
-     * @param ids An array of entry ids.
-     * @return An <code>array</code> of message entries with the format <code>
-     *     [[id, ["entry", "data"]], ...]</code> that are claimed by the consumer.
+     * @param ids A array of entry ids.
+     * @return A <code>Map</code> of message entries with the format <code>
+     *     {"entryId": ["entry", "data"], ...}</code> that are claimed by the consumer.
      * @example
      *     <pre>
      * </pre>
@@ -741,8 +741,8 @@ public interface StreamBaseCommands {
      * @param minIdleTime The minimum idle time for the message to be claimed.
      * @param ids An array of entry ids.
      * @param options Stream claim options {@link StreamClaimOptions}.
-     * @return An <code>array</code> of message entries with the format <code>
-     *     [[id, ["entry", "data"]], ...]</code> that are claimed by the consumer.
+     * @return A <code>Map</code> of message entries with the format <code>
+     *     {"entryId": ["entry", "data"], ...}</code> that are claimed by the consumer.
      */
     CompletableFuture<Map<String, String[]>> xclaim(
             String key,
@@ -753,8 +753,8 @@ public interface StreamBaseCommands {
             StreamClaimOptions options);
 
     /**
-     * Changes the ownership of a pending message. This command uses the JUSTID optional argument to
-     * return a list of stream message ids.
+     * Changes the ownership of a pending message. This function returns an <code>array</code> with
+     * only the message/entry IDs, and is equivalent to using <code>JUSTID</code> in the Redis API.
      *
      * @see <a href="https://valkey.io/commands/xclaim/">valkey.io</a> for details.
      * @param key The key of the stream.
@@ -768,8 +768,8 @@ public interface StreamBaseCommands {
             String key, String group, String consumer, long minIdleTime, String[] ids);
 
     /**
-     * Changes the ownership of a pending message.This command uses the JUSTID optional argument to
-     * return a list of stream message ids.
+     * Changes the ownership of a pending message. This function returns an <code>array</code> with
+     * only the message/entry IDs, and is equivalent to using <code>JUSTID</code> in the Redis API.
      *
      * @see <a href="https://valkey.io/commands/xclaim/">valkey.io</a> for details.
      * @param key The key of the stream.

@@ -4710,7 +4710,7 @@ public class SharedCommandTests {
                 ArrayUtils.remove(pending_results_extended[4], 2));
         assertTrue((Long) pending_results_extended[4][2] >= 0L);
 
-        // use claim to claim stream 3 and 4 for consumer 1
+        // use claim to claim stream 3 and 5 for consumer 1
         var claimResults =
                 client.xclaim(key, groupName, consumer1, 0L, new String[] {streamid_3, streamid_5}).get();
         assertDeepEquals(
@@ -4785,71 +4785,6 @@ public class SharedCommandTests {
                         .get();
         // note: consumer claimed all remaining messages
         assertEquals(2, pending_results_extended.length);
-    }
-
-    @SneakyThrows
-    @ParameterizedTest(autoCloseArguments = false)
-    @MethodSource("getClients")
-    public void xclaim_options(BaseClient client) {
-
-        String key = UUID.randomUUID().toString();
-        String groupName = "group" + UUID.randomUUID();
-        String zeroStreamId = "0";
-        String consumer1 = "consumer-1-" + UUID.randomUUID();
-        String consumer2 = "consumer-2-" + UUID.randomUUID();
-
-        // create group and consumer for the group
-        assertEquals(
-                OK,
-                client
-                        .xgroupCreate(
-                                key, groupName, zeroStreamId, StreamGroupOptions.builder().makeStream().build())
-                        .get());
-        assertTrue(client.xgroupCreateConsumer(key, groupName, consumer1).get());
-        assertTrue(client.xgroupCreateConsumer(key, groupName, consumer2).get());
-
-        // Add two stream entries for consumer 1
-        String streamid_1 = client.xadd(key, Map.of("field1", "value1")).get();
-        assertNotNull(streamid_1);
-        String streamid_2 = client.xadd(key, Map.of("field2", "value2")).get();
-        assertNotNull(streamid_2);
-        String streamid_4 = client.xadd(key, Map.of("field4", "value4")).get();
-        assertNotNull(streamid_4);
-        String streamid_5 = client.xadd(key, Map.of("field5", "value5")).get();
-        assertNotNull(streamid_5);
-
-        // read the entire stream for the consumer and mark messages as pending
-        var result_1 = client.xreadgroup(Map.of(key, ">"), groupName, consumer1).get();
-        assertDeepEquals(
-                Map.of(
-                        key,
-                        Map.of(
-                                streamid_1, new String[][] {{"field1", "value1"}},
-                                streamid_2, new String[][] {{"field2", "value2"}},
-                                //                                streamid_3, new String[][] {{"field3", "value3"}},
-                                streamid_4, new String[][] {{"field4", "value4"}},
-                                streamid_5, new String[][] {{"field5", "value5"}})),
-                result_1);
-
-        String streamid_3 = client.xadd(key, Map.of("field3", "value3")).get();
-        assertNotNull(streamid_3);
-
-        StreamClaimOptions options = StreamClaimOptions.builder().retryCount(100L).force().build();
-        var claim_results =
-                client
-                        .xclaim(
-                                key,
-                                groupName,
-                                consumer2,
-                                0,
-                                new String[] {streamid_1, streamid_3, streamid_5},
-                                options)
-                        .get();
-        System.out.println(claim_results);
-
-        var pending_results =
-                client.xpending(key, groupName, IdBound.of(streamid_1), IdBound.of(streamid_3), 10L).get();
-        System.out.println(pending_results);
     }
 
     @SneakyThrows
@@ -5044,6 +4979,10 @@ public class SharedCommandTests {
                         () ->
                                 client.xclaimJustId(key, groupName, consumer1, 1L, new String[] {"invalid"}).get());
         assertInstanceOf(RequestException.class, executionException.getCause());
+
+        // claim with empty stream entry IDs returns no results
+        var emptyClaim = client.xclaimJustId(key, groupName, consumer1, 1L, new String[0]).get();
+        assertEquals(0L, emptyClaim.length);
 
         // non-existent key throws a RequestError (NOGROUP)
         executionException =
