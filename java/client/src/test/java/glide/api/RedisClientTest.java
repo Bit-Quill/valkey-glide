@@ -6075,19 +6075,19 @@ public class RedisClientTest {
         Long minIdleTime = 18L;
         String[] ids = new String[] {"testId"};
         String[] arguments = concatenateArrays(new String[] {key, groupName, consumer, "18"}, ids);
-        Map<String, String[]> mockResult = Map.of("1234-0", new String[] {"message", "log"});
+        Map<String, String[][]> mockResult = Map.of("1234-0", new String[][] {{"message", "log"}});
 
-        CompletableFuture<Map<String, String[]>> testResponse = new CompletableFuture<>();
+        CompletableFuture<Map<String, String[][]>> testResponse = new CompletableFuture<>();
         testResponse.complete(mockResult);
 
         // match on protobuf request
-        when(commandManager.<Map<String, String[]>>submitNewCommand(eq(XClaim), eq(arguments), any()))
+        when(commandManager.<Map<String, String[][]>>submitNewCommand(eq(XClaim), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Map<String, String[]>> response =
+        CompletableFuture<Map<String, String[][]>> response =
                 service.xclaim(key, groupName, consumer, minIdleTime, ids);
-        Map<String, String[]> payload = response.get();
+        Map<String, String[][]> payload = response.get();
 
         // verify
         assertEquals(testResponse, response);
@@ -6120,19 +6120,19 @@ public class RedisClientTest {
                     "5",
                     FORCE_REDIS_API
                 };
-        Map<String, String[]> mockResult = Map.of("1234-0", new String[] {"message", "log"});
+        Map<String, String[][]> mockResult = Map.of("1234-0", new String[][] {{"message", "log"}});
 
-        CompletableFuture<Map<String, String[]>> testResponse = new CompletableFuture<>();
+        CompletableFuture<Map<String, String[][]>> testResponse = new CompletableFuture<>();
         testResponse.complete(mockResult);
 
         // match on protobuf request
-        when(commandManager.<Map<String, String[]>>submitNewCommand(eq(XClaim), eq(arguments), any()))
+        when(commandManager.<Map<String, String[][]>>submitNewCommand(eq(XClaim), eq(arguments), any()))
                 .thenReturn(testResponse);
 
         // exercise
-        CompletableFuture<Map<String, String[]>> response =
+        CompletableFuture<Map<String, String[][]>> response =
                 service.xclaim(key, groupName, consumer, minIdleTime, ids, options);
-        Map<String, String[]> payload = response.get();
+        Map<String, String[][]> payload = response.get();
 
         // verify
         assertEquals(testResponse, response);

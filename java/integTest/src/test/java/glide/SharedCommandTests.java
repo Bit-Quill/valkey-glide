@@ -4716,9 +4716,9 @@ public class SharedCommandTests {
         assertDeepEquals(
                 Map.of(
                         streamid_3,
-                        new String[] {"field3", "value3"},
+                        new String[][] {{"field3", "value3"}},
                         streamid_5,
-                        new String[] {"field5", "value5"}),
+                        new String[][] {{"field5", "value5"}}),
                 claimResults);
 
         var claimResultsJustId =
@@ -4742,7 +4742,7 @@ public class SharedCommandTests {
                                 new String[] {streamid_6},
                                 StreamClaimOptions.builder().force().retryCount(99L).build())
                         .get();
-        assertDeepEquals(Map.of(streamid_6, new String[] {"field6", "value6"}), claimForceResults);
+        assertDeepEquals(Map.of(streamid_6, new String[][] {{"field6", "value6"}}), claimForceResults);
 
         Object[][] forcePendingResults =
                 client.xpending(key, groupName, IdBound.of(streamid_6), IdBound.of(streamid_6), 1L).get();

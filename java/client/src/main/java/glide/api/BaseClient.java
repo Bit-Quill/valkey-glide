@@ -2089,7 +2089,7 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Map<String, String[]>> xclaim(
+    public CompletableFuture<Map<String, String[][]>> xclaim(
             @NonNull String key,
             @NonNull String group,
             @NonNull String consumer,
@@ -2101,7 +2101,7 @@ public abstract class BaseClient
     }
 
     @Override
-    public CompletableFuture<Map<String, String[]>> xclaim(
+    public CompletableFuture<Map<String, String[][]>> xclaim(
             @NonNull String key,
             @NonNull String group,
             @NonNull String consumer,

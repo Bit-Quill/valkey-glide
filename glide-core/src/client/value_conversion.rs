@@ -859,7 +859,7 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
             } else {
                 Some(ExpectedReturnType::Map {
                     key_type: &Some(ExpectedReturnType::SimpleString),
-                    value_type: &Some(ExpectedReturnType::ArrayOfStrings),
+                    value_type: &Some(ExpectedReturnType::ArrayOfPairs),
                 })
             }
         }
@@ -1205,7 +1205,7 @@ mod tests {
             ),
             Some(ExpectedReturnType::Map {
                 key_type: &Some(ExpectedReturnType::SimpleString),
-                value_type: &Some(ExpectedReturnType::ArrayOfStrings),
+                value_type: &Some(ExpectedReturnType::ArrayOfPairs),
             })
         ));
         assert!(matches!(

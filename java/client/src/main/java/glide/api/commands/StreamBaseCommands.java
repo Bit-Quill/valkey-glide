@@ -738,7 +738,7 @@ public interface StreamBaseCommands {
      * }
      * </pre>
      */
-    CompletableFuture<Map<String, String[]>> xclaim(
+    CompletableFuture<Map<String, String[][]>> xclaim(
             String key, String group, String consumer, long minIdleTime, String[] ids);
 
     /**
@@ -766,7 +766,7 @@ public interface StreamBaseCommands {
      * }
      * </pre>
      */
-    CompletableFuture<Map<String, String[]>> xclaim(
+    CompletableFuture<Map<String, String[][]>> xclaim(
             String key,
             String group,
             String consumer,
