@@ -20,12 +20,12 @@ This preview release is recommended for testing purposes only.
 
 ## System Requirements
 
-The beta release of GLIDE for Valkey was tested on Intel x86_64 using Ubuntu 22.04.1, Amazon Linux 2023 (AL2023), and macOS 12.7.
+The beta release of GLIDE for Valkey was tested on Intel x86_64 using Ubuntu 22.04.1, Amazon Linux 2023 (AL2023), and macOS 12.7 (aarch64-apple-darwin).
 
 ## Layout of Java code
 The Java client contains the following parts:
 
-1. `src`: Rust dynamic library FFI to integrate with [GLIDE core library](./glide-core/README.md).
+1. `src`: Rust dynamic library FFI to integrate with [GLIDE core library](../glide-core/README.md).
 2. `client`: A Java-wrapper around the GLIDE core rust library and unit tests for it.
 3. `examples`: An examples app to test the client against a Valkey localhost.
 4. `benchmark`: A dedicated benchmarking tool designed to evaluate and compare the performance of GLIDE for Valkey and other Java clients.
@@ -198,6 +198,6 @@ The following arguments are accepted:
 * `concurrentTasks`: Number of concurrent tasks
 * `clients`: one of: all|jedis|lettuce|glide
 * `clientCount`: Client count
-* `host`: glide server host url
+* `host`: ValKey server host url
 * `port`: glide server port number
 * `tls`: glide TLS configured
