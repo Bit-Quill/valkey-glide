@@ -2,7 +2,7 @@
 
 This document describes how to set up your development environment to build and test the GLIDE for Redis Java wrapper.
 
-## Development Overview
+### Development Overview
 
 The GLIDE for Redis Java wrapper consists of both Java and Rust code. Rust bindings for the Java Native Interface are implemented using [jni-rs](https://github.com/jni-rs/jni-rs), and the Java JAR is built using [Gradle](https://github.com/gradle/gradle). The Java and Rust components communicate using the [protobuf](https://github.com/protocolbuffers/protobuf) protocol.
 
@@ -10,9 +10,9 @@ The GLIDE for Redis Java wrapper consists of both Java and Rust code. Rust bindi
 
 **Note:** See the [Troubleshooting](#troubleshooting) section below for possible solutions to problems.
 
-### Prerequisites
+#### Prerequisites
 
-#### Software Dependencies
+**Software Dependencies**
 
 -   git
 -   GCC
@@ -23,7 +23,7 @@ The GLIDE for Redis Java wrapper consists of both Java and Rust code. Rust bindi
 -   rustup
 -   Java 11
 
-#### Dependencies installation for Ubuntu
+**Dependencies installation for Ubuntu**
 
 ```bash
 sudo apt update -y
@@ -35,9 +35,9 @@ source "$HOME/.cargo/env"
 rustc --version
 ```
 
-Continue with [**Install protobuf compiler**](#install-protobuf-compiler) below.
+Continue with **Install protobuf compiler** below.
 
-#### Dependencies installation for CentOS
+**Dependencies installation for CentOS**
 
 ```bash
 sudo yum update -y
@@ -46,9 +46,9 @@ sudo yum install -y java-11-openjdk-devel git gcc pkgconfig openssl openssl-deve
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-Continue with [**Install protobuf compiler**](#install-protobuf-compiler) below.
+Continue with **Install protobuf compiler** below.
 
-#### Dependencies installation for MacOS
+**Dependencies installation for MacOS**
 
 ```bash
 brew update
@@ -57,9 +57,9 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source "$HOME/.cargo/env"
 ```
 
-Continue with [**Install protobuf compiler**](#install-protobuf-compiler) below.
+Continue with **Install protobuf compiler** below.
 
-#### Install protobuf compiler
+**Install protobuf compiler**
 
 To install protobuf for MacOS, run:
 ```bash
