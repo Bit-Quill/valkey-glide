@@ -144,7 +144,7 @@ For Java, the only linter we use is Spotless.
 
 Some troubleshooting issues:
 - If the build fails after following the installation instructions, the `gradle` daemon may need to be 
-  restarted so that it recognizes changes to environment variables (e.g. `$PATH`). If that doesn't work,
+  restarted (`./gradlew --stop`) so that it recognizes changes to environment variables (e.g. `$PATH`). If that doesn't work,
   you may need to restart your machine. In particular, this may solve the following problems:
     - Failed to find `cargo` after `rustup`.
     - No Protobuf compiler (protoc) found.
