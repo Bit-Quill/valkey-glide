@@ -1048,7 +1048,7 @@ public interface StreamBaseCommands {
      * @param start Filters the claimed entries to those that have an ID equal or greater than the
      *     specified value.
      * @return An array containing the following elements:
-     *      - A stream ID to be used as the start
+     *     - A stream ID to be used as the start
      *     argument for the next call to <code>XAUTOCLAIM</code>. This ID is equivalent to the next ID
      *     in the stream after the entries that were scanned, or "0-0" if the entire stream was
      *     scanned.
@@ -1062,6 +1062,17 @@ public interface StreamBaseCommands {
      *  <pre>
      *      // Redis version < 7.0.0:
      *      Object[] results = client.xautoclaim("my_stream", "my_group", "my_consumer", 3_600_000L, "0-0").get();
+     * for (Object element: results) {
+     *     System.out.println(element);
+     *
+     *     for (String key: element.get(key)) {
+     *
+     *          for(String entry: ){
+     *             System.out.println(ke);
+     *          }
+     *     }
+     * }
+     *      // Redis version 7.0.0 and above
      *  </pre>
      *
      */
