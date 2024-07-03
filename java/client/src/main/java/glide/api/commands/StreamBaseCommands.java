@@ -1047,19 +1047,16 @@ public interface StreamBaseCommands {
      * @param minIdleTime The minimum idle time for the message to be claimed.
      * @param start Filters the claimed entries to those that have an ID equal or greater than the
      *     specified value.
-     * @return An array containing the following elements:
-     *     - A stream ID to be used as the start
+     * @return An array containing the following elements: - A stream ID to be used as the start
      *     argument for the next call to <code>XAUTOCLAIM</code>. This ID is equivalent to the next ID
      *     in the stream after the entries that were scanned, or "0-0" if the entire stream was
-     *     scanned.
-     *     - A mapping of the claimed entries, with the keys being the claimed entry IDs and
+     *     scanned. - A mapping of the claimed entries, with the keys being the claimed entry IDs and
      *     the values being a 2D list of the field-value pairs in the format `[[field1, value1],
-     *     [field2, value2], ...]`.
-     *     - If you are using Redis 7.0.0 or above, the response list will
+     *     [field2, value2], ...]`. - If you are using Redis 7.0.0 or above, the response list will
      *     also include a list containing the message IDs that were in the Pending Entries List but no
      *     longer exist in the stream. These IDs are deleted from the Pending Entries List.
      * @example
-     *  <pre>
+     *     <pre>
      *      // Redis version < 7.0.0:
      *      Object[] results = client.xautoclaim("my_stream", "my_group", "my_consumer", 3_600_000L, "0-0").get();
      * for (Object element: results) {
@@ -1074,7 +1071,6 @@ public interface StreamBaseCommands {
      * }
      *      // Redis version 7.0.0 and above
      *  </pre>
-     *
      */
     CompletableFuture<Object[]> xautoclaim(
             String key, String group, String consumer, long minIdleTime, String start);
@@ -1090,15 +1086,12 @@ public interface StreamBaseCommands {
      * @param start Filters the claimed entries to those that have an ID equal or greater than the
      *     specified value.
      * @param count Limits the number of claimed entries to the specified value.
-     * @return An array containing the following elements:
-     *     - A stream ID to be used as the start
+     * @return An array containing the following elements: - A stream ID to be used as the start
      *     argument for the next call to <code>XAUTOCLAIM</code>. This ID is equivalent to the next ID
      *     in the stream after the entries that were scanned, or "0-0" if the entire stream was
-     *     scanned.
-     *     - A mapping of the claimed entries, with the keys being the claimed entry IDs and
+     *     scanned. - A mapping of the claimed entries, with the keys being the claimed entry IDs and
      *     the values being a 2D list of the field-value pairs in the format `[[field1, value1],
-     *     [field2, value2], ...]`.
-     *     - If you are using Redis 7.0.0 or above, the response list will
+     *     [field2, value2], ...]`. - If you are using Redis 7.0.0 or above, the response list will
      *     also include a list containing the message IDs that were in the Pending Entries List but no
      *     longer exist in the stream. These IDs are deleted from the Pending Entries List.
      */
@@ -1117,13 +1110,10 @@ public interface StreamBaseCommands {
      * @param minIdleTime The minimum idle time for the message to be claimed.
      * @param start Filters the claimed entries to those that have an ID equal or greater than the
      *     specified value.
-     * @return An array containing the following elements:
-     *     - A stream ID to be used as the start
+     * @return An array containing the following elements: - A stream ID to be used as the start
      *     argument for the next call to <code>XAUTOCLAIM</code>. This ID is equivalent to the next ID
      *     in the stream after the entries that were scanned, or "0-0" if the entire stream was
-     *     scanned.
-     *     - A list of the IDs for the claimed entries.
-     *     - If you are using Redis 7.0.0 or
+     *     scanned. - A list of the IDs for the claimed entries. - If you are using Redis 7.0.0 or
      *     above, the response list will also include a list containing the message IDs that were in
      *     the Pending Entries List but no longer exist in the stream. These IDs are deleted from the
      *     Pending Entries List.
@@ -1144,17 +1134,14 @@ public interface StreamBaseCommands {
      * @param start Filters the claimed entries to those that have an ID equal or greater than the
      *     specified value.
      * @param count Limits the number of claimed entries to the specified value.
-     * @return An array containing the following elements:
-     *     - A stream ID to be used as the start
+     * @return An array containing the following elements: - A stream ID to be used as the start
      *     argument for the next call to <code>XAUTOCLAIM</code>. This ID is equivalent to the next ID
      *     in the stream after the entries that were scanned, or "0-0" if the entire stream was
-     *     scanned.
-     *     - A list of the IDs for the claimed entries.
-     *     - If you are using Redis 7.0.0 or
+     *     scanned. - A list of the IDs for the claimed entries. - If you are using Redis 7.0.0 or
      *     above, the response list will also include a list containing the message IDs that were in
      *     the Pending Entries List but no longer exist in the stream. These IDs are deleted from the
      *     Pending Entries List.
      */
-    CompletableFuture<Object[]> xuatoclaimJustId(
+    CompletableFuture<Object[]> xautoclaimJustId(
             String key, String group, String consumer, long minIdleTime, String start, long count);
 }
