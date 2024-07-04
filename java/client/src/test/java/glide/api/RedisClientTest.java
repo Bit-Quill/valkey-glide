@@ -7562,6 +7562,48 @@ public class RedisClientTest {
 
     @SneakyThrows
     @Test
+    public void xautoclaim() {
+        // setup
+        //        String key = "testKey";
+        //        String groupName = "testGroupName";
+        //        String consumer = "testConsumer";
+        //        Long minIdleTime = 18L;
+        //        String start = "0-0";
+
+        //        StreamRange end = IdBound.ofExclusive("696969-10");
+        //        String[][] fieldValuesResult = {{"duration", "12345"}, {"event-id", "2"}, {"user-id",
+        // "42"}};
+        //        Map<String, String[][]> completedResult = Map.of(key, fieldValuesResult);
+        //
+        //        String[] deletedMessageIds = new String[]{"13-1", "46-2", "89-3"};
+        //
+        //        String[] arguments = concatenateArrays(new String[] {key, groupName, consumer, "18",
+        // start});
+        //        Object[] mockResult = new Object[]{start, completedResult, deletedMessageIds};
+        //
+        //        CompletableFuture<Object[]> testResponse = new CompletableFuture<>();
+        //        testResponse.complete(mockResult);
+        //
+        //        // match on protobuf request
+        //        when(commandManager.<Object[]>submitNewCommand(eq(XAutoClaim), eq(arguments), any()))
+        //            .thenReturn(testResponse);
+        //
+        //        // exercise
+        //        CompletableFuture<Object[]> response =
+        //            service.xautoclaim(key, groupName, consumer, minIdleTime, start);
+        //        Object[] payload = response.get();
+        //
+        //        // verify
+        //        assertEquals(testResponse, response);
+        //        assertEquals(mockResult, payload);
+    }
+
+    @SneakyThrows
+    @Test
+    public void xautoclaimJustId() {}
+
+    @SneakyThrows
+    @Test
     public void xack_binary_returns_success() {
         // setup
         GlideString key = gs("testKey");
