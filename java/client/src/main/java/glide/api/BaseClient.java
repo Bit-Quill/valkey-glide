@@ -745,7 +745,7 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<GlideString> getex(
             @NonNull GlideString key, @NonNull GetExOptions options) {
-        GlideString[] arguments = ArrayUtils.addFirst(options.toGlideStringArgs(), key);
+        GlideString[] arguments = new ArgsBuilder().add(key).add(options.toArgs()).toArray();
         return commandManager.submitNewCommand(GetEx, arguments, this::handleGlideStringOrNullResponse);
     }
 
@@ -771,8 +771,7 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<String> set(
             @NonNull GlideString key, @NonNull GlideString value, @NonNull SetOptions options) {
-        GlideString[] arguments =
-                ArrayUtils.addAll(new GlideString[] {key, value}, options.toGlideStringArgs());
+        GlideString[] arguments = new ArgsBuilder().add(key).add(value).add(options.toArgs()).toArray();
         return commandManager.submitNewCommand(Set, arguments, this::handleStringOrNullResponse);
     }
 
@@ -1266,7 +1265,7 @@ public abstract class BaseClient
     public CompletableFuture<Long> lpos(
             @NonNull GlideString key, @NonNull GlideString element, @NonNull LPosOptions options) {
         GlideString[] arguments =
-                concatenateArrays(new GlideString[] {key, element}, options.toGlideStringArgs());
+                new ArgsBuilder().add(key).add(element).add(options.toArgs()).toArray();
         return commandManager.submitNewCommand(LPos, arguments, this::handleLongOrNullResponse);
     }
 
@@ -1306,9 +1305,13 @@ public abstract class BaseClient
             long count,
             @NonNull LPosOptions options) {
         GlideString[] arguments =
-                concatenateArrays(
-                        new GlideString[] {key, element, gs(COUNT_REDIS_API), gs(Long.toString(count))},
-                        options.toGlideStringArgs());
+                new ArgsBuilder()
+                        .add(key)
+                        .add(element)
+                        .add(COUNT_REDIS_API)
+                        .add(count)
+                        .add(options.toArgs())
+                        .toArray();
 
         return commandManager.submitNewCommand(
                 LPos, arguments, response -> castArray(handleArrayResponse(response), Long.class));
@@ -1614,8 +1617,8 @@ public abstract class BaseClient
     public CompletableFuture<Boolean> expire(
             @NonNull GlideString key, long seconds, @NonNull ExpireOptions expireOptions) {
         GlideString[] arguments =
-                ArrayUtils.addAll(
-                        new GlideString[] {key, gs(Long.toString(seconds))}, expireOptions.toGlideStringArgs());
+                new ArgsBuilder().add(key).add(seconds).add(expireOptions.toArgs()).toArray();
+
         return commandManager.submitNewCommand(Expire, arguments, this::handleBooleanResponse);
     }
 
@@ -1645,9 +1648,7 @@ public abstract class BaseClient
     public CompletableFuture<Boolean> expireAt(
             @NonNull GlideString key, long unixSeconds, @NonNull ExpireOptions expireOptions) {
         GlideString[] arguments =
-                ArrayUtils.addAll(
-                        new GlideString[] {key, gs(Long.toString(unixSeconds))},
-                        expireOptions.toGlideStringArgs());
+                new ArgsBuilder().add(key).add(unixSeconds).add(expireOptions.toArgs()).toArray();
         return commandManager.submitNewCommand(ExpireAt, arguments, this::handleBooleanResponse);
     }
 
@@ -1677,9 +1678,7 @@ public abstract class BaseClient
     public CompletableFuture<Boolean> pexpire(
             @NonNull GlideString key, long milliseconds, @NonNull ExpireOptions expireOptions) {
         GlideString[] arguments =
-                ArrayUtils.addAll(
-                        new GlideString[] {key, gs(Long.toString(milliseconds))},
-                        expireOptions.toGlideStringArgs());
+                new ArgsBuilder().add(key).add(milliseconds).add(expireOptions.toArgs()).toArray();
         return commandManager.submitNewCommand(PExpire, arguments, this::handleBooleanResponse);
     }
 
@@ -1712,9 +1711,8 @@ public abstract class BaseClient
     public CompletableFuture<Boolean> pexpireAt(
             @NonNull GlideString key, long unixMilliseconds, @NonNull ExpireOptions expireOptions) {
         GlideString[] arguments =
-                ArrayUtils.addAll(
-                        new GlideString[] {key, gs(Long.toString(unixMilliseconds))},
-                        expireOptions.toGlideStringArgs());
+                new ArgsBuilder().add(key).add(unixMilliseconds).add(expireOptions.toArgs()).toArray();
+
         return commandManager.submitNewCommand(PExpireAt, arguments, this::handleBooleanResponse);
     }
 
@@ -2314,7 +2312,8 @@ public abstract class BaseClient
     @Override
     public CompletableFuture<Long> xtrim(
             @NonNull GlideString key, @NonNull StreamTrimOptions options) {
-        GlideString[] arguments = ArrayUtils.addFirst(options.toGlideStringArgs(), key);
+        GlideString[] arguments = new ArgsBuilder().add(key).add(options.toArgs()).toArray();
+
         return commandManager.submitNewCommand(XTrim, arguments, this::handleLongResponse);
     }
 
@@ -4161,7 +4160,8 @@ public abstract class BaseClient
             @NonNull GlideString cursor,
             @NonNull SScanOptionsBinary sScanOptions) {
         GlideString[] arguments =
-                concatenateArrays(new GlideString[] {key, cursor}, sScanOptions.toGlideStringArgs());
+                new ArgsBuilder().add(key).add(cursor).add(sScanOptions.toArgs()).toArray();
+
         return commandManager.submitNewCommand(SScan, arguments, this::handleArrayOrNullResponseBinary);
     }
 
@@ -4190,7 +4190,8 @@ public abstract class BaseClient
             @NonNull GlideString cursor,
             @NonNull ZScanOptionsBinary zScanOptions) {
         GlideString[] arguments =
-                concatenateArrays(new GlideString[] {key, cursor}, zScanOptions.toGlideStringArgs());
+                new ArgsBuilder().add(key).add(cursor).add(zScanOptions.toArgs()).toArray();
+
         return commandManager.submitNewCommand(ZScan, arguments, this::handleArrayOrNullResponseBinary);
     }
 
@@ -4219,7 +4220,8 @@ public abstract class BaseClient
             @NonNull GlideString cursor,
             @NonNull HScanOptionsBinary hScanOptions) {
         GlideString[] arguments =
-                concatenateArrays(new GlideString[] {key, cursor}, hScanOptions.toGlideStringArgs());
+                new ArgsBuilder().add(key).add(cursor).add(hScanOptions.toArgs()).toArray();
+
         return commandManager.submitNewCommand(HScan, arguments, this::handleArrayOrNullResponseBinary);
     }
 
