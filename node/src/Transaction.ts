@@ -26,6 +26,7 @@ import {
     createConfigRewrite,
     createConfigSet,
     createCustomCommand,
+    createDBSize,
     createDecr,
     createDecrBy,
     createDel,
@@ -1566,6 +1567,10 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public objectRefcount(key: string): T {
         return this.addAndReturn(createObjectRefcount(key));
+    }
+
+    public dbsize(): T {
+        return this.addAndReturn(createDBSize());
     }
 }
 

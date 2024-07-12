@@ -13,6 +13,7 @@ import {
     createConfigRewrite,
     createConfigSet,
     createCustomCommand,
+    createDBSize,
     createEcho,
     createInfo,
     createPing,
@@ -309,5 +310,9 @@ export class GlideClient extends BaseClient {
      */
     public time(): Promise<[string, string]> {
         return this.createWritePromise(createTime());
+    }
+
+    public dbsize(): Promise<number> {
+        return this.createWritePromise(createDBSize());
     }
 }

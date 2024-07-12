@@ -13,6 +13,7 @@ import {
     createConfigRewrite,
     createConfigSet,
     createCustomCommand,
+    createDBSize,
     createEcho,
     createInfo,
     createPing,
@@ -566,5 +567,9 @@ export class GlideClusterClient extends BaseClient {
      */
     public time(route?: Routes): Promise<ClusterResponse<[string, string]>> {
         return this.createWritePromise(createTime(), toProtobufRoute(route));
+    }
+
+    public dbsize(route?: Routes): Promise<ClusterResponse<number>> {
+        return this.createWritePromise(createDBSize(), toProtobufRoute(route));
     }
 }

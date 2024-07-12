@@ -1549,3 +1549,10 @@ export function createObjectIdletime(key: string): command_request.Command {
 export function createObjectRefcount(key: string): command_request.Command {
     return createCommand(RequestType.ObjectRefCount, [key]);
 }
+
+/**
+ * @internal
+ */
+export function createDBSize(): command_request.Command {
+    return createCommand(RequestType.DBSize, []);
+}
