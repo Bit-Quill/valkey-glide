@@ -5,7 +5,6 @@
 import { expect, it } from "@jest/globals";
 import { exec } from "child_process";
 import { v4 as uuidv4 } from "uuid";
-import { SlotKeyTypes } from '../build-ts/src/GlideClusterClient';
 import {
     ClosingError,
     ExpireOptions,
@@ -3540,8 +3539,8 @@ export function runBaseTests<Context>(config: {
 
                 // set 10 random key-value pairs
                 for (let i = 0; i < 10; i++) {
-                    let key = `{key}:${uuidv4()}`;
-                    let value = "0".repeat(Math.random() * 7);
+                    const key = `{key}:${uuidv4()}`;
+                    const value = "0".repeat(Math.random() * 7);
 
                     expect(await client.set(key, value)).toBe("OK");
                 }
