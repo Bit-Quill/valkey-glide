@@ -3532,7 +3532,7 @@ export function runBaseTests<Context>(config: {
         async (protocol) => {
             await runTest(async (client: BaseClient) => {
                 // flush all data
-                expect(await client.customCommand(['FLUSHALL'])).toBe("OK");
+                expect(await client.customCommand(["FLUSHALL"])).toBe("OK");
 
                 // check that DBSize is 0
                 expect(await client.dbsize()).toBe(0);
@@ -3550,7 +3550,7 @@ export function runBaseTests<Context>(config: {
 
                 // additional test for the cluster client
                 if (client instanceof GlideClusterClient) {
-                    expect(await client.customCommand(['FLUSHALL'])).toBe("OK");
+                    expect(await client.customCommand(["FLUSHALL"])).toBe("OK");
                     const key = uuidv4();
                     expect(await client.set(key, "value")).toBe("OK");
                     expect(await client.dbsize("allPrimaries")).toBe(1);

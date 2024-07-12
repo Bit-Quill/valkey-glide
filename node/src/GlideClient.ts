@@ -311,7 +311,7 @@ export class GlideClient extends BaseClient {
     public time(): Promise<[string, string]> {
         return this.createWritePromise(createTime());
     }
-    
+
     /**
      * Returns the number of keys in the currently selected database.
      *
