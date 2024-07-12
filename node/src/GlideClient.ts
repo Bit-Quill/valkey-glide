@@ -311,7 +311,20 @@ export class GlideClient extends BaseClient {
     public time(): Promise<[string, string]> {
         return this.createWritePromise(createTime());
     }
-
+    
+    /**
+     * Returns the number of keys in the currently selected database.
+     *
+     * See https://valkey.io/commands/dbsize/ for more details.
+     *
+     * @returns The number of keys in the currently selected database.
+     *
+     * @example
+     * ```typescript
+     * const numKeys = await client.dbsize();
+     * console.log("Number of keys in the current database: ", numKeys);
+     * ```
+     */
     public dbsize(): Promise<number> {
         return this.createWritePromise(createDBSize());
     }

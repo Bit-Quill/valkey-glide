@@ -568,7 +568,23 @@ export class GlideClusterClient extends BaseClient {
     public time(route?: Routes): Promise<ClusterResponse<[string, string]>> {
         return this.createWritePromise(createTime(), toProtobufRoute(route));
     }
+    /**
+     * Returns the number of keys in the database.
+     *
+     * See https://valkey.io/commands/dbsize/ for more details.
 
+     * @param route - Specifies the routing configuration for the command. The client will route the
+     *     command to the nodes defined by `route`.
+     * 
+     * @returns The number of keys in the database.
+     *     If the query is routed to multiple nodes, returns the sum of the number of keys across all routed nodes.
+     *
+     * @example
+     * ```typescript
+     * const numKeys = await client.dbsize("allPrimaries");
+     * console.log("Number of keys across all primary nodes: ", numKeys);
+     * ```
+     */
     public dbsize(route?: Routes): Promise<ClusterResponse<number>> {
         return this.createWritePromise(createDBSize(), toProtobufRoute(route));
     }

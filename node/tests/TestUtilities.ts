@@ -308,6 +308,8 @@ export async function transactionTest(
     const field = uuidv4();
     const value = uuidv4();
     const args: ReturnType[] = [];
+    baseTransaction.dbsize();
+    args.push(0);
     baseTransaction.set(key1, "bar");
     args.push("OK");
     baseTransaction.objectEncoding(key1);
