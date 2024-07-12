@@ -8,6 +8,7 @@ import {
     InfoOptions,
     InsertPosition,
     KeyWeight,
+    LPosOptions,
     RangeByIndex,
     RangeByLex,
     RangeByScore,
@@ -53,6 +54,7 @@ import {
     createLInsert,
     createLLen,
     createLPop,
+    createLPos,
     createLPush,
     createLRange,
     createLRem,
@@ -1566,6 +1568,26 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public objectRefcount(key: string): T {
         return this.addAndReturn(createObjectRefcount(key));
+    }
+
+    /**
+     * Returns the index of the first occurrence of `element` inside the list specified by `key`. If no
+     * match is found, `null` is returned. If the `count` option is specified, then the function returns
+     * an `array` of indices of matching elements within a list.
+     *
+     * See https://valkey.io/commands/lpos/ for more details.
+     *
+     * since - Valkey version 6.0.6.
+     *
+     * @param key - The name of the list.
+     * @param element - The value to search for within the list.
+     * @param options - The LPOS options.
+     *
+     * Command Response -  The index of `element`, or `null` if `element` is not in the list. If the `count`
+     * option is specified, then the function returns an `array` of indices of matching elements within a list.
+     */
+    public lpos(key: string, element: string, options?: LPosOptions): T {
+        return this.addAndReturn(createLPos(key, element, options));
     }
 }
 
