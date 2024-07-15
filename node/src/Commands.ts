@@ -1550,41 +1550,31 @@ export function createObjectRefcount(key: string): command_request.Command {
     return createCommand(RequestType.ObjectRefCount, [key]);
 }
 
-export type LPosOptions = {
-    rank?: number;
-    count?: number;
-    maxLength?: number;
-};
-
-function addLPosOptions(options: LPosOptions, args: string[]) {
-    if (options.rank !== undefined) {
-        args.push("RANK");
-        args.push(options.rank.toString());
-    }
-
-    if (options.count !== undefined) {
-        args.push("COUNT");
-        args.push(options.count.toString());
-    }
-
-    if (options.maxLength !== undefined) {
-        args.push("MAXLEN");
-        args.push(options.maxLength.toString());
-    }
-}
-
 /**
  * @internal
  */
 export function createLPos(
     key: string,
     element: string,
-    options?: LPosOptions,
+    rank?: number,
+    count?: number,
+    maxLength?: number,
 ): command_request.Command {
     const args: string[] = [key, element];
 
-    if (options) {
-        addLPosOptions(options, args);
+    if (rank !== undefined) {
+        args.push("RANK");
+        args.push(rank.toString());
+    }
+
+    if (count !== undefined) {
+        args.push("COUNT");
+        args.push(count.toString());
+    }
+
+    if (maxLength !== undefined) {
+        args.push("MAXLEN");
+        args.push(maxLength.toString());
     }
 
     return createCommand(RequestType.LPos, args);

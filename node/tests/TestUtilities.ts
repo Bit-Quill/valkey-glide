@@ -305,7 +305,7 @@ export async function transactionTest(
     const key12 = "{key}" + uuidv4();
     const key13 = "{key}" + uuidv4();
     const key14 = "{key}" + uuidv4(); // sorted set
-    const key15 = "{key}" + uuidv4();
+    const key15 = "{key}" + uuidv4(); // list
     const field = uuidv4();
     const value = uuidv4();
     const args: ReturnType[] = [];
@@ -521,6 +521,6 @@ export async function transactionTest(
     baseTransaction.lpos(key15, field + "1", { rank: 2 });
     args.push(1);
     baseTransaction.lpos(key15, field + "1", { rank: 2, count: 0 });
-    args.push([0, 1]);
+    args.push([1]);
     return args;
 }
