@@ -25,6 +25,7 @@ import {
     intoArray,
     intoString,
 } from "./TestUtilities";
+import { LPosOptionsBuilder } from "../build-ts/src/command-options/LPosOptions";
 
 async function getVersion(): Promise<[number, number, number]> {
     const versionString = await new Promise<string>((resolve, reject) => {
@@ -3537,27 +3538,53 @@ export function runBaseTests<Context>(config: {
 
                 // simplest case
                 expect(await client.lpos(key, "a")).toEqual(0);
-                expect(await client.lpos(key, "b", { rank: 2 })).toEqual(5);
+                expect(
+                    await client.lpos(
+                        key,
+                        "b",
+                        new LPosOptionsBuilder().rank(2).build(),
+                    ),
+                ).toEqual(5);
 
                 // element doesn't exist
                 expect(await client.lpos(key, "e")).toBeNull();
 
                 // reverse traversal
-                expect(await client.lpos(key, "b", { rank: -2 })).toEqual(2);
+                expect(
+                    await client.lpos(
+                        key,
+                        "b",
+                        new LPosOptionsBuilder().rank(-2).build(),
+                    ),
+                ).toEqual(2);
 
                 // unlimited comparisons
                 expect(
-                    await client.lpos(key, "a", { rank: 1, maxLength: 0 }),
+                    await client.lpos(
+                        key,
+                        "a",
+                        new LPosOptionsBuilder().rank(1).maxLength(0).build(),
+                    ),
                 ).toEqual(0);
 
                 // limited comparisons
                 expect(
-                    await client.lpos(key, "c", { rank: 1, maxLength: 2 }),
+                    await client.lpos(
+                        key,
+                        "c",
+                        new LPosOptionsBuilder().rank(1).maxLength(2).build(),
+                    ),
                 ).toBeNull();
 
                 // invalid rank value
                 try {
-                    expect(await client.lpos(key, "a", { rank: 0 })).toThrow();
+                    expect(
+                        await client.lpos(
+                            key,
+                            "a",
+                            new LPosOptionsBuilder().rank(0).build(),
+                        ),
+                    ).toThrow();
                 } catch (e) {
                     expect((e as Error).message).toMatch(
                         "An error was signalled by the server - ResponseError: RANK can't be zero: use 1 to start from the first match, 2 from the second ... or use negative to start from the end of the list",
@@ -3567,7 +3594,11 @@ export function runBaseTests<Context>(config: {
                 // invalid maxlen value
                 try {
                     expect(
-                        await client.lpos(key, "a", { maxLength: -1 }),
+                        await client.lpos(
+                            key,
+                            "a",
+                            new LPosOptionsBuilder().maxLength(-1).build(),
+                        ),
                     ).toThrow();
                 } catch (e) {
                     expect((e as Error).message).toMatch(
@@ -3593,7 +3624,11 @@ export function runBaseTests<Context>(config: {
                 // invalid count value
                 try {
                     expect(
-                        await client.lpos(key, "a", { count: -1 }),
+                        await client.lpos(
+                            key,
+                            "a",
+                            new LPosOptionsBuilder().count(-1).build(),
+                        ),
                     ).toThrow();
                 } catch (e) {
                     expect((e as Error).message).toMatch(
@@ -3602,25 +3637,49 @@ export function runBaseTests<Context>(config: {
                 }
 
                 // with count
-                expect(await client.lpos(key, "a", { count: 2 })).toEqual([
-                    0, 1,
-                ]);
-                expect(await client.lpos(key, "a", { count: 0 })).toEqual([
-                    0, 1, 4,
-                ]);
                 expect(
-                    await client.lpos(key, "a", { rank: 1, count: 0 }),
+                    await client.lpos(
+                        key,
+                        "a",
+                        new LPosOptionsBuilder().count(2).build(),
+                    ),
+                ).toEqual([0, 1]);
+                expect(
+                    await client.lpos(
+                        key,
+                        "a",
+                        new LPosOptionsBuilder().count(0).build(),
+                    ),
                 ).toEqual([0, 1, 4]);
                 expect(
-                    await client.lpos(key, "a", { rank: 2, count: 0 }),
+                    await client.lpos(
+                        key,
+                        "a",
+                        new LPosOptionsBuilder().rank(1).count(0).build(),
+                    ),
+                ).toEqual([0, 1, 4]);
+                expect(
+                    await client.lpos(
+                        key,
+                        "a",
+                        new LPosOptionsBuilder().rank(2).count(0).build(),
+                    ),
                 ).toEqual([1, 4]);
                 expect(
-                    await client.lpos(key, "a", { rank: 3, count: 0 }),
+                    await client.lpos(
+                        key,
+                        "a",
+                        new LPosOptionsBuilder().rank(3).count(0).build(),
+                    ),
                 ).toEqual([4]);
 
                 // reverse traversal
                 expect(
-                    await client.lpos(key, "a", { rank: -1, count: 0 }),
+                    await client.lpos(
+                        key,
+                        "a",
+                        new LPosOptionsBuilder().rank(-1).count(0).build(),
+                    ),
                 ).toEqual([4, 1, 0]);
             }, protocol);
         },

@@ -4,6 +4,7 @@
 
 import { createLeakedStringVec, MAX_REQUEST_ARGS_LEN } from "glide-rs";
 import Long from "long";
+import { LPosOptions } from "./command-options/LPosOptions";
 
 import { command_request } from "./ProtobufMessage";
 
@@ -1550,29 +1551,6 @@ export function createObjectRefcount(key: string): command_request.Command {
     return createCommand(RequestType.ObjectRefCount, [key]);
 }
 
-export type LPosOptions = {
-    rank?: number;
-    count?: number;
-    maxLength?: number;
-};
-
-function addLPosOptions(options: LPosOptions, args: string[]) {
-    if (options.rank !== undefined) {
-        args.push("RANK");
-        args.push(options.rank.toString());
-    }
-
-    if (options.count !== undefined) {
-        args.push("COUNT");
-        args.push(options.count.toString());
-    }
-
-    if (options.maxLength !== undefined) {
-        args.push("MAXLEN");
-        args.push(options.maxLength.toString());
-    }
-}
-
 /**
  * @internal
  */
@@ -1581,10 +1559,12 @@ export function createLPos(
     element: string,
     options?: LPosOptions,
 ): command_request.Command {
-    const args: string[] = [key, element];
+    let args: string[] = [key, element];
 
     if (options) {
-        addLPosOptions(options, args);
+        const a: string[] = options.toArgs();
+        console.log(a);
+        args = args.concat(options.toArgs());
     }
 
     return createCommand(RequestType.LPos, args);
