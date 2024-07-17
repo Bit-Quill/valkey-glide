@@ -25,7 +25,7 @@ import {
     intoArray,
     intoString,
 } from "./TestUtilities";
-import { LPosOptionsBuilder } from "../build-ts/src/command-options/LPosOptions";
+import { LPosOptions } from "../build-ts/src/command-options/LPosOptions";
 
 async function getVersion(): Promise<[number, number, number]> {
     const versionString = await new Promise<string>((resolve, reject) => {
@@ -3539,11 +3539,7 @@ export function runBaseTests<Context>(config: {
                 // simplest case
                 expect(await client.lpos(key, "a")).toEqual(0);
                 expect(
-                    await client.lpos(
-                        key,
-                        "b",
-                        new LPosOptionsBuilder().rank(2).build(),
-                    ),
+                    await client.lpos(key, "b", new LPosOptions({ rank: 2 })),
                 ).toEqual(5);
 
                 // element doesn't exist
@@ -3551,11 +3547,7 @@ export function runBaseTests<Context>(config: {
 
                 // reverse traversal
                 expect(
-                    await client.lpos(
-                        key,
-                        "b",
-                        new LPosOptionsBuilder().rank(-2).build(),
-                    ),
+                    await client.lpos(key, "b", new LPosOptions({ rank: -2 })),
                 ).toEqual(2);
 
                 // unlimited comparisons
@@ -3563,7 +3555,7 @@ export function runBaseTests<Context>(config: {
                     await client.lpos(
                         key,
                         "a",
-                        new LPosOptionsBuilder().rank(1).maxLength(0).build(),
+                        new LPosOptions({ rank: 1, maxLength: 0 }),
                     ),
                 ).toEqual(0);
 
@@ -3572,7 +3564,7 @@ export function runBaseTests<Context>(config: {
                     await client.lpos(
                         key,
                         "c",
-                        new LPosOptionsBuilder().rank(1).maxLength(2).build(),
+                        new LPosOptions({ rank: 1, maxLength: 2 }),
                     ),
                 ).toBeNull();
 
@@ -3582,7 +3574,7 @@ export function runBaseTests<Context>(config: {
                         await client.lpos(
                             key,
                             "a",
-                            new LPosOptionsBuilder().rank(0).build(),
+                            new LPosOptions({ rank: 0 }),
                         ),
                     ).toThrow();
                 } catch (e) {
@@ -3597,7 +3589,7 @@ export function runBaseTests<Context>(config: {
                         await client.lpos(
                             key,
                             "a",
-                            new LPosOptionsBuilder().maxLength(-1).build(),
+                            new LPosOptions({ maxLength: -1 }),
                         ),
                     ).toThrow();
                 } catch (e) {
@@ -3627,7 +3619,7 @@ export function runBaseTests<Context>(config: {
                         await client.lpos(
                             key,
                             "a",
-                            new LPosOptionsBuilder().count(-1).build(),
+                            new LPosOptions({ count: -1 }),
                         ),
                     ).toThrow();
                 } catch (e) {
@@ -3638,38 +3630,30 @@ export function runBaseTests<Context>(config: {
 
                 // with count
                 expect(
-                    await client.lpos(
-                        key,
-                        "a",
-                        new LPosOptionsBuilder().count(2).build(),
-                    ),
+                    await client.lpos(key, "a", new LPosOptions({ count: 2 })),
                 ).toEqual([0, 1]);
                 expect(
+                    await client.lpos(key, "a", new LPosOptions({ count: 0 })),
+                ).toEqual([0, 1, 4]);
+                expect(
                     await client.lpos(
                         key,
                         "a",
-                        new LPosOptionsBuilder().count(0).build(),
+                        new LPosOptions({ rank: 1, count: 0 }),
                     ),
                 ).toEqual([0, 1, 4]);
                 expect(
                     await client.lpos(
                         key,
                         "a",
-                        new LPosOptionsBuilder().rank(1).count(0).build(),
-                    ),
-                ).toEqual([0, 1, 4]);
-                expect(
-                    await client.lpos(
-                        key,
-                        "a",
-                        new LPosOptionsBuilder().rank(2).count(0).build(),
+                        new LPosOptions({ rank: 2, count: 0 }),
                     ),
                 ).toEqual([1, 4]);
                 expect(
                     await client.lpos(
                         key,
                         "a",
-                        new LPosOptionsBuilder().rank(3).count(0).build(),
+                        new LPosOptions({ rank: 3, count: 0 }),
                     ),
                 ).toEqual([4]);
 
@@ -3678,7 +3662,7 @@ export function runBaseTests<Context>(config: {
                     await client.lpos(
                         key,
                         "a",
-                        new LPosOptionsBuilder().rank(-1).count(0).build(),
+                        new LPosOptions({ rank: -1, count: 0 }),
                     ),
                 ).toEqual([4, 1, 0]);
             }, protocol);

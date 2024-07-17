@@ -2,7 +2,7 @@
  * Copyright Valkey GLIDE Project Contributors - SPDX Identifier: Apache-2.0
  */
 
-export class LPosOptions implements LPosOptions {
+export class LPosOptions {
     public static RANK_REDIS_API = "RANK";
     public static COUNT_REDIS_API = "COUNT";
     public static MAXLEN_REDIS_API = "MAXLEN";
@@ -10,15 +10,17 @@ export class LPosOptions implements LPosOptions {
     private count?: number;
     private maxLength?: number;
 
-    public setRank(rank: number): void {
+    constructor({
+        rank,
+        count,
+        maxLength,
+    }: {
+        rank?: number;
+        count?: number;
+        maxLength?: number;
+    }) {
         this.rank = rank;
-    }
-
-    public setCount(count: number): void {
         this.count = count;
-    }
-
-    public setMaxLength(maxLength: number): void {
         this.maxLength = maxLength;
     }
 
@@ -41,32 +43,5 @@ export class LPosOptions implements LPosOptions {
         }
 
         return args;
-    }
-}
-
-export class LPosOptionsBuilder {
-    private lposOptions: LPosOptions;
-
-    constructor() {
-        this.lposOptions = new LPosOptions();
-    }
-
-    public rank(rank: number): this {
-        this.lposOptions.setRank(rank);
-        return this;
-    }
-
-    public count(count: number): this {
-        this.lposOptions.setCount(count);
-        return this;
-    }
-
-    public maxLength(maxLength: number): this {
-        this.lposOptions.setMaxLength(maxLength);
-        return this;
-    }
-
-    public build(): LPosOptions {
-        return this.lposOptions;
     }
 }
