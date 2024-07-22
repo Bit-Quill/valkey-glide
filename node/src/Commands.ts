@@ -1813,6 +1813,20 @@ export function createFlushDB(mode?: FlushMode): command_request.Command {
 }
 
 /**
+ * Optional arguments to LPOS command.
+ *
+ * See https://valkey.io/commands/lpos/ for more details.
+ */
+export type LPosOptions = {
+    /** The rank of the match to return. */
+    rank?: number;
+    /** The specific number of matching indices from a list. */
+    count?: number;
+    /** The maximum number of comparisons to make between the element and the items in the list. */
+    maxLength?: number;
+};
+
+/**
  * @internal
  */
 export function createLPos(
@@ -1820,10 +1834,23 @@ export function createLPos(
     element: string,
     options?: LPosOptions,
 ): command_request.Command {
-    let args: string[] = [key, element];
+    const args: string[] = [key, element];
 
     if (options) {
-        args = args.concat(options.toArgs());
+        if (options.rank !== undefined) {
+            args.push("RANK");
+            args.push(options.rank.toString());
+        }
+
+        if (options.count !== undefined) {
+            args.push("COUNT");
+            args.push(options.count.toString());
+        }
+
+        if (options.maxLength !== undefined) {
+            args.push("MAXLEN");
+            args.push(options.maxLength.toString());
+        }
     }
 
     return createCommand(RequestType.LPos, args);

@@ -32,7 +32,6 @@ import {
     BitmapIndexType,
     BitOffsetOptions,
 } from "../build-ts/src/commands/BitOffsetOptions";
-import { LPosOptions } from "../build-ts/src/commands/LPosOptions";
 import { GeospatialData } from "../build-ts/src/commands/geospatial/GeospatialData";
 import { GeoAddOptions } from "../build-ts/src/commands/geospatial/GeoAddOptions";
 import { ConditionalChange } from "../build-ts/src/commands/ConditionalChange";
@@ -4203,44 +4202,32 @@ export function runBaseTests<Context>(config: {
 
                 // simplest case
                 expect(await client.lpos(key, "a")).toEqual(0);
-                expect(
-                    await client.lpos(key, "b", new LPosOptions({ rank: 2 })),
-                ).toEqual(5);
+                expect(await client.lpos(key, "b", { rank: 2 })).toEqual(5);
 
                 // element doesn't exist
                 expect(await client.lpos(key, "e")).toBeNull();
 
                 // reverse traversal
-                expect(
-                    await client.lpos(key, "b", new LPosOptions({ rank: -2 })),
-                ).toEqual(2);
+                expect(await client.lpos(key, "b", { rank: -2 })).toEqual(2);
 
                 // unlimited comparisons
                 expect(
-                    await client.lpos(
-                        key,
-                        "a",
-                        new LPosOptions({ rank: 1, maxLength: 0 }),
-                    ),
+                    await client.lpos(key, "a", { rank: 1, maxLength: 0 }),
                 ).toEqual(0);
 
                 // limited comparisons
                 expect(
-                    await client.lpos(
-                        key,
-                        "c",
-                        new LPosOptions({ rank: 1, maxLength: 2 }),
-                    ),
+                    await client.lpos(key, "c", { rank: 1, maxLength: 2 }),
                 ).toBeNull();
 
                 // invalid rank value
                 await expect(
-                    client.lpos(key, "a", new LPosOptions({ rank: 0 })),
+                    client.lpos(key, "a", { rank: 0 }),
                 ).rejects.toThrow(RequestError);
 
                 // invalid maxlen value
                 await expect(
-                    client.lpos(key, "a", new LPosOptions({ maxLength: -1 })),
+                    client.lpos(key, "a", { maxLength: -1 }),
                 ).rejects.toThrow(RequestError);
 
                 // non-existent key
@@ -4256,45 +4243,29 @@ export function runBaseTests<Context>(config: {
 
                 // invalid count value
                 await expect(
-                    client.lpos(key, "a", new LPosOptions({ count: -1 })),
+                    client.lpos(key, "a", { count: -1 }),
                 ).rejects.toThrow(RequestError);
 
                 // with count
+                expect(await client.lpos(key, "a", { count: 2 })).toEqual([
+                    0, 1,
+                ]);
+                expect(await client.lpos(key, "a", { count: 0 })).toEqual([
+                    0, 1, 4,
+                ]);
                 expect(
-                    await client.lpos(key, "a", new LPosOptions({ count: 2 })),
-                ).toEqual([0, 1]);
-                expect(
-                    await client.lpos(key, "a", new LPosOptions({ count: 0 })),
+                    await client.lpos(key, "a", { rank: 1, count: 0 }),
                 ).toEqual([0, 1, 4]);
                 expect(
-                    await client.lpos(
-                        key,
-                        "a",
-                        new LPosOptions({ rank: 1, count: 0 }),
-                    ),
-                ).toEqual([0, 1, 4]);
-                expect(
-                    await client.lpos(
-                        key,
-                        "a",
-                        new LPosOptions({ rank: 2, count: 0 }),
-                    ),
+                    await client.lpos(key, "a", { rank: 2, count: 0 }),
                 ).toEqual([1, 4]);
                 expect(
-                    await client.lpos(
-                        key,
-                        "a",
-                        new LPosOptions({ rank: 3, count: 0 }),
-                    ),
+                    await client.lpos(key, "a", { rank: 3, count: 0 }),
                 ).toEqual([4]);
 
                 // reverse traversal
                 expect(
-                    await client.lpos(
-                        key,
-                        "a",
-                        new LPosOptions({ rank: -1, count: 0 }),
-                    ),
+                    await client.lpos(key, "a", { rank: -1, count: 0 }),
                 ).toEqual([4, 1, 0]);
             }, protocol);
         },

@@ -9,6 +9,7 @@ import {
     InsertPosition,
     KeyWeight,
     LolwutOptions,
+    LPosOptions,
     RangeByIndex,
     RangeByLex,
     RangeByScore,
