@@ -2224,7 +2224,8 @@ export class BaseClient {
      * @example
      * ```typescript
      * // Example usage of the zadd method to update scores in an existing sorted set
-     * const result = await client.zadd("existing_sorted_set", { member1: 15.0, member2: 5.5 }, { conditionalChange: "onlyIfExists", changed: true });
+     * const options = { conditionalChange: ConditionalChange.ONLY_IF_EXISTS, changed: true };
+     * const result = await client.zadd("existing_sorted_set", { member1: 15.0, member2: 5.5 }, options);
      * console.log(result); // Output: 2 - Updates the scores of two existing members in the sorted set "existing_sorted_set."
      * ```
      */

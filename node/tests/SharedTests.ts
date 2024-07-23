@@ -19,7 +19,11 @@ import {
     Script,
     parseInfoResponse,
 } from "../";
-import { ConditionalChange, GeospatialData } from "../build-ts/src/Commands";
+import {
+    ConditionalChange,
+    GeospatialData,
+    UpdateOptions,
+} from "../build-ts/src/Commands";
 import { SingleNodeRoute } from "../build-ts/src/GlideClusterClient";
 import {
     BitOffsetOptions,
@@ -2108,25 +2112,27 @@ export function runBaseTests<Context>(config: {
                 const membersScores = { one: 1, two: 2, three: 3 };
                 expect(
                     await client.zadd(key, membersScores, {
-                        conditionalChange: "onlyIfExists",
+                        conditionalChange: ConditionalChange.ONLY_IF_EXISTS,
                     }),
                 ).toEqual(0);
 
                 expect(
                     await client.zadd(key, membersScores, {
-                        conditionalChange: "onlyIfDoesNotExist",
+                        conditionalChange:
+                            ConditionalChange.ONLY_IF_DOES_NOT_EXIST,
                     }),
                 ).toEqual(3);
 
                 expect(
                     await client.zaddIncr(key, "one", 5.0, {
-                        conditionalChange: "onlyIfDoesNotExist",
+                        conditionalChange:
+                            ConditionalChange.ONLY_IF_DOES_NOT_EXIST,
                     }),
                 ).toEqual(null);
 
                 expect(
                     await client.zaddIncr(key, "one", 5.0, {
-                        conditionalChange: "onlyIfExists",
+                        conditionalChange: ConditionalChange.ONLY_IF_EXISTS,
                     }),
                 ).toEqual(6.0);
             }, protocol);
@@ -2146,27 +2152,27 @@ export function runBaseTests<Context>(config: {
 
                 expect(
                     await client.zadd(key, membersScores, {
-                        updateOptions: "scoreGreaterThanCurrent",
+                        updateOptions: UpdateOptions.GREATER_THAN,
                         changed: true,
                     }),
                 ).toEqual(1);
 
                 expect(
                     await client.zadd(key, membersScores, {
-                        updateOptions: "scoreLessThanCurrent",
+                        updateOptions: UpdateOptions.LESS_THAN,
                         changed: true,
                     }),
                 ).toEqual(0);
 
                 expect(
                     await client.zaddIncr(key, "one", -3.0, {
-                        updateOptions: "scoreLessThanCurrent",
+                        updateOptions: UpdateOptions.LESS_THAN,
                     }),
                 ).toEqual(7.0);
 
                 expect(
                     await client.zaddIncr(key, "one", -3.0, {
-                        updateOptions: "scoreGreaterThanCurrent",
+                        updateOptions: UpdateOptions.GREATER_THAN,
                     }),
                 ).toEqual(null);
             }, protocol);

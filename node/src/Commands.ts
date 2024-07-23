@@ -925,6 +925,16 @@ export function createTTL(key: string): command_request.Command {
     return createCommand(RequestType.TTL, [key]);
 }
 
+/**
+ * Options for updating elements of a sorted set key.
+ */
+export enum UpdateOptions {
+    /** Only update existing elements if the new score is less than the current score. */
+    LESS_THAN = "LT",
+    /** Only update existing elements if the new score is greater than the current score. */
+    GREATER_THAN = "GT",
+}
+
 export type ZAddOptions = {
     /**
      * `onlyIfDoesNotExist` - Only add new elements. Don't update already existing
@@ -932,14 +942,14 @@ export type ZAddOptions = {
      * elements that already exist. Don't add new elements. Equivalent to `XX` in
      * the Redis API.
      */
-    conditionalChange?: "onlyIfExists" | "onlyIfDoesNotExist";
+    conditionalChange?: ConditionalChange;
     /**
      * `scoreLessThanCurrent` - Only update existing elements if the new score is
      * less than the current score. Equivalent to `LT` in the Redis API.
      * `scoreGreaterThanCurrent` - Only update existing elements if the new score
      * is greater than the current score. Equivalent to `GT` in the Redis API.
      */
-    updateOptions?: "scoreLessThanCurrent" | "scoreGreaterThanCurrent";
+    updateOptions?: UpdateOptions;
     /**
      * Modify the return value from the number of new elements added, to the total number of elements changed.
      */
@@ -958,22 +968,22 @@ export function createZAdd(
     let args = [key];
 
     if (options) {
-        if (options.conditionalChange === "onlyIfExists") {
-            args.push("XX");
-        } else if (options.conditionalChange === "onlyIfDoesNotExist") {
-            if (options.updateOptions) {
+        if (options.conditionalChange) {
+            if (
+                options.conditionalChange ===
+                    ConditionalChange.ONLY_IF_DOES_NOT_EXIST &&
+                options.updateOptions
+            ) {
                 throw new Error(
                     `The GT, LT, and NX options are mutually exclusive. Cannot choose both ${options.updateOptions} and NX.`,
                 );
             }
 
-            args.push("NX");
+            args.push(options.conditionalChange);
         }
 
-        if (options.updateOptions === "scoreLessThanCurrent") {
-            args.push("LT");
-        } else if (options.updateOptions === "scoreGreaterThanCurrent") {
-            args.push("GT");
+        if (options.updateOptions) {
+            args.push(options.updateOptions);
         }
 
         if (options.changed) {
