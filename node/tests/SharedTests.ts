@@ -303,8 +303,6 @@ export function runBaseTests<Context>(config: {
                 await client.set("foo", "bar");
                 const oldResult = await client.info([InfoOptions.Commandstats]);
                 const oldResultAsString = intoString(oldResult);
-                console.log(oldResult);
-                console.log(oldResultAsString);
                 expect(oldResultAsString).toContain("cmdstat_set");
                 checkSimple(await client.configResetStat()).toEqual("OK");
 
