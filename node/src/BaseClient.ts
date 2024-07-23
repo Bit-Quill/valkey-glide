@@ -3430,7 +3430,7 @@ export class BaseClient {
      *
      * @example
      * ```typescript
-     * const data = new Map([["Palermo", new GeospatialData(13.361389, 38.115556)], ["Catania", new GeospatialData(15.087269, 37.502669)]]);
+     * const data = new Map([["Palermo", { longitude: 13.361389, latitude: 38.115556 }], ["Catania", { longitude: 15.087269, latitude: 37.502669 }]]);
      * await client.geoadd("mySortedSet", data);
      * const result = await client.geopos("mySortedSet", ["Palermo", "Catania", "NonExisting"]);
      * // When added via GEOADD, the geospatial coordinates are converted into a 52 bit geohash, so the coordinates
