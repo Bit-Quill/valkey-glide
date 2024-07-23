@@ -12,7 +12,6 @@ import { GlideClient } from "src/GlideClient";
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import { GlideClusterClient } from "src/GlideClusterClient";
 import { command_request } from "./ProtobufMessage";
-import { BitOffsetOptions } from "./commands/BitOffsetOptions";
 
 import RequestType = command_request.RequestType;
 
@@ -937,17 +936,11 @@ export enum UpdateOptions {
 
 export type ZAddOptions = {
     /**
-     * `onlyIfDoesNotExist` - Only add new elements. Don't update already existing
-     * elements. Equivalent to `NX` in the Redis API. `onlyIfExists` - Only update
-     * elements that already exist. Don't add new elements. Equivalent to `XX` in
-     * the Redis API.
+     * Options for handling existing members.
      */
     conditionalChange?: ConditionalChange;
     /**
-     * `scoreLessThanCurrent` - Only update existing elements if the new score is
-     * less than the current score. Equivalent to `LT` in the Redis API.
-     * `scoreGreaterThanCurrent` - Only update existing elements if the new score
-     * is greater than the current score. Equivalent to `GT` in the Redis API.
+     * Options for updating scores.
      */
     updateOptions?: UpdateOptions;
     /**
@@ -1617,6 +1610,40 @@ export function createFunctionLoad(
 }
 
 /**
+ * Enumeration specifying if index arguments are BYTE indexes or BIT indexes.
+ * Can be specified in {@link BitOffsetOptions}, which is an optional argument to the {@link BaseClient.bitcount|bitcount} command.
+ *
+ * since - Valkey version 7.0.0.
+ */
+export enum BitmapIndexType {
+    /** Specifies that indexes provided to {@link BitOffsetOptions} are byte indexes. */
+    BYTE = "BYTE",
+    /** Specifies that indexes provided to {@link BitOffsetOptions} are bit indexes. */
+    BIT = "BIT",
+}
+
+/**
+ * Represents offsets specifying a string interval to analyze in the {@link BaseClient.bitcount|bitcount} command. The offsets are
+ * zero-based indexes, with `0` being the first index of the string, `1` being the next index and so on.
+ * The offsets can also be negative numbers indicating offsets starting at the end of the string, with `-1` being
+ * the last index of the string, `-2` being the penultimate, and so on.
+ *
+ * See https://valkey.io/commands/bitcount/ for more details.
+ */
+export type BitOffsetOptions = {
+    /** The starting offset index. */
+    start: number;
+    /** The ending offset index. */
+    end: number;
+    /**
+     * The index offset type. This option can only be specified if you are using server version 7.0.0 or above.
+     * Could be either {@link BitmapIndexType.BYTE} or {@link BitmapIndexType.BIT}.
+     * If no index type is provided, the indexes will be assumed to be byte indexes.
+     */
+    indexType?: BitmapIndexType;
+};
+
+/**
  * @internal
  */
 export function createBitCount(
@@ -1624,7 +1651,13 @@ export function createBitCount(
     options?: BitOffsetOptions,
 ): command_request.Command {
     const args = [key];
-    if (options) args.push(...options.toArgs());
+
+    if (options) {
+        args.push(options.start.toString());
+        args.push(options.end.toString());
+        if (options.indexType) args.push(options.indexType);
+    }
+
     return createCommand(RequestType.BitCount, args);
 }
 

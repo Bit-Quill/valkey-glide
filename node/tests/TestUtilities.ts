@@ -19,11 +19,11 @@ import {
     ScoreFilter,
     Transaction,
 } from "..";
-import { FlushMode, GeospatialData } from "../build-ts/src/Commands";
 import {
     BitmapIndexType,
-    BitOffsetOptions,
-} from "../build-ts/src/commands/BitOffsetOptions";
+    FlushMode,
+    GeospatialData,
+} from "../build-ts/src/Commands";
 import { checkIfServerVersionLessThan } from "./SharedTests";
 
 beforeAll(() => {
@@ -638,14 +638,15 @@ export async function transactionTest(
     args.push("OK");
     baseTransaction.bitcount(key17);
     args.push(26);
-    baseTransaction.bitcount(key17, new BitOffsetOptions(1, 1));
+    baseTransaction.bitcount(key17, { start: 1, end: 1 });
     args.push(6);
 
     if (!(await checkIfServerVersionLessThan("7.0.0"))) {
-        baseTransaction.bitcount(
-            key17,
-            new BitOffsetOptions(5, 30, BitmapIndexType.BIT),
-        );
+        baseTransaction.bitcount(key17, {
+            start: 5,
+            end: 30,
+            indexType: BitmapIndexType.BIT,
+        });
         args.push(17);
     }
 

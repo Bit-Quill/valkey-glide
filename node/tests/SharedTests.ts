@@ -20,15 +20,12 @@ import {
     parseInfoResponse,
 } from "../";
 import {
+    BitmapIndexType,
     ConditionalChange,
     GeospatialData,
     UpdateOptions,
 } from "../build-ts/src/Commands";
 import { SingleNodeRoute } from "../build-ts/src/GlideClusterClient";
-import {
-    BitOffsetOptions,
-    BitmapIndexType,
-} from "../build-ts/src/commands/BitOffsetOptions";
 import {
     Client,
     GetAndSetRandomValue,
@@ -4333,18 +4330,15 @@ export function runBaseTests<Context>(config: {
                 checkSimple(await client.set(key1, value)).toEqual("OK");
                 expect(await client.bitcount(key1)).toEqual(26);
                 expect(
-                    await client.bitcount(key1, new BitOffsetOptions(1, 1)),
+                    await client.bitcount(key1, { start: 1, end: 1 }),
                 ).toEqual(6);
                 expect(
-                    await client.bitcount(key1, new BitOffsetOptions(0, -5)),
+                    await client.bitcount(key1, { start: 0, end: -5 }),
                 ).toEqual(10);
                 // non-existing key
                 expect(await client.bitcount(uuidv4())).toEqual(0);
                 expect(
-                    await client.bitcount(
-                        uuidv4(),
-                        new BitOffsetOptions(5, 30),
-                    ),
+                    await client.bitcount(uuidv4(), { start: 5, end: 30 }),
                 ).toEqual(0);
                 // key exists, but it is not a string
                 expect(await client.sadd(key2, [value])).toEqual(1);
@@ -4352,53 +4346,60 @@ export function runBaseTests<Context>(config: {
                     RequestError,
                 );
                 await expect(
-                    client.bitcount(key2, new BitOffsetOptions(1, 1)),
+                    client.bitcount(key2, { start: 1, end: 1 }),
                 ).rejects.toThrow(RequestError);
 
                 if (await checkIfServerVersionLessThan("7.0.0")) {
                     await expect(
-                        client.bitcount(
-                            key1,
-                            new BitOffsetOptions(2, 5, BitmapIndexType.BIT),
-                        ),
+                        client.bitcount(key1, {
+                            start: 2,
+                            end: 5,
+                            indexType: BitmapIndexType.BIT,
+                        }),
                     ).rejects.toThrow();
                     await expect(
-                        client.bitcount(
-                            key1,
-                            new BitOffsetOptions(2, 5, BitmapIndexType.BYTE),
-                        ),
+                        client.bitcount(key1, {
+                            start: 2,
+                            end: 5,
+                            indexType: BitmapIndexType.BYTE,
+                        }),
                     ).rejects.toThrow();
                 } else {
                     expect(
-                        await client.bitcount(
-                            key1,
-                            new BitOffsetOptions(2, 5, BitmapIndexType.BYTE),
-                        ),
+                        await client.bitcount(key1, {
+                            start: 2,
+                            end: 5,
+                            indexType: BitmapIndexType.BYTE,
+                        }),
                     ).toEqual(16);
                     expect(
-                        await client.bitcount(
-                            key1,
-                            new BitOffsetOptions(5, 30, BitmapIndexType.BIT),
-                        ),
+                        await client.bitcount(key1, {
+                            start: 5,
+                            end: 30,
+                            indexType: BitmapIndexType.BIT,
+                        }),
                     ).toEqual(17);
                     expect(
-                        await client.bitcount(
-                            key1,
-                            new BitOffsetOptions(5, -5, BitmapIndexType.BIT),
-                        ),
+                        await client.bitcount(key1, {
+                            start: 5,
+                            end: -5,
+                            indexType: BitmapIndexType.BIT,
+                        }),
                     ).toEqual(23);
                     expect(
-                        await client.bitcount(
-                            uuidv4(),
-                            new BitOffsetOptions(2, 5, BitmapIndexType.BYTE),
-                        ),
+                        await client.bitcount(uuidv4(), {
+                            start: 2,
+                            end: 5,
+                            indexType: BitmapIndexType.BYTE,
+                        }),
                     ).toEqual(0);
                     // key exists, but it is not a string
                     await expect(
-                        client.bitcount(
-                            key2,
-                            new BitOffsetOptions(1, 1, BitmapIndexType.BYTE),
-                        ),
+                        client.bitcount(key2, {
+                            start: 1,
+                            end: 1,
+                            indexType: BitmapIndexType.BYTE,
+                        }),
                     ).rejects.toThrow(RequestError);
                 }
             }, protocol);

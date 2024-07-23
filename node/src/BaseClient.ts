@@ -12,6 +12,7 @@ import * as net from "net";
 import { Buffer, BufferWriter, Reader, Writer } from "protobufjs";
 import {
     AggregationType,
+    BitOffsetOptions,
     ExpireOptions,
     GeoAddOptions,
     GeospatialData,
@@ -131,7 +132,6 @@ import {
     createZRevRankWithScore,
     createZScore,
 } from "./Commands";
-import { BitOffsetOptions } from "./commands/BitOffsetOptions";
 import {
     ClosingError,
     ConfigurationError,

@@ -4,6 +4,7 @@
 
 import {
     AggregationType,
+    BitOffsetOptions,
     ExpireOptions,
     FlushMode,
     GeoAddOptions,
@@ -11,8 +12,8 @@ import {
     InfoOptions,
     InsertPosition,
     KeyWeight,
-    LolwutOptions,
     LPosOptions,
+    LolwutOptions,
     RangeByIndex,
     RangeByLex,
     RangeByScore,
@@ -146,7 +147,6 @@ import {
     createZScore,
 } from "./Commands";
 import { command_request } from "./ProtobufMessage";
-import { BitOffsetOptions } from "./commands/BitOffsetOptions";
 
 /**
  * Base class encompassing shared commands for both standalone and cluster mode implementations in a transaction.
