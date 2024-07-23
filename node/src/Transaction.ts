@@ -6,6 +6,8 @@ import {
     AggregationType,
     ExpireOptions,
     FlushMode,
+    GeoAddOptions,
+    GeospatialData,
     InfoOptions,
     InsertPosition,
     KeyWeight,
@@ -145,10 +147,6 @@ import {
 } from "./Commands";
 import { command_request } from "./ProtobufMessage";
 import { BitOffsetOptions } from "./commands/BitOffsetOptions";
-import { FlushMode } from "./commands/FlushMode";
-import { LPosOptions } from "./commands/LPosOptions";
-import { GeoAddOptions } from "./commands/geospatial/GeoAddOptions";
-import { GeospatialData } from "./commands/geospatial/GeospatialData";
 
 /**
  * Base class encompassing shared commands for both standalone and cluster mode implementations in a transaction.

@@ -19,6 +19,12 @@ import {
     Script,
     parseInfoResponse,
 } from "../";
+import { ConditionalChange, GeospatialData } from "../build-ts/src/Commands";
+import { SingleNodeRoute } from "../build-ts/src/GlideClusterClient";
+import {
+    BitOffsetOptions,
+    BitmapIndexType,
+} from "../build-ts/src/commands/BitOffsetOptions";
 import {
     Client,
     GetAndSetRandomValue,
@@ -28,14 +34,6 @@ import {
     intoArray,
     intoString,
 } from "./TestUtilities";
-import { SingleNodeRoute } from "../build-ts/src/GlideClusterClient";
-import {
-    BitmapIndexType,
-    BitOffsetOptions,
-} from "../build-ts/src/commands/BitOffsetOptions";
-import { GeospatialData } from "../build-ts/src/commands/geospatial/GeospatialData";
-import { GeoAddOptions } from "../build-ts/src/commands/geospatial/GeoAddOptions";
-import { ConditionalChange } from "../build-ts/src/commands/ConditionalChange";
 
 async function getVersion(): Promise<[number, number, number]> {
     const versionString = await new Promise<string>((resolve, reject) => {
@@ -4411,14 +4409,14 @@ export function runBaseTests<Context>(config: {
                 const key1 = uuidv4();
                 const key2 = uuidv4();
                 const membersToCoordinates = new Map<string, GeospatialData>();
-                membersToCoordinates.set(
-                    "Palermo",
-                    new GeospatialData(13.361389, 38.115556),
-                );
-                membersToCoordinates.set(
-                    "Catania",
-                    new GeospatialData(15.087269, 37.502669),
-                );
+                membersToCoordinates.set("Palermo", {
+                    longitude: 13.361389,
+                    latitude: 38.115556,
+                });
+                membersToCoordinates.set("Catania", {
+                    longitude: 15.087269,
+                    latitude: 37.502669,
+                });
 
                 // default geoadd
                 expect(await client.geoadd(key1, membersToCoordinates)).toBe(2);
@@ -4446,45 +4444,34 @@ export function runBaseTests<Context>(config: {
                 expect(geopos).toEqual([null]);
 
                 // with update mode options
-                membersToCoordinates.set(
-                    "Catania",
-                    new GeospatialData(15.087269, 39),
-                );
+                membersToCoordinates.set("Catania", {
+                    longitude: 15.087269,
+                    latitude: 39,
+                });
                 expect(
-                    await client.geoadd(
-                        key1,
-                        membersToCoordinates,
-                        new GeoAddOptions({
-                            updateMode:
-                                ConditionalChange.ONLY_IF_DOES_NOT_EXIST,
-                        }),
-                    ),
+                    await client.geoadd(key1, membersToCoordinates, {
+                        updateMode: ConditionalChange.ONLY_IF_DOES_NOT_EXIST,
+                    }),
                 ).toBe(0);
                 expect(
-                    await client.geoadd(
-                        key1,
-                        membersToCoordinates,
-                        new GeoAddOptions({
-                            updateMode: ConditionalChange.ONLY_IF_EXISTS,
-                        }),
-                    ),
+                    await client.geoadd(key1, membersToCoordinates, {
+                        updateMode: ConditionalChange.ONLY_IF_EXISTS,
+                    }),
                 ).toBe(0);
 
                 // with changed option
-                membersToCoordinates.set(
-                    "Catania",
-                    new GeospatialData(15.087269, 40),
-                );
-                membersToCoordinates.set(
-                    "Tel-Aviv",
-                    new GeospatialData(32.0853, 34.7818),
-                );
+                membersToCoordinates.set("Catania", {
+                    longitude: 15.087269,
+                    latitude: 40,
+                });
+                membersToCoordinates.set("Tel-Aviv", {
+                    longitude: 32.0853,
+                    latitude: 34.7818,
+                });
                 expect(
-                    await client.geoadd(
-                        key1,
-                        membersToCoordinates,
-                        new GeoAddOptions({ changed: true }),
-                    ),
+                    await client.geoadd(key1, membersToCoordinates, {
+                        changed: true,
+                    }),
                 ).toBe(2);
 
                 // key exists but holding non-zset value
@@ -4511,25 +4498,25 @@ export function runBaseTests<Context>(config: {
                 await expect(
                     client.geoadd(
                         key,
-                        new Map([["Place", new GeospatialData(-181, 0)]]),
+                        new Map([["Place", { longitude: -181, latitude: 0 }]]),
                     ),
                 ).rejects.toThrow();
                 await expect(
                     client.geoadd(
                         key,
-                        new Map([["Place", new GeospatialData(181, 0)]]),
+                        new Map([["Place", { longitude: 181, latitude: 0 }]]),
                     ),
                 ).rejects.toThrow();
                 await expect(
                     client.geoadd(
                         key,
-                        new Map([["Place", new GeospatialData(0, 86)]]),
+                        new Map([["Place", { longitude: 0, latitude: 86 }]]),
                     ),
                 ).rejects.toThrow();
                 await expect(
                     client.geoadd(
                         key,
-                        new Map([["Place", new GeospatialData(0, -86)]]),
+                        new Map([["Place", { longitude: 0, latitude: -86 }]]),
                     ),
                 ).rejects.toThrow();
             }, protocol);

@@ -4,17 +4,15 @@
 
 import { createLeakedStringVec, MAX_REQUEST_ARGS_LEN } from "glide-rs";
 import Long from "long";
-import { FlushMode } from "./commands/FlushMode";
-import { LPosOptions } from "./commands/LPosOptions";
 
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+import { BaseClient } from "src/BaseClient";
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import { GlideClient } from "src/GlideClient";
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import { GlideClusterClient } from "src/GlideClusterClient";
 import { command_request } from "./ProtobufMessage";
 import { BitOffsetOptions } from "./commands/BitOffsetOptions";
-import { GeoAddOptions } from "./commands/geospatial/GeoAddOptions";
-import { GeospatialData } from "./commands/geospatial/GeospatialData";
 
 import RequestType = command_request.RequestType;
 
@@ -1885,6 +1883,48 @@ export function createDBSize(): command_request.Command {
 }
 
 /**
+ * An optional condition to the {@link BaseClient.geoadd} command.
+ */
+export enum ConditionalChange {
+    /**
+     * Only update elements that already exist. Don't add new elements. Equivalent to `XX` in the Valkey API.
+     */
+    ONLY_IF_EXISTS = "XX",
+
+    /**
+     * Only add new elements. Don't update already existing elements. Equivalent to `NX` in the Valkey API.
+     * */
+    ONLY_IF_DOES_NOT_EXIST = "NX",
+}
+
+/**
+ * Represents a geographic position defined by longitude and latitude.
+ * The exact limits, as specified by `EPSG:900913 / EPSG:3785 / OSGEO:41001` are the
+ * following:
+ *
+ *   Valid longitudes are from `-180` to `180` degrees.
+ *   Valid latitudes are from `-85.05112878` to `85.05112878` degrees.
+ */
+export type GeospatialData = {
+    /** The longitude coordinate. */
+    longitude: number;
+    /** The latitude coordinate. */
+    latitude: number;
+};
+
+/**
+ * Optional arguments for the GeoAdd command.
+ *
+ * See https://valkey.io/commands/geoadd/ for more details.
+ */
+export type GeoAddOptions = {
+    /** Options for handling existing members. See {@link ConditionalChange}. */
+    updateMode?: ConditionalChange;
+    /** If `true`, returns the count of changed elements instead of new elements added. */
+    changed?: boolean;
+};
+
+/**
  * @internal
  */
 export function createGeoAdd(
@@ -1895,11 +1935,20 @@ export function createGeoAdd(
     let args: string[] = [key];
 
     if (options) {
-        args = args.concat(options.toArgs());
+        if (options.updateMode) {
+            args.push(options.updateMode);
+        }
+
+        if (options.changed) {
+            args.push("CH");
+        }
     }
 
     membersToGeospatialData.forEach((coord, member) => {
-        args = args.concat(coord.toArgs());
+        args = args.concat([
+            coord.longitude.toString(),
+            coord.latitude.toString(),
+        ]);
         args.push(member);
     });
     return createCommand(RequestType.GeoAdd, args);

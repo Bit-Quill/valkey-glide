@@ -13,6 +13,8 @@ import { Buffer, BufferWriter, Reader, Writer } from "protobufjs";
 import {
     AggregationType,
     ExpireOptions,
+    GeoAddOptions,
+    GeospatialData,
     InsertPosition,
     KeyWeight,
     LPosOptions,
@@ -3398,8 +3400,11 @@ export class BaseClient {
      *
      * @example
      * ```typescript
-     * const options = new GeoAddOptions({updateMode: ConditionalChange.ONLY_IF_EXISTS, changed: true});
-     * const num = await client.geoadd("mySortedSet", new Map([["Palermo", new GeospatialData(13.361389, 38.115556)]]), options);
+     * const options = {updateMode: ConditionalChange.ONLY_IF_EXISTS, changed: true};
+     * const membersToCoordinates = new Map<string, GeospatialData>([
+     *      ["Palermo", { longitude: 13.361389, latitude: 38.115556 }],
+     * ]);
+     * const num = await client.geoadd("mySortedSet", membersToCoordinates, options);
      * console.log(num); // Output: 1 - Indicates that the position of an existing member in the sorted set "mySortedSet" has been updated.
      * ```
      */

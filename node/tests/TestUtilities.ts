@@ -19,13 +19,11 @@ import {
     ScoreFilter,
     Transaction,
 } from "..";
+import { FlushMode, GeospatialData } from "../build-ts/src/Commands";
 import {
     BitmapIndexType,
     BitOffsetOptions,
 } from "../build-ts/src/commands/BitOffsetOptions";
-import { FlushMode } from "../build-ts/src/Commands";
-import { GeospatialData } from "../build-ts/src/commands/geospatial/GeospatialData";
-import { LPosOptions } from "../build-ts/src/commands/LPosOptions";
 import { checkIfServerVersionLessThan } from "./SharedTests";
 
 beforeAll(() => {
@@ -657,9 +655,9 @@ export async function transactionTest(
     args.push(3);
     baseTransaction.geoadd(
         key18,
-        new Map([
-            ["Palermo", new GeospatialData(13.361389, 38.115556)],
-            ["Catania", new GeospatialData(15.087269, 37.502669)],
+        new Map<string, GeospatialData>([
+            ["Palermo", { longitude: 13.361389, latitude: 38.115556 }],
+            ["Catania", { longitude: 15.087269, latitude: 37.502669 }],
         ]),
     );
     args.push(2);
