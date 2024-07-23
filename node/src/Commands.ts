@@ -7,6 +7,10 @@ import Long from "long";
 import { FlushMode } from "./commands/FlushMode";
 import { LPosOptions } from "./commands/LPosOptions";
 
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+import { GlideClient } from "src/GlideClient";
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+import { GlideClusterClient } from "src/GlideClusterClient";
 import { command_request } from "./ProtobufMessage";
 import { BitOffsetOptions } from "./commands/BitOffsetOptions";
 import { GeoAddOptions } from "./commands/geospatial/GeoAddOptions";
@@ -1614,6 +1618,23 @@ export function createBitCount(
     const args = [key];
     if (options) args.push(...options.toArgs());
     return createCommand(RequestType.BitCount, args);
+}
+
+/**
+ * Defines flushing mode for {@link GlideClient.flushall}, {@link GlideClusterClient.flushall},
+ *      {@link GlideClient.flushdb} and {@link GlideClusterClient.flushdb} commands.
+ *
+ * See https://valkey.io/commands/flushall/ and https://valkey.io/commands/flushdb/ for details.
+ */
+export enum FlushMode {
+    /**
+     * Flushes synchronously.
+     *
+     * since Valkey version 6.2.0.
+     */
+    SYNC = "SYNC",
+    /** Flushes asynchronously. */
+    ASYNC = "ASYNC",
 }
 
 /**

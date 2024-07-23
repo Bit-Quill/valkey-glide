@@ -5,6 +5,7 @@
 import {
     AggregationType,
     ExpireOptions,
+    FlushMode,
     InfoOptions,
     InsertPosition,
     KeyWeight,

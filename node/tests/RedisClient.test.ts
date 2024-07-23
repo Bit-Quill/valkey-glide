@@ -20,7 +20,7 @@ import {
     Transaction,
 } from "..";
 import { RedisCluster } from "../../utils/TestUtils.js";
-import { FlushMode } from "../build-ts/src/commands/FlushMode.js";
+import { FlushMode } from "../build-ts/src/Commands";
 import { command_request } from "../src/ProtobufMessage";
 import { checkIfServerVersionLessThan, runBaseTests } from "./SharedTests";
 import {
