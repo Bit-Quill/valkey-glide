@@ -297,6 +297,9 @@ export type DecoderOption = {
     decoder?: Decoder;
 };
 
+/** A replacement for `Record<GlideString, T>` - array of key-value pairs. */
+export type GlideRecord<T> = { key: GlideString; value: T }[];
+
 /**
  * Our purpose in creating PointerResponse type is to mark when response is of number/long pointer response type.
  * Consequently, when the response is returned, we can check whether it is instanceof the PointerResponse type and pass it to the Rust core function with the proper parameters.
@@ -1210,7 +1213,8 @@ export class BaseClient {
         );
     }
 
-    /** Retrieve the values of multiple keys.
+    /**
+     * Retrieves the values of multiple keys.
      *
      * @see {@link https://valkey.io/commands/mget/|valkey.io} for details.
      * @remarks When in cluster mode, the command may route to multiple nodes when `keys` map to different hash slots.
@@ -1219,7 +1223,7 @@ export class BaseClient {
      * @param decoder - (Optional) {@link Decoder} type which defines how to handle the response.
      *     If not set, the {@link BaseClientConfiguration.defaultDecoder|default decoder} will be used.
      * @returns A list of values corresponding to the provided keys. If a key is not found,
-     * its corresponding value in the list will be null.
+     * its corresponding value in the list will be `null`.
      *
      * @example
      * ```typescript
@@ -1237,13 +1241,14 @@ export class BaseClient {
         return this.createWritePromise(createMGet(keys), { decoder: decoder });
     }
 
-    /** Set multiple keys to multiple values in a single operation.
+    /**
+     * Sets multiple keys to multiple values in a single operation.
      *
      * @see {@link https://valkey.io/commands/mset/|valkey.io} for details.
      * @remarks When in cluster mode, the command may route to multiple nodes when keys in `keyValueMap` map to different hash slots.
      *
      * @param keyValueMap - A key-value map consisting of keys and their respective values to set.
-     * @returns always "OK".
+     * @returns Always `"OK"`.
      *
      * @example
      * ```typescript
@@ -1252,7 +1257,7 @@ export class BaseClient {
      * console.log(result); // Output: 'OK'
      * ```
      */
-    public async mset(keyValueMap: Record<string, string>): Promise<"OK"> {
+    public async mset(keyValueMap: GlideRecord<GlideString>): Promise<"OK"> {
         return this.createWritePromise(createMSet(keyValueMap));
     }
 
@@ -1275,7 +1280,9 @@ export class BaseClient {
      * console.log(result2); // Output: `false`
      * ```
      */
-    public async msetnx(keyValueMap: Record<string, string>): Promise<boolean> {
+    public async msetnx(
+        keyValueMap: GlideRecord<GlideString>,
+    ): Promise<boolean> {
         return this.createWritePromise(createMSetNX(keyValueMap));
     }
 
@@ -1781,23 +1788,34 @@ export class BaseClient {
         return this.createWritePromise(createHExists(key, field));
     }
 
-    /** Returns all fields and values of the hash stored at `key`.
+    /**
+     * Returns all fields and values of the hash stored at `key`.
      *
      * @see {@link https://valkey.io/commands/hgetall/|valkey.io} for details.
      *
      * @param key - The key of the hash.
-     * @returns a list of fields and their values stored in the hash. Every field name in the list is followed by its value.
+     * @returns A list of fields and their values stored in the hash.
      * If `key` does not exist, it returns an empty list.
      *
      * @example
      * ```typescript
      * // Example usage of the hgetall method
      * const result = await client.hgetall("my_hash");
-     * console.log(result); // Output: {"field1": "value1", "field2": "value2"}
+     * console.log(result); // Output:
+     * // [
+     * //     {"field": "field1", "value": "value1"},
+     * //     {"field", "field2", "value": "value2"}
+     * // ]
      * ```
      */
-    public async hgetall(key: string): Promise<Record<string, string>> {
-        return this.createWritePromise(createHGetAll(key));
+    public async hgetall(
+        key: string,
+    ): Promise<{ field: GlideString; value: GlideString }[]> {
+        return this.createWritePromise(createHGetAll(key)).then((res) =>
+            (res as GlideRecord<GlideString>).map((r) => {
+                return { field: r.key, value: r.value };
+            }),
+        );
     }
 
     /** Increments the number stored at `field` in the hash stored at `key` by increment.

@@ -195,13 +195,18 @@ fn redis_value_to_js(val: Value, js_env: Env, string_decoder: bool) -> Result<Js
             Ok(js_array_view.into_unknown())
         }
         Value::Map(map) => {
-            let mut obj = js_env.create_object()?;
-            for (key, value) in map {
+            // Convert map to array of key-value pairs instead of a `Record`` (object),
+            // because `Record` does not support `GlideString` as a key.
+            let mut js_array = js_env.create_array_with_length(map.len())?;
+            for (idx, (key, value)) in (0_u32..).zip(map.into_iter()) {
+                let mut obj = js_env.create_object()?;
                 let field_name = String::from_owned_redis_value(key).map_err(to_js_error)?;
                 let value = redis_value_to_js(value, js_env, string_decoder)?;
-                obj.set_named_property(&field_name, value)?;
+                obj.set_named_property("key", field_name)?;
+                obj.set_named_property("value", value)?;
+                js_array.set_element(idx, obj)?;
             }
-            Ok(obj.into_unknown())
+            Ok(js_array.into_unknown())
         }
         Value::Double(float) => js_env.create_double(float).map(|val| val.into_unknown()),
         Value::Boolean(bool) => js_env.get_boolean(bool).map(|val| val.into_unknown()),

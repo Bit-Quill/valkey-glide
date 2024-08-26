@@ -6,7 +6,7 @@ import { createLeakedStringVec, MAX_REQUEST_ARGS_LEN } from "glide-rs";
 import Long from "long";
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-import { BaseClient } from "src/BaseClient";
+import { BaseClient, GlideRecord } from "src/BaseClient";
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import { GlideClient } from "src/GlideClient";
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -328,20 +328,23 @@ export function createMGet(keys: GlideString[]): command_request.Command {
  * @internal
  */
 export function createMSet(
-    keyValueMap: Record<string, string>,
+    keyValueMap: GlideRecord<GlideString>,
 ): command_request.Command {
-    return createCommand(RequestType.MSet, Object.entries(keyValueMap).flat());
+    return createCommand(
+        RequestType.MSet,
+        keyValueMap.map((r) => [r.key, r.value]).flat(),
+    );
 }
 
 /**
  * @internal
  */
 export function createMSetNX(
-    keyValueMap: Record<string, string>,
+    keyValueMap: GlideRecord<GlideString>,
 ): command_request.Command {
     return createCommand(
         RequestType.MSetNX,
-        Object.entries(keyValueMap).flat(),
+        keyValueMap.map((r) => [r.key, r.value]).flat(),
     );
 }
 

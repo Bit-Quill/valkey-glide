@@ -3,7 +3,8 @@
  */
 
 import {
-    BaseClient, // eslint-disable-line @typescript-eslint/no-unused-vars
+    BaseClient,
+    GlideRecord, // eslint-disable-line @typescript-eslint/no-unused-vars
     GlideString,
     ReadFrom, // eslint-disable-line @typescript-eslint/no-unused-vars
 } from "./BaseClient";
@@ -502,26 +503,30 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         return this.addAndReturn(createConfigResetStat());
     }
 
-    /** Retrieve the values of multiple keys.
+    /**
+     * Retrieves the values of multiple keys.
+     *
      * @see {@link https://valkey.io/commands/mget/|valkey.io} for details.
      *
      * @param keys - A list of keys to retrieve values for.
      *
      * Command Response - A list of values corresponding to the provided keys. If a key is not found,
-     * its corresponding value in the list will be null.
+     * its corresponding value in the list will be `null`.
      */
     public mget(keys: GlideString[]): T {
         return this.addAndReturn(createMGet(keys));
     }
 
-    /** Set multiple keys to multiple values in a single atomic operation.
+    /**
+     * Sets multiple keys to multiple values in a single atomic operation.
+     *
      * @see {@link https://valkey.io/commands/mset/|valkey.io} for details.
      *
      * @param keyValueMap - A key-value map consisting of keys and their respective values to set.
      *
-     * Command Response - always "OK".
+     * Command Response - always `"OK"`.
      */
-    public mset(keyValueMap: Record<string, string>): T {
+    public mset(keyValueMap: GlideRecord<GlideString>): T {
         return this.addAndReturn(createMSet(keyValueMap));
     }
 
@@ -532,9 +537,10 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * @see {@link https://valkey.io/commands/msetnx/|valkey.io} for details.
      *
      * @param keyValueMap - A key-value map consisting of keys and their respective values to set.
+     *
      * Command Response - `true` if all keys were set. `false` if no key was set.
      */
-    public msetnx(keyValueMap: Record<string, string>): T {
+    public msetnx(keyValueMap: GlideRecord<GlideString>): T {
         return this.addAndReturn(createMSetNX(keyValueMap));
     }
 
