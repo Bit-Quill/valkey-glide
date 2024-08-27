@@ -195,7 +195,7 @@ fn redis_value_to_js(val: Value, js_env: Env, string_decoder: bool) -> Result<Js
             Ok(js_array_view.into_unknown())
         }
         Value::Map(map) => {
-            // Convert map to array of key-value pairs instead of a `Record`` (object),
+            // Convert map to array of key-value pairs instead of a `Record` (object),
             // because `Record` does not support `GlideString` as a key.
             let mut js_array = js_env.create_array_with_length(map.len())?;
             for (idx, (key, value)) in (0_u32..).zip(map.into_iter()) {

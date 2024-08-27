@@ -1839,9 +1839,9 @@ export class BaseClient {
         key: string,
         options?: DecoderOption,
     ): Promise<{ field: GlideString; value: GlideString }[]> {
-        return this.createWritePromise(createHGetAll(key), options).then(
-            (res) =>
-                (res as GlideRecord<GlideString>).map((r) => {
+        return this.createWritePromise<GlideRecord<GlideString>>(createHGetAll(key), options).then(
+            res =>
+                res.map((r) => {
                     return { field: r.key, value: r.value };
                 }),
         );
@@ -3402,13 +3402,12 @@ export class BaseClient {
         end: Boundary<string>,
         options?: { count?: number } & DecoderOption,
     ): Promise<{ entryID: GlideString; data: [string, string][] }[] | null> {
-        return this.createWritePromise(
+        return this.createWritePromise<GlideRecord<[string, string][]> | null>(
             createXRange(key, start, end, options?.count),
             options,
         )
-            .then((res) => res as GlideRecord<[string, string][]> | null)
             .then(
-                (res) =>
+                res =>
                     res?.map((r) => {
                         return { entryID: r.key, data: r.value };
                     }) ?? null,
