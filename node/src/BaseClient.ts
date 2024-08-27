@@ -48,6 +48,7 @@ import {
     SetOptions,
     StreamAddOptions,
     StreamClaimOptions,
+    StreamEntries,
     StreamGroupOptions,
     StreamPendingOptions,
     StreamReadGroupOptions,
@@ -298,30 +299,56 @@ export type DecoderOption = {
 };
 
 /** A replacement for `Record<GlideString, T>` - array of key-value pairs. */
-export type GlideRecord<T> = { key: GlideString; value: T }[];
+export type GlideRecord<T> = {
+    /** The value name. */
+    key: GlideString,
+    /** The value itself. */
+    value: T
+}[];
 
-// GLideRecord for score for sorted set commands?
-// TODO export
-export type ElementScoreData = { element: GlideString; score: number }[];
+/** A replacement for `Record<GlideString, number>` for sorted sets. */
+export type SortedSetDataType = {
+    /** The sorted set element name. */
+    element: GlideString,
+    /** The element score. */
+    score: number
+}[];
 
-/**
- * Convert `GlideRecord<number>` recevied after resolving the value pointer into `ElementScoreData`.
- * `createWritePromise` returns `unknown`, so we need extra cast and caution.
- */
-// TODO remove unknown, use <>
+/** A replacement for `Record<GlideString, [string, string][]>` for streams. */
+export type StreamEntryDataType = {
+    /** Stream entry ID. */
+    id: GlideString,
+    /** Stream entry data - key-value pairs. */
+    data: [GlideString, GlideString][]
+}[];
+
+/** Convert `GlideRecord<number>` recevied after resolving the value pointer into `SortedSetDataType`. */
 function convertGlideRecordForZSet(
-    res: unknown | GlideRecord<number>,
-): ElementScoreData {
-    return (res as GlideRecord<number>).map((e) => {
+    res: GlideRecord<number>,
+): SortedSetDataType {
+    return res.map((e) => {
         return { element: e.key, score: e.value };
     });
 }
 
-/** Downcast `GlideRecord` to `Record`. Use if you are 146% aware that `data` keys are always strings. */
+/** Convert `GlideRecord<number>` recevied after resolving the value pointer into `SortedSetDataType`. */
+function convertGlideRecordForStream(
+    res: GlideRecord<[GlideString, GlideString][]>,
+): StreamEntryDataType {
+    return res.map((e) => {
+        return { id: e.key, data: e.value };
+    });
+}
+
+/** Recursevely downcast `GlideRecord` to `Record`. Use if you are 146% aware that `data` keys are always strings. */
 function glideRecordToRecord<T>(data: GlideRecord<T>): Record<string, T> {
     const res: Record<string, T> = {};
     for (const pair of data) {
-        res[pair.key as string] = pair.value;
+        if (Array.isArray(pair.value) && typeof pair.value[0] === "object") {
+            res[pair.key as string] = glideRecordToRecord(pair.value) as T;
+        } else {
+            res[pair.key as string] = pair.value;
+        }
     }
     return res;
 }
@@ -3401,7 +3428,7 @@ export class BaseClient {
         start: Boundary<string>,
         end: Boundary<string>,
         options?: { count?: number } & DecoderOption,
-    ): Promise<{ entryID: GlideString; data: [string, string][] }[] | null> {
+    ): Promise<StreamEntryDataType | null> {
         return this.createWritePromise<GlideRecord<[string, string][]> | null>(
             createXRange(key, start, end, options?.count),
             options,
@@ -3409,7 +3436,7 @@ export class BaseClient {
             .then(
                 res =>
                     res?.map((r) => {
-                        return { entryID: r.key, data: r.value };
+                        return { id: r.key, data: r.value };
                     }) ?? null,
             );
     }
@@ -3452,7 +3479,7 @@ export class BaseClient {
         end: Boundary<string>,
         start: Boundary<string>,
         options?: { count?: number } & DecoderOption,
-    ): Promise<{ entryID: GlideString; data: [string, string][] }[] | null> {
+    ): Promise<StreamEntryDataType | null> {
         return this.createWritePromise(
             createXRevRange(key, start, end, options?.count),
             options,
@@ -3461,7 +3488,7 @@ export class BaseClient {
             .then(
                 (res) =>
                     res?.map((r) => {
-                        return { entryID: r.key, data: r.value };
+                        return { id: r.key, data: r.value };
                     }) ?? null,
             );
     }
@@ -3497,7 +3524,7 @@ export class BaseClient {
      */
     public async zadd(
         key: GlideString,
-        membersScoresMap: ElementScoreData,
+        membersScoresMap: SortedSetDataType,
         options?: ZAddOptions,
     ): Promise<number> {
         return this.createWritePromise(
@@ -3676,8 +3703,8 @@ export class BaseClient {
     public async zdiffWithScores(
         keys: GlideString[],
         options?: DecoderOption,
-    ): Promise<ElementScoreData> {
-        return this.createWritePromise(
+    ): Promise<SortedSetDataType> {
+        return this.createWritePromise<GlideRecord<number>>(
             createZDiffWithScores(keys),
             options,
         ).then(convertGlideRecordForZSet);
@@ -3925,8 +3952,8 @@ export class BaseClient {
         rangeQuery: RangeByScore | RangeByLex | RangeByIndex,
         reverse: boolean = false,
         options?: DecoderOption,
-    ): Promise<ElementScoreData> {
-        return this.createWritePromise(
+    ): Promise<SortedSetDataType> {
+        return this.createWritePromise<GlideRecord<number>>(
             createZRangeWithScores(key, rangeQuery, reverse),
             options,
         ).then(convertGlideRecordForZSet);
@@ -4074,8 +4101,8 @@ export class BaseClient {
     public async zinterWithScores(
         keys: string[] | KeyWeight[],
         options?: { aggregationType?: AggregationType } & DecoderOption,
-    ): Promise<ElementScoreData> {
-        return this.createWritePromise(
+    ): Promise<SortedSetDataType> {
+        return this.createWritePromise<GlideRecord<number>>(
             createZInter(keys, options?.aggregationType, true),
             options,
         ).then(convertGlideRecordForZSet);
@@ -4140,8 +4167,8 @@ export class BaseClient {
     public async zunionWithScores(
         keys: string[] | KeyWeight[],
         options?: { aggregationType?: AggregationType } & DecoderOption,
-    ): Promise<ElementScoreData> {
-        return this.createWritePromise(
+    ): Promise<SortedSetDataType> {
+        return this.createWritePromise<GlideRecord<number>>(
             createZUnion(keys, options?.aggregationType, true),
             options,
         ).then(convertGlideRecordForZSet);
@@ -4802,21 +4829,16 @@ export class BaseClient {
     public async xread(
         keys_and_ids: Record<string, string>,
         options?: StreamReadOptions & DecoderOption,
-    ): Promise<
-        GlideRecord<{ entryID: GlideString; data: [string, string][] }[]>
-    > {
-        return this.createWritePromise(
+    ): Promise<GlideRecord<StreamEntryDataType>> {
+        return this.createWritePromise<GlideRecord<GlideRecord<[string, string][]>>>(
             createXRead(keys_and_ids, options),
             options,
         )
-            .then((res) => res as GlideRecord<GlideRecord<[string, string][]>>)
-            .then((res) =>
-                res.map((k) => {
+            .then(res =>
+                res.map(k => {
                     return {
                         key: k.key,
-                        value: k.value.map((r) => {
-                            return { entryID: r.key, data: r.value };
-                        }),
+                        value: convertGlideRecordForStream(k.value),
                     };
                 }),
             );
@@ -4857,27 +4879,17 @@ export class BaseClient {
         consumer: string,
         keys_and_ids: Record<string, string>,
         options?: StreamReadGroupOptions & DecoderOption,
-    ): Promise<GlideRecord<
-        { entryID: GlideString; data: [string, string][] | null }[]
-    > | null> {
-        return this.createWritePromise(
+    ): Promise<GlideRecord<StreamEntryDataType> | null> {
+        return this.createWritePromise<GlideRecord<GlideRecord<[string, string][]>> | null>(
             createXReadGroup(group, consumer, keys_and_ids, options),
             options,
         )
             .then(
-                (res) =>
-                    res as GlideRecord<
-                        GlideRecord<[string, string][] | null>
-                    > | null,
-            )
-            .then(
-                (res) =>
-                    res?.map((k) => {
+                res =>
+                    res?.map(k => {
                         return {
                             key: k.key,
-                            value: k.value.map((r) => {
-                                return { entryID: r.key, data: r.value };
-                            }),
+                            value: convertGlideRecordForStream(k.value),
                         };
                     }) ?? null,
             );
@@ -5004,12 +5016,11 @@ export class BaseClient {
         group: string,
         options?: DecoderOption,
     ): Promise<Record<string, GlideString | number>[]> {
-        return this.createWritePromise(
+        return this.createWritePromise<GlideRecord<string | number>[]>(
             createXInfoConsumers(key, group),
             options,
         )
-            .then((res) => res as GlideRecord<string | number>[])
-            .then((res) => res.map(glideRecordToRecord));
+            .then(res => res.map(glideRecordToRecord));
     }
 
     /**
@@ -5053,7 +5064,7 @@ export class BaseClient {
         return this.createWritePromise<GlideRecord<string | number | null>[]>(
             createXInfoGroups(key),
             options,
-        ).then((res) => res.map(glideRecordToRecord));
+        ).then(res => res.map(glideRecordToRecord));
     }
 
     /**
@@ -5086,15 +5097,11 @@ export class BaseClient {
         minIdleTime: number,
         ids: string[],
         options?: StreamClaimOptions & DecoderOption,
-    ): Promise<{ entryID: GlideString; data: [string, string][] }[]> {
+    ): Promise<StreamEntryDataType> {
         return this.createWritePromise<GlideRecord<[string, string][]>>(
             createXClaim(key, group, consumer, minIdleTime, ids, options),
             options,
-        ).then((res) =>
-            res.map((r) => {
-                return { entryID: r.key, data: r.value };
-            }),
-        );
+        ).then(convertGlideRecordForStream);
     }
 
     /**
@@ -5109,7 +5116,9 @@ export class BaseClient {
      * @param minIdleTime - The minimum idle time for the message to be claimed.
      * @param start - Filters the claimed entries to those that have an ID equal or greater than the
      *     specified value.
-     * @param count - (Optional) Limits the number of claimed entries to the specified value.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `count`: the number of claimed entries.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns A `tuple` containing the following elements:
      *   - A stream ID to be used as the start argument for the next call to `XAUTOCLAIM`. This ID is
      *     equivalent to the next ID in the stream after the entries that were scanned, or "0-0" if
@@ -5145,10 +5154,14 @@ export class BaseClient {
         consumer: string,
         minIdleTime: number,
         start: string,
-        count?: number,
-    ): Promise<[string, Record<string, [string, string][]>, string[]?]> {
-        return this.createWritePromise(
-            createXAutoClaim(key, group, consumer, minIdleTime, start, count),
+        options?: { count?: number } & DecoderOption,
+    ): Promise<[GlideString, StreamEntryDataType, GlideString[]?]> {
+        return this.createWritePromise<[GlideString, GlideRecord<[GlideString, GlideString][]>, GlideString[]?]>(
+            createXAutoClaim(key, group, consumer, minIdleTime, start, options?.count), options
+        )
+            .then(res => res.length == 2
+                ? [res[0], convertGlideRecordForStream(res[1])]
+                : [res[0], convertGlideRecordForStream(res[1]), res[2]]
         );
     }
 
@@ -5303,9 +5316,11 @@ export class BaseClient {
      * @see {@link https://valkey.io/commands/xinfo-stream/|valkey.io} for more details.
      *
      * @param key - The key of the stream.
-     * @param fullOptions - If `true`, returns verbose information with a limit of the first 10 PEL entries.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `fullOptions`: If `true`, returns verbose information with a limit of the first 10 PEL entries.
      * If `number` is specified, returns verbose information limiting the returned PEL entries.
      * If `0` is specified, returns verbose information with no limit.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns A {@link ReturnTypeXinfoStream} of detailed stream information for the given `key`. See
      *     the example for a sample response.
      *
@@ -5363,12 +5378,12 @@ export class BaseClient {
      */
     public async xinfoStream(
         key: string,
-        fullOptions?: boolean | number,
+        options?: { fullOptions?: boolean | number } & DecoderOption
     ): Promise<ReturnTypeXinfoStream> {
-        // TODO
-        return this.createWritePromise(
-            createXInfoStream(key, fullOptions ?? false),
-        );
+        return this.createWritePromise<GlideRecord<StreamEntries | GlideRecord<StreamEntries | GlideRecord<StreamEntries>[]>[]>>(
+            createXInfoStream(key, options?.fullOptions ?? false), options
+        )
+            .then(res => glideRecordToRecord(res) as ReturnTypeXinfoStream);
     }
 
     /**
@@ -6232,7 +6247,7 @@ export class BaseClient {
         keys: GlideString[],
         modifier: ScoreFilter,
         options?: { count?: number } & DecoderOption,
-    ): Promise<[GlideString, ElementScoreData] | null> {
+    ): Promise<[GlideString, SortedSetDataType] | null> {
         return this.createWritePromise(
             createZMPop(keys, modifier, options?.count),
             options,
@@ -6281,7 +6296,7 @@ export class BaseClient {
         modifier: ScoreFilter,
         timeout: number,
         options?: { count?: number } & DecoderOption,
-    ): Promise<[GlideString, ElementScoreData] | null> {
+    ): Promise<[GlideString, SortedSetDataType] | null> {
         return this.createWritePromise(
             createBZMPop(keys, modifier, timeout, options?.count),
             options,

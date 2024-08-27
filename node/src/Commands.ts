@@ -6,7 +6,7 @@ import { createLeakedStringVec, MAX_REQUEST_ARGS_LEN } from "glide-rs";
 import Long from "long";
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-import { BaseClient, ElementScoreData, GlideRecord } from "src/BaseClient";
+import { BaseClient, GlideRecord, SortedSetDataType } from "src/BaseClient";
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import { GlideClient } from "src/GlideClient";
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -1376,7 +1376,7 @@ export type ZAddOptions = {
  */
 export function createZAdd(
     key: GlideString,
-    membersScoresMap: ElementScoreData,
+    membersScoresMap: SortedSetDataType,
     options?: ZAddOptions,
     incr: boolean = false,
 ): command_request.Command {
@@ -2597,7 +2597,7 @@ export type ReturnTypeXinfoStream = {
 /**
  * Represents an array of Stream Entires in the response
  */
-export type StreamEntries = string | number | (string | number | string[])[][];
+export type StreamEntries = GlideString | number | (GlideString | number | GlideString[])[][];
 
 /**
  * @internal

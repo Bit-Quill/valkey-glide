@@ -6,7 +6,8 @@ import {
     BaseClient,
     GlideRecord, // eslint-disable-line @typescript-eslint/no-unused-vars
     GlideString,
-    ReadFrom, // eslint-disable-line @typescript-eslint/no-unused-vars
+    ReadFrom,
+    SortedSetDataType, // eslint-disable-line @typescript-eslint/no-unused-vars
 } from "./BaseClient";
 
 import {
@@ -1724,7 +1725,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public zadd(
         key: string,
-        membersScoresMap: Record<string, number>,
+        membersScoresMap: SortedSetDataType,
         options?: ZAddOptions,
     ): T {
         return this.addAndReturn(createZAdd(key, membersScoresMap, options));
@@ -1750,7 +1751,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         options?: ZAddOptions,
     ): T {
         return this.addAndReturn(
-            createZAdd(key, { [member]: increment }, options, true),
+            createZAdd(key, [{ element: member, score: increment }], options, true),
         );
     }
 
