@@ -300,6 +300,32 @@ export type DecoderOption = {
 /** A replacement for `Record<GlideString, T>` - array of key-value pairs. */
 export type GlideRecord<T> = { key: GlideString; value: T }[];
 
+// GLideRecord for score for sorted set commands?
+// TODO export
+export type ElementScoreData = { element: GlideString; score: number }[];
+
+/**
+ * Convert `GlideRecord<number>` recevied after resolving the value pointer into `ElementScoreData`.
+ * `createWritePromise` returns `unknown`, so we need extra cast and caution.
+ */
+// TODO remove unknown, use <>
+function convertGlideRecordForZSet(
+    res: unknown | GlideRecord<number>,
+): ElementScoreData {
+    return (res as GlideRecord<number>).map((e) => {
+        return { element: e.key, score: e.value };
+    });
+}
+
+/** Downcast `GlideRecord` to `Record`. Use if you are 146% aware that `data` keys are always strings. */
+function glideRecordToRecord<T>(data: GlideRecord<T>): Record<string, T> {
+    const res: Record<string, T> = {};
+    for (const pair of data) {
+        res[pair.key as string] = pair.value;
+    }
+    return res;
+}
+
 /**
  * Our purpose in creating PointerResponse type is to mark when response is of number/long pointer response type.
  * Consequently, when the response is returned, we can check whether it is instanceof the PointerResponse type and pass it to the Rust core function with the proper parameters.
@@ -1794,6 +1820,7 @@ export class BaseClient {
      * @see {@link https://valkey.io/commands/hgetall/|valkey.io} for details.
      *
      * @param key - The key of the hash.
+     * @param options - (Optional) See {@link DecoderOption}.
      * @returns A list of fields and their values stored in the hash.
      * If `key` does not exist, it returns an empty list.
      *
@@ -1810,11 +1837,13 @@ export class BaseClient {
      */
     public async hgetall(
         key: string,
+        options?: DecoderOption,
     ): Promise<{ field: GlideString; value: GlideString }[]> {
-        return this.createWritePromise(createHGetAll(key)).then((res) =>
-            (res as GlideRecord<GlideString>).map((r) => {
-                return { field: r.key, value: r.value };
-            }),
+        return this.createWritePromise(createHGetAll(key), options).then(
+            (res) =>
+                (res as GlideRecord<GlideString>).map((r) => {
+                    return { field: r.key, value: r.value };
+                }),
         );
     }
 
@@ -3349,8 +3378,10 @@ export class BaseClient {
      *     - Use `value` to specify a stream entry ID.
      *     - Use `isInclusive: false` to specify an exclusive bounded stream entry ID. This is only available starting with Valkey version 6.2.0.
      *     - Use `InfBoundary.PositiveInfinity` to end with the maximum available ID.
-     * @param count - An optional argument specifying the maximum count of stream entries to return.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `count`: the maximum count of stream entries to return.
      *     If `count` is not provided, all stream entries in the range will be returned.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns A map of stream entry ids, to an array of entries, or `null` if `count` is non-positive.
      *
      * @example
@@ -3369,9 +3400,19 @@ export class BaseClient {
         key: string,
         start: Boundary<string>,
         end: Boundary<string>,
-        count?: number,
-    ): Promise<Record<string, [string, string][]> | null> {
-        return this.createWritePromise(createXRange(key, start, end, count));
+        options?: { count?: number } & DecoderOption,
+    ): Promise<{ entryID: GlideString; data: [string, string][] }[] | null> {
+        return this.createWritePromise(
+            createXRange(key, start, end, options?.count),
+            options,
+        )
+            .then((res) => res as GlideRecord<[string, string][]> | null)
+            .then(
+                (res) =>
+                    res?.map((r) => {
+                        return { entryID: r.key, data: r.value };
+                    }) ?? null,
+            );
     }
 
     /**
@@ -3389,8 +3430,10 @@ export class BaseClient {
      *     - Use `value` to specify a stream entry ID.
      *     - Use `isInclusive: false` to specify an exclusive bounded stream entry ID. This is only available starting with Valkey version 6.2.0.
      *     - Use `InfBoundary.NegativeInfinity` to start with the minimum available ID.
-     * @param count - An optional argument specifying the maximum count of stream entries to return.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `count`: the maximum count of stream entries to return.
      *     If `count` is not provided, all stream entries in the range will be returned.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns A map of stream entry ids, to an array of entries, or `null` if `count` is non-positive.
      *
      * @example
@@ -3409,26 +3452,38 @@ export class BaseClient {
         key: string,
         end: Boundary<string>,
         start: Boundary<string>,
-        count?: number,
-    ): Promise<Record<string, [string, string][]> | null> {
-        return this.createWritePromise(createXRevRange(key, end, start, count));
+        options?: { count?: number } & DecoderOption,
+    ): Promise<{ entryID: GlideString; data: [string, string][] }[] | null> {
+        return this.createWritePromise(
+            createXRevRange(key, start, end, options?.count),
+            options,
+        )
+            .then((res) => res as GlideRecord<[string, string][]> | null)
+            .then(
+                (res) =>
+                    res?.map((r) => {
+                        return { entryID: r.key, data: r.value };
+                    }) ?? null,
+            );
     }
 
-    /** Adds members with their scores to the sorted set stored at `key`.
+    /**
+     * Adds members with their scores to the sorted set stored at `key`.
      * If a member is already a part of the sorted set, its score is updated.
      *
      * @see {@link https://valkey.io/commands/zadd/|valkey.io} for more details.
      *
      * @param key - The key of the sorted set.
      * @param membersScoresMap - A mapping of members to their corresponding scores.
-     * @param options - The ZAdd options.
+     * @param options - (Optional) The `ZADD` options - see {@link ZAddOptions}.
      * @returns The number of elements added to the sorted set.
-     * If `changed` is set, returns the number of elements updated in the sorted set.
+     * If {@link ZAddOptions.changed} is set to `true`, returns the number of elements updated in the sorted set.
      *
      * @example
      * ```typescript
      * // Example usage of the zadd method to add elements to a sorted set
-     * const result = await client.zadd("my_sorted_set", { "member1": 10.5, "member2": 8.2 });
+     * const data = [{ element: "member1", score: 10.5 }, { element: "member2", score: 8.2 }]
+     * const result = await client.zadd("my_sorted_set", data);
      * console.log(result); // Output: 2 - Indicates that two elements have been added to the sorted set "my_sorted_set."
      * ```
      *
@@ -3436,13 +3491,14 @@ export class BaseClient {
      * ```typescript
      * // Example usage of the zadd method to update scores in an existing sorted set
      * const options = { conditionalChange: ConditionalChange.ONLY_IF_EXISTS, changed: true };
-     * const result = await client.zadd("existing_sorted_set", { member1: 15.0, member2: 5.5 }, options);
+     * const data = [{ element: "member1", score: 15.0 }, { element: "member2", score: 5.5 }]
+     * const result = await client.zadd("existing_sorted_set", data, options);
      * console.log(result); // Output: 2 - Updates the scores of two existing members in the sorted set "existing_sorted_set."
      * ```
      */
     public async zadd(
-        key: string,
-        membersScoresMap: Record<string, number>,
+        key: GlideString,
+        membersScoresMap: ElementScoreData,
         options?: ZAddOptions,
     ): Promise<number> {
         return this.createWritePromise(
@@ -3450,7 +3506,8 @@ export class BaseClient {
         );
     }
 
-    /** Increments the score of member in the sorted set stored at `key` by `increment`.
+    /**
+     * Increments the score of member in the sorted set stored at `key` by `increment`.
      * If `member` does not exist in the sorted set, it is added with `increment` as its score (as if its previous score was 0.0).
      * If `key` does not exist, a new sorted set with the specified member as its sole member is created.
      *
@@ -3459,9 +3516,9 @@ export class BaseClient {
      * @param key - The key of the sorted set.
      * @param member - A member in the sorted set to increment.
      * @param increment - The score to increment the member.
-     * @param options - The ZAdd options.
+     * @param options - (Optional) The `ZADD` options - see {@link ZAddOptions}.
      * @returns The score of the member.
-     * If there was a conflict with the options, the operation aborts and null is returned.
+     * If there was a conflict with the options, the operation aborts and `null` is returned.
      *
      * @example
      * ```typescript
@@ -3478,13 +3535,18 @@ export class BaseClient {
      * ```
      */
     public async zaddIncr(
-        key: string,
-        member: string,
+        key: GlideString,
+        member: GlideString,
         increment: number,
         options?: ZAddOptions,
     ): Promise<number | null> {
         return this.createWritePromise(
-            createZAdd(key, { [member]: increment }, options, true),
+            createZAdd(
+                key,
+                [{ element: member, score: increment }],
+                options,
+                true,
+            ),
         );
     }
 
@@ -3598,6 +3660,7 @@ export class BaseClient {
      * @remarks Since Valkey version 6.2.0.
      *
      * @param keys - The keys of the sorted sets.
+     * @param options - (Optional) See {@link DecoderOption}.
      * @returns A map of elements and their scores representing the difference between the sorted sets.
      * If the first key does not exist, it is treated as an empty sorted set, and the command returns an empty `array`.
      *
@@ -3607,13 +3670,18 @@ export class BaseClient {
      * await client.zadd("zset2", {"member2": 2.0});
      * await client.zadd("zset3", {"member3": 3.0});
      * const result = await client.zdiffWithScores(["zset1", "zset2", "zset3"]);
-     * console.log(result); // Output: {"member1": 1.0} - "member1" is in "zset1" but not "zset2" or "zset3".
+     * console.log(result); // Output: "member1" is in "zset1" but not "zset2" or "zset3"
+     * // [{ element: "member1", score: 1.0 }]
      * ```
      */
     public async zdiffWithScores(
-        keys: string[],
-    ): Promise<Record<string, number>> {
-        return this.createWritePromise(createZDiffWithScores(keys));
+        keys: GlideString[],
+        options?: DecoderOption,
+    ): Promise<ElementScoreData> {
+        return this.createWritePromise(
+            createZDiffWithScores(keys),
+            options,
+        ).then(convertGlideRecordForZSet);
     }
 
     /**
@@ -3838,7 +3906,8 @@ export class BaseClient {
      *              stop: { value: 20, isInclusive: false },
      *              type: "byScore",
      *           });
-     * console.log(result); // Output: {'member1': 10.5, 'member2': 15.2} - Returns members with scores between 10 and 20 with their scores.
+     * console.log(result); // Output: members with scores between 10 and 20 with their scores
+     * // [{ element: 'member1', score: 10.5 }, { element: 'member2', score: 15.2 }]
      * ```
      * @example
      * ```typescript
@@ -3848,17 +3917,20 @@ export class BaseClient {
      *              stop: { value: 3, isInclusive: false },
      *              type: "byScore",
      *           });
-     * console.log(result); // Output: {'member4': -2.0, 'member7': 1.5} - Returns members with scores within the range of negative infinity to 3, with their scores.
+     * console.log(result); // Output: members with scores within the range of negative infinity to 3, with their scores
+     * // [{ element: 'member4', score: -2.0 }, { element: 'member7', score: 1.5 }]
      * ```
      */
     public async zrangeWithScores(
         key: string,
         rangeQuery: RangeByScore | RangeByLex | RangeByIndex,
         reverse: boolean = false,
-    ): Promise<Record<string, number>> {
+        options?: DecoderOption,
+    ): Promise<ElementScoreData> {
         return this.createWritePromise(
             createZRangeWithScores(key, rangeQuery, reverse),
-        );
+            options,
+        ).then(convertGlideRecordForZSet);
     }
 
     /**
@@ -3984,8 +4056,10 @@ export class BaseClient {
      * @param keys - The keys of the sorted sets with possible formats:
      *  - string[] - for keys only.
      *  - KeyWeight[] - for weighted keys with score multipliers.
-     * @param aggregationType - (Optional) Specifies the aggregation strategy to apply when combining the scores of elements. See {@link AggregationType}.
-     * If `aggregationType` is not specified, defaults to `AggregationType.SUM`.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `aggregationType`: the aggregation strategy to apply when combining the scores of elements.
+     *     If `aggregationType` is not specified, defaults to `AggregationType.SUM`. See {@link AggregationType}.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns The resulting sorted set with scores.
      *
      * @example
@@ -4000,11 +4074,12 @@ export class BaseClient {
      */
     public async zinterWithScores(
         keys: string[] | KeyWeight[],
-        aggregationType?: AggregationType,
-    ): Promise<Record<string, number>> {
+        options?: { aggregationType?: AggregationType } & DecoderOption,
+    ): Promise<ElementScoreData> {
         return this.createWritePromise(
-            createZInter(keys, aggregationType, true),
-        );
+            createZInter(keys, options?.aggregationType, true),
+            options,
+        ).then(convertGlideRecordForZSet);
     }
 
     /**
@@ -4047,8 +4122,10 @@ export class BaseClient {
      * @param keys - The keys of the sorted sets with possible formats:
      *  - string[] - for keys only.
      *  - KeyWeight[] - for weighted keys with score multipliers.
-     * @param aggregationType - (Optional) Specifies the aggregation strategy to apply when combining the scores of elements. See {@link AggregationType}.
-     * If `aggregationType` is not specified, defaults to `AggregationType.SUM`.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `aggregationType`: the aggregation strategy to apply when combining the scores of elements.
+     *     If `aggregationType` is not specified, defaults to `AggregationType.SUM`. See {@link AggregationType}.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns The resulting sorted set with scores.
      *
      * @example
@@ -4063,11 +4140,12 @@ export class BaseClient {
      */
     public async zunionWithScores(
         keys: string[] | KeyWeight[],
-        aggregationType?: AggregationType,
-    ): Promise<Record<string, number>> {
+        options?: { aggregationType?: AggregationType } & DecoderOption,
+    ): Promise<ElementScoreData> {
         return this.createWritePromise(
-            createZUnion(keys, aggregationType, true),
-        );
+            createZUnion(keys, options?.aggregationType, true),
+            options,
+        ).then(convertGlideRecordForZSet);
     }
 
     /**
@@ -4215,14 +4293,17 @@ export class BaseClient {
         });
     }
 
-    /** Removes and returns the members with the lowest scores from the sorted set stored at `key`.
+    /**
+     * Removes and returns the members with the lowest scores from the sorted set stored at `key`.
      * If `count` is provided, up to `count` members with the lowest scores are removed and returned.
      * Otherwise, only one member with the lowest score is removed and returned.
      *
      * @see {@link https://valkey.io/commands/zpopmin/|valkey.io} for more details.
      *
      * @param key - The key of the sorted set.
-     * @param count - Specifies the quantity of members to pop. If not specified, pops one member.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `count`: the maximum number of popped elements. If not specified, pops one member.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns A map of the removed members and their scores, ordered from the one with the lowest score to the one with the highest.
      * If `key` doesn't exist, it will be treated as an empty sorted set and the command returns an empty map.
      * If `count` is higher than the sorted set's cardinality, returns all members and their scores.
@@ -4231,21 +4312,35 @@ export class BaseClient {
      * ```typescript
      * // Example usage of zpopmin method to remove and return the member with the lowest score from a sorted set
      * const result = await client.zpopmin("my_sorted_set");
-     * console.log(result); // Output: {'member1': 5.0} - Indicates that 'member1' with a score of 5.0 has been removed from the sorted set.
+     * console.log(result); // Output:
+     * // 'member1' with a score of 5.0 has been removed from the sorted set
+     * // [{ element: 'member1', score: 5.0 }]
      * ```
      *
      * @example
      * ```typescript
      * // Example usage of zpopmin method to remove and return multiple members with the lowest scores from a sorted set
      * const result = await client.zpopmin("my_sorted_set", 2);
-     * console.log(result); // Output: {'member3': 7.5 , 'member2': 8.0} - Indicates that 'member3' with a score of 7.5 and 'member2' with a score of 8.0 have been removed from the sorted set.
+     * console.log(result); // Output:
+     * // 'member3' with a score of 7.5 and 'member2' with a score of 8.0 have been removed from the sorted set
+     * // [
+     * //     { element: 'member3', score: 7.5 },
+     * //     { element: 'member2', score: 8.0 }
+     * // ]
      * ```
      */
     public async zpopmin(
         key: string,
-        count?: number,
-    ): Promise<Record<string, number>> {
-        return this.createWritePromise(createZPopMin(key, count));
+        options?: { count?: number } & DecoderOption,
+    ): Promise<{ element: GlideString; score: number }[]> {
+        return this.createWritePromise(
+            createZPopMin(key, options?.count),
+            options,
+        ).then((res) =>
+            (res as GlideRecord<number>).map((r) => {
+                return { element: r.key, score: r.value };
+            }),
+        );
     }
 
     /**
@@ -4276,14 +4371,17 @@ export class BaseClient {
         return this.createWritePromise(createBZPopMin(keys, timeout));
     }
 
-    /** Removes and returns the members with the highest scores from the sorted set stored at `key`.
+    /**
+     * Removes and returns the members with the highest scores from the sorted set stored at `key`.
      * If `count` is provided, up to `count` members with the highest scores are removed and returned.
      * Otherwise, only one member with the highest score is removed and returned.
      *
      * @see {@link https://valkey.io/commands/zpopmax/|valkey.io} for more details.
      *
      * @param key - The key of the sorted set.
-     * @param count - Specifies the quantity of members to pop. If not specified, pops one member.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `count`: the maximum number of popped elements. If not specified, pops one member.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns A map of the removed members and their scores, ordered from the one with the highest score to the one with the lowest.
      * If `key` doesn't exist, it will be treated as an empty sorted set and the command returns an empty map.
      * If `count` is higher than the sorted set's cardinality, returns all members and their scores, ordered from highest to lowest.
@@ -4292,21 +4390,35 @@ export class BaseClient {
      * ```typescript
      * // Example usage of zpopmax method to remove and return the member with the highest score from a sorted set
      * const result = await client.zpopmax("my_sorted_set");
-     * console.log(result); // Output: {'member1': 10.0} - Indicates that 'member1' with a score of 10.0 has been removed from the sorted set.
+     * console.log(result); // Output:
+     * // 'member1' with a score of 10.0 has been removed from the sorted set
+     * // [{ element: 'member1', score: 10.0 }]
      * ```
      *
      * @example
      * ```typescript
      * // Example usage of zpopmax method to remove and return multiple members with the highest scores from a sorted set
      * const result = await client.zpopmax("my_sorted_set", 2);
-     * console.log(result); // Output: {'member2': 8.0, 'member3': 7.5} - Indicates that 'member2' with a score of 8.0 and 'member3' with a score of 7.5 have been removed from the sorted set.
+     * console.log(result); // Output:
+     * // 'member3' with a score of 7.5 and 'member2' with a score of 8.0 have been removed from the sorted set
+     * // [
+     * //     { element: 'member3', score: 7.5 },
+     * //     { element: 'member2', score: 8.0 }
+     * // ]
      * ```
      */
     public async zpopmax(
         key: string,
-        count?: number,
-    ): Promise<Record<string, number>> {
-        return this.createWritePromise(createZPopMax(key, count));
+        options?: { count?: number } & DecoderOption,
+    ): Promise<{ element: GlideString; score: number }[]> {
+        return this.createWritePromise(
+            createZPopMax(key, options?.count),
+            options,
+        ).then((res) =>
+            (res as GlideRecord<number>).map((r) => {
+                return { element: r.key, score: r.value };
+            }),
+        );
     }
 
     /**
@@ -4669,7 +4781,7 @@ export class BaseClient {
      * @see {@link https://valkey.io/commands/xread/|valkey.io} for more details.
      *
      * @param keys_and_ids - An object of stream keys and entry IDs to read from.
-     * @param options - (Optional) Parameters detailing how to read the stream - see {@link StreamReadOptions}.
+     * @param options - (Optional) Parameters detailing how to read the stream - see {@link StreamReadOptions} and {@link DecoderOption}.
      * @returns A `Record` of stream keys, each key is mapped to a `Record` of stream ids, to an `Array` of entries.
      *
      * @example
@@ -4690,9 +4802,25 @@ export class BaseClient {
      */
     public async xread(
         keys_and_ids: Record<string, string>,
-        options?: StreamReadOptions,
-    ): Promise<Record<string, Record<string, [string, string][]>>> {
-        return this.createWritePromise(createXRead(keys_and_ids, options));
+        options?: StreamReadOptions & DecoderOption,
+    ): Promise<
+        GlideRecord<{ entryID: GlideString; data: [string, string][] }[]>
+    > {
+        return this.createWritePromise(
+            createXRead(keys_and_ids, options),
+            options,
+        )
+            .then((res) => res as GlideRecord<GlideRecord<[string, string][]>>)
+            .then((res) =>
+                res.map((k) => {
+                    return {
+                        key: k.key,
+                        value: k.value.map((r) => {
+                            return { entryID: r.key, data: r.value };
+                        }),
+                    };
+                }),
+            );
     }
 
     /**
@@ -4704,7 +4832,7 @@ export class BaseClient {
      * @param consumer - The group consumer.
      * @param keys_and_ids - An object of stream keys and entry IDs to read from.
      *     Use the special entry ID of `">"` to receive only new messages.
-     * @param options - (Optional) Parameters detailing how to read the stream - see {@link StreamReadGroupOptions}.
+     * @param options - (Optional) Parameters detailing how to read the stream - see {@link StreamReadGroupOptions} and {@link DecoderOption}.
      * @returns A map of stream keys, each key is mapped to a map of stream ids, which is mapped to an array of entries.
      *     Returns `null` if there is no stream that can be served.
      *
@@ -4729,14 +4857,31 @@ export class BaseClient {
         group: string,
         consumer: string,
         keys_and_ids: Record<string, string>,
-        options?: StreamReadGroupOptions,
-    ): Promise<Record<
-        string,
-        Record<string, [string, string][] | null>
+        options?: StreamReadGroupOptions & DecoderOption,
+    ): Promise<GlideRecord<
+        { entryID: GlideString; data: [string, string][] | null }[]
     > | null> {
         return this.createWritePromise(
             createXReadGroup(group, consumer, keys_and_ids, options),
-        );
+            options,
+        )
+            .then(
+                (res) =>
+                    res as GlideRecord<
+                        GlideRecord<[string, string][] | null>
+                    > | null,
+            )
+            .then(
+                (res) =>
+                    res?.map((k) => {
+                        return {
+                            key: k.key,
+                            value: k.value.map((r) => {
+                                return { entryID: r.key, data: r.value };
+                            }),
+                        };
+                    }) ?? null,
+            );
     }
 
     /**
@@ -4836,6 +4981,7 @@ export class BaseClient {
      *
      * @param key - The key of the stream.
      * @param group - The consumer group name.
+     * @param options - (Optional) See {@link DecoderOption}.
      * @returns An `Array` of `Records`, where each mapping contains the attributes
      *     of a consumer for the given consumer group of the stream at `key`.
      *
@@ -4857,8 +5003,14 @@ export class BaseClient {
     public async xinfoConsumers(
         key: string,
         group: string,
-    ): Promise<Record<string, string | number>[]> {
-        return this.createWritePromise(createXInfoConsumers(key, group));
+        options?: DecoderOption,
+    ): Promise<Record<string, GlideString | number>[]> {
+        return this.createWritePromise(
+            createXInfoConsumers(key, group),
+            options,
+        )
+            .then((res) => res as GlideRecord<string | number>[])
+            .then((res) => res.map(glideRecordToRecord));
     }
 
     /**
@@ -4867,6 +5019,7 @@ export class BaseClient {
      * @see {@link https://valkey.io/commands/xinfo-groups/|valkey.io} for details.
      *
      * @param key - The key of the stream.
+     * @param options - (Optional) See {@link DecoderOption}.
      * @returns An array of maps, where each mapping represents the
      *     attributes of a consumer group for the stream at `key`.
      * @example
@@ -4896,8 +5049,12 @@ export class BaseClient {
      */
     public async xinfoGroups(
         key: string,
+        options?: DecoderOption,
     ): Promise<Record<string, string | number | null>[]> {
-        return this.createWritePromise(createXInfoGroups(key));
+        return this.createWritePromise<GlideRecord<string | number | null>[]>(
+            createXInfoGroups(key),
+            options,
+        ).then((res) => res.map(glideRecordToRecord));
     }
 
     /**
@@ -4910,7 +5067,7 @@ export class BaseClient {
      * @param consumer - The group consumer.
      * @param minIdleTime - The minimum idle time for the message to be claimed.
      * @param ids - An array of entry ids.
-     * @param options - (Optional) Stream claim options {@link StreamClaimOptions}.
+     * @param options - (Optional) Stream claim options {@link StreamClaimOptions} and {@link DecoderOption}.
      * @returns A `Record` of message entries that are claimed by the consumer.
      *
      * @example
@@ -4929,10 +5086,15 @@ export class BaseClient {
         consumer: string,
         minIdleTime: number,
         ids: string[],
-        options?: StreamClaimOptions,
-    ): Promise<Record<string, [string, string][]>> {
-        return this.createWritePromise(
+        options?: StreamClaimOptions & DecoderOption,
+    ): Promise<{ entryID: GlideString; data: [string, string][] }[]> {
+        return this.createWritePromise<GlideRecord<[string, string][]>>(
             createXClaim(key, group, consumer, minIdleTime, ids, options),
+            options,
+        ).then((res) =>
+            res.map((r) => {
+                return { entryID: r.key, data: r.value };
+            }),
         );
     }
 
@@ -5204,6 +5366,7 @@ export class BaseClient {
         key: string,
         fullOptions?: boolean | number,
     ): Promise<ReturnTypeXinfoStream> {
+        // TODO
         return this.createWritePromise(
             createXInfoStream(key, fullOptions ?? false),
         );
@@ -5287,7 +5450,7 @@ export class BaseClient {
      * // read messages from streamId
      * const readResult = await client.xreadgroup(["myfield", "mydata"], "mygroup", "my0consumer");
      * // acknowledge messages on stream
-     * console.log(await client.xack("mystream", "mygroup", [entryId])); // Output: 1L
+     * console.log(await client.xack("mystream", "mygroup", [entryId])); // Output: 1
      * </pre>
      * ```
      */
@@ -5315,7 +5478,7 @@ export class BaseClient {
      *
      * * @example
      * ```typescript
-     * console.log(await client.xgroupSetId("mystream", "mygroup", "0", 1L)); // Output is "OK"
+     * console.log(await client.xgroupSetId("mystream", "mygroup", "0", 1)); // Output is "OK"
      * ```
      */
     public async xgroupSetId(
@@ -6036,7 +6199,7 @@ export class BaseClient {
     }
 
     /**
-     * Pops a member-score pair from the first non-empty sorted set, with the given `keys`
+     * Pops a member-score pairs from the first non-empty sorted set, with the given `keys`
      * being checked in the order they are provided.
      *
      * @see {@link https://valkey.io/commands/zmpop/|valkey.io} for more details.
@@ -6046,7 +6209,9 @@ export class BaseClient {
      * @param keys - The keys of the sorted sets.
      * @param modifier - The element pop criteria - either {@link ScoreFilter.MIN} or
      *     {@link ScoreFilter.MAX} to pop the member with the lowest/highest score accordingly.
-     * @param count - (Optional) The number of elements to pop. If not supplied, only one element will be popped.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `count`: the maximum number of popped elements. If not specified, pops one member.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns A two-element `array` containing the key name of the set from which the element
      *     was popped, and a member-score `Record` of the popped element.
      *     If no member could be popped, returns `null`.
@@ -6056,15 +6221,25 @@ export class BaseClient {
      * await client.zadd("zSet1", { one: 1.0, two: 2.0, three: 3.0 });
      * await client.zadd("zSet2", { four: 4.0 });
      * console.log(await client.zmpop(["zSet1", "zSet2"], ScoreFilter.MAX, 2));
-     * // Output: [ "zSet1", { three: 3, two: 2 } ] - "three" with score 3 and "two" with score 2 were popped from "zSet1".
+     * // Output:
+     * // "three" with score 3 and "two" with score 2 were popped from "zSet1"
+     * // [ "zSet1", [
+     * //     { element: 'three', score: 3 },
+     * //     { element: 'two', score: 2 }
+     * // ] ]
      * ```
      */
     public async zmpop(
-        keys: string[],
+        keys: GlideString[],
         modifier: ScoreFilter,
-        count?: number,
-    ): Promise<[string, [Record<string, number>]] | null> {
-        return this.createWritePromise(createZMPop(keys, modifier, count));
+        options?: { count?: number } & DecoderOption,
+    ): Promise<[GlideString, ElementScoreData] | null> {
+        return this.createWritePromise(
+            createZMPop(keys, modifier, options?.count),
+            options,
+        )
+            .then((res) => res as [GlideString, GlideRecord<number>])
+            .then((res) => [res[0], convertGlideRecordForZSet(res[1])]);
     }
 
     /**
@@ -6082,7 +6257,9 @@ export class BaseClient {
      *     {@link ScoreFilter.MAX} to pop the member with the lowest/highest score accordingly.
      * @param timeout - The number of seconds to wait for a blocking operation to complete.
      *     A value of 0 will block indefinitely.
-     * @param count - (Optional) The number of elements to pop. If not supplied, only one element will be popped.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `count`: the maximum number of popped elements. If not specified, pops one member.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns A two-element `array` containing the key name of the set from which the element
      *     was popped, and a member-score `Record` of the popped element.
      *     If no member could be popped, returns `null`.
@@ -6092,18 +6269,26 @@ export class BaseClient {
      * await client.zadd("zSet1", { one: 1.0, two: 2.0, three: 3.0 });
      * await client.zadd("zSet2", { four: 4.0 });
      * console.log(await client.bzmpop(["zSet1", "zSet2"], ScoreFilter.MAX, 0.1, 2));
-     * // Output: [ "zSet1", { three: 3, two: 2 } ] - "three" with score 3 and "two" with score 2 were popped from "zSet1".
+     * // Output:
+     * // "three" with score 3 and "two" with score 2 were popped from "zSet1"
+     * // [ "zSet1", [
+     * //     { element: 'three', score: 3 },
+     * //     { element: 'two', score: 2 }
+     * // ] ]
      * ```
      */
     public async bzmpop(
-        keys: string[],
+        keys: GlideString[],
         modifier: ScoreFilter,
         timeout: number,
-        count?: number,
-    ): Promise<[string, [Record<string, number>]] | null> {
+        options?: { count?: number } & DecoderOption,
+    ): Promise<[GlideString, ElementScoreData] | null> {
         return this.createWritePromise(
-            createBZMPop(keys, modifier, timeout, count),
-        );
+            createBZMPop(keys, modifier, timeout, options?.count),
+            options,
+        )
+            .then((res) => res as [GlideString, GlideRecord<number>])
+            .then((res) => [res[0], convertGlideRecordForZSet(res[1])]);
     }
 
     /**
@@ -6338,7 +6523,14 @@ export class BaseClient {
     ): Promise<Record<string, (number | [number, number])[][] | number>> {
         return this.createWritePromise(
             createLCS(key1, key2, { idx: options ?? {} }),
-        );
+        )
+            .then(
+                (res) =>
+                    res as GlideRecord<
+                        (number | [number, number])[][] | number
+                    >,
+            )
+            .then(glideRecordToRecord);
     }
 
     /**
@@ -6481,7 +6673,9 @@ export class BaseClient {
      *
      * @param keys - An array of keys to lists.
      * @param direction - The direction based on which elements are popped from - see {@link ListDirection}.
-     * @param count - (Optional) The maximum number of popped elements.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `count`: the maximum number of popped elements.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns A `Record` of key-name mapped array of popped elements.
      *
      * @example
@@ -6489,15 +6683,23 @@ export class BaseClient {
      * await client.lpush("testKey", ["one", "two", "three"]);
      * await client.lpush("testKey2", ["five", "six", "seven"]);
      * const result = await client.lmpop(["testKey", "testKey2"], ListDirection.LEFT, 1L);
-     * console.log(result.get("testKey")); // Output: { "testKey": ["three"] }
+     * console.log(result); // Output: { key: "testKey", elements: ["three"] }
      * ```
      */
     public async lmpop(
         keys: GlideString[],
         direction: ListDirection,
-        count?: number,
-    ): Promise<Record<string, string[]>> {
-        return this.createWritePromise(createLMPop(keys, direction, count));
+        options?: { count?: number } & DecoderOption,
+    ): Promise<{ key: GlideString; elements: GlideString[] }> {
+        return this.createWritePromise(
+            createLMPop(keys, direction, options?.count),
+            options,
+        ).then(
+            (res) =>
+                (res as GlideRecord<GlideString[]>).map((r) => {
+                    return { key: r.key, elements: r.value };
+                })[0],
+        );
     }
 
     /**
@@ -6511,7 +6713,9 @@ export class BaseClient {
      * @param keys - An array of keys to lists.
      * @param direction - The direction based on which elements are popped from - see {@link ListDirection}.
      * @param timeout - The number of seconds to wait for a blocking operation to complete. A value of `0` will block indefinitely.
-     * @param count - (Optional) The maximum number of popped elements.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `count`: the maximum number of popped elements. If not specified, pops one member.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns - A `Record` of `key` name mapped array of popped elements.
      *     If no member could be popped and the timeout expired, returns `null`.
      *
@@ -6519,18 +6723,24 @@ export class BaseClient {
      * ```typescript
      * await client.lpush("testKey", ["one", "two", "three"]);
      * await client.lpush("testKey2", ["five", "six", "seven"]);
-     * const result = await client.blmpop(["testKey", "testKey2"], ListDirection.LEFT, 0.1, 1L);
-     * console.log(result.get("testKey")); // Output: { "testKey": ["three"] }
+     * const result = await client.blmpop(["testKey", "testKey2"], ListDirection.LEFT, 0.1, 1);
+     * console.log(result"testKey"); // Output: { key: "testKey", elements: ["three"] }
      * ```
      */
     public async blmpop(
         keys: string[],
         direction: ListDirection,
         timeout: number,
-        count?: number,
-    ): Promise<Record<string, string[]>> {
+        options?: { count?: number } & DecoderOption,
+    ): Promise<{ key: GlideString; elements: GlideString[] }> {
         return this.createWritePromise(
-            createBLMPop(timeout, keys, direction, count),
+            createBLMPop(timeout, keys, direction, options?.count),
+            options,
+        ).then(
+            (res) =>
+                (res as GlideRecord<GlideString[]>).map((r) => {
+                    return { key: r.key, elements: r.value };
+                })[0],
         );
     }
 
@@ -6602,8 +6812,15 @@ export class BaseClient {
      */
     public async pubsubNumSub(
         channels?: string[],
-    ): Promise<Record<string, number>> {
-        return this.createWritePromise(createPubSubNumSub(channels));
+        options?: DecoderOption,
+    ): Promise<{ channel: GlideString; numSub: number }[]> {
+        return this.createWritePromise(createPubSubNumSub(channels), options)
+            .then((res) => res as GlideRecord<number>)
+            .then((res) =>
+                res.map((r) => {
+                    return { channel: r.key, numSub: r.value };
+                }),
+            );
     }
 
     /**

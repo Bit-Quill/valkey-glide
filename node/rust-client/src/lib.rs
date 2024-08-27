@@ -20,7 +20,7 @@ use napi::bindgen_prelude::Uint8Array;
 use napi::{Env, Error, JsObject, JsUnknown, Result, Status};
 use napi_derive::napi;
 use num_traits::sign::Signed;
-use redis::{aio::MultiplexedConnection, AsyncCommands, FromRedisValue, Value};
+use redis::{aio::MultiplexedConnection, AsyncCommands, Value};
 #[cfg(feature = "testing_utilities")]
 use std::collections::HashMap;
 use std::str;
@@ -200,10 +200,8 @@ fn redis_value_to_js(val: Value, js_env: Env, string_decoder: bool) -> Result<Js
             let mut js_array = js_env.create_array_with_length(map.len())?;
             for (idx, (key, value)) in (0_u32..).zip(map.into_iter()) {
                 let mut obj = js_env.create_object()?;
-                let field_name = String::from_owned_redis_value(key).map_err(to_js_error)?;
-                let value = redis_value_to_js(value, js_env, string_decoder)?;
-                obj.set_named_property("key", field_name)?;
-                obj.set_named_property("value", value)?;
+                obj.set_named_property("key", redis_value_to_js(key, js_env, string_decoder)?)?;
+                obj.set_named_property("value", redis_value_to_js(value, js_env, string_decoder)?)?;
                 js_array.set_element(idx, obj)?;
             }
             Ok(js_array.into_unknown())
