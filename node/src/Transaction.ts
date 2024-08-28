@@ -7,6 +7,7 @@ import {
     GlideRecord, // eslint-disable-line @typescript-eslint/no-unused-vars
     GlideString,
     ReadFrom,
+    ReturnTypeXinfoStream, // eslint-disable-line @typescript-eslint/no-unused-vars
     SortedSetDataType, // eslint-disable-line @typescript-eslint/no-unused-vars
 } from "./BaseClient";
 
@@ -50,7 +51,6 @@ import {
     RangeByLex,
     RangeByScore,
     RestoreOptions,
-    ReturnTypeXinfoStream, // eslint-disable-line @typescript-eslint/no-unused-vars
     ScoreFilter,
     SearchOrigin,
     SetOptions,
@@ -1751,7 +1751,12 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         options?: ZAddOptions,
     ): T {
         return this.addAndReturn(
-            createZAdd(key, [{ element: member, score: increment }], options, true),
+            createZAdd(
+                key,
+                [{ element: member, score: increment }],
+                options,
+                true,
+            ),
         );
     }
 

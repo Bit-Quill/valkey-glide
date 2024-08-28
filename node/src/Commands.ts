@@ -328,23 +328,20 @@ export function createMGet(keys: GlideString[]): command_request.Command {
  * @internal
  */
 export function createMSet(
-    keyValueMap: GlideRecord<GlideString>,
+    keyValueMap: Record<string, string>,
 ): command_request.Command {
-    return createCommand(
-        RequestType.MSet,
-        keyValueMap.map((r) => [r.key, r.value]).flat(),
-    );
+    return createCommand(RequestType.MSet, Object.entries(keyValueMap).flat());
 }
 
 /**
  * @internal
  */
 export function createMSetNX(
-    keyValueMap: GlideRecord<GlideString>,
+    keyValueMap: Record<string, string>,
 ): command_request.Command {
     return createCommand(
         RequestType.MSetNX,
-        keyValueMap.map((r) => [r.key, r.value]).flat(),
+        Object.entries(keyValueMap).flat(),
     );
 }
 
@@ -2584,20 +2581,6 @@ export function createXReadGroup(
 
     return createCommand(RequestType.XReadGroup, args);
 }
-
-/**
- * Represents a the return type for XInfo Stream in the response
- */
-export type ReturnTypeXinfoStream = {
-    [key: string]:
-        | StreamEntries
-        | Record<string, StreamEntries | Record<string, StreamEntries>[]>[];
-};
-
-/**
- * Represents an array of Stream Entires in the response
- */
-export type StreamEntries = GlideString | number | (GlideString | number | GlideString[])[][];
 
 /**
  * @internal

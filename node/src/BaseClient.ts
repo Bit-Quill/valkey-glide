@@ -1,6 +1,9 @@
 /**
  * Copyright Valkey GLIDE Project Contributors - SPDX Identifier: Apache-2.0
  */
+
+const util = require("node:util");
+
 import {
     DEFAULT_TIMEOUT_IN_MILLISECONDS,
     Script,
@@ -42,13 +45,11 @@ import {
     RangeByLex,
     RangeByScore,
     RestoreOptions,
-    ReturnTypeXinfoStream,
     ScoreFilter,
     SearchOrigin,
     SetOptions,
     StreamAddOptions,
     StreamClaimOptions,
-    StreamEntries,
     StreamGroupOptions,
     StreamPendingOptions,
     StreamReadGroupOptions,
@@ -301,28 +302,43 @@ export type DecoderOption = {
 /** A replacement for `Record<GlideString, T>` - array of key-value pairs. */
 export type GlideRecord<T> = {
     /** The value name. */
-    key: GlideString,
+    key: GlideString;
     /** The value itself. */
-    value: T
+    value: T;
 }[];
 
-/** A replacement for `Record<GlideString, number>` for sorted sets. */
+/**
+ * Data type which represents how data are returned from sorted sets or insterted there.
+ * Similar to `Record<GlideString, number>` - see {@link GlideRecord}.
+ */
 export type SortedSetDataType = {
     /** The sorted set element name. */
-    element: GlideString,
+    element: GlideString;
     /** The element score. */
-    score: number
+    score: number;
 }[];
 
-/** A replacement for `Record<GlideString, [string, string][]>` for streams. */
-export type StreamEntryDataType = {
-    /** Stream entry ID. */
-    id: GlideString,
-    /** Stream entry data - key-value pairs. */
-    data: [GlideString, GlideString][]
+/**
+ * Data type which represents how data are returned from hashes or insterted there.
+ * Similar to `Record<GlideString, GlideString>` - see {@link GlideRecord}.
+ */
+export type HashDataType = {
+    /** The hash element name. */
+    field: GlideString;
+    /** The hash element value. */
+    value: GlideString;
 }[];
 
-/** Convert `GlideRecord<number>` recevied after resolving the value pointer into `SortedSetDataType`. */
+/**
+ * Data type which reflects now stream entries are returned.
+ * The keys of the record are stream entry IDs, which are mapped to key-value pairs of the data.
+ */
+export type StreamEntryDataType = Record<string, [GlideString, GlideString][]>;
+
+/**
+ * @internal
+ * Convert `GlideRecord<number>` recevied after resolving the value pointer into `SortedSetDataType`.
+ */
 function convertGlideRecordForZSet(
     res: GlideRecord<number>,
 ): SortedSetDataType {
@@ -331,27 +347,33 @@ function convertGlideRecordForZSet(
     });
 }
 
-/** Convert `GlideRecord<number>` recevied after resolving the value pointer into `SortedSetDataType`. */
-function convertGlideRecordForStream(
-    res: GlideRecord<[GlideString, GlideString][]>,
-): StreamEntryDataType {
-    return res.map((e) => {
-        return { id: e.key, data: e.value };
-    });
-}
-
-/** Recursevely downcast `GlideRecord` to `Record`. Use if you are 146% aware that `data` keys are always strings. */
+/**
+ * @internal
+ * Downcast `GlideRecord` to `Record`. Use if you are 146% aware that `data` keys are always strings.
+ */
 function glideRecordToRecord<T>(data: GlideRecord<T>): Record<string, T> {
     const res: Record<string, T> = {};
     for (const pair of data) {
-        if (Array.isArray(pair.value) && typeof pair.value[0] === "object") {
-            res[pair.key as string] = glideRecordToRecord(pair.value) as T;
-        } else {
-            res[pair.key as string] = pair.value;
-        }
+        res[pair.key as string] = pair.value;
     }
     return res;
 }
+
+/** Represents the return type of {@link xinfoStream} command. */
+export type ReturnTypeXinfoStream = Record<
+    string,
+    | StreamEntries
+    | Record<string, StreamEntries | Record<string, StreamEntries>[]>[]
+>;
+
+/**
+ * Represents an array of Stream Entires in the response of {@link xinfoStream} command.
+ * See {@link ReturnTypeXinfoStream}.
+ */
+export type StreamEntries =
+    | GlideString
+    | number
+    | (GlideString | number | GlideString[])[][];
 
 /**
  * Our purpose in creating PointerResponse type is to mark when response is of number/long pointer response type.
@@ -1266,8 +1288,7 @@ export class BaseClient {
         );
     }
 
-    /**
-     * Retrieves the values of multiple keys.
+    /** Retrieve the values of multiple keys.
      *
      * @see {@link https://valkey.io/commands/mget/|valkey.io} for details.
      * @remarks When in cluster mode, the command may route to multiple nodes when `keys` map to different hash slots.
@@ -1276,7 +1297,7 @@ export class BaseClient {
      * @param decoder - (Optional) {@link Decoder} type which defines how to handle the response.
      *     If not set, the {@link BaseClientConfiguration.defaultDecoder|default decoder} will be used.
      * @returns A list of values corresponding to the provided keys. If a key is not found,
-     * its corresponding value in the list will be `null`.
+     * its corresponding value in the list will be null.
      *
      * @example
      * ```typescript
@@ -1294,14 +1315,13 @@ export class BaseClient {
         return this.createWritePromise(createMGet(keys), { decoder: decoder });
     }
 
-    /**
-     * Sets multiple keys to multiple values in a single operation.
+    /** Set multiple keys to multiple values in a single operation.
      *
      * @see {@link https://valkey.io/commands/mset/|valkey.io} for details.
      * @remarks When in cluster mode, the command may route to multiple nodes when keys in `keyValueMap` map to different hash slots.
      *
      * @param keyValueMap - A key-value map consisting of keys and their respective values to set.
-     * @returns Always `"OK"`.
+     * @returns always "OK".
      *
      * @example
      * ```typescript
@@ -1310,7 +1330,7 @@ export class BaseClient {
      * console.log(result); // Output: 'OK'
      * ```
      */
-    public async mset(keyValueMap: GlideRecord<GlideString>): Promise<"OK"> {
+    public async mset(keyValueMap: Record<string, string>): Promise<"OK"> {
         return this.createWritePromise(createMSet(keyValueMap));
     }
 
@@ -1333,9 +1353,7 @@ export class BaseClient {
      * console.log(result2); // Output: `false`
      * ```
      */
-    public async msetnx(
-        keyValueMap: GlideRecord<GlideString>,
-    ): Promise<boolean> {
+    public async msetnx(keyValueMap: Record<string, string>): Promise<boolean> {
         return this.createWritePromise(createMSetNX(keyValueMap));
     }
 
@@ -1865,12 +1883,14 @@ export class BaseClient {
     public async hgetall(
         key: string,
         options?: DecoderOption,
-    ): Promise<{ field: GlideString; value: GlideString }[]> {
-        return this.createWritePromise<GlideRecord<GlideString>>(createHGetAll(key), options).then(
-            res =>
-                res.map((r) => {
-                    return { field: r.key, value: r.value };
-                }),
+    ): Promise<HashDataType> {
+        return this.createWritePromise<GlideRecord<GlideString>>(
+            createHGetAll(key),
+            options,
+        ).then((res) =>
+            res.map((r) => {
+                return { field: r.key, value: r.value };
+            }),
         );
     }
 
@@ -3429,16 +3449,11 @@ export class BaseClient {
         end: Boundary<string>,
         options?: { count?: number } & DecoderOption,
     ): Promise<StreamEntryDataType | null> {
-        return this.createWritePromise<GlideRecord<[string, string][]> | null>(
-            createXRange(key, start, end, options?.count),
-            options,
-        )
-            .then(
-                res =>
-                    res?.map((r) => {
-                        return { id: r.key, data: r.value };
-                    }) ?? null,
-            );
+        return this.createWritePromise<GlideRecord<
+            [GlideString, GlideString][]
+        > | null>(createXRange(key, start, end, options?.count), options).then(
+            (res) => (res == null ? glideRecordToRecord(res!) : null),
+        );
     }
 
     /**
@@ -3480,17 +3495,12 @@ export class BaseClient {
         start: Boundary<string>,
         options?: { count?: number } & DecoderOption,
     ): Promise<StreamEntryDataType | null> {
-        return this.createWritePromise(
+        return this.createWritePromise<GlideRecord<
+            [GlideString, GlideString][]
+        > | null>(
             createXRevRange(key, start, end, options?.count),
             options,
-        )
-            .then((res) => res as GlideRecord<[string, string][]> | null)
-            .then(
-                (res) =>
-                    res?.map((r) => {
-                        return { id: r.key, data: r.value };
-                    }) ?? null,
-            );
+        ).then((res) => (res == null ? glideRecordToRecord(res!) : null));
     }
 
     /**
@@ -4830,18 +4840,16 @@ export class BaseClient {
         keys_and_ids: Record<string, string>,
         options?: StreamReadOptions & DecoderOption,
     ): Promise<GlideRecord<StreamEntryDataType>> {
-        return this.createWritePromise<GlideRecord<GlideRecord<[string, string][]>>>(
-            createXRead(keys_and_ids, options),
-            options,
-        )
-            .then(res =>
-                res.map(k => {
-                    return {
-                        key: k.key,
-                        value: convertGlideRecordForStream(k.value),
-                    };
-                }),
-            );
+        return this.createWritePromise<
+            GlideRecord<GlideRecord<[GlideString, GlideString][]>>
+        >(createXRead(keys_and_ids, options), options).then((res) =>
+            res.map((k) => {
+                return {
+                    key: k.key,
+                    value: glideRecordToRecord(k.value),
+                };
+            }),
+        );
     }
 
     /**
@@ -4879,20 +4887,23 @@ export class BaseClient {
         consumer: string,
         keys_and_ids: Record<string, string>,
         options?: StreamReadGroupOptions & DecoderOption,
-    ): Promise<GlideRecord<StreamEntryDataType> | null> {
-        return this.createWritePromise<GlideRecord<GlideRecord<[string, string][]>> | null>(
+    ): Promise<GlideRecord<
+        Record<string, [GlideString, GlideString][] | null>
+    > | null> {
+        return this.createWritePromise<GlideRecord<
+            GlideRecord<[GlideString, GlideString][] | null>
+        > | null>(
             createXReadGroup(group, consumer, keys_and_ids, options),
             options,
-        )
-            .then(
-                res =>
-                    res?.map(k => {
-                        return {
-                            key: k.key,
-                            value: convertGlideRecordForStream(k.value),
-                        };
-                    }) ?? null,
-            );
+        ).then(
+            (res) =>
+                res?.map((k) => {
+                    return {
+                        key: k.key,
+                        value: glideRecordToRecord(k.value),
+                    };
+                }) ?? null,
+        );
     }
 
     /**
@@ -5016,11 +5027,10 @@ export class BaseClient {
         group: string,
         options?: DecoderOption,
     ): Promise<Record<string, GlideString | number>[]> {
-        return this.createWritePromise<GlideRecord<string | number>[]>(
+        return this.createWritePromise<GlideRecord<GlideString | number>[]>(
             createXInfoConsumers(key, group),
             options,
-        )
-            .then(res => res.map(glideRecordToRecord));
+        ).then((res) => res.map(glideRecordToRecord));
     }
 
     /**
@@ -5060,11 +5070,12 @@ export class BaseClient {
     public async xinfoGroups(
         key: string,
         options?: DecoderOption,
-    ): Promise<Record<string, string | number | null>[]> {
-        return this.createWritePromise<GlideRecord<string | number | null>[]>(
-            createXInfoGroups(key),
-            options,
-        ).then(res => res.map(glideRecordToRecord));
+    ): Promise<Record<string, GlideString | number | null>[]> {
+        return this.createWritePromise<
+            GlideRecord<GlideString | number | null>[]
+        >(createXInfoGroups(key), options).then((res) =>
+            res.map(glideRecordToRecord),
+        );
     }
 
     /**
@@ -5098,10 +5109,12 @@ export class BaseClient {
         ids: string[],
         options?: StreamClaimOptions & DecoderOption,
     ): Promise<StreamEntryDataType> {
-        return this.createWritePromise<GlideRecord<[string, string][]>>(
+        return this.createWritePromise<
+            GlideRecord<[GlideString, GlideString][]>
+        >(
             createXClaim(key, group, consumer, minIdleTime, ids, options),
             options,
-        ).then(convertGlideRecordForStream);
+        ).then(glideRecordToRecord);
     }
 
     /**
@@ -5156,12 +5169,26 @@ export class BaseClient {
         start: string,
         options?: { count?: number } & DecoderOption,
     ): Promise<[GlideString, StreamEntryDataType, GlideString[]?]> {
-        return this.createWritePromise<[GlideString, GlideRecord<[GlideString, GlideString][]>, GlideString[]?]>(
-            createXAutoClaim(key, group, consumer, minIdleTime, start, options?.count), options
-        )
-            .then(res => res.length == 2
-                ? [res[0], convertGlideRecordForStream(res[1])]
-                : [res[0], convertGlideRecordForStream(res[1]), res[2]]
+        return this.createWritePromise<
+            [
+                GlideString,
+                GlideRecord<[GlideString, GlideString][]>,
+                GlideString[]?,
+            ]
+        >(
+            createXAutoClaim(
+                key,
+                group,
+                consumer,
+                minIdleTime,
+                start,
+                options?.count,
+            ),
+            options,
+        ).then((res) =>
+            res.length == 2
+                ? [res[0], glideRecordToRecord(res[1])]
+                : [res[0], glideRecordToRecord(res[1]), res[2]],
         );
     }
 
@@ -5378,12 +5405,34 @@ export class BaseClient {
      */
     public async xinfoStream(
         key: string,
-        options?: { fullOptions?: boolean | number } & DecoderOption
+        options?: { fullOptions?: boolean | number } & DecoderOption,
     ): Promise<ReturnTypeXinfoStream> {
-        return this.createWritePromise<GlideRecord<StreamEntries | GlideRecord<StreamEntries | GlideRecord<StreamEntries>[]>[]>>(
-            createXInfoStream(key, options?.fullOptions ?? false), options
-        )
-            .then(res => glideRecordToRecord(res) as ReturnTypeXinfoStream);
+        return this.createWritePromise<
+            GlideRecord<
+                | StreamEntries
+                | GlideRecord<StreamEntries | GlideRecord<StreamEntries>[]>[]
+            >
+        >(createXInfoStream(key, options?.fullOptions ?? false), options).then(
+            (xinfoStream) => {
+                const converted = glideRecordToRecord(xinfoStream);
+                const groups = (
+                    converted["groups"] as GlideRecord<
+                        | GlideRecord<StreamEntries>[]
+                        | Record<string, StreamEntries>[]
+                    >[]
+                ).map(glideRecordToRecord);
+                for (const group of groups) {
+                    group.consumers = (
+                        group.consumers as GlideRecord<StreamEntries>[]
+                    ).map(glideRecordToRecord);
+                }
+                (converted as ReturnTypeXinfoStream).groups = groups as Record<
+                    string,
+                    Record<string, StreamEntries>[]
+                >[];
+                return converted as ReturnTypeXinfoStream;
+            },
+        );
     }
 
     /**
@@ -6535,16 +6584,11 @@ export class BaseClient {
         key2: string,
         options?: { withMatchLen?: boolean; minMatchLen?: number },
     ): Promise<Record<string, (number | [number, number])[][] | number>> {
-        return this.createWritePromise(
-            createLCS(key1, key2, { idx: options ?? {} }),
-        )
-            .then(
-                (res) =>
-                    res as GlideRecord<
-                        (number | [number, number])[][] | number
-                    >,
-            )
-            .then(glideRecordToRecord);
+        return this.createWritePromise<
+            GlideRecord<(number | [number, number])[][] | number>
+        >(createLCS(key1, key2, { idx: options ?? {} })).then(
+            glideRecordToRecord,
+        );
     }
 
     /**
