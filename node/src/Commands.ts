@@ -1372,8 +1372,8 @@ export type ZAddOptions = {
  * @internal
  */
 export function createZAdd(
-    key: GlideString,
-    membersScoresMap: SortedSetDataType,
+    key: string,
+    membersScoresMap: Record<string, number>,
     options?: ZAddOptions,
     incr: boolean = false,
 ): command_request.Command {
@@ -1408,7 +1408,10 @@ export function createZAdd(
     }
 
     args = args.concat(
-        membersScoresMap.map((p) => [p.element, p.score.toString()]).flat(),
+        Object.entries(membersScoresMap).flatMap(([key, value]) => [
+            value.toString(),
+            key,
+        ]),
     );
     return createCommand(RequestType.ZAdd, args);
 }

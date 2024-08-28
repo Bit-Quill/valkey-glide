@@ -3,12 +3,13 @@
  */
 
 import {
-    BaseClient,
+    BaseClient, // eslint-disable-line @typescript-eslint/no-unused-vars
     GlideRecord, // eslint-disable-line @typescript-eslint/no-unused-vars
     GlideString,
-    ReadFrom,
+    ReadFrom, // eslint-disable-line @typescript-eslint/no-unused-vars
     ReturnTypeXinfoStream, // eslint-disable-line @typescript-eslint/no-unused-vars
     SortedSetDataType, // eslint-disable-line @typescript-eslint/no-unused-vars
+    StreamEntryDataType, // eslint-disable-line @typescript-eslint/no-unused-vars
 } from "./BaseClient";
 
 import {
@@ -504,30 +505,26 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         return this.addAndReturn(createConfigResetStat());
     }
 
-    /**
-     * Retrieves the values of multiple keys.
-     *
+    /** Retrieve the values of multiple keys.
      * @see {@link https://valkey.io/commands/mget/|valkey.io} for details.
      *
      * @param keys - A list of keys to retrieve values for.
      *
      * Command Response - A list of values corresponding to the provided keys. If a key is not found,
-     * its corresponding value in the list will be `null`.
+     * its corresponding value in the list will be null.
      */
     public mget(keys: GlideString[]): T {
         return this.addAndReturn(createMGet(keys));
     }
 
-    /**
-     * Sets multiple keys to multiple values in a single atomic operation.
-     *
+    /** Set multiple keys to multiple values in a single atomic operation.
      * @see {@link https://valkey.io/commands/mset/|valkey.io} for details.
      *
      * @param keyValueMap - A key-value map consisting of keys and their respective values to set.
      *
-     * Command Response - always `"OK"`.
+     * Command Response - always "OK".
      */
-    public mset(keyValueMap: GlideRecord<GlideString>): T {
+    public mset(keyValueMap: Record<string, string>): T {
         return this.addAndReturn(createMSet(keyValueMap));
     }
 
@@ -538,10 +535,9 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * @see {@link https://valkey.io/commands/msetnx/|valkey.io} for details.
      *
      * @param keyValueMap - A key-value map consisting of keys and their respective values to set.
-     *
      * Command Response - `true` if all keys were set. `false` if no key was set.
      */
-    public msetnx(keyValueMap: GlideRecord<GlideString>): T {
+    public msetnx(keyValueMap: Record<string, string>): T {
         return this.addAndReturn(createMSetNX(keyValueMap));
     }
 
@@ -889,13 +885,15 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         return this.addAndReturn(createHExists(key, field));
     }
 
-    /** Returns all fields and values of the hash stored at `key`.
+    /**
+     * Returns all fields and values of the hash stored at `key`.
+     *
      * @see {@link https://valkey.io/commands/hgetall/|valkey.io} for details.
      *
      * @param key - The key of the hash.
      *
-     * Command Response - a map of fields and their values stored in the hash. Every field name in the map is followed by its value.
-     * If `key` does not exist, it returns an empty map.
+     * Command Response - A list of fields and their values stored in the hash. Every field name in the map is followed by its value.
+     * If `key` does not exist, it returns an empty list.
      */
     public hgetall(key: string): T {
         return this.addAndReturn(createHGetAll(key));
@@ -1725,7 +1723,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      */
     public zadd(
         key: string,
-        membersScoresMap: SortedSetDataType,
+        membersScoresMap: Record<string, number>,
         options?: ZAddOptions,
     ): T {
         return this.addAndReturn(createZAdd(key, membersScoresMap, options));
@@ -1751,12 +1749,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         options?: ZAddOptions,
     ): T {
         return this.addAndReturn(
-            createZAdd(
-                key,
-                [{ element: member, score: increment }],
-                options,
-                true,
-            ),
+            createZAdd(key, { [member]: increment }, options, true),
         );
     }
 
@@ -1827,7 +1820,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @param keys - The keys of the sorted sets.
      *
-     * Command Response - A map of elements and their scores representing the difference between the sorted sets.
+     * Command Response - {@link SortedSetDataType} - a list of elements and their scores representing the difference between the sorted sets.
      * If the first key does not exist, it is treated as an empty sorted set, and the command returns an empty `array`.
      */
     public zdiffWithScores(keys: string[]): T {
@@ -2062,7 +2055,8 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * @param aggregationType - (Optional) Specifies the aggregation strategy to apply when combining the scores of elements. See {@link AggregationType}.
      * If `aggregationType` is not specified, defaults to `AggregationType.SUM`.
      *
-     * Command Response - The resulting sorted set with scores.
+     * Command Response - {@link SortedSetDataType} - a list of elements and their scores representing the intersection of the sorted sets.
+     * If a key does not exist, it is treated as an empty sorted set, and the command returns an empty result.
      */
     public zinterWithScores(
         keys: string[] | KeyWeight[],
@@ -2103,7 +2097,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * @param aggregationType - (Optional) Specifies the aggregation strategy to apply when combining the scores of elements. See {@link AggregationType}.
      * If `aggregationType` is not specified, defaults to `AggregationType.SUM`.
      *
-     * Command Response - The resulting sorted set with scores.
+     * Command Response - {@link SortedSetDataType} - a list of elements and their scores representing the intersection of the sorted sets.
      */
     public zunionWithScores(
         keys: string[] | KeyWeight[],
@@ -2183,15 +2177,17 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         return this.addAndReturn(createStrlen(key));
     }
 
-    /** Removes and returns the members with the lowest scores from the sorted set stored at `key`.
+    /**
+     * Removes and returns the members with the lowest scores from the sorted set stored at `key`.
      * If `count` is provided, up to `count` members with the lowest scores are removed and returned.
-     * Otherwise, only one member with the lowest score is removed and returned.
+     * Otherwise, only one member with the lowest score is removed and returned
+     *
      * @see {@link https://valkey.io/commands/zpopmin/|valkey.io} for more details.
      *
      * @param key - The key of the sorted set.
      * @param count - Specifies the quantity of members to pop. If not specified, pops one member.
      *
-     * Command Response - A map of the removed members and their scores, ordered from the one with the lowest score to the one with the highest.
+     * Command Response - {@link SortedSetDataType} - a list of the removed members and their scores, ordered from the one with the lowest score to the one with the highest.
      * If `key` doesn't exist, it will be treated as an empty sorted set and the command returns an empty map.
      * If `count` is higher than the sorted set's cardinality, returns all members and their scores.
      */
@@ -2218,15 +2214,17 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
         return this.addAndReturn(createBZPopMin(keys, timeout));
     }
 
-    /** Removes and returns the members with the highest scores from the sorted set stored at `key`.
+    /**
+     * Removes and returns the members with the highest scores from the sorted set stored at `key`.
      * If `count` is provided, up to `count` members with the highest scores are removed and returned.
      * Otherwise, only one member with the highest score is removed and returned.
+     *
      * @see {@link https://valkey.io/commands/zpopmax/|valkey.io} for more details.
      *
      * @param key - The key of the sorted set.
      * @param count - Specifies the quantity of members to pop. If not specified, pops one member.
      *
-     * Command Response - A map of the removed members and their scores, ordered from the one with the highest score to the one with the lowest.
+     * Command Response - {@link SortedSetDataType} - a list of the removed members and their scores, ordered from the one with the highest score to the one with the lowest.
      * If `key` doesn't exist, it will be treated as an empty sorted set and the command returns an empty map.
      * If `count` is higher than the sorted set's cardinality, returns all members and their scores, ordered from highest to lowest.
      */
@@ -2641,7 +2639,8 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * @param keys_and_ids - An object of stream keys and entry IDs to read from.
      * @param options - (Optional) Parameters detailing how to read the stream - see {@link StreamReadOptions}.
      *
-     * Command Response - A `Record` of stream keys, each key is mapped to a `Record` of stream ids, to an `Array` of entries.
+     * Command Response - A list of stream keys with a `Record` of stream IDs mapped to an `Array` of entries.
+     *     The response comes in format `GlideRecord<StreamEntryDataType>`, see {@link GlideRecord} and {@link StreamEntryDataType}.
      */
     public xread(
         keys_and_ids: Record<string, string>,
@@ -2661,8 +2660,9 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      *     Use the special ID of `">"` to receive only new messages.
      * @param options - (Optional) Parameters detailing how to read the stream - see {@link StreamReadGroupOptions}.
      *
-     * Command Response - A map of stream keys, each key is mapped to a map of stream ids, which is mapped to an array of entries.
+     * Command Response - A list of stream keys with a `Record` of stream IDs mapped to an `Array` of entries.
      *     Returns `null` if there is no stream that can be served.
+     *     The response comes in format `GlideRecord<StreamEntryDataType>`, see {@link GlideRecord} and {@link StreamEntryDataType}.
      */
     public xreadgroup(
         group: string,
@@ -3546,7 +3546,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * @param count - (Optional) The number of elements to pop. If not supplied, only one element will be popped.
      *
      * Command Response - A two-element `array` containing the key name of the set from which the
-     *     element was popped, and a member-score `Record` of the popped element.
+     *     was popped, and a {@link SortedSetDataType} of the popped elements.
      *     If no member could be popped, returns `null`.
      */
     public zmpop(keys: string[], modifier: ScoreFilter, count?: number): T {
@@ -3569,7 +3569,7 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      * @param count - (Optional) The number of elements to pop. If not supplied, only one element will be popped.
      *
      * Command Response - A two-element `array` containing the key name of the set from which the element
-     *     was popped, and a member-score `Record` of the popped element.
+     *     was popped, and a {@link SortedSetDataType} of the popped elements.
      *     If no member could be popped, returns `null`.
      */
     public bzmpop(
@@ -3863,14 +3863,11 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
     /**
      * Returns the number of subscribers (exclusive of clients subscribed to patterns) for the specified channels.
      *
-     * Note that it is valid to call this command without channels. In this case, it will just return an empty map.
-     * The command is routed to all nodes, and aggregates the response to a single map of the channels and their number of subscriptions.
-     *
      * @see {@link https://valkey.io/commands/pubsub-numsub/|valkey.io} for more details.
      *
      * @param channels - The list of channels to query for the number of subscribers.
-     *                   If not provided, returns an empty map.
-     * Command Response - A map where keys are the channel names and values are the number of subscribers.
+     *
+     * Command Response - A list of the channel names and their numbers of subscribers.
      */
     public pubsubNumSub(channels?: string[]): T {
         return this.addAndReturn(createPubSubNumSub(channels));
