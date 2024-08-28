@@ -2,8 +2,6 @@
  * Copyright Valkey GLIDE Project Contributors - SPDX Identifier: Apache-2.0
  */
 
-const util = require("node:util");
-
 import {
     DEFAULT_TIMEOUT_IN_MILLISECONDS,
     Script,
