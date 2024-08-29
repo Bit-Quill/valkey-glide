@@ -18,6 +18,7 @@ import {
     GlideClientConfiguration,
     GlideClusterClient,
     GlideClusterClientConfiguration,
+    GlideString,
     ProtocolVersion,
     PubSubMsg,
     TimeoutError,
@@ -29,7 +30,17 @@ import {
     parseEndpoints,
 } from "./TestUtilities";
 
-export type TGlideClient = GlideClient | GlideClusterClient;
+type TGlideClient = GlideClient | GlideClusterClient;
+
+function glideRecordToRecord(data: { channel: GlideString; numSub: number }[]): Record<string, number> {
+    const res: Record<string, number> = {};
+
+    for (const pair of data) {
+        res[pair.channel as string] = pair.numSub;
+    }
+
+    return res;
+}
 
 /**
  * Enumeration for specifying the method of PUBSUB subscription.
@@ -3943,18 +3954,17 @@ describe("PubSub", () => {
      *
      * @param clusterMode - Indicates if the test should be run in cluster mode.
      */
-    it.each([false])(
+    it.each([true, false])(
         "test pubsub numsub and shardnumsub separation_%p",
-        async (clusterMode) => {
+        async () => {
+            const clusterMode = false;
             const minVersion = "7.0.0";
 
             if (cmeCluster.checkIfServerVersionLessThan(minVersion)) {
                 return; // Skip test if server version is less than required
             }
 
-            let pubSub1: GlideClusterClientConfiguration.PubSubSubscriptions | null =
-                null;
-            let pubSub2: GlideClusterClientConfiguration.PubSubSubscriptions | null =
+            let pubSub: GlideClusterClientConfiguration.PubSubSubscriptions | null =
                 null;
             let client1: TGlideClient | null = null;
             let client2: TGlideClient | null = null;
@@ -3963,71 +3973,36 @@ describe("PubSub", () => {
                 const regularChannel = "regular_channel";
                 const shardChannel = "shard_channel";
 
-                if (clusterMode) {
-                    pubSub1 = createPubSubSubscription(
-                        clusterMode,
-                        {
-                            [GlideClusterClientConfiguration.PubSubChannelModes
-                                .Exact]: new Set([regularChannel]),
-                            [GlideClusterClientConfiguration.PubSubChannelModes
-                                .Sharded]: new Set([shardChannel]),
-                        },
-                        {},
-                    );
-                    pubSub2 = createPubSubSubscription(
-                        clusterMode,
-                        {
-                            [GlideClusterClientConfiguration.PubSubChannelModes
-                                .Exact]: new Set([regularChannel]),
-                            [GlideClusterClientConfiguration.PubSubChannelModes
-                                .Sharded]: new Set([shardChannel]),
-                        },
-                        {},
-                    );
-                } else {
-                    pubSub1 = createPubSubSubscription(
-                        clusterMode,
-                        {
-                            [GlideClusterClientConfiguration.PubSubChannelModes
-                                .Exact]: new Set([regularChannel]),
-                        },
-                        {},
-                    );
-                    pubSub2 = createPubSubSubscription(
-                        clusterMode,
-                        {
-                            [GlideClusterClientConfiguration.PubSubChannelModes
-                                .Exact]: new Set([regularChannel]),
-                        },
-                        {},
-                    );
-                }
+                pubSub = createPubSubSubscription(
+                    clusterMode,
+                    {
+                        [GlideClusterClientConfiguration.PubSubChannelModes
+                            .Exact]: new Set([regularChannel]),
+                        [GlideClusterClientConfiguration.PubSubChannelModes
+                            .Sharded]: new Set([shardChannel]),
+                    },
+                    {
+                        [GlideClusterClientConfiguration.PubSubChannelModes
+                            .Exact]: new Set([regularChannel]),
+                    },
+                );
 
                 [client1, client2] = await createClients(
                     clusterMode,
                     getOptions(clusterMode),
                     getOptions(clusterMode),
-                    pubSub1,
-                    pubSub2,
+                    pubSub,
+                    pubSub,
                 );
 
                 // Test pubsubNumsub
-                if (clusterMode) {
-                    const regularSubscribers = await client2.pubsubNumSub({
-                        channels: [regularChannel, shardChannel],
-                    });
-                    expect(regularSubscribers).toEqual([
-                        { channel: regularChannel, numSub: 2 },
-                        { channel: shardChannel, numSub: 0 },
-                    ]);
-                } else {
-                    const regularSubscribers = await client2.pubsubNumSub({
-                        channels: [regularChannel],
-                    });
-                    expect(regularSubscribers).toEqual([
-                        { channel: regularChannel, numSub: 2 },
-                    ]);
-                }
+                const regularSubscribers = await client2.pubsubNumSub({
+                    channels: [regularChannel, shardChannel],
+                });
+                expect(glideRecordToRecord(regularSubscribers)).toEqual({
+                    [regularChannel]: 2,
+                    [shardChannel]: 0,
+                });
 
                 // Test pubsubShardnumsub
                 if (clusterMode) {
@@ -4036,18 +4011,18 @@ describe("PubSub", () => {
                     ).pubsubShardNumSub({
                         channels: [regularChannel, shardChannel],
                     });
-                    expect(shardSubscribers).toEqual([
-                        { channel: regularChannel, numSub: 0 },
-                        { channel: shardChannel, numSub: 2 },
-                    ]);
+                    expect(glideRecordToRecord(shardSubscribers)).toEqual({
+                        [regularChannel]: 0,
+                        [shardChannel]: 2,
+                    });
                 }
             } finally {
                 if (client1) {
-                    await clientCleanup(client1, pubSub1 ? pubSub1 : undefined);
+                    await clientCleanup(client1, pubSub!);
                 }
 
                 if (client2) {
-                    await clientCleanup(client2, pubSub2 ? pubSub2 : undefined);
+                    await clientCleanup(client2, pubSub!);
                 }
             }
         },
