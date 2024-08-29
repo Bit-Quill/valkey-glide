@@ -6860,7 +6860,10 @@ export class BaseClient {
      * @see {@link https://valkey.io/commands/pubsub-numsub/|valkey.io} for more details.
      * @remarks When in cluster mode, the command is routed to all nodes, and aggregates the response into a single list.
      *
-     * @param channels - The list of channels to query for the number of subscribers.
+     * @param options - (Optional) Additional parameters:
+     * - (Optional) `channels`: the list of channels to query for the number of subscribers.
+     *     If not provided, returns an empty map.
+     * - (Optional) `decoder`: see {@link DecoderOption}.
      * @returns A list of the channel names and their numbers of subscribers.
      *
      * @example
@@ -6874,12 +6877,11 @@ export class BaseClient {
      * ```
      */
     public async pubsubNumSub(
-        channels: string[],
-        options?: DecoderOption,
+        options?: { channels?: GlideString[] } & DecoderOption,
     ): Promise<{ channel: GlideString; numSub: number }[]> {
         return this.createWritePromise<GlideRecord<number>>(
-            createPubSubNumSub(channels),
-            options,
+            createPubSubNumSub(options?.channels),
+            { decoder: options?.decoder },
         ).then((res) =>
             res.map((r) => {
                 return { channel: r.key, numSub: r.value };
