@@ -521,9 +521,9 @@ function getRequestErrorClass(
 }
 
 export type PubSubMsg = {
-    message: string;
-    channel: string;
-    pattern?: string | null;
+    message: GlideString;
+    channel: GlideString;
+    pattern?: GlideString | null;
 };
 
 export type WritePromiseOptions = {
@@ -980,7 +980,9 @@ export class BaseClient {
                 messageKind === "PMessage" ||
                 messageKind === "SMessage"
             ) {
-                const values = nextPushNotificationValue["values"] as string[];
+                const values = nextPushNotificationValue[
+                    "values"
+                ] as GlideString[];
 
                 if (messageKind === "PMessage") {
                     msg = {
@@ -6869,6 +6871,9 @@ export class BaseClient {
      * const result1 = await client.pubsubNumsub(["channel1", "channel2"]);
      * console.log(result1); // Output:
      * // [{ channel: "channel1", numSub: 3}, { channel: "channel2", numSub: 5 }]
+     *
+     * const result2 = await client.pubsubNumsub([]);
+     * console.log(result2); // Output: []
      * ```
      */
     public async pubsubNumSub(

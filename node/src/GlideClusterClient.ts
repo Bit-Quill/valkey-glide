@@ -1270,6 +1270,9 @@ export class GlideClusterClient extends BaseClient {
      * const result1 = await client.pubsubShardnumsub(["channel1", "channel2"]);
      * console.log(result1); // Output:
      * // [{ channel: "channel1", numSub: 3}, { channel: "channel2", numSub: 5 }]
+     *
+     * const result2 = await client.pubsubShardnumsub([]);
+     * console.log(result2); // Output: []
      * ```
      */
     public async pubsubShardNumSub(

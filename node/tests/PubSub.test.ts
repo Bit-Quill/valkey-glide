@@ -3603,6 +3603,10 @@ describe("PubSub", () => {
                     [channel3]: 3,
                     [channel4]: 0,
                 });
+
+                // Test pubsubNumsub with no channels
+                const emptySubscribers = await client2.pubsubNumSub([]);
+                expect(emptySubscribers).toEqual([]);
             } finally {
                 if (client1) {
                     await clientCleanup(
@@ -3839,6 +3843,12 @@ describe("PubSub", () => {
                     [channel3]: 3,
                     [channel4]: 0,
                 });
+
+                // Test pubsubShardnumsub with no channels
+                const emptySubscribers = await (
+                    client4 as GlideClusterClient
+                ).pubsubShardNumSub([]);
+                expect(emptySubscribers).toEqual([]);
             } finally {
                 if (client1) {
                     await clientCleanup(client1, pubSub1 ? pubSub1 : undefined);
