@@ -521,9 +521,9 @@ function getRequestErrorClass(
 }
 
 export type PubSubMsg = {
-    message: GlideString;
-    channel: GlideString;
-    pattern?: GlideString | null;
+    message: string;
+    channel: string;
+    pattern?: string | null;
 };
 
 export type WritePromiseOptions = {
@@ -980,9 +980,7 @@ export class BaseClient {
                 messageKind === "PMessage" ||
                 messageKind === "SMessage"
             ) {
-                const values = nextPushNotificationValue[
-                    "values"
-                ] as GlideString[];
+                const values = nextPushNotificationValue["values"] as string[];
 
                 if (messageKind === "PMessage") {
                     msg = {

@@ -4166,6 +4166,7 @@ export class ClusterTransaction extends BaseTransaction<ClusterTransaction> {
      *
      * @param pattern - A glob-style pattern to match active shard channels.
      *                  If not provided, all active shard channels are returned.
+     *
      * Command Response - A list of currently active shard channels matching the given pattern.
      *          If no pattern is specified, all active shard channels are returned.
      */
@@ -4180,8 +4181,8 @@ export class ClusterTransaction extends BaseTransaction<ClusterTransaction> {
      * @remarks The command is routed to all nodes, and aggregates the response into a single list.
      *
      * @param channels - The list of shard channels to query for the number of subscribers.
-     *     If not provided, returns an empty map.
-     * @returns A list of the shard channel names and their numbers of subscribers.
+     *
+     * Command Response - A list of the shard channel names and their numbers of subscribers.
      */
     public pubsubShardNumSub(channels: GlideString[]): ClusterTransaction {
         return this.addAndReturn(createPubSubShardNumSub(channels));
