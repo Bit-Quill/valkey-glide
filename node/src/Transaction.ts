@@ -3865,11 +3865,11 @@ export class BaseTransaction<T extends BaseTransaction<T>> {
      *
      * @see {@link https://valkey.io/commands/pubsub-numsub/|valkey.io} for more details.
      *
-     * @param channels - (Optional) The list of channels to query for the number of subscribers.
+     * @param channels - The list of channels to query for the number of subscribers.
      *
      * Command Response - A list of the channel names and their numbers of subscribers.
      */
-    public pubsubNumSub(channels?: GlideString[]): T {
+    public pubsubNumSub(channels: GlideString[]): T {
         return this.addAndReturn(createPubSubNumSub(channels));
     }
 }
@@ -4177,13 +4177,13 @@ export class ClusterTransaction extends BaseTransaction<ClusterTransaction> {
      * Returns the number of subscribers (exclusive of clients subscribed to patterns) for the specified shard channels.
      *
      * @see {@link https://valkey.io/commands/pubsub-shardnumsub|valkey.io} for more details.
-     * @remarks When in cluster mode, the command is routed to all nodes, and aggregates the response into a single list.
+     * @remarks The command is routed to all nodes, and aggregates the response into a single list.
      *
-     * @param channels - (Optional) The list of shard channels to query for the number of subscribers.
+     * @param channels - The list of shard channels to query for the number of subscribers.
      *     If not provided, returns an empty map.
      * @returns A list of the shard channel names and their numbers of subscribers.
      */
-    public pubsubShardNumSub(channels?: GlideString[]): ClusterTransaction {
+    public pubsubShardNumSub(channels: GlideString[]): ClusterTransaction {
         return this.addAndReturn(createPubSubShardNumSub(channels));
     }
 }

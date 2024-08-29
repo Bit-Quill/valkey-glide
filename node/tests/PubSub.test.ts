@@ -3565,9 +3565,11 @@ describe("PubSub", () => {
                     );
                 }
 
-                let subscribers = await client.pubsubNumSub({
-                    channels: [channel1, channel2, channel3],
-                });
+                let subscribers = await client.pubsubNumSub([
+                    channel1,
+                    channel2,
+                    channel3,
+                ]);
                 expect(glideRecordToRecord(subscribers)).toEqual({
                     [channel1]: 0,
                     [channel2]: 0,
@@ -3589,19 +3591,18 @@ describe("PubSub", () => {
                 );
 
                 // Test pubsubNumsub
-                subscribers = await client2.pubsubNumSub({
-                    channels: [channel1, channel2, channel3, channel4],
-                });
+                subscribers = await client2.pubsubNumSub([
+                    channel1,
+                    channel2,
+                    channel3,
+                    channel4,
+                ]);
                 expect(glideRecordToRecord(subscribers)).toEqual({
                     [channel1]: 1,
                     [channel2]: 2,
                     [channel3]: 3,
                     [channel4]: 0,
                 });
-
-                // Test pubsubNumsub with no channels
-                const emptySubscribers = await client2.pubsubNumSub();
-                expect(emptySubscribers).toEqual([]);
             } finally {
                 if (client1) {
                     await clientCleanup(
@@ -3807,9 +3808,7 @@ describe("PubSub", () => {
 
                 let subscribers = await (
                     client as GlideClusterClient
-                ).pubsubShardNumSub({
-                    channels: [channel1, channel2, channel3],
-                });
+                ).pubsubShardNumSub([channel1, channel2, channel3]);
                 expect(glideRecordToRecord(subscribers)).toEqual({
                     [channel1]: 0,
                     [channel2]: 0,
@@ -3833,21 +3832,13 @@ describe("PubSub", () => {
                 // Test pubsubShardnumsub
                 subscribers = await (
                     client4 as GlideClusterClient
-                ).pubsubShardNumSub({
-                    channels: [channel1, channel2, channel3, channel4],
-                });
+                ).pubsubShardNumSub([channel1, channel2, channel3, channel4]);
                 expect(glideRecordToRecord(subscribers)).toEqual({
                     [channel1]: 1,
                     [channel2]: 2,
                     [channel3]: 3,
                     [channel4]: 0,
                 });
-
-                // Test pubsubShardnumsub with no channels
-                const emptySubscribers = await (
-                    client4 as GlideClusterClient
-                ).pubsubShardNumSub();
-                expect(emptySubscribers).toEqual([]);
             } finally {
                 if (client1) {
                     await clientCleanup(client1, pubSub1 ? pubSub1 : undefined);
@@ -3999,9 +3990,10 @@ describe("PubSub", () => {
                 );
 
                 // Test pubsubNumsub
-                const regularSubscribers = await client2.pubsubNumSub({
-                    channels: [regularChannel, shardChannel],
-                });
+                const regularSubscribers = await client2.pubsubNumSub([
+                    regularChannel,
+                    shardChannel,
+                ]);
                 expect(glideRecordToRecord(regularSubscribers)).toEqual({
                     [regularChannel]: 2,
                     [shardChannel]: 0,
@@ -4011,9 +4003,7 @@ describe("PubSub", () => {
                 if (clusterMode) {
                     const shardSubscribers = await (
                         client2 as GlideClusterClient
-                    ).pubsubShardNumSub({
-                        channels: [regularChannel, shardChannel],
-                    });
+                    ).pubsubShardNumSub([regularChannel, shardChannel]);
                     expect(glideRecordToRecord(shardSubscribers)).toEqual({
                         [regularChannel]: 0,
                         [shardChannel]: 2,
