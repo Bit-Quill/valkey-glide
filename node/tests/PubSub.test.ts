@@ -109,12 +109,6 @@ describe("PubSub", () => {
                     defaultDecoder: decoder,
                     ...options2,
                 });
-                // options.pubsubSubscriptions = pubsubSubscriptions;
-                // options.defaultDecoder = decoder;
-                // client = await GlideClusterClient.createClient(options);
-                // options2.pubsubSubscriptions = pubsubSubscriptions2;
-                // options2.defaultDecoder = decoder;
-                // const client2 = await GlideClusterClient.createClient(options2);
                 return [client, client2];
             } catch (error) {
                 if (client) {
@@ -135,12 +129,6 @@ describe("PubSub", () => {
                     defaultDecoder: decoder,
                     ...options2,
                 });
-                // options.pubsubSubscriptions = pubsubSubscriptions;
-                // options.defaultDecoder = decoder;
-                // client = await GlideClient.createClient(options);
-                // options2.pubsubSubscriptions = pubsubSubscriptions2;
-                // options2.defaultDecoder = decoder;
-                // const client2 = await GlideClient.createClient(options2);
                 return [client, client2];
             } catch (error) {
                 if (client) {
