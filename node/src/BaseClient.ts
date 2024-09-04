@@ -521,9 +521,9 @@ function getRequestErrorClass(
 }
 
 export type PubSubMsg = {
-    message: string;
-    channel: string;
-    pattern?: string | null;
+    message: GlideString;
+    channel: GlideString;
+    pattern?: GlideString | null;
 };
 
 export type WritePromiseOptions = {
@@ -957,13 +957,13 @@ export class BaseClient {
                 nextPushNotificationValue = valueFromSplitPointer(
                     responsePointer.high,
                     responsePointer.low,
-                    decoder === Decoder.String,
+                    (decoder ?? this.defaultDecoder) === Decoder.String,
                 ) as Record<string, unknown>;
             } else {
                 nextPushNotificationValue = valueFromSplitPointer(
                     0,
                     responsePointer,
-                    decoder === Decoder.String,
+                    (decoder ?? this.defaultDecoder) === Decoder.String,
                 ) as Record<string, unknown>;
             }
 
@@ -980,7 +980,9 @@ export class BaseClient {
                 messageKind === "PMessage" ||
                 messageKind === "SMessage"
             ) {
-                const values = nextPushNotificationValue["values"] as string[];
+                const values = nextPushNotificationValue[
+                    "values"
+                ] as GlideString[];
 
                 if (messageKind === "PMessage") {
                     msg = {
