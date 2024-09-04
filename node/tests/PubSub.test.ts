@@ -374,7 +374,7 @@ describe("PubSub", () => {
 
                 expect(pubsubMessage!.message).toEqual(message);
                 expect(pubsubMessage!.channel).toEqual(channel);
-                expect(pubsubMessage!.pattern).toEqual(null);
+                expect(pubsubMessage!.pattern).toBeNull();
 
                 await checkNoMessagesLeft(method, listeningClient, context, 1);
             } finally {
@@ -389,7 +389,7 @@ describe("PubSub", () => {
     );
 
     /**
-     * Tests the basic happy path for exact PUBSUB functionality with binary decoder.
+     * Tests the basic happy path for exact PUBSUB functionality with binary.
      *
      * This test covers the basic PUBSUB flow using three different methods:
      * Async, Sync, and Callback. It verifies that a message published to a
@@ -460,7 +460,7 @@ describe("PubSub", () => {
 
                 expect(pubsubMessage!.message).toEqual(Buffer.from(message));
                 expect(pubsubMessage!.channel).toEqual(Buffer.from(channel));
-                expect(pubsubMessage!.pattern).toEqual(null);
+                expect(pubsubMessage!.pattern).toBeNull();
 
                 await checkNoMessagesLeft(method, listeningClient, context, 1);
             } finally {

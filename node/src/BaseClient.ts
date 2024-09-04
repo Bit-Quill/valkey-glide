@@ -951,19 +951,21 @@ export class BaseClient {
         let msg: PubSubMsg | null = null;
         const responsePointer = pushNotification.respPointer;
         let nextPushNotificationValue: Record<string, unknown> = {};
+        const isStringDecoder =
+            (decoder ?? this.defaultDecoder) === Decoder.String;
 
         if (responsePointer) {
             if (typeof responsePointer !== "number") {
                 nextPushNotificationValue = valueFromSplitPointer(
                     responsePointer.high,
                     responsePointer.low,
-                    (decoder ?? this.defaultDecoder) === Decoder.String,
+                    isStringDecoder,
                 ) as Record<string, unknown>;
             } else {
                 nextPushNotificationValue = valueFromSplitPointer(
                     0,
                     responsePointer,
-                    (decoder ?? this.defaultDecoder) === Decoder.String,
+                    isStringDecoder,
                 ) as Record<string, unknown>;
             }
 
