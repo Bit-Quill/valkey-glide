@@ -348,7 +348,7 @@ function convertGlideRecordForZSet(
 
 /**
  * @internal
- * Recursevly downcast `GlideRecord` to `Record`. Use if you are 146% aware that `data` keys are always strings.
+ * Recursevly downcast `GlideRecord` to `Record`. Use if `data` keys are always strings.
  */
 export function glideRecordToRecord<T>(
     data: GlideRecord<T>,
