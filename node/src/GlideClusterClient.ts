@@ -185,8 +185,10 @@ function convertClusterGlideRecord<T>(
     route?: Routes,
 ): ClusterResponse<T> {
     const isSingleNodeResponse =
-        (route === undefined && isRoutedToSingleNodeByDefault) ||
-        (route !== undefined && isSingleNodeRoute(route));
+        // route not given and command is routed by default to a random node
+        (!route && isRoutedToSingleNodeByDefault) ||
+        // or route is given and it is a single node route
+        (Boolean(route) && route !== "allPrimaries" && route !== "allNodes");
 
     return isSingleNodeResponse
         ? (res as T)
@@ -256,14 +258,6 @@ export type SingleNodeRoute =
      */
     | SlotKeyTypes
     | RouteByAddress;
-
-/**
- * @internal
- * Detect whether the route is a single node route.
- */
-function isSingleNodeRoute(route: Routes): boolean {
-    return route !== "allPrimaries" && route !== "allNodes";
-}
 
 function toProtobufRoute(
     route: Routes | undefined,
@@ -844,6 +838,8 @@ export class GlideClusterClient extends BaseClient {
     /**
      * Invokes a previously loaded function.
      *
+     * The command will be routed to a random node, unless `route` is provided.
+     *
      * @see {@link https://valkey.io/commands/fcall/|valkey.io} for details.
      * @remarks Since Valkey version 7.0.0.
      *
@@ -861,19 +857,21 @@ export class GlideClusterClient extends BaseClient {
     public async fcallWithRoute(
         func: GlideString,
         args: GlideString[],
-        options: RouteOption & DecoderOption,
+        options?: RouteOption & DecoderOption,
     ): Promise<ClusterResponse<ReturnType>> {
         return this.createWritePromise<ClusterGlideRecord<ReturnType>>(
             createFCall(func, [], args),
             {
-                route: toProtobufRoute(options.route),
+                route: toProtobufRoute(options?.route),
                 decoder: options?.decoder,
             },
-        ).then((res) => convertClusterGlideRecord(res, true, options.route));
+        ).then((res) => convertClusterGlideRecord(res, true, options?.route));
     }
 
     /**
      * Invokes a previously loaded read-only function.
+     *
+     * The command will be routed to a random node, unless `route` is provided.
      *
      * @see {@link https://valkey.io/commands/fcall/|valkey.io} for details.
      * @remarks Since Valkey version 7.0.0.
@@ -893,15 +891,15 @@ export class GlideClusterClient extends BaseClient {
     public async fcallReadonlyWithRoute(
         func: GlideString,
         args: GlideString[],
-        options: RouteOption & DecoderOption,
+        options?: RouteOption & DecoderOption,
     ): Promise<ClusterResponse<ReturnType>> {
         return this.createWritePromise<ClusterGlideRecord<ReturnType>>(
             createFCallReadOnly(func, [], args),
             {
-                route: toProtobufRoute(options.route),
+                route: toProtobufRoute(options?.route),
                 decoder: options?.decoder,
             },
-        ).then((res) => convertClusterGlideRecord(res, true, options.route));
+        ).then((res) => convertClusterGlideRecord(res, true, options?.route));
     }
 
     /**
@@ -1042,7 +1040,7 @@ export class GlideClusterClient extends BaseClient {
                         ((res as GlideRecord<unknown>[]).map(
                             glideRecordToRecord,
                         ) as FunctionListResponse)
-                      : // multi node respose
+                      : // multi node response
                         glideRecordToRecord(
                             res as GlideRecord<unknown>,
                         )) as ClusterResponse<FunctionListResponse>),

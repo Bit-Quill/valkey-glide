@@ -376,16 +376,13 @@ export function glideRecordToRecord<T>(
 
 /**
  * @internal
- * Check whether an object is of type `GlideRecord`.
+ * Check whether an object is a `GlideRecord` (see {@link GlideRecord}).
  */
 function isGlideRecord(obj?: unknown): boolean {
     return (
-        obj !== undefined &&
-        obj !== null &&
         Array.isArray(obj) &&
         obj.length > 0 &&
         typeof obj[0] === "object" &&
-        !Array.isArray(obj[0]) &&
         "key" in obj[0] &&
         "value" in obj[0]
     );
@@ -393,16 +390,10 @@ function isGlideRecord(obj?: unknown): boolean {
 
 /**
  * @internal
- * Check whether an object is of type `GlideRecord[]`.
+ * Check whether an object is a `GlideRecord[]` (see {@link GlideRecord}).
  */
 function isGlideRecordArray(obj?: unknown): boolean {
-    return (
-        obj !== undefined &&
-        obj !== null &&
-        Array.isArray(obj) &&
-        obj.length > 0 &&
-        isGlideRecord(obj[0])
-    );
+    return Array.isArray(obj) && obj.length > 0 && isGlideRecord(obj[0]);
 }
 
 /** Represents the return type of {@link xinfoStream} command. */
