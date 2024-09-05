@@ -30,6 +30,7 @@ import {
     GeospatialData,
     GlideClient,
     GlideClusterClient,
+    GlideRecord,
     GlideString,
     HashDataType,
     InfBoundary,
@@ -55,11 +56,7 @@ import {
     parseInfoResponse,
 } from "../";
 import { RedisCluster } from "../../utils/TestUtils";
-import {
-    Client,
-    GetAndSetRandomValue,
-    getFirstResult,
-} from "./TestUtilities";
+import { Client, GetAndSetRandomValue, getFirstResult } from "./TestUtilities";
 
 export type BaseClient = GlideClient | GlideClusterClient;
 
@@ -11222,7 +11219,10 @@ export function runBaseTests(config: {
 
                 // pushing to the arrays to be popped
                 expect(await client.lpush(key4, lpushArgs)).toEqual(5);
-                const expectedWithKey4 = { [key4]: ["one", "two"] };
+                const expectedWithKey4 = {
+                    key: key4,
+                    elements: ["one", "two"],
+                };
 
                 // checking correct result from popping
                 expect(
