@@ -33,7 +33,7 @@ import {
     Script,
     SlotKeyTypes,
     SortOrder,
-} from "..";
+} from "@valkey/valkey-glide";
 import { ValkeyCluster } from "../../utils/TestUtils.js";
 import { runBaseTests } from "./SharedTests";
 import {

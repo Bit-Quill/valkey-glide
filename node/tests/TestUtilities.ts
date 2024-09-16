@@ -39,7 +39,7 @@ import {
     Transaction,
     UnsignedEncoding,
     convertRecordToGlideRecord,
-} from "..";
+} from "@valkey/valkey-glide";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function intoArrayInternal(obj: any, builder: string[]) {

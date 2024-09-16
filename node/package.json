@@ -11,6 +11,7 @@
     },
     "homepage": "https://github.com/valkey-io/valkey-glide#readme",
     "dependencies": {
+        "@valkey/valkey-glide": "^1.1.0-rc5",
         "glide-rs": "file:rust-client",
         "long": "^5.2.3",
         "npmignore": "^0.3.1",

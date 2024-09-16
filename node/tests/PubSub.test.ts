@@ -23,7 +23,7 @@ import {
     ProtocolVersion,
     PubSubMsg,
     TimeoutError,
-} from "..";
+} from "@valkey/valkey-glide";
 import ValkeyCluster from "../../utils/TestUtils";
 import {
     flushAndCloseClient,
