@@ -9721,9 +9721,9 @@ export function runBaseTests(config: {
     );
 
     it.each(
-        Array(1000)
+        Array(100)
             .fill(ProtocolVersion.RESP2)
-            .concat(Array(1000).fill(ProtocolVersion.RESP3)),
+            .concat(Array(100).fill(ProtocolVersion.RESP3)),
     )(
         `zscan test_%p`,
         async (protocol) => {
@@ -9827,8 +9827,8 @@ export function runBaseTests(config: {
                         resultCursor = nextResultCursor;
                         c = c + 1;
                     }
-                    console.log("c===" + c);
-                    console.log("here---------");
+                    //console.log("c===" + c);
+                    //                    console.log("here---------");
 
                     // Fetching by cursor is randomized.
                     const expectedFullMap: Record<string, number> = {
@@ -9851,7 +9851,7 @@ export function runBaseTests(config: {
                     result = await client.zscan(key1, initialCursor, {
                         match: "*",
                     });
-                    console.log("result=====", result);
+                    //console.log("result=====", result);
                     expect(result[resultCursorIndex]).not.toEqual(
                         initialCursor,
                     );
