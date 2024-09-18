@@ -77,6 +77,12 @@ jobs:
 #                  github-token: ${{ secrets.GITHUB_TOKEN }}
 #                  engine-version: ${{ matrix.engine.version }}
 
+            - name: Install Valkey
+              uses: ./.github/workflows/install-valkey
+              with:
+                  engine-version: ${{ matrix.engine.version }}
+                  target: "x86_64-unknown-linux-gnu"
+
             - name: test
               working-directory: ./node
               run: |
