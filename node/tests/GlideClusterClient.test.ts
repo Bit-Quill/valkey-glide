@@ -10,8 +10,6 @@ import {
     expect,
     it,
 } from "@jest/globals";
-import { gte } from "semver";
-import { v4 as uuidv4 } from "uuid";
 import {
     BitwiseOperation,
     ClusterTransaction,
@@ -34,6 +32,8 @@ import {
     SlotKeyTypes,
     SortOrder,
 } from "@valkey/valkey-glide";
+import { gte } from "semver";
+import { v4 as uuidv4 } from "uuid";
 import { ValkeyCluster } from "../../utils/TestUtils.js";
 import { runBaseTests } from "./SharedTests";
 import {
@@ -1280,7 +1280,7 @@ describe("GlideClusterClient", () => {
                                         .fcallWithRoute(funcName, [], {
                                             route: route,
                                         })
-                                        .catch((e) =>
+                                        .catch((e: any) =>
                                             expect(
                                                 (e as Error).message,
                                             ).toContain("Script killed"),
@@ -1354,7 +1354,7 @@ describe("GlideClusterClient", () => {
                             if (singleNodeRoute) {
                                 expect(response.byteLength).toBeGreaterThan(0);
                             } else {
-                                Object.values(response).forEach((d: Buffer) =>
+                                Object.values(response).forEach((d: any) =>
                                     expect(d.byteLength).toBeGreaterThan(0),
                                 );
                             }
@@ -1936,7 +1936,7 @@ describe("GlideClusterClient", () => {
                     // call the script without await
                     const promise = client2
                         .invokeScript(longScript)
-                        .catch((e) =>
+                        .catch((e: any) =>
                             expect((e as Error).message).toContain(
                                 "Script killed",
                             ),
