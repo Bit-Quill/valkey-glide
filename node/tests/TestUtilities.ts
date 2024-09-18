@@ -3,10 +3,6 @@
  */
 
 import { expect } from "@jest/globals";
-import { exec } from "child_process";
-import parseArgs from "minimist";
-import { gte } from "semver";
-import { v4 as uuidv4 } from "uuid";
 import {
     BaseClient,
     BaseClientConfiguration,
@@ -40,6 +36,10 @@ import {
     UnsignedEncoding,
     convertRecordToGlideRecord,
 } from "@valkey/valkey-glide";
+import { exec } from "child_process";
+import parseArgs from "minimist";
+import { gte } from "semver";
+import { v4 as uuidv4 } from "uuid";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function intoArrayInternal(obj: any, builder: string[]) {
@@ -1148,7 +1148,7 @@ export async function transactionTest(
             responseData.push([
                 "zunionWithScores([key27, key26])",
                 convertRecordToGlideRecord({ one: 2, two: 4, three: 3.5 }).sort(
-                    (a, b) => a.value - b.value,
+                    (a: any, b: any) => a.value - b.value,
                 ),
             ]);
         }

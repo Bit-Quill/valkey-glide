@@ -4,7 +4,6 @@
 
 import { afterAll, afterEach, beforeAll, describe } from "@jest/globals";
 //import { ClusterScanCursor } from "glide-rs";
-import { v4 as uuidv4 } from "uuid";
 import {
     Decoder,
     GlideClient,
@@ -13,6 +12,7 @@ import {
     ObjectType,
     ProtocolVersion,
 } from "@valkey/valkey-glide";
+import { v4 as uuidv4 } from "uuid";
 import { ValkeyCluster } from "../../utils/TestUtils.js";
 import {
     flushAndCloseClient,

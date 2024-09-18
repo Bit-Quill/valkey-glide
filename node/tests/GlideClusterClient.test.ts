@@ -13,7 +13,6 @@ import {
 import {
     BitwiseOperation,
     ClusterTransaction,
-    convertRecordToGlideRecord,
     Decoder,
     FlushMode,
     FunctionListResponse,
@@ -58,6 +57,28 @@ import {
 } from "./TestUtilities";
 
 const TIMEOUT = 50000;
+/**
+ * Union type that can store either a valid UTF-8 string or array of bytes.
+ */
+export type GlideString = string | Buffer;
+export type GlideRecord<T> = {
+    /** The value name. */
+    key: GlideString;
+    /** The value itself. */
+    value: T;
+}[];
+
+/**
+ * @internal
+ * Reverse of {@link convertGlideRecordToRecord}.
+ */
+function convertRecordToGlideRecord<T>(
+    data: Record<string, T>,
+): GlideRecord<T> {
+    return Object.entries(data).map(([key, value]) => {
+        return { key, value };
+    });
+}
 
 describe("GlideClusterClient", () => {
     let testsFailed = 0;

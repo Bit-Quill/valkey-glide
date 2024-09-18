@@ -10,7 +10,6 @@ import {
     expect,
     it,
 } from "@jest/globals";
-import { v4 as uuidv4 } from "uuid";
 import {
     BaseClientConfiguration,
     ConfigurationError,
@@ -24,6 +23,7 @@ import {
     PubSubMsg,
     TimeoutError,
 } from "@valkey/valkey-glide";
+import { v4 as uuidv4 } from "uuid";
 import ValkeyCluster from "../../utils/TestUtils";
 import {
     flushAndCloseClient,

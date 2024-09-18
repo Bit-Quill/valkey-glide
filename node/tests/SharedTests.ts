@@ -8,7 +8,6 @@
 // represents a running server instance. See first 2 test cases as examples.
 
 import { expect, it } from "@jest/globals";
-import { v4 as uuidv4 } from "uuid";
 import {
     BaseClientConfiguration,
     BitFieldGet,
@@ -50,11 +49,9 @@ import {
     Transaction,
     UnsignedEncoding,
     UpdateByScore,
-    convertElementsAndScores,
-    convertFieldsAndValuesToHashDataType,
-    convertGlideRecordToRecord,
     parseInfoResponse,
 } from "@valkey/valkey-glide";
+import { v4 as uuidv4 } from "uuid";
 import { ValkeyCluster } from "../../utils/TestUtils";
 import { Client, GetAndSetRandomValue, getFirstResult } from "./TestUtilities";
 
@@ -62,6 +59,118 @@ export type BaseClient = GlideClient | GlideClusterClient;
 
 // Same as `BaseClientConfiguration`, but all fields are optional
 export type ClientConfig = Partial<BaseClientConfiguration>;
+
+/**
+ * @internal
+ * Convert input from `Record` to `SortedSetDataType` to ensure the only one type.
+ */
+export function convertElementsAndScores(
+    membersAndScores: SortedSetDataType | Record<string, number>,
+): SortedSetDataType {
+    if (!Array.isArray(membersAndScores)) {
+        // convert Record<string, number> to SortedSetDataType
+        return Object.entries(membersAndScores).map((element) => {
+            return { element: element[0], score: element[1] };
+        });
+    }
+
+    return membersAndScores;
+}
+
+/**
+ * @internal
+ * Convert `GlideRecord<number>` recevied after resolving the value pointer into `SortedSetDataType`.
+ */
+function convertGlideRecordForSortedSet(
+    res: GlideRecord<number>,
+): SortedSetDataType {
+    return res.map((e: any) => {
+        return { element: e.key, score: e.value };
+    });
+}
+
+/**
+ * @internal
+ * This function converts an input from GlideRecord or Record types to GlideRecord.
+ *
+ * @param keysAndValues - key names and their values.
+ * @returns GlideRecord array containing keys and their values.
+ */
+export function convertGlideRecord(
+    keysAndValues: GlideRecord<GlideString> | Record<string, GlideString>,
+): GlideRecord<GlideString> {
+    if (!Array.isArray(keysAndValues)) {
+        return Object.entries(keysAndValues).map(([key, value]) => {
+            return { key, value };
+        });
+    }
+
+    return keysAndValues;
+}
+
+/**
+ * @internal
+ * Check whether an object is a `GlideRecord` (see {@link GlideRecord}).
+ */
+export function isGlideRecord(obj?: unknown): boolean {
+    return (
+        Array.isArray(obj) &&
+        obj.length > 0 &&
+        typeof obj[0] === "object" &&
+        "key" in obj[0] &&
+        "value" in obj[0]
+    );
+}
+
+function isGlideRecordArray(obj?: unknown): boolean {
+    return Array.isArray(obj) && obj.length > 0 && isGlideRecord(obj[0]);
+}
+
+/**
+ * @internal
+ * Recursively downcast `GlideRecord` to `Record`. Use if `data` keys are always strings.
+ */
+export function convertGlideRecordToRecord<T>(
+    data: GlideRecord<T>,
+): Record<string, T> {
+    const res: Record<string, T> = {};
+
+    for (const pair of data) {
+        let newVal = pair.value;
+
+        if (isGlideRecord(pair.value)) {
+            newVal = convertGlideRecordToRecord(
+                pair.value as GlideRecord<unknown>,
+            ) as T;
+        } else if (isGlideRecordArray(pair.value)) {
+            newVal = (pair.value as GlideRecord<unknown>[]).map(
+                convertGlideRecordToRecord,
+            ) as T;
+        }
+
+        res[pair.key as string] = newVal;
+    }
+
+    return res;
+}
+
+/**
+ * This function converts an input from {@link HashDataType} or `Record` types to `HashDataType`.
+ *
+ * @param fieldsAndValues - field names and their values.
+ * @returns HashDataType array containing field names and their values.
+ */
+export function convertFieldsAndValuesToHashDataType(
+    fieldsAndValues: HashDataType | Record<string, GlideString>,
+): HashDataType {
+    if (!Array.isArray(fieldsAndValues)) {
+        return Object.entries(fieldsAndValues).map(([field, value]) => {
+            return { field, value };
+        });
+    }
+
+    return fieldsAndValues;
+}
 
 export function runBaseTests(config: {
     init: (
@@ -2116,7 +2225,7 @@ export function runBaseTests(config: {
                     decoder: Decoder.Bytes,
                 });
                 expect(result.length).toEqual(5);
-                result.map((r) => expect(encodedFields).toContainEqual(r));
+                result.map((r: any) => expect(encodedFields).toContainEqual(r));
 
                 // With values - positive count
                 let result2 = await client.hrandfieldWithValues(
@@ -2129,7 +2238,7 @@ export function runBaseTests(config: {
                 // With values - negative count
                 result2 = await client.hrandfieldWithValues(key1, -5);
                 expect(result2.length).toEqual(5);
-                result2.map((r) => expect(entries).toContainEqual(r));
+                result2.map((r: any) => expect(entries).toContainEqual(r));
 
                 // key exists but holds non hash type value
                 expect(await client.set(key2, "value")).toEqual("OK");
@@ -3714,7 +3823,7 @@ export function runBaseTests(config: {
                 // duplicate values are expected as count is negative
                 result = await client.srandmemberCount(key, -4);
                 expect(result.length).toEqual(4);
-                result.forEach((member) => {
+                result.forEach((member: any) => {
                     expect(members).toContain(member);
                 });
 
@@ -4703,7 +4812,7 @@ export function runBaseTests(config: {
         };
         expect(zunionstoreMapSum).toEqual(
             convertElementsAndScores(expectedMapSum).sort(
-                (a, b) => a.score - b.score,
+                (a: any, b: any) => a.score - b.score,
             ),
         );
     }
@@ -5901,7 +6010,7 @@ export function runBaseTests(config: {
                     };
                     expect(resultZunionWithScores).toEqual(
                         convertElementsAndScores(expectedZunionWithScores).sort(
-                            (a, b) => a.score - b.score,
+                            (a: any, b: any) => a.score - b.score,
                         ),
                     );
                 },
@@ -6016,7 +6125,7 @@ export function runBaseTests(config: {
                     };
                     expect(zunionWithScoresResults).toEqual(
                         convertElementsAndScores(expectedMapSum).sort(
-                            (a, b) => a.score - b.score,
+                            (a: any, b: any) => a.score - b.score,
                         ),
                     );
                 },
@@ -6057,7 +6166,7 @@ export function runBaseTests(config: {
                     };
                     expect(zunionWithScoresResults).toEqual(
                         convertElementsAndScores(expectedMapSum).sort(
-                            (a, b) => a.score - b.score,
+                            (a: any, b: any) => a.score - b.score,
                         ),
                     );
                 },
