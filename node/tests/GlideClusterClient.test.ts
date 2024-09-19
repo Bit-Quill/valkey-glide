@@ -27,7 +27,6 @@ import {
     RequestError,
     Routes,
     ScoreFilter,
-    Script,
     SlotKeyTypes,
     SortOrder,
 } from "@valkey/valkey-glide";
@@ -55,6 +54,13 @@ import {
     waitForNotBusy,
     waitForScriptNotBusy,
 } from "./TestUtilities";
+
+export declare class Script {
+    /** Construct with the script's code. */
+    constructor(code: string | Uint8Array);
+    /** Returns the hash of the script. */
+    getHash(): string;
+}
 
 const TIMEOUT = 50000;
 /**

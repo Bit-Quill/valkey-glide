@@ -40,7 +40,6 @@ import {
     ProtocolVersion,
     RequestError,
     ScoreFilter,
-    Script,
     SignedEncoding,
     SingleNodeRoute,
     SortOrder,
@@ -54,6 +53,13 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { ValkeyCluster } from "../../utils/TestUtils";
 import { Client, GetAndSetRandomValue, getFirstResult } from "./TestUtilities";
+
+export declare class Script {
+    /** Construct with the script's code. */
+    constructor(code: string | Uint8Array);
+    /** Returns the hash of the script. */
+    getHash(): string;
+}
 
 export type BaseClient = GlideClient | GlideClusterClient;
 
