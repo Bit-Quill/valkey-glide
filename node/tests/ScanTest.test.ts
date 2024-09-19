@@ -32,6 +32,14 @@ export enum ObjectType {
     STREAM = "Stream",
 }
 
+export declare class ClusterScanCursor {
+    constructor(newCursor?: string | undefined | null);
+    /** Returns the cursor id. */
+    getCursor(): string;
+    /** Returns true if the scan is finished. */
+    isFinished(): boolean;
+}
+
 //cluster tests
 describe("Scan GlideClusterClient", () => {
     const testsFailed = 0;
@@ -60,329 +68,329 @@ describe("Scan GlideClusterClient", () => {
         }
     });
 
-    // it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
-    //     `GlideClusterClient test basic cluster scan_%p`,
-    //     async (protocol) => {
-    //         client = await GlideClusterClient.createClient(
-    //             getClientConfigurationOption(cluster.getAddresses(), protocol),
-    //         );
-    //         // Iterate over all keys in the cluster
-    //         const [key1, key2, key3] = [
-    //             `key:${uuidv4()}`,
-    //             `key:${uuidv4()}`,
-    //             `key:${uuidv4()}`,
-    //         ];
-    //         await client.mset([
-    //             { key: key1, value: "value1" },
-    //             { key: key2, value: "value2" },
-    //             { key: key3, value: "value3" },
-    //         ]);
-    //         let cursor = new ClusterScanCursor();
-    //         const allKeys: GlideString[] = [];
-    //         let keys: GlideString[] = [];
+    it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
+        `GlideClusterClient test basic cluster scan_%p`,
+        async (protocol) => {
+            client = await GlideClusterClient.createClient(
+                getClientConfigurationOption(cluster.getAddresses(), protocol),
+            );
+            // Iterate over all keys in the cluster
+            const [key1, key2, key3] = [
+                `key:${uuidv4()}`,
+                `key:${uuidv4()}`,
+                `key:${uuidv4()}`,
+            ];
+            await client.mset([
+                { key: key1, value: "value1" },
+                { key: key2, value: "value2" },
+                { key: key3, value: "value3" },
+            ]);
+            let cursor = new ClusterScanCursor();
+            const allKeys: GlideString[] = [];
+            let keys: GlideString[] = [];
 
-    //         while (!cursor.isFinished()) {
-    //             [cursor, keys] = await client.scan(cursor, { count: 10 });
-    //             allKeys.push(...keys);
-    //         }
+            while (!cursor.isFinished()) {
+                [cursor, keys] = await client.scan(cursor, { count: 10 });
+                allKeys.push(...keys);
+            }
 
-    //         expect(allKeys).toHaveLength(3);
-    //         expect(allKeys).toEqual(expect.arrayContaining([key1, key2, key3]));
+            expect(allKeys).toHaveLength(3);
+            expect(allKeys).toEqual(expect.arrayContaining([key1, key2, key3]));
 
-    //         // Iterate over keys matching a pattern
-    //         const [key4, key5] = ["notMykey", "somethingElse"];
-    //         await client.mset([
-    //             { key: key4, value: "value4" },
-    //             { key: key5, value: "value5" },
-    //         ]);
-    //         cursor = new ClusterScanCursor();
-    //         const matchedKeys: GlideString[] = [];
+            // Iterate over keys matching a pattern
+            const [key4, key5] = ["notMykey", "somethingElse"];
+            await client.mset([
+                { key: key4, value: "value4" },
+                { key: key5, value: "value5" },
+            ]);
+            cursor = new ClusterScanCursor();
+            const matchedKeys: GlideString[] = [];
 
-    //         while (!cursor.isFinished()) {
-    //             [cursor, keys] = await client.scan(cursor, {
-    //                 match: "*key*",
-    //                 count: 10,
-    //             });
-    //             matchedKeys.push(...keys);
-    //         }
+            while (!cursor.isFinished()) {
+                [cursor, keys] = await client.scan(cursor, {
+                    match: "*key*",
+                    count: 10,
+                });
+                matchedKeys.push(...keys);
+            }
 
-    //         expect(matchedKeys).toEqual(
-    //             expect.arrayContaining([key1, key2, key3, key4]),
-    //         );
-    //         expect(matchedKeys).not.toContain("somethingElse");
+            expect(matchedKeys).toEqual(
+                expect.arrayContaining([key1, key2, key3, key4]),
+            );
+            expect(matchedKeys).not.toContain("somethingElse");
 
-    //         // Iterate over keys of a specific type
-    //         await client.sadd("thisIsASet", ["value4"]);
-    //         cursor = new ClusterScanCursor();
-    //         const stringKeys: GlideString[] = [];
+            // Iterate over keys of a specific type
+            await client.sadd("thisIsASet", ["value4"]);
+            cursor = new ClusterScanCursor();
+            const stringKeys: GlideString[] = [];
 
-    //         while (!cursor.isFinished()) {
-    //             [cursor, keys] = await client.scan(cursor, {
-    //                 type: ObjectType.STRING,
-    //             });
-    //             stringKeys.push(...keys);
-    //         }
+            while (!cursor.isFinished()) {
+                [cursor, keys] = await client.scan(cursor, {
+                    type: ObjectType.STRING,
+                });
+                stringKeys.push(...keys);
+            }
 
-    //         expect(stringKeys).toEqual(
-    //             expect.arrayContaining([key1, key2, key3, key4, key5]),
-    //         );
-    //         expect(stringKeys).not.toContain("thisIsASet");
-    //     },
-    //     TIMEOUT,
-    // );
+            expect(stringKeys).toEqual(
+                expect.arrayContaining([key1, key2, key3, key4, key5]),
+            );
+            expect(stringKeys).not.toContain("thisIsASet");
+        },
+        TIMEOUT,
+    );
 
-    // it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
-    //     `GlideClusterClient simple scan with encoding %p`,
-    //     async (protocol) => {
-    //         client = await GlideClusterClient.createClient(
-    //             getClientConfigurationOption(cluster.getAddresses(), protocol),
-    //         );
-    //         const expectedKeys = Array.from(
-    //             { length: 100 },
-    //             () => `key:${uuidv4()}`,
-    //         );
-    //         for (const key1 of expectedKeys)
-    //             expect(await client.set(key1, "value")).toEqual("OK");
-    //         const expectedEncodedKeys = expectedKeys.map((key) =>
-    //             Buffer.from(key),
-    //         );
+    it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
+        `GlideClusterClient simple scan with encoding %p`,
+        async (protocol) => {
+            client = await GlideClusterClient.createClient(
+                getClientConfigurationOption(cluster.getAddresses(), protocol),
+            );
+            const expectedKeys = Array.from(
+                { length: 100 },
+                () => `key:${uuidv4()}`,
+            );
+            for (const key1 of expectedKeys)
+                expect(await client.set(key1, "value")).toEqual("OK");
+            const expectedEncodedKeys = expectedKeys.map((key) =>
+                Buffer.from(key),
+            );
 
-    //         let cursor = new ClusterScanCursor();
-    //         let keys: GlideString[] = [];
-    //         const allKeys: GlideString[] = [];
+            let cursor = new ClusterScanCursor();
+            let keys: GlideString[] = [];
+            const allKeys: GlideString[] = [];
 
-    //         while (!cursor.isFinished()) {
-    //             [cursor, keys] = await client.scan(cursor, {
-    //                 decoder: Decoder.Bytes,
-    //             });
-    //             allKeys.push(...keys);
-    //         }
+            while (!cursor.isFinished()) {
+                [cursor, keys] = await client.scan(cursor, {
+                    decoder: Decoder.Bytes,
+                });
+                allKeys.push(...keys);
+            }
 
-    //         expect(allKeys).toEqual(
-    //             expect.arrayContaining(expectedEncodedKeys),
-    //         );
-    //     },
-    //     TIMEOUT,
-    // );
+            expect(allKeys).toEqual(
+                expect.arrayContaining(expectedEncodedKeys),
+            );
+        },
+        TIMEOUT,
+    );
 
-    // it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
-    //     `GlideClusterClient scan with object type and pattern%p`,
-    //     async (protocol) => {
-    //         client = await GlideClusterClient.createClient(
-    //             getClientConfigurationOption(cluster.getAddresses(), protocol),
-    //         );
-    //         const expectedKeys = Array.from(
-    //             { length: 100 },
-    //             () => `key:${uuidv4()}`,
-    //         );
-    //         for (const key1 of expectedKeys)
-    //             expect(await client.set(key1, "value")).toEqual("OK");
-    //         const unexpectedTypeKeys = Array.from(
-    //             { length: 100 },
-    //             () => `key:${uuidv4() + 100}`,
-    //         );
-    //         for (const key2 of unexpectedTypeKeys)
-    //             expect(await client.sadd(key2, ["value"])).toEqual(1);
-    //         const unexpectedPatternKeys = Array.from(
-    //             { length: 100 },
-    //             () => `${uuidv4() + 200}`,
-    //         );
-    //         for (const key3 of unexpectedPatternKeys)
-    //             expect(await client.set(key3, "value")).toEqual("OK");
+    it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
+        `GlideClusterClient scan with object type and pattern%p`,
+        async (protocol) => {
+            client = await GlideClusterClient.createClient(
+                getClientConfigurationOption(cluster.getAddresses(), protocol),
+            );
+            const expectedKeys = Array.from(
+                { length: 100 },
+                () => `key:${uuidv4()}`,
+            );
+            for (const key1 of expectedKeys)
+                expect(await client.set(key1, "value")).toEqual("OK");
+            const unexpectedTypeKeys = Array.from(
+                { length: 100 },
+                () => `key:${uuidv4() + 100}`,
+            );
+            for (const key2 of unexpectedTypeKeys)
+                expect(await client.sadd(key2, ["value"])).toEqual(1);
+            const unexpectedPatternKeys = Array.from(
+                { length: 100 },
+                () => `${uuidv4() + 200}`,
+            );
+            for (const key3 of unexpectedPatternKeys)
+                expect(await client.set(key3, "value")).toEqual("OK");
 
-    //         let cursor = new ClusterScanCursor();
-    //         let keys: GlideString[] = [];
-    //         const allKeys: GlideString[] = [];
+            let cursor = new ClusterScanCursor();
+            let keys: GlideString[] = [];
+            const allKeys: GlideString[] = [];
 
-    //         while (!cursor.isFinished()) {
-    //             [cursor, keys] = await client.scan(cursor, {
-    //                 match: "key*",
-    //                 type: ObjectType.STRING,
-    //             });
-    //             allKeys.push(...keys);
-    //         }
+            while (!cursor.isFinished()) {
+                [cursor, keys] = await client.scan(cursor, {
+                    match: "key*",
+                    type: ObjectType.STRING,
+                });
+                allKeys.push(...keys);
+            }
 
-    //         expect(allKeys).toEqual(expect.arrayContaining(expectedKeys));
-    //         expect(allKeys).toEqual(
-    //             expect.not.arrayContaining(unexpectedTypeKeys),
-    //         );
-    //         expect(allKeys).toEqual(
-    //             expect.not.arrayContaining(unexpectedPatternKeys),
-    //         );
-    //     },
-    //     TIMEOUT,
-    // );
+            expect(allKeys).toEqual(expect.arrayContaining(expectedKeys));
+            expect(allKeys).toEqual(
+                expect.not.arrayContaining(unexpectedTypeKeys),
+            );
+            expect(allKeys).toEqual(
+                expect.not.arrayContaining(unexpectedPatternKeys),
+            );
+        },
+        TIMEOUT,
+    );
 
-    // it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
-    //     `GlideClusterClient scan with count%p`,
-    //     async (protocol) => {
-    //         client = await GlideClusterClient.createClient(
-    //             getClientConfigurationOption(cluster.getAddresses(), protocol),
-    //         );
+    it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
+        `GlideClusterClient scan with count%p`,
+        async (protocol) => {
+            client = await GlideClusterClient.createClient(
+                getClientConfigurationOption(cluster.getAddresses(), protocol),
+            );
 
-    //         const expectedKeys = Array.from(
-    //             { length: 100 },
-    //             () => `key:${uuidv4()}`,
-    //         );
-    //         for (const key of expectedKeys)
-    //             expect(await client.set(key, "value")).toEqual("OK");
+            const expectedKeys = Array.from(
+                { length: 100 },
+                () => `key:${uuidv4()}`,
+            );
+            for (const key of expectedKeys)
+                expect(await client.set(key, "value")).toEqual("OK");
 
-    //         let cursor = new ClusterScanCursor();
-    //         let keysOf1: GlideString[] = [];
-    //         let keysOf100: GlideString[] = [];
-    //         const allKeys: GlideString[] = [];
-    //         let successfulComparedScans = 0;
+            let cursor = new ClusterScanCursor();
+            let keysOf1: GlideString[] = [];
+            let keysOf100: GlideString[] = [];
+            const allKeys: GlideString[] = [];
+            let successfulComparedScans = 0;
 
-    //         while (!cursor.isFinished()) {
-    //             [cursor, keysOf1] = await client.scan(cursor, { count: 1 });
-    //             allKeys.push(...keysOf1);
-    //             if (cursor.isFinished()) break;
-    //             [cursor, keysOf100] = await client.scan(cursor, { count: 100 });
-    //             allKeys.push(...keysOf100);
-    //             if (keysOf1.length < keysOf100.length)
-    //                 successfulComparedScans += 1;
-    //         }
+            while (!cursor.isFinished()) {
+                [cursor, keysOf1] = await client.scan(cursor, { count: 1 });
+                allKeys.push(...keysOf1);
+                if (cursor.isFinished()) break;
+                [cursor, keysOf100] = await client.scan(cursor, { count: 100 });
+                allKeys.push(...keysOf100);
+                if (keysOf1.length < keysOf100.length)
+                    successfulComparedScans += 1;
+            }
 
-    //         expect(allKeys).toEqual(expect.arrayContaining(expectedKeys));
-    //         expect(successfulComparedScans).toBeGreaterThan(0);
-    //     },
-    //     TIMEOUT,
-    // );
+            expect(allKeys).toEqual(expect.arrayContaining(expectedKeys));
+            expect(successfulComparedScans).toBeGreaterThan(0);
+        },
+        TIMEOUT,
+    );
 
-    // it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
-    //     `GlideClusterClient scan with match%p`,
-    //     async (protocol) => {
-    //         client = await GlideClusterClient.createClient(
-    //             getClientConfigurationOption(cluster.getAddresses(), protocol),
-    //         );
+    it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
+        `GlideClusterClient scan with match%p`,
+        async (protocol) => {
+            client = await GlideClusterClient.createClient(
+                getClientConfigurationOption(cluster.getAddresses(), protocol),
+            );
 
-    //         const expectedKeys = Array.from(
-    //             { length: 100 },
-    //             () => `key:${uuidv4()}`,
-    //         );
-    //         for (const key of expectedKeys)
-    //             expect(await client.set(key, "value")).toEqual("OK");
-    //         const encodedExpectedKeys = expectedKeys.map((key) =>
-    //             Buffer.from(key),
-    //         );
-    //         const unexpectedKeys = Array.from(
-    //             { length: 100 },
-    //             () => `${uuidv4()}`,
-    //         );
-    //         for (const key of unexpectedKeys)
-    //             expect(await client.set(key, "value")).toEqual("OK");
-    //         const encodedUnexpectedKeys = unexpectedKeys.map((key) =>
-    //             Buffer.from(key),
-    //         );
+            const expectedKeys = Array.from(
+                { length: 100 },
+                () => `key:${uuidv4()}`,
+            );
+            for (const key of expectedKeys)
+                expect(await client.set(key, "value")).toEqual("OK");
+            const encodedExpectedKeys = expectedKeys.map((key) =>
+                Buffer.from(key),
+            );
+            const unexpectedKeys = Array.from(
+                { length: 100 },
+                () => `${uuidv4()}`,
+            );
+            for (const key of unexpectedKeys)
+                expect(await client.set(key, "value")).toEqual("OK");
+            const encodedUnexpectedKeys = unexpectedKeys.map((key) =>
+                Buffer.from(key),
+            );
 
-    //         let cursor = new ClusterScanCursor();
-    //         let keys: GlideString[] = [];
-    //         const allKeys: GlideString[] = [];
+            let cursor = new ClusterScanCursor();
+            let keys: GlideString[] = [];
+            const allKeys: GlideString[] = [];
 
-    //         while (!cursor.isFinished()) {
-    //             [cursor, keys] = await client.scan(cursor, {
-    //                 match: "key*",
-    //                 decoder: Decoder.Bytes,
-    //             });
-    //             allKeys.push(...keys);
-    //         }
+            while (!cursor.isFinished()) {
+                [cursor, keys] = await client.scan(cursor, {
+                    match: "key*",
+                    decoder: Decoder.Bytes,
+                });
+                allKeys.push(...keys);
+            }
 
-    //         expect(allKeys).toEqual(
-    //             expect.arrayContaining(encodedExpectedKeys),
-    //         );
-    //         expect(allKeys).toEqual(
-    //             expect.not.arrayContaining(encodedUnexpectedKeys),
-    //         );
-    //     },
-    //     TIMEOUT,
-    // );
+            expect(allKeys).toEqual(
+                expect.arrayContaining(encodedExpectedKeys),
+            );
+            expect(allKeys).toEqual(
+                expect.not.arrayContaining(encodedUnexpectedKeys),
+            );
+        },
+        TIMEOUT,
+    );
 
-    // it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
-    //     `GlideClusterClient scan with different types%p`,
-    //     async (protocol) => {
-    //         client = await GlideClusterClient.createClient(
-    //             getClientConfigurationOption(cluster.getAddresses(), protocol),
-    //         );
+    it.each([ProtocolVersion.RESP2, ProtocolVersion.RESP3])(
+        `GlideClusterClient scan with different types%p`,
+        async (protocol) => {
+            client = await GlideClusterClient.createClient(
+                getClientConfigurationOption(cluster.getAddresses(), protocol),
+            );
 
-    //         const stringKeys = Array.from(
-    //             { length: 100 },
-    //             () => `key:${uuidv4()}`,
-    //         );
-    //         for (const key of stringKeys)
-    //             expect(await client.set(key, "value")).toEqual("OK");
-    //         const encodedStringKeys = stringKeys.map((key) => Buffer.from(key));
+            const stringKeys = Array.from(
+                { length: 100 },
+                () => `key:${uuidv4()}`,
+            );
+            for (const key of stringKeys)
+                expect(await client.set(key, "value")).toEqual("OK");
+            const encodedStringKeys = stringKeys.map((key) => Buffer.from(key));
 
-    //         const setKeys = Array.from(
-    //             { length: 100 },
-    //             () => `stringKey:${uuidv4() + 100}`,
-    //         );
-    //         for (const key of setKeys)
-    //             expect(await client.sadd(key, ["value"])).toEqual(1);
-    //         const encodedSetKeys = setKeys.map((key) => Buffer.from(key));
+            const setKeys = Array.from(
+                { length: 100 },
+                () => `stringKey:${uuidv4() + 100}`,
+            );
+            for (const key of setKeys)
+                expect(await client.sadd(key, ["value"])).toEqual(1);
+            const encodedSetKeys = setKeys.map((key) => Buffer.from(key));
 
-    //         const hashKeys = Array.from(
-    //             { length: 100 },
-    //             () => `hashKey:${uuidv4() + 200}`,
-    //         );
-    //         for (const key of hashKeys)
-    //             expect(await client.hset(key, { field: "value" })).toEqual(1);
-    //         const encodedHashKeys = hashKeys.map((key) => Buffer.from(key));
+            const hashKeys = Array.from(
+                { length: 100 },
+                () => `hashKey:${uuidv4() + 200}`,
+            );
+            for (const key of hashKeys)
+                expect(await client.hset(key, { field: "value" })).toEqual(1);
+            const encodedHashKeys = hashKeys.map((key) => Buffer.from(key));
 
-    //         const listKeys = Array.from(
-    //             { length: 100 },
-    //             () => `listKey:${uuidv4() + 300}`,
-    //         );
-    //         for (const key of listKeys)
-    //             expect(await client.lpush(key, ["value"])).toEqual(1);
-    //         const encodedListKeys = listKeys.map((key) => Buffer.from(key));
+            const listKeys = Array.from(
+                { length: 100 },
+                () => `listKey:${uuidv4() + 300}`,
+            );
+            for (const key of listKeys)
+                expect(await client.lpush(key, ["value"])).toEqual(1);
+            const encodedListKeys = listKeys.map((key) => Buffer.from(key));
 
-    //         const zsetKeys = Array.from(
-    //             { length: 100 },
-    //             () => `key:${uuidv4() + 400}`,
-    //         );
-    //         for (const key of zsetKeys)
-    //             expect(await client.zadd(key, { value: 1 })).toEqual(1);
-    //         const encodedZsetKeys = zsetKeys.map((key) => Buffer.from(key));
+            const zsetKeys = Array.from(
+                { length: 100 },
+                () => `key:${uuidv4() + 400}`,
+            );
+            for (const key of zsetKeys)
+                expect(await client.zadd(key, { value: 1 })).toEqual(1);
+            const encodedZsetKeys = zsetKeys.map((key) => Buffer.from(key));
 
-    //         const streamKeys = Array.from(
-    //             { length: 100 },
-    //             () => `key:${uuidv4() + 500}`,
-    //         );
-    //         for (const key of streamKeys)
-    //             await client.xadd(key, [["field", "value"]]);
-    //         const encodedStreamKeys = streamKeys.map((key) => Buffer.from(key));
+            const streamKeys = Array.from(
+                { length: 100 },
+                () => `key:${uuidv4() + 500}`,
+            );
+            for (const key of streamKeys)
+                await client.xadd(key, [["field", "value"]]);
+            const encodedStreamKeys = streamKeys.map((key) => Buffer.from(key));
 
-    //         let cursor = new ClusterScanCursor();
-    //         let keys: GlideString[] = [];
-    //         const allKeys: GlideString[] = [];
+            let cursor = new ClusterScanCursor();
+            let keys: GlideString[] = [];
+            const allKeys: GlideString[] = [];
 
-    //         while (!cursor.isFinished()) {
-    //             [cursor, keys] = await client.scan(cursor, {
-    //                 type: ObjectType.SET,
-    //                 decoder: Decoder.Bytes,
-    //             });
-    //             allKeys.push(...keys);
-    //         }
+            while (!cursor.isFinished()) {
+                [cursor, keys] = await client.scan(cursor, {
+                    type: ObjectType.SET,
+                    decoder: Decoder.Bytes,
+                });
+                allKeys.push(...keys);
+            }
 
-    //         expect(allKeys).toEqual(expect.arrayContaining(encodedSetKeys));
-    //         expect(allKeys).toEqual(
-    //             expect.not.arrayContaining(encodedListKeys),
-    //         );
-    //         expect(allKeys).toEqual(
-    //             expect.not.arrayContaining(encodedStringKeys),
-    //         );
-    //         expect(allKeys).toEqual(
-    //             expect.not.arrayContaining(encodedHashKeys),
-    //         );
-    //         expect(allKeys).toEqual(
-    //             expect.not.arrayContaining(encodedZsetKeys),
-    //         );
-    //         expect(allKeys).toEqual(
-    //             expect.not.arrayContaining(encodedStreamKeys),
-    //         );
-    //     },
-    //     TIMEOUT,
-    // );
+            expect(allKeys).toEqual(expect.arrayContaining(encodedSetKeys));
+            expect(allKeys).toEqual(
+                expect.not.arrayContaining(encodedListKeys),
+            );
+            expect(allKeys).toEqual(
+                expect.not.arrayContaining(encodedStringKeys),
+            );
+            expect(allKeys).toEqual(
+                expect.not.arrayContaining(encodedHashKeys),
+            );
+            expect(allKeys).toEqual(
+                expect.not.arrayContaining(encodedZsetKeys),
+            );
+            expect(allKeys).toEqual(
+                expect.not.arrayContaining(encodedStreamKeys),
+            );
+        },
+        TIMEOUT,
+    );
 });
 
 //standalone tests
