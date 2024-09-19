@@ -94,21 +94,6 @@ jobs:
               with:
                   version: "26.1"
                   repo-token: ${{ secrets.GITHUB_TOKEN }}
-                  
-            - uses: actions/download-artifact@v4
-              with:
-                  path: java/jars
-                  merge-multiple: true
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  repository: valkey-io/valkey-glide
-                  run-id: 10887052354
-# https://github.com/valkey-io/valkey-glide/actions/runs/10887052354
-
-            - name: unpack RC
-              working-directory: java/jars
-              run: |
-                  for file in bundle*.jar; do jar xf $file; done
-                  tree .
 
             - name: Build java client
               working-directory: java
