@@ -20,7 +20,6 @@ import {
     GlideString,
     ProtocolVersion,
     RequestError,
-    Script,
     Transaction,
 } from "@valkey/valkey-glide";
 import { v4 as uuidv4 } from "uuid";
@@ -48,6 +47,13 @@ import {
 } from "./TestUtilities";
 
 const TIMEOUT = 50000;
+
+export declare class Script {
+    /** Construct with the script's code. */
+    constructor(code: string | Uint8Array);
+    /** Returns the hash of the script. */
+    getHash(): string;
+}
 
 describe("GlideClient", () => {
     let testsFailed = 0;
