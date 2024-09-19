@@ -11,7 +11,6 @@ import {
     it,
 } from "@jest/globals";
 import {
-    convertGlideRecordToRecord,
     Decoder,
     FlushMode,
     FunctionRestorePolicy,
@@ -45,6 +44,56 @@ import {
     waitForNotBusy,
     waitForScriptNotBusy,
 } from "./TestUtilities";
+
+/**
+ * @internal
+ * Check whether an object is a `GlideRecord` (see {@link GlideRecord}).
+ */
+export function isGlideRecord(obj?: unknown): boolean {
+    return (
+        Array.isArray(obj) &&
+        obj.length > 0 &&
+        typeof obj[0] === "object" &&
+        "key" in obj[0] &&
+        "value" in obj[0]
+    );
+}
+
+/**
+ * @internal
+ * Check whether an object is a `GlideRecord[]` (see {@link GlideRecord}).
+ */
+function isGlideRecordArray(obj?: unknown): boolean {
+    return Array.isArray(obj) && obj.length > 0 && isGlideRecord(obj[0]);
+}
+
+/**
+ * @internal
+ * Recursively downcast `GlideRecord` to `Record`. Use if `data` keys are always strings.
+ */
+export function convertGlideRecordToRecord<T>(
+    data: GlideRecord<T>,
+): Record<string, T> {
+    const res: Record<string, T> = {};
+
+    for (const pair of data) {
+        let newVal = pair.value;
+
+        if (isGlideRecord(pair.value)) {
+            newVal = convertGlideRecordToRecord(
+                pair.value as GlideRecord<unknown>,
+            ) as T;
+        } else if (isGlideRecordArray(pair.value)) {
+            newVal = (pair.value as GlideRecord<unknown>[]).map(
+                convertGlideRecordToRecord,
+            ) as T;
+        }
+
+        res[pair.key as string] = newVal;
+    }
+
+    return res;
+}
 
 const TIMEOUT = 50000;
 
