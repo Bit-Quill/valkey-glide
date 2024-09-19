@@ -9,7 +9,6 @@ import {
     GlideClient,
     GlideClusterClient,
     GlideString,
-    ObjectType,
     ProtocolVersion,
 } from "@valkey/valkey-glide";
 import { v4 as uuidv4 } from "uuid";
@@ -23,6 +22,15 @@ import {
 } from "./TestUtilities";
 
 const TIMEOUT = 50000;
+
+export enum ObjectType {
+    STRING = "String",
+    LIST = "List",
+    SET = "Set",
+    ZSET = "ZSet",
+    HASH = "Hash",
+    STREAM = "Stream",
+}
 
 //cluster tests
 describe("Scan GlideClusterClient", () => {
