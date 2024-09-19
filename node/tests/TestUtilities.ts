@@ -34,7 +34,6 @@ import {
     TimeUnit,
     Transaction,
     UnsignedEncoding,
-    convertRecordToGlideRecord,
 } from "@valkey/valkey-glide";
 import { exec } from "child_process";
 import parseArgs from "minimist";
@@ -100,6 +99,26 @@ export function intoArray(v: any): string[] {
     const result: string[] = [];
     intoArrayInternal(v, result);
     return result;
+}
+
+/** A replacement for `Record<GlideString, T>` - array of key-value pairs. */
+export type GlideRecord<T> = {
+    /** The value name. */
+    key: GlideString;
+    /** The value itself. */
+    value: T;
+}[];
+
+/**
+ * @internal
+ * Reverse of {@link convertGlideRecordToRecord}.
+ */
+export function convertRecordToGlideRecord<T>(
+    data: Record<string, T>,
+): GlideRecord<T> {
+    return Object.entries(data).map(([key, value]) => {
+        return { key, value };
+    });
 }
 
 /**
@@ -465,7 +484,7 @@ export function checkFunctionListResponse(
             typeof libName === "string"
                 ? libName === lib["library_name"]
                 : (libName as Buffer).compare(lib["library_name"] as Buffer) ==
-                  0;
+                0;
 
         if (hasLib) {
             const functions = lib["functions"];
@@ -518,7 +537,7 @@ export function checkFunctionStatsResponse(
     if (response.running_script !== null && runningFunction.length == 0) {
         fail(
             "Unexpected running function info: " +
-                (response.running_script.command as string[]).join(" "),
+            (response.running_script.command as string[]).join(" "),
         );
     }
 
@@ -558,10 +577,10 @@ export function validateTransactionResponse(
             const actual =
                 response?.[i] instanceof Map
                     ? JSON.stringify(
-                          Array.from(
-                              (response?.[i] as ReturnTypeMap)?.entries(),
-                          ),
-                      )
+                        Array.from(
+                            (response?.[i] as ReturnTypeMap)?.entries(),
+                        ),
+                    )
                     : JSON.stringify(response?.[i]);
             failedChecks.push(
                 `${testName} failed, expected <${expected}>, actual <${actual}>`,
@@ -572,7 +591,7 @@ export function validateTransactionResponse(
     if (failedChecks.length > 0) {
         throw new Error(
             "Checks failed in transaction response:\n" +
-                failedChecks.join("\n"),
+            failedChecks.join("\n"),
         );
     }
 }
@@ -1362,18 +1381,18 @@ export async function transactionTest(
             'xautoclaim(key9, groupName1, consumer, 0, "0-0", { count: 1 })',
             gte(version, "7.0.0")
                 ? [
-                      "0-0",
-                      convertRecordToGlideRecord({
-                          "0-2": [["field", "value2"]],
-                      }),
-                      [],
-                  ]
+                    "0-0",
+                    convertRecordToGlideRecord({
+                        "0-2": [["field", "value2"]],
+                    }),
+                    [],
+                ]
                 : [
-                      "0-0",
-                      convertRecordToGlideRecord({
-                          "0-2": [["field", "value2"]],
-                      }),
-                  ],
+                    "0-0",
+                    convertRecordToGlideRecord({
+                        "0-2": [["field", "value2"]],
+                    }),
+                ],
         ]);
         baseTransaction.xautoclaimJustId(key9, groupName1, consumer, 0, "0-0");
         responseData.push([
