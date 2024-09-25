@@ -315,6 +315,8 @@ def start_redis_server(
         "yes",
         "--logfile",
         f"{node_folder}/redis.log",
+        "--protected-mode",
+        "no"
     ]
     if load_module:
         if len(load_module) == 0:

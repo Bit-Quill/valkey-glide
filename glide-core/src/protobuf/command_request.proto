@@ -257,6 +257,8 @@ enum RequestType {
     ScriptFlush = 216;
     ScriptKill = 217;
     ScriptShow = 218;
+
+    FtCreate = 2000;
 }
 
 message Command {
