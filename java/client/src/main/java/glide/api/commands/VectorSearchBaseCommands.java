@@ -18,7 +18,14 @@ public interface VectorSearchBaseCommands {
      * @return <code>OK</code>.
      * @example
      *     <pre>{@code
-     * // TODO
+     * // Create an index for vectors of size 2:
+     * client.ftcreate("hash_idx1", IndexType.HASH, new String[] {"hash:"}, new FieldInfo[] {
+     *     new FieldInfo("vec", "VEC", VectorFieldFlat.builder(DistanceMetric.L2, 2).build())
+     * }).get();
+     * // Create a 6-dimensional JSON index using the HNSW algorithm:
+     * client.ftcreate("json_idx1", IndexType.JSON, new String[] {"json:"}, new FieldInfo[] {
+     *     new FieldInfo("$.vec", "VEC", VectorFieldHnsw.builder(DistanceMetric.L2, 6).numberOfEdges(32).build())
+     * }).get();
      * }</pre>
      */
     CompletableFuture<String> ftcreate(

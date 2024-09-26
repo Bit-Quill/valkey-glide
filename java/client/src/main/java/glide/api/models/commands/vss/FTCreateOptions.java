@@ -8,12 +8,14 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 // TODO examples
 public class FTCreateOptions {
+    /** Type of the index dataset. */
     public enum IndexType {
+        /** Data stored in hashes, so field identifiers are field names within the hashes. */
         HASH,
+        /** Data stored in JSONs, so field identifiers are JSON Path expressions. */
         JSON
     }
 
@@ -60,6 +62,22 @@ public class FTCreateOptions {
         private Optional<Character> separator;
         private final boolean caseSensitive;
 
+        /** Create a <code>TAG</code> field. */
+        public TagField() {
+            this.separator = Optional.empty();
+            this.caseSensitive = false;
+        }
+
+        /**
+         * Create a <code>TAG</code> field.
+         *
+         * @param separator The tag separator.
+         */
+        public TagField(char separator) {
+            this.separator = Optional.of(separator);
+            this.caseSensitive = false;
+        }
+
         /**
          * Create a <code>TAG</code> field.
          *
@@ -95,24 +113,35 @@ public class FTCreateOptions {
         }
     }
 
+    /** Vector index algorithm. */
     public enum Algorithm {
-        /** Hierarchical Navigable Small World */
+        /**
+         * Hierarchical Navigable Small World provides an approximation of nearest neighbors algorithm
+         * that uses a multi-layered graph.
+         */
         HNSW,
         /**
          * The Flat algorithm is a brute force linear processing of each vector in the index, yielding
-         * exact answers within the bounds of the precision of the distance computations. Because of the
-         * linear processing of the index, run times for this algorithm can be very high for large
-         * indexes.
+         * exact answers within the bounds of the precision of the distance computations.
          */
         FLAT
     }
 
+    /**
+     * Distance metrics to measure the degree of similarity between two vectors.<br>
+     * The above metrics calculate distance between two vectors, where the smaller the value is, the
+     * closer the two vectors are in the vector space.
+     */
     public enum DistanceMetric {
+        /** Euclidean distance between two vectors. */
         L2,
+        /** Inner product of two vectors. */
         IP,
+        /** Cosine distance of two vectors. */
         COSINE
     }
 
+    /** Superclass for vector field implementations, contains common logic. */
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     abstract static class VectorField implements Field {
         private final Map<String, String> params;
@@ -123,7 +152,7 @@ public class FTCreateOptions {
             var args = new ArrayList<String>();
             args.add("VECTOR");
             args.add(Algorithm);
-            args.add(Integer.toString(params.size()));
+            args.add(Integer.toString(params.size() * 2));
             params.forEach(
                     (name, value) -> {
                         args.add(name);
@@ -147,7 +176,8 @@ public class FTCreateOptions {
         /**
          * Init a {@link VectorFieldHnsw}'s builder.
          *
-         * @param distanceMetric {@link DistanceMetric}
+         * @param distanceMetric {@link DistanceMetric} to measure the degree of similarity between two
+         *     vectors.
          * @param dimensions Vector dimension, specified as a positive integer. Maximum: 32768
          */
         public static VectorFieldHnswBuilder builder(
@@ -157,7 +187,7 @@ public class FTCreateOptions {
     }
 
     public static class VectorFieldHnswBuilder extends VectorFieldBuilder<VectorFieldHnswBuilder> {
-        public VectorFieldHnswBuilder(DistanceMetric distanceMetric, int dimensions) {
+        VectorFieldHnswBuilder(DistanceMetric distanceMetric, int dimensions) {
             super(distanceMetric, dimensions);
         }
 
@@ -210,7 +240,8 @@ public class FTCreateOptions {
         /**
          * Init a {@link VectorFieldFlat}'s builder.
          *
-         * @param distanceMetric {@link DistanceMetric}
+         * @param distanceMetric {@link DistanceMetric} to measure the degree of similarity between two
+         *     vectors.
          * @param dimensions Vector dimension, specified as a positive integer. Maximum: 32768
          */
         public static VectorFieldFlatBuilder builder(
@@ -220,7 +251,7 @@ public class FTCreateOptions {
     }
 
     public static class VectorFieldFlatBuilder extends VectorFieldBuilder<VectorFieldFlatBuilder> {
-        public VectorFieldFlatBuilder(DistanceMetric distanceMetric, int dimensions) {
+        VectorFieldFlatBuilder(DistanceMetric distanceMetric, int dimensions) {
             super(distanceMetric, dimensions);
         }
 
@@ -233,7 +264,7 @@ public class FTCreateOptions {
     abstract static class VectorFieldBuilder<T extends VectorFieldBuilder<T>> {
         protected final Map<String, String> params = new HashMap<>();
 
-        public VectorFieldBuilder(DistanceMetric distanceMetric, int dimensions) {
+        VectorFieldBuilder(DistanceMetric distanceMetric, int dimensions) {
             params.put("TYPE", "FLOAT32");
             params.put("DIM", Integer.toString(dimensions));
             params.put("DISTANCE_METRIC", distanceMetric.toString());
@@ -252,16 +283,35 @@ public class FTCreateOptions {
         public abstract VectorField build();
     }
 
-    @RequiredArgsConstructor
+    /** Field definition to be added into index schema. */
     public static class FieldInfo {
         private final String identifier;
         private final String alias;
         private final Field field;
 
+        /**
+         * Field definition to be added into index schema.
+         *
+         * @param identifier Field identifier (name).
+         * @param field The {@link Field} itself.
+         */
         public FieldInfo(String identifier, Field field) {
             this.identifier = identifier;
             this.field = field;
             this.alias = null;
+        }
+
+        /**
+         * Field definition to be added into index schema.
+         *
+         * @param identifier Field identifier (name).
+         * @param alias Field alias.
+         * @param field The {@link Field} itself.
+         */
+        public FieldInfo(String identifier, String alias, Field field) {
+            this.identifier = identifier;
+            this.alias = alias;
+            this.field = field;
         }
 
         /** Convert to module API. */
