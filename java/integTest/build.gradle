@@ -97,7 +97,7 @@ tasks.register('startStandalone') {
 test.dependsOn 'stopAllBeforeTests'
 stopAllBeforeTests.finalizedBy 'clearDirs'
 clearDirs.finalizedBy 'startStandalone'
-// clearDirs.finalizedBy 'startCluster'
+clearDirs.finalizedBy 'startCluster'
 test.finalizedBy 'stopAllAfterTests'
 test.dependsOn ':client:buildRustRelease'
 
