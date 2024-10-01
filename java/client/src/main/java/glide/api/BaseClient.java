@@ -26,6 +26,7 @@ import static command_request.CommandRequestOuterClass.RequestType.ExpireTime;
 import static command_request.CommandRequestOuterClass.RequestType.FCall;
 import static command_request.CommandRequestOuterClass.RequestType.FCallReadOnly;
 import static command_request.CommandRequestOuterClass.RequestType.FtCreate;
+import static command_request.CommandRequestOuterClass.RequestType.FtSearch;
 import static command_request.CommandRequestOuterClass.RequestType.GeoAdd;
 import static command_request.CommandRequestOuterClass.RequestType.GeoDist;
 import static command_request.CommandRequestOuterClass.RequestType.GeoHash;
@@ -268,6 +269,7 @@ import glide.api.models.commands.stream.StreamReadOptions;
 import glide.api.models.commands.stream.StreamTrimOptions;
 import glide.api.models.commands.vss.FTCreateOptions.FieldInfo;
 import glide.api.models.commands.vss.FTCreateOptions.IndexType;
+import glide.api.models.commands.vss.FTSearchOptions;
 import glide.api.models.configuration.BaseClientConfiguration;
 import glide.api.models.configuration.BaseSubscriptionConfiguration;
 import glide.api.models.exceptions.ConfigurationError;
@@ -5166,5 +5168,16 @@ public abstract class BaseClient
 
         return commandManager.submitNewCommand(
                 FtCreate, args.toArray(String[]::new), this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<Object[]> ftsearch(
+            String indexName, String query, FTSearchOptions options) {
+        var args =
+                concatenateArrays(
+                        new GlideString[] {gs(indexName), gs(query)},
+                        options.toArgs(),
+                        new GlideString[] {gs("DIALECT"), gs("2")});
+        return commandManager.submitNewCommand(FtSearch, args, this::handleArrayResponseBinary);
     }
 }

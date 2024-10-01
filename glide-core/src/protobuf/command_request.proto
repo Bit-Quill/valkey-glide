@@ -259,6 +259,7 @@ enum RequestType {
     ScriptShow = 218;
 
     FtCreate = 2000;
+    FtSearch = 2001;
 }
 
 message Command {

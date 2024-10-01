@@ -3,6 +3,8 @@ package glide.api.commands;
 
 import glide.api.models.commands.vss.FTCreateOptions.FieldInfo;
 import glide.api.models.commands.vss.FTCreateOptions.IndexType;
+import glide.api.models.commands.vss.FTSearchOptions;
+import glide.api.models.commands.vss.FTSearchOptions.FTSearchOptionsBuilder;
 import java.util.concurrent.CompletableFuture;
 
 public interface VectorSearchBaseCommands {
@@ -30,4 +32,34 @@ public interface VectorSearchBaseCommands {
      */
     CompletableFuture<String> ftcreate(
             String indexName, IndexType indexType, String[] prefixes, FieldInfo[] fields);
+
+    /**
+     * Uses the provided query expression to locate keys within an index. Once located, the count
+     * and/or content of indexed fields within those keys can be returned.
+     *
+     * @see TODO
+     * @param indexName The index name to search into.
+     * @param query The text query to search.
+     * @param options The search options - see {@link FTSearchOptions}.
+     * @return A two element array, where first element is count of documents in result set, and the
+     *     second element, which has format <code>
+     *     {@literal Map<GlideString, Map<GlideString, GlideString>>}</code> - a mapping between
+     *     document names and map of their attributes.<br>
+     *     If {@link FTSearchOptionsBuilder#count()} or {@link FTSearchOptionsBuilder#limit(int, int)}
+     *     with values <code>0, 0</code> is set, the command returns array with only one element - the
+     *     count of the documents.
+     * @example
+     *     <pre>{@code
+     * byte[] vector = new byte[24];
+     * Arrays.fill(vector, (byte) 0);
+     * var result = client.ftsearch("json_idx1", "*=>[KNN 2 @VEC $query_vec]",
+     *         FTSearchOptions.builder().params(Map.of("query_vec", gs(vector))).build())
+     *     .get();
+     * assertArrayEquals(result, new Object[] { 2L, Map.of(
+     *     gs("json:2"), Map.of(gs("__VEC_score"), gs("11.1100006104"), gs("$"), gs("{\"vec\":[1.1,1.2,1.3,1.4,1.5,1.6]}")),
+     *     gs("json:0"), Map.of(gs("__VEC_score"), gs("91"), gs("$"), gs("{\"vec\":[1,2,3,4,5,6]}")))
+     * });
+     * }</pre>
+     */
+    CompletableFuture<Object[]> ftsearch(String indexName, String query, FTSearchOptions options);
 }
