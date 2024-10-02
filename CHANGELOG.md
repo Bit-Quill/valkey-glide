@@ -4,6 +4,8 @@
 
 #### Fixes
 
+* Core: Fix RESP2 multi-node response from cluster ([#2381](https://github.com/valkey-io/valkey-glide/pull/2381))
+
 #### Operational Enhancements
 
 ## 1.1.0 (2024-09-24)
