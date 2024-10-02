@@ -1701,17 +1701,14 @@ mod tests {
 
     #[test]
     fn convert_lolwut() {
-        assert!(matches!(
-            expected_type_for_cmd(redis::cmd("LOLWUT").arg("version").arg("42")),
-            Some(ExpectedReturnType::Lolwut)
-        ));
-
         let unconverted_string : String = "\x1b[0;97;107m \x1b[0m--\x1b[0;37;47m \x1b[0m--\x1b[0;90;100m \x1b[0m--\x1b[0;30;40m \x1b[0m".into();
         let expected: String = "\u{2591}--\u{2592}--\u{2593}-- ".into();
+        let mut cmd = redis::cmd("LOLWUT");
+        let conversion_type = expected_type_for_cmd(cmd.arg("version").arg("42"));
 
         let converted_1 = convert_to_expected_type(
             Value::BulkString(unconverted_string.clone().into_bytes()),
-            Some(ExpectedReturnType::Lolwut),
+            conversion_type,
         );
         assert_eq!(
             Value::BulkString(expected.clone().into_bytes()),
@@ -1723,7 +1720,7 @@ mod tests {
                 format: redis::VerbatimFormat::Text,
                 text: unconverted_string.clone(),
             },
-            Some(ExpectedReturnType::Lolwut),
+            conversion_type,
         );
         assert_eq!(
             Value::BulkString(expected.clone().into_bytes()),
@@ -1741,16 +1738,16 @@ mod tests {
                     Value::BulkString(unconverted_string.clone().into_bytes()),
                 ),
             ]),
-            Some(ExpectedReturnType::Lolwut),
+            conversion_type,
         );
         assert_eq!(
             Value::Map(vec![
                 (
-                    Value::BulkString("node 1".into()),
+                    Value::SimpleString("node 1".into()),
                     Value::BulkString(expected.clone().into_bytes())
                 ),
                 (
-                    Value::BulkString("node 2".into()),
+                    Value::SimpleString("node 2".into()),
                     Value::BulkString(expected.clone().into_bytes())
                 ),
             ]),
@@ -1759,7 +1756,7 @@ mod tests {
 
         let converted_4 = convert_to_expected_type(
             Value::SimpleString(unconverted_string.clone()),
-            Some(ExpectedReturnType::Lolwut),
+            conversion_type,
         );
         assert!(converted_4.is_err());
     }
@@ -2269,11 +2266,6 @@ mod tests {
 
     #[test]
     fn convert_function_stats() {
-        assert!(matches!(
-            expected_type_for_cmd(redis::cmd("FUNCTION").arg("STATS")),
-            Some(ExpectedReturnType::FunctionStatsReturnType)
-        ));
-
         let resp2_response_non_empty_first_part_data = vec![
             Value::BulkString(b"running_script".into()),
             Value::Array(vec![
@@ -2400,7 +2392,8 @@ mod tests {
             ),
         ]);
 
-        let conversion_type = Some(ExpectedReturnType::FunctionStatsReturnType);
+        let cmd = redis::cmd("FUNCTION STATS");
+        let conversion_type = expected_type_for_cmd(&cmd);
         // resp2 -> resp3 conversion with non-empty `running_script` block
         assert_eq!(
             convert_to_expected_type(
