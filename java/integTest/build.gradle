@@ -131,8 +131,8 @@ test {
 
 tasks.register('modulesTest', Test) {
     doFirst {
-        systemProperty 'test.server.standalone.ports', 6379
-        systemProperty 'test.server.cluster.ports', 7000
+        standalonePorts = [6379]
+        clusterPorts = [7000]
     }
 
     filter {

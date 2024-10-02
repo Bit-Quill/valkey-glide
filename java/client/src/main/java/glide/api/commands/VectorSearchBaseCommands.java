@@ -11,7 +11,7 @@ public interface VectorSearchBaseCommands {
      * Creates an index and initiates a backfill of that index.
      *
      * @see TODO
-     * @param indexName Key name where index is stored.
+     * @param indexName The index name.
      * @param indexType The index type.
      * @param prefixes (Optional) A list of prefixes of index definitions
      * @param fields Fields to populate into the index.
@@ -30,4 +30,17 @@ public interface VectorSearchBaseCommands {
      */
     CompletableFuture<String> ftcreate(
             String indexName, IndexType indexType, String[] prefixes, FieldInfo[] fields);
+
+    /**
+     * Deletes an index and associated content. Keys are unaffected.
+     *
+     * @see TODO
+     * @param indexName The index name.
+     * @return <code>OK</code>.
+     * @example
+     *     <pre>{@code
+     * client.ftdrop("hash_idx1").get();
+     * }</pre>
+     */
+    CompletableFuture<String> ftdrop(String indexName);
 }

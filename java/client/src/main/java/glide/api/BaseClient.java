@@ -26,6 +26,7 @@ import static command_request.CommandRequestOuterClass.RequestType.ExpireTime;
 import static command_request.CommandRequestOuterClass.RequestType.FCall;
 import static command_request.CommandRequestOuterClass.RequestType.FCallReadOnly;
 import static command_request.CommandRequestOuterClass.RequestType.FtCreate;
+import static command_request.CommandRequestOuterClass.RequestType.FtDrop;
 import static command_request.CommandRequestOuterClass.RequestType.GeoAdd;
 import static command_request.CommandRequestOuterClass.RequestType.GeoDist;
 import static command_request.CommandRequestOuterClass.RequestType.GeoHash;
@@ -5166,5 +5167,11 @@ public abstract class BaseClient
 
         return commandManager.submitNewCommand(
                 FtCreate, args.toArray(String[]::new), this::handleStringResponse);
+    }
+
+    @Override
+    public CompletableFuture<String> ftdrop(@NonNull String indexName) {
+        return commandManager.submitNewCommand(
+                FtDrop, new String[] {indexName}, this::handleStringResponse);
     }
 }

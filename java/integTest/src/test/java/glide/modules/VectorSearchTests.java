@@ -4,7 +4,9 @@ package glide.modules;
 import static glide.TestUtilities.commonClientConfig;
 import static glide.TestUtilities.commonClusterClientConfig;
 import static glide.api.BaseClient.OK;
+import static glide.api.models.configuration.RequestRoutingConfiguration.SimpleMultiNodeRoute.ALL_PRIMARIES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,8 +24,10 @@ import glide.api.models.commands.vss.FTCreateOptions.VectorFieldFlat;
 import glide.api.models.commands.vss.FTCreateOptions.VectorFieldHnsw;
 import glide.api.models.exceptions.RequestException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
@@ -166,5 +170,60 @@ public class VectorSearchTests {
                                         .get());
         assertInstanceOf(RequestException.class, exception.getCause());
         assertTrue(exception.getMessage().contains("arguments are missing"));
+    }
+
+    @SneakyThrows
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("getClients")
+    @SuppressWarnings("unchecked")
+    public void ft_drop(BaseClient client) {
+        var index = UUID.randomUUID().toString();
+        assertEquals(
+                OK,
+                client
+                        .ftcreate(
+                                index,
+                                IndexType.HASH,
+                                new String[0],
+                                new FieldInfo[] {
+                                    new FieldInfo("vec", VectorFieldHnsw.builder(DistanceMetric.L2, 2).build())
+                                })
+                        .get());
+
+        var before =
+                (Set<String>)
+                        (client instanceof GlideClient
+                                ? ((GlideClient) client).customCommand(new String[] {"FT._LIST"}).get()
+                                : ((GlideClusterClient) client)
+                                                .customCommand(new String[] {"FT._LIST"}, ALL_PRIMARIES)
+                                                .get()
+                                                .getMultiValue()
+                                                .values()
+                                                .stream()
+                                                .flatMap(s -> ((Set<String>) s).stream())
+                                                .collect(Collectors.toSet()));
+
+        assertEquals(OK, client.ftdrop(index).get());
+
+        var after =
+                (Set<String>)
+                        (client instanceof GlideClient
+                                ? ((GlideClient) client).customCommand(new String[] {"FT._LIST"}).get()
+                                : ((GlideClusterClient) client)
+                                                .customCommand(new String[] {"FT._LIST"}, ALL_PRIMARIES)
+                                                .get()
+                                                .getMultiValue()
+                                                .values()
+                                                .stream()
+                                                .flatMap(s -> ((Set<String>) s).stream())
+                                                .collect(Collectors.toSet()));
+
+        assertFalse(after.contains(index));
+        after.add(index);
+        assertEquals(after, before);
+
+        var exception = assertThrows(ExecutionException.class, () -> client.ftdrop(index).get());
+        assertInstanceOf(RequestException.class, exception.getCause());
+        assertTrue(exception.getMessage().contains("Unknown: Index name"));
     }
 }
