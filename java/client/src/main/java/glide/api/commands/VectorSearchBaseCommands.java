@@ -43,7 +43,7 @@ public interface VectorSearchBaseCommands {
      * @param options The search options - see {@link FTSearchOptions}.
      * @return A two element array, where first element is count of documents in result set, and the
      *     second element, which has format <code>
-     *     {@literal Map<GlideString, Map<GlideString, GlideString>>}</code> - a mapping between
+     *     {@literal Map<GlideString, Map<GlideString, GlideString>>}</code>, is a mapping between
      *     document names and map of their attributes.<br>
      *     If {@link FTSearchOptionsBuilder#count()} or {@link FTSearchOptionsBuilder#limit(int, int)}
      *     with values <code>0, 0</code> is set, the command returns array with only one element - the

@@ -922,8 +922,8 @@ pub(crate) fn convert_to_expected_type(
             Value::Array(ref array) if array.len() == 1 => Ok(value),
             Value::Array(mut array) => {
                 Ok(Value::Array(vec![
-                    array[0].clone(),
-                    convert_to_expected_type(Value::Array(array.split_off(1)), Some(ExpectedReturnType::Map {
+                    array.remove(0),
+                    convert_to_expected_type(Value::Array(array), Some(ExpectedReturnType::Map {
                         key_type: &Some(ExpectedReturnType::BulkString),
                         value_type: &Some(ExpectedReturnType::Map {
                             key_type: &Some(ExpectedReturnType::BulkString),
