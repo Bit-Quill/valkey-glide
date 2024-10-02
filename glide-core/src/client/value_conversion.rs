@@ -11,6 +11,11 @@ pub(crate) enum ExpectedReturnType<'a> {
         key_type: &'a Option<ExpectedReturnType<'a>>,
         value_type: &'a Option<ExpectedReturnType<'a>>,
     },
+    // Second parameter is a function which returns true if value needs to be converted
+    SingleOrMultiNode(
+        &'a Option<ExpectedReturnType<'a>>,
+        Option<fn(Value) -> bool>,
+    ),
     MapOfStringToDouble,
     Double,
     Boolean,
@@ -275,12 +280,6 @@ pub(crate) fn convert_to_expected_type(
         },
         ExpectedReturnType::Lolwut => {
             match value {
-                // cluster (multi-node) response - go recursive
-                Value::Map(map) => convert_map_entries(
-                    map,
-                    Some(ExpectedReturnType::BulkString),
-                    Some(ExpectedReturnType::Lolwut),
-                ),
                 // RESP 2 response
                 Value::BulkString(bytes) => {
                     let text = std::str::from_utf8(&bytes).unwrap();
@@ -555,19 +554,7 @@ pub(crate) fn convert_to_expected_type(
         // Second part is converted as `Map[str, Map[str, int]]`
         ExpectedReturnType::FunctionStatsReturnType => match value {
             // TODO reuse https://github.com/Bit-Quill/glide-for-redis/pull/331 and https://github.com/valkey-io/valkey-glide/pull/1489
-            Value::Map(map) => {
-                if map[0].0 == Value::BulkString(b"running_script".into()) {
-                    // already a RESP3 response - do nothing
-                    Ok(Value::Map(map))
-                } else {
-                    // cluster (multi-node) response - go recursive
-                    convert_map_entries(
-                        map,
-                        Some(ExpectedReturnType::BulkString),
-                        Some(ExpectedReturnType::FunctionStatsReturnType),
-                    )
-                }
-            }
+            Value::Map(map) => Ok(Value::Map(map)),
             Value::Array(mut array) if array.len() == 4 => {
                 let mut result: Vec<(Value, Value)> = Vec::with_capacity(2);
                 let running_script_info = array.remove(1);
@@ -892,6 +879,19 @@ pub(crate) fn convert_to_expected_type(
             )
                 .into()),
         }
+        ExpectedReturnType::SingleOrMultiNode(value_type, value_checker) =>  match value {
+            Value::Map(ref map) => match value_checker {
+                    Some(func) => {
+                        if !map.is_empty() && func(map[0].clone().1) {
+                            convert_to_expected_type(value.clone(), Some(ExpectedReturnType::Map { key_type: &None, value_type }))
+                        } else {
+                            Ok(value.clone())
+                        }
+                    }
+                    None => convert_to_expected_type(value.clone(), Some(ExpectedReturnType::Map { key_type: &None, value_type })),
+                }
+            _ => convert_to_expected_type(value, *value_type),
+        }
     }
 }
 
@@ -1140,10 +1140,17 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
 
     // TODO use enum to avoid mistakes
     match command.as_slice() {
-        b"HGETALL" | b"CONFIG GET" | b"FT.CONFIG GET" | b"HELLO" => Some(ExpectedReturnType::Map {
+        b"HGETALL" | b"FT.CONFIG GET" | b"HELLO" => Some(ExpectedReturnType::Map {
             key_type: &None,
             value_type: &None,
         }),
+        b"CONFIG GET" => Some(ExpectedReturnType::SingleOrMultiNode(
+            &Some(ExpectedReturnType::Map {
+                key_type: &None,
+                value_type: &None,
+            }),
+            Some(|val| matches!(val, Value::Array(_))),
+        )),
         b"XCLAIM" => {
             if cmd.position(b"JUSTID").is_some() {
                 Some(ExpectedReturnType::ArrayOfStrings)
@@ -1227,11 +1234,17 @@ pub(crate) fn expected_type_for_cmd(cmd: &Cmd) -> Option<ExpectedReturnType> {
                 None
             }
         }
-        b"LOLWUT" => Some(ExpectedReturnType::Lolwut),
+        b"LOLWUT" => Some(ExpectedReturnType::SingleOrMultiNode(
+            &Some(ExpectedReturnType::Lolwut),
+            None,
+        )),
         b"FUNCTION LIST" => Some(ExpectedReturnType::ArrayOfMaps(&Some(
             ExpectedReturnType::ArrayOfMaps(&Some(ExpectedReturnType::StringOrSet)),
         ))),
-        b"FUNCTION STATS" => Some(ExpectedReturnType::FunctionStatsReturnType),
+        b"FUNCTION STATS" => Some(ExpectedReturnType::SingleOrMultiNode(
+            &Some(ExpectedReturnType::FunctionStatsReturnType),
+            Some(|val| matches!(val, Value::Array(_))),
+        )),
         b"GEOSEARCH" => {
             if cmd.position(b"WITHDIST").is_some()
                 || cmd.position(b"WITHHASH").is_some()
