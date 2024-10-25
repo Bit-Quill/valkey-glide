@@ -74,5 +74,5 @@ runs:
           if: ${{ inputs.engine-version != '' }}
           uses: ./.github/workflows/install-redis
           with:
-              engine-version: ${{ inputs.engine-version }}
+              redis-version: ${{ inputs.engine-version }}
               target: ${{ inputs.target }}
