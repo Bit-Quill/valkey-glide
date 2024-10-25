@@ -1,10 +1,6 @@
 [
   {
-    "type": "valkey",
-    "version": "7.2.5"
-  },
-  {
-    "type": "valkey",
-    "version": "8.0.0"
+    "type": "redis",
+    "version": "6.2.0"
   }
 ]
