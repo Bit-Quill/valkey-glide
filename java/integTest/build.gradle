@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id "com.google.osdetector" version "1.7.3"
 }
 
 repositories {
@@ -8,7 +9,7 @@ repositories {
 
 dependencies {
     // client
-    implementation project(':client')
+    implementation files("../jars/valkey-glide-v1.2.0-rc1-${osdetector.classifier}.jar")
 
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
     implementation 'com.google.code.gson:gson:2.10.1'

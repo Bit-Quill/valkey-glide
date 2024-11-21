@@ -25,6 +25,7 @@
         "ARCH": "arm64",
         "TARGET": "aarch64-apple-darwin",
         "PACKAGE_MANAGERS": ["pypi", "npm", "maven"],
+        "run": "always",
         "languages": ["python", "node", "java", "go", "dotnet"]
     },
     {
