@@ -120,7 +120,7 @@ jobs:
                   if ${{ matrix.host.OS  == 'ubuntu' }}; then
                       sudo apt install tcpdump
                   else
-                      sudo brew install tcpdump
+                      brew install tcpdump
                   fi
                   sudo tcpdump -i lo -w dump.pcap &
 
