@@ -114,19 +114,22 @@ jobs:
               working-directory: java/jars
               run: |
                   for file in bundle*.jar; do jar xf $file; done
+                  
+            - name: tcpdump
+              run: |
+                  if ${{ matrix.host.OS  == 'ubuntu' }}; then
+                      sudo apt install tcpdump
+                  else
+                      sudo brew install tcpdump
+                  fi
+                  sudo tcpdump -i lo -w dump.pcap &
 
             - name: Build java client
               working-directory: java
-              run: ./gradlew --continue build -x javadoc
+              run: ./gradlew :integTest:test --tests '*.*password*'
 
-            - name: Ensure no skipped files by linter
-              working-directory: java
-              run: ./gradlew spotlessDiagnose | grep 'All formatters are well behaved for all files'
-
-            - uses: ./.github/workflows/test-benchmark
-              if: ${{ matrix.engine.version == '8.0' && matrix.host.RUNNER == 'ubuntu-latest' && matrix.java == '17' }}
-              with:
-                  language-flag: -java
+            - name: tcpdump
+              run: sudo pkill tcpdump
 
             - name: Upload test & spotbugs reports
               if: always()
@@ -135,6 +138,7 @@ jobs:
               with:
                   name: test-reports-java-${{ matrix.java }}-${{ matrix.engine.type }}-${{ matrix.engine.version }}-${{ matrix.host.RUNNER }}
                   path: |
+                      dump.pcap
                       java/client/build/reports/**
                       java/integTest/build/reports/**
                       utils/clusters/**

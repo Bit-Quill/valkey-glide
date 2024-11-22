@@ -22,8 +22,8 @@ public final class TestConfiguration {
     public static final boolean TLS = Boolean.parseBoolean(System.getProperty("test.server.tls", ""));
 
     static {
-        Logger.init(Logger.Level.OFF);
-        Logger.setLoggerConfig(Logger.Level.OFF);
+        Logger.init(Logger.Level.TRACE);
+        Logger.setLoggerConfig(Logger.Level.TRACE);
         try {
             BaseClient client =
                     !STANDALONE_HOSTS[0].isEmpty()
