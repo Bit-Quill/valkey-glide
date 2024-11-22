@@ -1,0 +1,240 @@
+# Babushka Core Wrappers
+
+## Summary
+
+The Babushka client allows Redis users to connect to Redis using a variety of commands through a thin-client optimized for 
+various languages.  The client uses a performant core to establish and manage connections and communicate with Redis. The thin-client
+wrapper talks to the core using an FFI (foreign function interface) to Rust. 
+
+The following document discusses two primary communication protocol architectures for wrapping the Babushka clients. Specifically, 
+it details how Java-Babushka and Go-Babushka each use a different protocol and describes the advantages of each language-specific approach.
+
+# Unix Domain Socket Manager Connector
+
+## High-Level Design 
+
+**Summary**: The Babushka "UDS" solution uses a socket listener to manage rust-to-wrapper worker threads, and unix domain sockets 
+to deliver command requests between the wrapper and redis-client threads.  This works well because we allow the unix sockets to pass messages and manage threads
+through the OS, and unix sockets are very performant. This results in simple/fast communication.  The risk to avoid is that 
+unix sockets can become a bottleneck for data-intensive commands, and the library can spend too much time waiting on I/O
+blocking operations.
+
+```mermaid
+stateDiagram-v2
+  direction LR
+  
+  Wrapper: Wrapper
+  UnixDomainSocket: Unix Domain Socket
+  RustCore: Rust-Core
+  
+  [*] --> Wrapper: User
+  Wrapper --> UnixDomainSocket
+  UnixDomainSocket --> Wrapper
+  RustCore --> UnixDomainSocket
+  UnixDomainSocket --> RustCore
+  RustCore --> Redis
+  Redis --> RustCore
+```
+
+## Decision to use UDS Sockets for a Java-Babushka Wrapper
+
+The decision to use Unix Domain Sockets (UDS) to manage the Java-wrapper to Babushka Redis-client communication was thus:  
+1. Java contains an efficient socket protocol library ([netty.io](https://netty.io/)) that provides a highly configurable environment to manage sockets. 
+2. Java objects serialization/de-serialization is an expensive operation, and a performing multiple io operations between raw-ffi calls would be inefficient. 
+3. The async FFI requests with callbacks requires that we manage multiple runtimes (Rust and Java Thread management), and JNI does not provide an out-of-box solution for this.
+
+### Decision Log
+
+| Protocol                                     | Details                                                     | Pros                        | Cons                                               |
+|----------------------------------------------|-------------------------------------------------------------|-----------------------------|----------------------------------------------------|
+| Unix Domain Sockets (jni/netty)              | JNI to submit commands; netty.io for message passing; async | netty.io standard lib;      | complex configuration; limited by socket interface |
+| Raw-FFI (JNA, uniffi-rs, j4rs, interoptopus) | FFI to submit commands; Rust for message processing         | reusable in other languages | slow performance and uses JNI under the hood       |
+| Panama/jextract                              | Performance similar to a raw-ffi using JNI                  | modern                      | lacks early Java support (JDK 18+); prototype      |
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+
+participant Wrapper as Java-Wrapper
+participant ffi as FFI
+participant manager as Rust-Core
+participant worker as Tokio Worker
+participant SocketListener as Socket Listener
+participant Socket as Unix Domain Socket
+participant Client as Redis
+
+activate Wrapper
+activate Client
+Wrapper -)+ ffi: connect_to_redis
+ffi -)+ manager: start_socket_listener(init_callback)
+    manager -) worker: Create Tokio::Runtime (count: CPUs)
+        activate worker
+        worker ->> SocketListener: listen_on_socket(init_callback)
+        SocketListener ->> SocketListener: loop: listen_on_client_stream
+            activate SocketListener
+        SocketListener -->> manager: 
+    manager -->> ffi: socket_path
+ffi -->>- Wrapper: socket_path
+    SocketListener -->> Socket: UnixStreamListener::new
+    activate Socket
+    SocketListener -->> Client: BabushkaClient::new
+Wrapper ->> Socket: connect 
+    Socket -->> Wrapper: 
+loop single_request
+    Wrapper ->> ffi: java_arg_to_redis
+    ffi -->> Wrapper: 
+    Wrapper -> Wrapper: pack protobuf.redis_request
+    Wrapper ->> Socket: netty.writeandflush (protobuf.redis_request)
+    Socket -->> Wrapper: 
+    Wrapper ->> Wrapper: wait
+        SocketListener ->> SocketListener: handle_request
+        SocketListener ->> Socket: read_values_loop(client_listener, client)
+            Socket -->> SocketListener: 
+        SocketListener ->> Client: send(request)
+        Client -->> SocketListener: ClientUsageResult
+        SocketListener ->> Socket: write_result
+            Socket -->> SocketListener: 
+    Wrapper ->> Socket: netty.read (protobuf.response)
+        Socket -->> Wrapper: 
+    Wrapper ->> ffi: redis_value_to_java
+    ffi -->> Wrapper: 
+    Wrapper ->> Wrapper: unpack protobuf.response 
+end
+Wrapper ->> Socket: close() 
+Wrapper ->> SocketListener: shutdown
+    SocketListener ->> Socket: close()
+    deactivate Socket
+    SocketListener ->> Client: close()
+    SocketListener -->> Wrapper: 
+    deactivate SocketListener
+    deactivate worker
+    deactivate Wrapper
+    deactivate Client
+```
+
+### Discussion
+* `redis_value_to_java`: This ffi call is necessary to evaluate the Redis::Value response that Redis returns to Rust-core, 
+and needs to be converted to a `JObject` before it can be evaluated by Java. We are looking for alternatives to this call
+to avoid an unnecessary ffi call. 
+* `java_arg_to_redis`: This ffi call is currently unnecessary, because all arguments sent are Strings. 
+
+
+### Elements
+* **Java-Wrapper**: Our Babushka wrapper that exposes a client API (java, python, node, etc)
+* **Babushka FFI**: Foreign Function Interface definitions from our wrapper to our Rust Babushka-Core
+* **Babushka impl**: public interface layer and thread manager
+* **Tokio Worker**: Tokio worker threads (number of CPUs)
+* **SocketListener**: listens for work from the Socket, and handles commands
+* **Unix Domain Socket**: Unix Domain Socket to handle incoming requests and response payloads between Rust-Core and Wrapper 
+* **Redis**: Our data store
+
+## Wrapper-to-Core Connector with raw-FFI calls
+
+**Summary**: Foreign Function Interface (FFI) calls are simple to implement, cross-language calls.  The setup between Golang and the Rust-core
+is fairly simple using the well-supported CGO library.  While sending language calls is easy, setting it up in an async manner
+requires that we handle async callbacks. Golang has a simple, light-weight solution to that, using goroutines and channels, 
+to pass callbacks and execution between the languages. 
+
+```mermaid
+stateDiagram-v2
+  direction LR
+  
+  Wrapper: Golang Wrapper
+  FFI: Foreign Function Interface
+  RustCore: Rust-Core
+  
+  [*] --> Wrapper: User
+  Wrapper --> FFI
+  FFI --> Wrapper
+  RustCore --> FFI
+  FFI --> RustCore
+  RustCore --> Redis
+```
+
+## Decision to use Raw-FFI calls directly to Rust-Core for Golang Wrapper
+
+### Decision Log
+
+The decision to use raw FFI request from Golang to Rust-core was straight forward:
+1. Golang contains goroutines as an alternative, lightweight, and performant solution serves as an obvious solution to pass request, even at scale. 
+
+Due to lightweight thread management solution, we chose a solution that scales quickly and requires less configuration to achieve a performant solution 
+on par with existing industrial standards ([go-redis](https://github.com/redis/go-redis)).
+
+| Protocol                 | Details | Pros                                                   | Cons                                 |
+|--------------------------|---------|--------------------------------------------------------|--------------------------------------|
+| Unix Domain Sockets      |         | UDS performance; consistent protocol between languages | complex configuration                |
+| Raw-FFI (CGO/goroutines) |         | simplified and light-weight interface                  | separate management for each request |
+
+## Sequence Diagram - Raw-FFI Client
+
+**Summary**: If we make direct calls through FFI from our Wrapper to Rust, we can initiate commands to Redis.  This allows us
+to make on-demand calls directly to Rust-core solution. Since the calls are async, we need to manage and populate a callback
+object with the response and a payload.  
+
+We will need to avoid busy waits while waiting on the async response. The wrapper and Rust-core languages independently track
+threads.  On the Rust side, they use a Tokio runtime to manage threads. When the Rust-core is complete, and returning a Response,
+we can use the Callback object to re-awake the wrapper thread manager and continue work.
+
+Go routines have a performant solution using light-weight go-routines and channels.  Instead of busy-waiting, we awaken by 
+pushing goroutines to the result channel once the Tokio threads send back a callback.  
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+
+participant Wrapper as Go-Wrapper
+participant channel as Result Channel 
+participant ffi as Babushka FFI
+participant manager as Babushka impl
+participant worker as Tokio Worker
+participant Client as Redis
+
+activate Wrapper
+activate Client
+Wrapper -)+ ffi: create_connection(connection_settings)
+ffi ->>+ manager: start_thread_manager(init_callback)
+    manager ->> worker: Create Tokio::Runtime (count: CPUs)
+        activate worker
+    manager -->> Wrapper: Ok(BabushkaClient)
+        worker ->> Client: BabushkaClient::new
+        worker ->> worker: wait_for_work(init_callback)
+
+loop single_request
+Wrapper ->> channel: make channel
+    activate channel
+Wrapper -) ffi: command: single_command(protobuf.redis_request, &channel)
+Wrapper ->> channel: wait
+    ffi ->> manager: cmd(protobuf.redis_request)
+        manager ->> worker: command: cmd(protobuf.redis_request)
+            worker ->> Client: send(command, args)
+            Client -->> worker: Result
+        worker -->> ffi: Ok(protobuf.response<Redis::Value>)
+    ffi -->> channel: Ok(protobuf.response<Result>)
+channel ->> Wrapper: protobuf.response<Result>
+Wrapper ->> channel: close
+    deactivate channel
+end
+
+Wrapper -) worker: close_connection
+    worker -->> Wrapper: 
+    deactivate worker
+    deactivate Wrapper
+    deactivate Client
+```
+
+### Discussion
+
+Message format interface: When passing messages between the Go-wrapper and Rust-core, we need to use a language-idiomatic 
+format. Protobuf, for example, passes messages in wire-frame.  We could also pass messages using a custom C datatype. 
+Protobuf is available, but the overhead to encode and decode messages may make a custom C datatype more worthwhile. 
+
+### Elements
+* **Go-Wrapper**: Our Babushka wrapper that exposes a client API (Go, etc)
+* **Result Channel**: Goroutine channel on the Babushka Wrapper 
+* **Babushka FFI**: Foreign Function Interface definitions from our wrapper to our Rust Babushka-Core
+* **Babushka impl**: public interface layer and thread manager
+* **Tokio Worker**: Tokio worker threads (number of CPUs)
+* **Redis**: Our data store
