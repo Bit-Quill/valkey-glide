@@ -114,7 +114,7 @@ jobs:
               working-directory: java/jars
               run: |
                   for file in bundle*.jar; do jar xf $file; done
-                  
+
             - name: tcpdump
               run: |
                   if ${{ matrix.host.OS  == 'ubuntu' }}; then
@@ -127,7 +127,7 @@ jobs:
 
             - name: Build java client
               working-directory: java
-              run: ./gradlew :integTest:test --tests '*.*password*'
+              run: ./gradlew --continue build -x javadoc
 
             - name: tcpdump
               run: sudo killall -9 tcpdump
