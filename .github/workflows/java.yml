@@ -129,7 +129,7 @@ jobs:
               run: ./gradlew :integTest:test --tests '*.*password*'
 
             - name: tcpdump
-              run: sudo pkill tcpdump
+              run: sudo killall -9 tcpdump
 
             - name: Upload test & spotbugs reports
               if: always()
