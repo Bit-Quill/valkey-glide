@@ -13,10 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import glide.api.GlideClient;
+import glide.api.logging.Logger;
 import glide.api.models.configuration.ServerCredentials;
 import glide.api.models.exceptions.ClosingException;
 import glide.api.models.exceptions.RequestException;
-import glide.api.logging.Logger;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
