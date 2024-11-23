@@ -119,10 +119,11 @@ jobs:
               run: |
                   if ${{ matrix.host.OS  == 'ubuntu' }}; then
                       sudo apt install tcpdump
+                      sudo tcpdump -i lo -w dump.pcap &
                   else
                       brew install tcpdump
+                      sudo tcpdump -i lo0 -w dump.pcap &
                   fi
-                  sudo tcpdump -i lo -w dump.pcap &
 
             - name: Build java client
               working-directory: java
