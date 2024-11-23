@@ -16,16 +16,24 @@ import glide.api.GlideClusterClient;
 import glide.api.models.configuration.ServerCredentials;
 import glide.api.models.exceptions.ClosingException;
 import glide.api.models.exceptions.RequestException;
+import glide.api.logging.Logger;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 @Timeout(10) // seconds
 public class ClusterClientTests {
+
+    @BeforeAll
+    public static void enable_log() {
+        Logger.init(Logger.Level.TRACE);
+        Logger.setLoggerConfig(Logger.Level.TRACE);
+    }
 
     @SneakyThrows
     @Test
