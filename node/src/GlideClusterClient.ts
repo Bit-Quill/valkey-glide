@@ -146,7 +146,7 @@ export namespace GlideClusterClientConfiguration {
 /**
  * Configuration options for creating a {@link GlideClusterClient | GlideClusterClient}.
  *
- * Extends `BaseClientConfiguration` with properties specific to `GlideClusterClient`, such as periodic topology checks
+ * Extends {@link BaseClientConfiguration | BaseClientConfiguration} with properties specific to `GlideClusterClient`, such as periodic topology checks
  * and Pub/Sub subscription settings.
  *
  * @remarks
