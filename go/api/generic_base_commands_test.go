@@ -412,7 +412,7 @@ func ExampleGlideClient_ObjectFreq() {
 
 	// Output:
 	// OK
-	// {2 false}
+	// {6 false}
 }
 
 func ExampleGlideClient_ObjectIdleTime() {
@@ -586,7 +586,7 @@ func ExampleGlideClient_Copy() {
 
 func ExampleGlideClient_CopyWithOptions() {
 	var client *GlideClient = getExampleGlideClient() // example helper function
-	opts := NewCopyOptionsBuilder().SetDBDestination(2).SetReplace()
+	opts := NewCopyOptionsBuilder().SetReplace()
 	result, err := client.Set("key1", "someValue")
 	result1, err := client.CopyWithOptions("key1", "key2", opts)
 	result2, err := client.Get("key2")

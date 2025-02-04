@@ -456,11 +456,11 @@ func ExampleGlideClient_BZMPopWithOptions() {
 
 	client.ZAdd("key1", map[string]float64{"a": 1.0, "b": 2.0, "c": 3.0, "d": 4.0})
 
-	result, err := client.BZMPopWithOptions([]string{"key1"}, MAX, 0.1, options.NewZMPopOptions().SetCount(2))
+	result, err := client.BZMPopWithOptions([]string{"key1"}, MAX, 0.1, options.NewZMPopOptions().SetCount(1))
 	if err != nil {
 		fmt.Println("Glide example failed with an error: ", err)
 	}
 	jsonSummary, _ := json.Marshal(result.Value())
 	fmt.Println(string(jsonSummary))
-	// Output: {"Key":"key1","MembersAndScores":[{"Member":"c","Score":3},{"Member":"d","Score":4}]}
+	// Output: {"Key":"key1","MembersAndScores":[{"Member":"d","Score":4}]}
 }

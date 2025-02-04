@@ -58,7 +58,7 @@ func ExampleGlideClient_XTrim() {
 	}
 	fmt.Println(count)
 
-	// Output: 1
+	// Output: 2
 }
 
 func ExampleGlideClient_XLen() {
@@ -100,8 +100,8 @@ func ExampleGlideClient_XAutoClaim() {
 	}
 	fmt.Println(response)
 
-	// Output: {0-0 map[0-1:[[entry1_field1 entry1_value1] [entry1_field2 entry1_value2]] 0-2:[[entry2_field1 entry2_value1]]]
-	// []}
+	// Output:
+	// {0-0 map[0-1:[[entry1_field1 entry1_value1] [entry1_field2 entry1_value2]] 0-2:[[entry2_field1 entry2_value1]]] []}
 }
 
 func ExampleGlideClient_XAutoClaimWithOptions() {
@@ -289,7 +289,7 @@ func ExampleGlideClient_XReadWithOptions() {
 	}
 	fmt.Println(response)
 
-	// Output: map[12345:map[12345-1:[[field1 value1] [field2 value2]]]]
+	// Output: map[12345:map[12345-2:[[field3 value3] [field4 value4]]]]
 }
 
 func ExampleGlideClient_XDel() {
@@ -364,7 +364,7 @@ func ExampleGlideClient_XPendingWithOptions() {
 	jsonDetails, _ := json.Marshal(details)
 	fmt.Println(string(jsonDetails))
 
-	// Output: [{"Id":"12345-1","ConsumerName":"c12345","IdleTime":1,"DeliveryCount":1}]
+	// Output: [{"Id":"12345-1","ConsumerName":"c12345","IdleTime":0,"DeliveryCount":1}]
 }
 
 func ExampleGlideClient_XGroupSetId() {
@@ -421,7 +421,7 @@ func ExampleGlideClient_XGroupSetIdWithOptions() {
 	client.XAck(key, group, []string{streamId1, streamId2}) // ack the message and remove it from the pending list
 
 	opts := options.NewXGroupSetIdOptionsOptions().SetEntriesRead(1)
-	client.XGroupSetIdWithOptions(key, group, "$", opts)            // reset the last acknowledged message to 0-0
+	client.XGroupSetIdWithOptions(key, group, "0-0", opts)          // reset the last acknowledged message to 0-0
 	client.XReadGroup(group, consumer, map[string]string{key: ">"}) // read the group again
 
 	summary, err := client.XPending(key, group) // get the pending messages, which should include the entry we previously acked
@@ -431,7 +431,7 @@ func ExampleGlideClient_XGroupSetIdWithOptions() {
 	jsonSummary, _ := json.Marshal(summary)
 	fmt.Println(string(jsonSummary))
 
-	// Output: {"NumOfMessages":1,"StartId":{},"EndId":{},"ConsumerMessages":[{"ConsumerName":"c12345","MessageCount":1}]}
+	// Output: {"NumOfMessages":2,"StartId":{},"EndId":{},"ConsumerMessages":[{"ConsumerName":"c12345","MessageCount":2}]}
 }
 
 func ExampleGlideClient_XGroupCreate() {
@@ -584,7 +584,7 @@ func ExampleGlideClient_XClaim() {
 		return
 	}
 
-	response, err := client.XClaim(key, group, consumer2, 1, []string{result[0].Id})
+	response, err := client.XClaim(key, group, consumer2, result[0].IdleTime, []string{result[0].Id})
 	if err != nil {
 		fmt.Println("Glide example failed with an error: ", err)
 	}
@@ -624,7 +624,7 @@ func ExampleGlideClient_XClaimWithOptions() {
 	}
 
 	opts := options.NewStreamClaimOptions().SetRetryCount(3)
-	response, err := client.XClaimWithOptions(key, group, consumer2, 1, []string{result[0].Id}, opts)
+	response, err := client.XClaimWithOptions(key, group, consumer2, result[0].IdleTime, []string{result[0].Id}, opts)
 	if err != nil {
 		fmt.Println("Glide example failed with an error: ", err)
 	}
@@ -663,7 +663,7 @@ func ExampleGlideClient_XClaimJustId() {
 		return
 	}
 
-	response, err := client.XClaimJustId(key, group, consumer2, 1, []string{result[0].Id})
+	response, err := client.XClaimJustId(key, group, consumer2, result[0].IdleTime, []string{result[0].Id})
 	if err != nil {
 		fmt.Println("Glide example failed with an error: ", err)
 	}
@@ -703,7 +703,7 @@ func ExampleGlideClient_XClaimJustIdWithOptions() {
 	}
 
 	opts := options.NewStreamClaimOptions().SetRetryCount(3)
-	response, err := client.XClaimJustIdWithOptions(key, group, consumer2, 1, []string{result[0].Id}, opts)
+	response, err := client.XClaimJustIdWithOptions(key, group, consumer2, result[0].IdleTime, []string{result[0].Id}, opts)
 	if err != nil {
 		fmt.Println("Glide example failed with an error: ", err)
 	}
