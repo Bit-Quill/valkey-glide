@@ -77,13 +77,25 @@ format:
 	gofumpt -w .
 	golines -w --shorten-comments -m 127 .
 
-# unit tests - skip complete IT suite (including MT)
+# unit tests - skip complete IT suite (including MT) and examples
 unit-test:
 	mkdir -p reports
 	set -o pipefail; \
 	LD_LIBRARY_PATH=$(shell find . -name libglide_rs.so|grep -w release|tail -1|xargs dirname|xargs readlink -f):${LD_LIBRARY_PATH} \
-	go test -v -race ./... -skip TestGlideTestSuite $(if $(test-filter), -testify.m $(test-filter)) \
+	go test -v -race ./... -skip 'TestGlideTestSuite|Example*' $(if $(test-filter), -testify.m $(test-filter)) \
 	| tee >(go tool test2json -t -p github.com/valkey-io/valkey-glide/go/glide/utils | go-test-report -o reports/unit-tests.html -t unit-test > /dev/null)
+
+# run examples validation (like UT, but they require server)
+examples-test:
+	mkdir -p reports
+	set -o pipefail; \
+	redis-server&
+	../utils/cluster_manager.py start --cluster-mode -p 7000 7001 7002 7003 7004 7005
+	LD_LIBRARY_PATH=$(shell find . -name libglide_rs.so|grep -w release|tail -1|xargs dirname|xargs readlink -f):${LD_LIBRARY_PATH} \
+	go test -v -race ./api/... -run Example* \
+	| tee >(go tool test2json -t -p github.com/valkey-io/valkey-glide/go/glide/api | go-test-report -o reports/examples-tests.html -t examples-test > /dev/null)
+	../utils/cluster_manager.py stop --prefix cluster
+	kill -9 $(lsof -ti:6379)
 
 # integration tests - run subtask with skipping modules tests
 integ-test: export TEST_FILTER = -skip TestGlideTestSuite/TestModule $(if $(test-filter), -testify.m $(test-filter))
