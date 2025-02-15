@@ -2,11 +2,9 @@ module github.com/valkey-io/valkey-glide/go/benchmarks
 
 go 1.20
 
-replace github.com/valkey-io/valkey-glide/go => ../
-
 require (
-	github.com/valkey-io/valkey-glide/go v0.0.0
 	github.com/redis/go-redis/v9 v9.5.1
+	github.com/valkey-io/valkey-glide/go v1.3.0-rc3
 )
 
 require (
