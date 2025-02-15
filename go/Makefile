@@ -2,7 +2,6 @@ SHELL:=/bin/bash
 
 install-build-tools:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.33.0
-	cargo install cbindgen
 
 install-dev-tools-go1.20:
 	go install github.com/vakenbolt/go-test-report@v0.9.3
