@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.8.4
-	github.com/valkey-io/valkey-glide/go v1.3.0-rc3
+	github.com/valkey-io/valkey-glide/go v1.3.0-rc4
 	google.golang.org/protobuf v1.33.0
 )
 
