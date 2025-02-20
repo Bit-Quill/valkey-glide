@@ -28,6 +28,16 @@
         "languages": ["python", "node", "java", "go", "dotnet"]
     },
     {
+        "OS": "windows",
+        "NAMED_OS": "windows",
+        "RUNNER": "windows-latest",
+        "ARCH": "x86_64",
+        "TARGET": "x86_64-pc-windows-msvc",
+        "PACKAGE_MANAGERS": [],
+        "run": "always",
+        "languages": ["dotnet"]
+    },
+    {
         "OS": "ubuntu",
         "NAMED_OS": "linux",
         "ARCH": "arm64",
