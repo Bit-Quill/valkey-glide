@@ -77,7 +77,7 @@ runs:
           run: |
               echo "Cloning and checking out Valkey ${{ inputs.engine-version }}"
               cd ${{ runner.temp }}
-              if (Test-Path -Path $Folder) {
+              if (Test-Path -Path valkey) {
                 echo "Removing existing valkey directory..."
                 Remove-Item -Path valkey -Recurse -Force -Confirm:$false
               }
