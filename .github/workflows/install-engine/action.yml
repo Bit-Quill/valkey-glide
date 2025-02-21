@@ -73,7 +73,7 @@ runs:
               
         - name: Build Valkey
           if: ${{ steps.cache-valkey.outputs.cache-hit != 'true' && contains(inputs.target, 'windows') }}
-          shepp: pwsh
+          shell: pwsh
           run: |
               echo "Cloning and checking out Valkey ${{ inputs.engine-version }}"
               cd ${{ runner.temp }}
