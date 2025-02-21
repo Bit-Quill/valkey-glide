@@ -32,8 +32,7 @@ runs:
           uses: actions/cache@v4
           id: cache-valkey
           with:
-              path: |
-                  ~/valkey
+              path: ${{ runner.temp }}/valkey
               key: valkey-${{ inputs.engine-version }}-${{ inputs.target }}
 
         - name: Prepare Valkey sources
@@ -41,7 +40,7 @@ runs:
           shell: bash
           run: |
               echo "Cloning and checking out Valkey ${{ inputs.engine-version }}"
-              cd ~/
+              cd ${{ runner.temp }}
               if [[ -d valkey ]]; then
                 echo "Removing existing valkey directory..."
                 rm -fR valkey
@@ -59,7 +58,7 @@ runs:
         - name: Build and install engine
           shell: bash
           run: |
-              cd ~/valkey
+              cd ${{ runner.temp }}/valkey
               make BUILD_TLS=yes
               if command -v sudo &> /dev/null
               then
@@ -69,7 +68,7 @@ runs:
                   echo "sudo command does not exist"
                   make install
               fi
-              echo 'export PATH=/usr/local/bin:$PATH' >>~/.bash_profile
+              echo 'export PATH=/usr/local/bin:$PATH' >> ~/.bash_profile
 
         # TODO: This seems redundant to me. Is it necessary? Do we check that the Python we install is the correct version?
         # Why here and not elsewhere? All Git git repos were created equal
