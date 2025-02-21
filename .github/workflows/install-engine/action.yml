@@ -36,7 +36,7 @@ runs:
               key: valkey-${{ inputs.engine-version }}-${{ inputs.target }}
 
         - name: Prepare Valkey sources
-          if: ${{ steps.cache-valkey.outputs.cache-hit != 'true' }}
+          if: ${{ steps.cache-valkey.outputs.cache-hit != 'true' && !contains(inputs.target, 'windows') }}
           shell: bash
           run: |
               echo "Cloning and checking out Valkey ${{ inputs.engine-version }}"
@@ -54,8 +54,9 @@ runs:
           uses: cygwin/cygwin-install-action@v5
           with:
               packages: make git gcc-core
-
+              
         - name: Build and install engine
+          if: ${{ !contains(inputs.target, 'windows') }}
           shell: bash
           run: |
               cd ${{ runner.temp }}/valkey
@@ -69,6 +70,21 @@ runs:
                   make install
               fi
               echo 'export PATH=/usr/local/bin:$PATH' >> ~/.bash_profile
+              
+        - name: Build Valkey
+          if: ${{ steps.cache-valkey.outputs.cache-hit != 'true' && contains(inputs.target, 'windows') }}
+          run: |
+              echo "Cloning and checking out Valkey ${{ inputs.engine-version }}"
+              cd ${{ runner.temp }}
+              if (Test-Path -Path $Folder) {
+                echo "Removing existing valkey directory..."
+                Remove-Item -Path valkey -Recurse -Force -Confirm:$false
+              }
+              git clone https://github.com/valkey-io/valkey.git
+              cd valkey
+              git checkout ${{ inputs.engine-version }}
+              make BUILD_TLS=yes
+              make install
 
         # TODO: This seems redundant to me. Is it necessary? Do we check that the Python we install is the correct version?
         # Why here and not elsewhere? All Git git repos were created equal
