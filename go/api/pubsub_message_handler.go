@@ -47,18 +47,21 @@ func NewMessageHandler(callback MessageCallback, context any) *MessageHandler {
 }
 
 // Handle processes the incoming response and invokes the callback if available
-func (handler *MessageHandler) Handle(pushInfo PushInfo) error {
+func (handler *MessageHandler) Handle(pushKind C.PushKind, message *PubSubMessage) error {
 
 	// Process based on kind
-	switch pushInfo.Kind {
-	case Disconnection:
+	switch pushKind {
+	case C.PushDisconnection:
 		// Do nothing on disconnection
-	case Message, SMessage, PMessage:
-		return handler.handleMessage(pushInfo.Message)
-	case Subscribe, PSubscribe, SSubscribe, Unsubscribe, PUnsubscribe, SUnsubscribe:
+		// TODO log
+	case C.PushMessage, C.PushSMessage, C.PushPMessage:
+		return handler.handleMessage(message)
+	case C.PushSubscribe, C.PushPSubscribe, C.PushSSubscribe, C.PushUnsubscribe, C.PushPUnsubscribe, C.PushSUnsubscribe:
 		// These are subscription-related messages, we can ignore them for now
+		// TODO log message
 	default:
-		log.Printf("unknown notification message: '%s'\n", pushInfo.Kind.String())
+		// TODO log to logger
+		log.Printf("unknown notification message: '%d'\n", pushKind)
 	}
 
 	return nil

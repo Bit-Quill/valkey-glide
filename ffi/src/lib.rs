@@ -135,7 +135,7 @@ pub type FailureCallback = unsafe extern "C" fn(
 /// `kind` is an integer representing the PushKind enum value (0=Disconnection, 1=Other, 2=Invalidate, 3=Message, etc.)
 /// `data_ptr` is a pointer to the CommandResponse containing the push data
 pub type PubSubCallback =
-    unsafe extern "C" fn(client_ptr: usize, kind: u32, data_ptr: *const CommandResponse) -> ();
+    unsafe extern "C" fn(client_ptr: usize, kind: PushKind, message: *const u8, message_len: i64, channel: *const u8, channel_len: i64, pattern: *const u8, pattern_len: i64) -> ();
 
 /// The connection response.
 ///
@@ -384,6 +384,42 @@ impl ClientAdapter {
     }
 }
 
+#[repr(C)]
+#[derive(Debug, Clone)]
+pub enum PushKind {
+    PushDisconnection,
+    PushOther,
+    PushInvalidate,
+    PushMessage,
+    PushPMessage,
+    PushSMessage,
+    PushUnsubscribe,
+    PushPUnsubscribe,
+    PushSUnsubscribe,
+    PushSubscribe,
+    PushPSubscribe,
+    PushSSubscribe,
+}
+
+impl From<redis::PushKind> for PushKind {
+    fn from(value: redis::PushKind) -> Self {
+        match value {
+            redis::PushKind::Disconnection => PushKind::PushDisconnection,
+            redis::PushKind::Other(_) => PushKind::PushOther,
+            redis::PushKind::Invalidate => PushKind::PushInvalidate,
+            redis::PushKind::Message => PushKind::PushMessage,
+            redis::PushKind::PMessage => PushKind::PushPMessage,
+            redis::PushKind::SMessage => PushKind::PushSMessage,
+            redis::PushKind::Unsubscribe => PushKind::PushUnsubscribe,
+            redis::PushKind::PUnsubscribe => PushKind::PushPUnsubscribe,
+            redis::PushKind::SUnsubscribe => PushKind::PushSUnsubscribe,
+            redis::PushKind::Subscribe => PushKind::PushSubscribe,
+            redis::PushKind::PSubscribe => PushKind::PushPSubscribe,
+            redis::PushKind::SSubscribe => PushKind::PushSSubscribe,
+        }
+    }
+}
+
 /// Processes a push notification message and calls the provided callback function.
 ///
 /// This function converts a PushInfo message to a CommandResponse, determines the
@@ -397,45 +433,46 @@ impl ClientAdapter {
 /// # Returns
 /// - `true` if the message was successfully processed and the callback was called.
 /// - `false` if there was an error processing the message (e.g., conversion failed).
-fn process_push_notification(
+/// 
+/// # Safety
+/// TODO
+unsafe fn process_push_notification(
     push_msg: redis::PushInfo,
     pubsub_callback: PubSubCallback,
     client_adapter_ptr: usize,
-) -> bool {
-    // Convert the push_msg.data to a CommandResponse
-    let data_response = match valkey_value_to_command_response(Value::Array(push_msg.data.clone()))
-    {
-        Ok(response) => response,
-        Err(_e) => {
-            return false; // Skip this message if conversion fails
-        }
-    };
+) {
+    let strings: Vec<(*mut u8, i64)> = push_msg.data.iter().map(|v| {
+        let Value::BulkString(str) = v else { unreachable!() };
+        let (ptr, len) = convert_vec_to_pointer(str.clone());
+        (ptr, len as i64)
+    }).collect();
 
-    // Get the numeric value of the PushKind enum
-    let kind_value = match push_msg.kind {
-        redis::PushKind::Disconnection => 0,
-        redis::PushKind::Other(_) => 1,
-        redis::PushKind::Invalidate => 2,
-        redis::PushKind::Message => 3,
-        redis::PushKind::PMessage => 4,
-        redis::PushKind::SMessage => 5,
-        redis::PushKind::Unsubscribe => 6,
-        redis::PushKind::PUnsubscribe => 7,
-        redis::PushKind::SUnsubscribe => 8,
-        redis::PushKind::Subscribe => 9,
-        redis::PushKind::PSubscribe => 10,
-        redis::PushKind::SSubscribe => 11,
+    // pattner, ch, msg
+    // ch, mgs
+    let ((pattern_ptr, pattern_len), (channel_ptr, channel_len), (message_ptr, message_len)) = {
+        if strings.len() == 3 {
+            (strings[0], strings[1], strings[2])
+        } else {
+            ((0 as *mut u8, 0), strings[0], strings[1])
+        }
     };
 
     // Call the pubsub callback with the push notification data
     unsafe {
         pubsub_callback(
             client_adapter_ptr,
-            kind_value,
-            Box::into_raw(Box::new(data_response)),
+            push_msg.kind.into(),
+            message_ptr, message_len,
+            channel_ptr, channel_len,
+            pattern_ptr, pattern_len
         );
+        // Free memory
+        let _ = Vec::from_raw_parts(message_ptr, message_len as usize, message_len as usize);
+        let _ = Vec::from_raw_parts(channel_ptr, channel_len as usize, channel_len as usize);
+        if !pattern_ptr.is_null() {
+            let _ = Vec::from_raw_parts(pattern_ptr, pattern_len as usize, pattern_len as usize);
+        }
     }
-    true
 }
 
 fn create_client_internal(
@@ -443,7 +480,6 @@ fn create_client_internal(
     client_type: ClientType,
     pubsub_callback: PubSubCallback,
 ) -> Result<*const ClientAdapter, String> {
-    let (push_tx, mut push_rx) = tokio::sync::mpsc::unbounded_channel();
 
     let request = connection_request::ConnectionRequest::parse_from_bytes(connection_request_bytes)
         .map_err(|err| err.to_string())?;
@@ -461,10 +497,17 @@ fn create_client_internal(
     // Wrap the runtime in an Arc so it can be shared
     let runtime = Arc::new(runtime);
 
+    let is_subscriber = request.pubsub_subscriptions.is_some() && pubsub_callback as usize != 0;
+    let (push_tx, mut push_rx) = tokio::sync::mpsc::unbounded_channel();
+    let tx = match is_subscriber {
+        true => Some(push_tx),
+        false => None,
+    };
+
     let client = runtime
         .block_on(GlideClient::new(
             ConnectionRequest::from(request),
-            Some(push_tx),
+            tx,
         ))
         .map_err(|err| err.to_string())?;
 
@@ -481,7 +524,7 @@ fn create_client_internal(
     let client_adapter_clone = Arc::into_raw(client_adapter.clone()).addr();
 
     // If pubsub_callback is provided (not null), spawn a task to handle push notifications
-    if pubsub_callback as usize != 0 {
+    if is_subscriber {
         runtime.spawn(async move {
             loop {
                 let result = push_rx.recv().await;
@@ -490,19 +533,9 @@ fn create_client_internal(
                         return;
                     }
                     Some(push_msg) => {
-                        process_push_notification(push_msg, pubsub_callback, client_adapter_clone);
+                        unsafe { process_push_notification(push_msg, pubsub_callback, client_adapter_clone); }
                     }
                 }
-            }
-        });
-    } else {
-        // If no pubsub callback is provided, we need to handle the channel to prevent infinite queue growth
-        runtime.spawn(async move {
-            loop {
-                if push_rx.recv().await.is_none() {
-                    return;
-                }
-                // Simply drop the PushInfo
             }
         });
     }

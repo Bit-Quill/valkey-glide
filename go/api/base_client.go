@@ -14,7 +14,7 @@ package api
 //
 // void successCallback(void *channelPtr, struct CommandResponse *message);
 // void failureCallback(void *channelPtr, char *errMessage, RequestErrorType errType);
-// void pubSubCallback(void *clientPtr, uint32_t kind, struct CommandResponse *message);
+// void pubSubCallback(void *clientPtr, uint32_t kind, char *message, long message_len, char *channel, long channel_len, char *pattern, long pattern_len);
 import "C"
 
 import (
