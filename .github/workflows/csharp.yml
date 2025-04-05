@@ -230,8 +230,24 @@ jobs:
                   cargo-toml-folder: csharp/rust
                   github-token: ${{ secrets.GITHUB_TOKEN }}
 
+            - name: Create global.json
+              run: |
+                  cat << EOF > global.json
+                  {
+                     "sdk": {
+                         "rollForward": "latestFeature",
+                         "version": "net6.0.0"
+                     }
+                  }
+                  EOF
+
+            - name: Set up dotnet
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 'net6.0'
+
             - name: Format
               working-directory: csharp
               run: |
-                  dotnet format --verify-no-changes --verbosity diagnostic
-                  dotnet build --configuration Lint
+                  dotnet format --verify-no-changes --verbosity diagnostic --framework net6.0
+                  dotnet build --configuration Lint --framework net6.0
