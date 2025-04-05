@@ -249,5 +249,5 @@ jobs:
             - name: Format
               working-directory: csharp
               run: |
-                  dotnet format --verify-no-changes --verbosity diagnostic --framework net6.0
+                  dotnet format --verify-no-changes --verbosity diagnostic
                   dotnet build --configuration Lint --framework net6.0
