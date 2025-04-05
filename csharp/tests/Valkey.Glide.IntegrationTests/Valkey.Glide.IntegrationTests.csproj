@@ -34,8 +34,7 @@
   <!-- Workaround for https://github.com/dotnet/roslyn/issues/41640 -->
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591;CS1573;CS1587;xUnit1014</NoWarn>
-    <!-- xUnit1014 added due to https://github.com/xunit/xunit/issues/3252, could be removed once fixed or we stop supporting .net6 -->
+    <NoWarn>$(NoWarn);CS1591;CS1573;CS1587</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -25,12 +25,12 @@ public class SharedCommandTests
     }
 
     [Theory(DisableDiscoveryEnumeration = true)]
-    [MemberData("TestClients", MemberType = typeof(TestConfiguration))]
+    [MemberData(nameof(TestConfiguration.TestClients), MemberType = typeof(TestConfiguration))]
     public async Task GetReturnsLastSet(BaseClient client) =>
         await GetAndSetRandomValues(client);
 
     [Theory(DisableDiscoveryEnumeration = true)]
-    [MemberData("TestClients", MemberType = typeof(TestConfiguration))]
+    [MemberData(nameof(TestConfiguration.TestClients), MemberType = typeof(TestConfiguration))]
     public async Task GetAndSetCanHandleNonASCIIUnicode(BaseClient client)
     {
         string key = Guid.NewGuid().ToString();
@@ -39,12 +39,12 @@ public class SharedCommandTests
     }
 
     [Theory(DisableDiscoveryEnumeration = true)]
-    [MemberData("TestClients", MemberType = typeof(TestConfiguration))]
+    [MemberData(nameof(TestConfiguration.TestClients), MemberType = typeof(TestConfiguration))]
     public async Task GetReturnsNull(BaseClient client) =>
         Assert.Null(await client.Get(Guid.NewGuid().ToString()));
 
     [Theory(DisableDiscoveryEnumeration = true)]
-    [MemberData("TestClients", MemberType = typeof(TestConfiguration))]
+    [MemberData(nameof(TestConfiguration.TestClients), MemberType = typeof(TestConfiguration))]
     public async Task GetReturnsEmptyString(BaseClient client)
     {
         string key = Guid.NewGuid().ToString();
