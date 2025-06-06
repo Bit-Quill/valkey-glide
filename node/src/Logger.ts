@@ -12,7 +12,7 @@ const LEVEL: Map<LevelOptions | undefined, Level | undefined> = new Map([
     ["trace", Level.Trace],
     [undefined, undefined],
 ]);
-type LevelOptions = "error" | "warn" | "info" | "debug" | "trace";
+type LevelOptions = "disabled" | "error" | "warn" | "info" | "debug" | "trace";
 
 /*
  * A singleton class that allows logging which is consistent with logs from the internal rust core.
@@ -26,7 +26,7 @@ export class Logger {
     private static logger_level = 0;
 
     private constructor(level?: LevelOptions, fileName?: string) {
-        Logger.logger_level = InitInternalLogger(LEVEL.get(level), fileName);
+        Logger.logger_level = level == "disabled" ? -1 : InitInternalLogger(LEVEL.get(level), fileName);
     }
 
     /**
@@ -45,6 +45,8 @@ export class Logger {
         if (!Logger._instance) {
             new Logger();
         }
+
+        if (logLevel == "disabled") return;
 
         const level = LEVEL.get(logLevel) || 0;
         if (!(level <= Logger.logger_level)) return;
